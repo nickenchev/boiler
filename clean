@@ -1,0 +1,8 @@
+#!/bin/bash
+rm -rf bin
+rm -rf CMakeFiles
+rm compile_commands.json
+rm Makefile
+rm CMakeCache.txt
+rm CMakeFiles.txt.user
+rm cmake_install.cmake
