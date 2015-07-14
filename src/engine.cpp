@@ -1,22 +1,10 @@
 #include <SDL.h>
+#include <SDL_image.h>
 #include <iostream>
 #include "engine.h"
 
 Engine::Engine() : spriteLoader(*this)
 {
-}
-
-Engine::~Engine()
-{
-    if (win)
-    {
-        SDL_DestroyWindow(win);
-    }
-    if (ren)
-    {
-        SDL_DestroyRenderer(ren);
-    }
-    SDL_Quit();
 }
 
 void Engine::initialize()
@@ -30,6 +18,7 @@ void Engine::initialize()
             ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
             if (ren)
             {
+                IMG_Init(IMG_INIT_PNG);
                 success = true;
             }
         }
@@ -51,6 +40,8 @@ void Engine::start()
     running = true;
     while(running)
     {
+        render();
+        
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
@@ -67,4 +58,23 @@ void Engine::start()
             }
         }
     }
+}
+
+void Engine::render()
+{
+}
+
+Engine::~Engine()
+{
+    if (win)
+    {
+        std::cout << "* Destroing Window" << std::endl;
+        SDL_DestroyWindow(win);
+    }
+    if (ren)
+    {
+        std::cout << "* Destroing Renderer" << std::endl;
+        SDL_DestroyRenderer(ren);
+    }
+    SDL_Quit();
 }

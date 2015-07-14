@@ -14,6 +14,7 @@ int main()
     load(engine);
     
     engine.start();
+    engine.start();
 
     return 0;
 }

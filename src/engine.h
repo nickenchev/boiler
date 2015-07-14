@@ -13,6 +13,10 @@ class Engine
     bool running = true;
     SpriteLoader spriteLoader;
 
+    void render();
+
+    //scene specific stuff
+
 public:
     Engine();
     ~Engine();

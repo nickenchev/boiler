@@ -19,7 +19,8 @@ set(SRC_FILES
   src/jsoncpp.cpp
   src/spriteloader.cpp
   src/engine.cpp
-  src/spritesheet.cpp)
+  src/spritesheet.cpp
+  src/component.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES}) 
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY})
