@@ -19,6 +19,7 @@ public:
 
     void initialize();
     void start();
+    void stop() { running = false; }
 
     SpriteLoader &getSpriteLoader() { return spriteLoader; }
     SDL_Window *getWindow() const { return win; }

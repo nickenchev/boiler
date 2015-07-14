@@ -20,8 +20,6 @@ int main()
 
 void load(Engine &engine)
 {
-    std::string dataFile = "data/random.json";
-    std::string imageFile = "data/random.png";
-
-    engine.getSpriteLoader().loadSheet(dataFile, imageFile);
+    std::string filename = "data/random.json";
+    engine.getSpriteLoader().loadSheet(filename);
 }

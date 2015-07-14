@@ -48,6 +48,7 @@ void Engine::initialize()
 
 void Engine::start()
 {
+    running = true;
     while(running)
     {
         SDL_Event event;
@@ -59,7 +60,7 @@ void Engine::start()
                 {
                     if (event.key.keysym.sym == SDLK_ESCAPE)
                     {
-                        running = false;
+                        stop();
                     }
                     break;
                 }

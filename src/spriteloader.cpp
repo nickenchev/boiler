@@ -10,23 +10,29 @@
 SpriteLoader::SpriteLoader(Engine &engine) : Component(engine)
 {
 }
-void SpriteLoader::loadSheet(std::string dataFile, std::string imageFile)
+void SpriteLoader::loadSheet(std::string filename)
 {
-    //load the image texture
-    SDL_Renderer *renderer = getEngine().getRenderer();
-    SDL_Surface *surface = IMG_Load(imageFile.c_str());
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    textures.push_back(texture);
-
-    SpriteSheet sheet(texture);
-    std::ifstream jsonFile(dataFile);
+    //read the spritesheet manifest
+    std::ifstream jsonFile(filename);
     if (jsonFile.is_open())
     {
         Json::Value json;
         jsonFile >> json;
+        
+        std::string imageFile = json["meta"]["image"].asString();
+        std::cout << " - Loading " << filename << "(" << imageFile << ")" << std::endl;
+
+        //read the sprite image name and load the texture
+        SDL_Renderer *renderer = getEngine().getRenderer();
+        SDL_Surface *surface = IMG_Load(imageFile.c_str());
+        SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+        textures.push_back(texture);
+
+        SpriteSheet sheet(imageFile, texture);
+
+        //setup the individual frames
         for (auto it = json["frames"].begin(); it != json["frames"].end(); ++it)
         {
-            std::cout << (*it)["filename"].asString() << std::endl;
         }
         jsonFile.close();
 
@@ -34,7 +40,7 @@ void SpriteLoader::loadSheet(std::string dataFile, std::string imageFile)
     }
     else
     {
-        std::cerr << "Error loading sprite sheet: " << dataFile << std::endl;
+        std::cerr << "Error loading sprite sheet: " << filename << std::endl;
     }
 }
 

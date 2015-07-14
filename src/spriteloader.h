@@ -19,7 +19,7 @@ public:
     ~SpriteLoader();
 
     //sprite handling methods
-    void loadSheet(std::string dataFile, std::string imageFile);
+    void loadSheet(std::string filename);
 };
 
 #endif // SPRITELOADER_H
