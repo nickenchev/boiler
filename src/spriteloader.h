@@ -2,23 +2,24 @@
 #define SPRITELOADER_H
 
 #include <string>
+#include <vector>
 
-class SpriteLoader
+#include "component.h"
+#include "spritesheet.h"
+
+class SDL_Texture;
+
+class SpriteLoader : Component
 {
-private:
-    SpriteLoader() { }
-public:
-    SpriteLoader(const SpriteLoader &spriteLoader) = delete;
-    void operator=(const SpriteLoader &spriteLoader) = delete;
+    std::vector<SDL_Texture*> textures;
+    std::vector<SpriteSheet> spriteSheets;
 
-    static SpriteLoader &getInstance()
-    {
-        static SpriteLoader instance;
-        return instance;
-    }
+public:
+    SpriteLoader(Engine &engine);
+    ~SpriteLoader();
 
     //sprite handling methods
-    void loadSheet(std::string filename);
+    void loadSheet(std::string dataFile, std::string imageFile);
 };
 
 #endif // SPRITELOADER_H
