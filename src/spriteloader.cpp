@@ -47,6 +47,12 @@ void SpriteLoader::loadSheet(std::string filename)
         {
             Json::Value frame = *it;
             std::string frameFilename = frame["filename"].asString();
+            int x = frame["x"].asInt();
+            int y = frame["y"].asInt();
+            int w = frame["w"].asInt();
+            int h = frame["h"].asInt();
+            Rect sourceRect(x, y, w, h);
+            SpriteSheetFrame sheetFrame(frameFilename, sheet, sourceRect);
         }
         jsonFile.close();
         spriteSheets.push_back(sheet);

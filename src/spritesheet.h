@@ -11,9 +11,10 @@ class SpriteSheetFrame
 {
     std::string filename;
     const SpriteSheet &spriteSheet;
+    Rect sourceRect;
 
 public:
-    SpriteSheetFrame(std::string filename, const SpriteSheet &spriteSheet) : filename(filename), spriteSheet(spriteSheet) { }
+    SpriteSheetFrame(std::string filename, const SpriteSheet &spriteSheet, Rect sourceRect);
     const SpriteSheet &getSpriteSheet() const { return spriteSheet; }
 };
 

@@ -19,6 +19,8 @@ struct Rect
 {
     Vector2 position;
     Size size;
+    Rect(int x, int y, int width, int height) : position(x, y), size(width, height) { }
+    Rect(const Rect &rect) { *this = rect; }
 };
 
 #endif // RECT
