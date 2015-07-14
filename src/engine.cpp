@@ -2,9 +2,11 @@
 #include <SDL_image.h>
 #include <iostream>
 #include "engine.h"
+#include "spritesheet.h"
 
 Engine::Engine() : spriteLoader(*this)
 {
+    lastTime = currentTime = 0;
 }
 
 void Engine::initialize()
@@ -15,7 +17,7 @@ void Engine::initialize()
         win = SDL_CreateWindow("Boiler", 0, 0, 640, 480, SDL_WINDOW_OPENGL);
         if (win)
         {
-            ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+            ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
             if (ren)
             {
                 IMG_Init(IMG_INIT_PNG);
@@ -40,28 +42,45 @@ void Engine::start()
     running = true;
     while(running)
     {
-        render();
-        
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
+        lastTime = currentTime;
+        currentTime = SDL_GetTicks();
+        unsigned int delta = (currentTime - lastTime) / 1000;
+
+        if (true)
         {
-            switch(event.type)
+            render(delta);
+
+            SDL_Event event;
+            while (SDL_PollEvent(&event))
             {
-                case SDL_KEYDOWN:
+                switch(event.type)
                 {
-                    if (event.key.keysym.sym == SDLK_ESCAPE)
+                    case SDL_KEYDOWN:
                     {
-                        stop();
+                        if (event.key.keysym.sym == SDLK_ESCAPE)
+                        {
+                            stop();
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
     }
 }
 
-void Engine::render()
+void Engine::render(unsigned int delta)
 {
+    std::cout << delta << std::endl;
+    const SpriteSheet &sheet = spriteLoader.getSpriteSheets()[0];
+    SDL_RenderClear(ren);
+    SDL_Rect destRect;
+    destRect.x = 50;
+    destRect.y = 50;
+    destRect.w = sheet.getSize().width;
+    destRect.h = sheet.getSize().height;
+    SDL_RenderCopy(ren, sheet.getTexture(), nullptr, &destRect);
+    SDL_RenderPresent(ren);
 }
 
 Engine::~Engine()

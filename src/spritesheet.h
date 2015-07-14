@@ -5,10 +5,16 @@
 #include "rect.h"
 
 class SDL_Texture;
+class SpriteSheet;
 
-struct SpriteSheetFrame
+class SpriteSheetFrame
 {
     std::string filename;
+    const SpriteSheet &spriteSheet;
+
+public:
+    SpriteSheetFrame(std::string filename, const SpriteSheet &spriteSheet) : filename(filename), spriteSheet(spriteSheet) { }
+    const SpriteSheet &getSpriteSheet() const { return spriteSheet; }
 };
 
 class SpriteSheet
@@ -20,7 +26,7 @@ class SpriteSheet
 public:
     SpriteSheet(std::string imageFile, Size size, SDL_Texture *texture);
 
-    const SDL_Texture *getTexture() const { return texture; }
+    SDL_Texture *getTexture() const { return texture; }
     std::string getImageFile() const { return imageFile; }
     const Size &getSize() const { return size; }
 };

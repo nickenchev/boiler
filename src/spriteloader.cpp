@@ -45,6 +45,8 @@ void SpriteLoader::loadSheet(std::string filename)
         //setup the individual frames
         for (auto it = json["frames"].begin(); it != json["frames"].end(); ++it)
         {
+            Json::Value frame = *it;
+            std::string frameFilename = frame["filename"].asString();
         }
         jsonFile.close();
         spriteSheets.push_back(sheet);

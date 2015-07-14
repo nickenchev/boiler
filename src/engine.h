@@ -12,8 +12,9 @@ class Engine
     SDL_Renderer *ren = nullptr;
     bool running = true;
     SpriteLoader spriteLoader;
+    unsigned int lastTime, currentTime;
 
-    void render();
+    void render(unsigned int delta);
 
     //scene specific stuff
 

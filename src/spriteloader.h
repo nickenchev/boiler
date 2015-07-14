@@ -20,6 +20,7 @@ public:
 
     //sprite handling methods
     void loadSheet(std::string filename);
+    const std::vector<SpriteSheet> &getSpriteSheets() const { return spriteSheets; }
 };
 
 #endif // SPRITELOADER_H
