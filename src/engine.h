@@ -13,8 +13,9 @@ class Engine
     bool running = true;
     SpriteLoader spriteLoader;
     unsigned int lastTime, currentTime;
+    float frameDelta;
 
-    void render(unsigned int delta);
+    void render(const float delta);
 
     //scene specific stuff
 

@@ -13,7 +13,7 @@ SpriteLoader::SpriteLoader(Engine &engine) : Component(std::string(COMPONENT_NAM
 {
 }
 
-void SpriteLoader::loadSheet(std::string filename)
+std::unique_ptr<SpriteSheet> &SpriteLoader::loadSheet(std::string filename)
 {
     //read the spritesheet manifest
     std::ifstream jsonFile(filename);
@@ -22,6 +22,7 @@ void SpriteLoader::loadSheet(std::string filename)
         Json::Value json;
         jsonFile >> json;
         
+        const int numFrames = json["frames"].size();
         std::string imageFile = "data/" + json["meta"]["image"].asString();
 
         //read the sprite image name and load the texture
@@ -40,30 +41,33 @@ void SpriteLoader::loadSheet(std::string filename)
 
         int width = json["meta"]["size"]["w"].asInt();
         int height = json["meta"]["size"]["h"].asInt();
-        SpriteSheet sheet(imageFile, Size(width, height), texture);
+        auto sheet = std::make_unique<SpriteSheet>(imageFile, Size(width, height), texture, numFrames);
 
         //setup the individual frames
         for (auto it = json["frames"].begin(); it != json["frames"].end(); ++it)
         {
-            Json::Value frame = *it;
-            std::string frameFilename = frame["filename"].asString();
-            int x = frame["x"].asInt();
-            int y = frame["y"].asInt();
-            int w = frame["w"].asInt();
-            int h = frame["h"].asInt();
+            Json::Value sprite = *it;
+            std::string frameFilename = sprite["filename"].asString();
+            int x = sprite["frame"]["x"].asInt();
+            int y = sprite["frame"]["y"].asInt();
+            int w = sprite["frame"]["w"].asInt();
+            int h = sprite["frame"]["h"].asInt();
             Rect sourceRect(x, y, w, h);
-            SpriteSheetFrame sheetFrame(frameFilename, sheet, sourceRect);
+            auto sheetFrame = std::make_unique<SpriteSheetFrame>(frameFilename, sheet, sourceRect);
         }
         jsonFile.close();
-        spriteSheets.push_back(sheet);
 
-        const Size &size = sheet.getSize();
+        const Size &size = sheet->getSize();
         log("Loaded " + filename + "(" + std::to_string(size.width) + ", " + std::to_string(size.height) + ")");
+
+        //finally move the sheet into storage
+        spriteSheets.push_back(std::move(sheet));
     }
     else
     {
         error("Coudn't find sprite sheet: " + filename);
     }
+    return spriteSheets[spriteSheets.size() - 1];
 }
 
 SpriteLoader::~SpriteLoader()

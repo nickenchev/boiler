@@ -20,6 +20,7 @@ set(SRC_FILES
   src/spriteloader.cpp
   src/engine.cpp
   src/spritesheet.cpp
+  src/spritesheetframe.cpp
   src/component.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES}) 

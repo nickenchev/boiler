@@ -7,6 +7,7 @@
 Engine::Engine() : spriteLoader(*this)
 {
     lastTime = currentTime = 0;
+    frameDelta = 0;
 }
 
 void Engine::initialize()
@@ -40,16 +41,14 @@ void Engine::initialize()
 void Engine::start()
 {
     running = true;
+    const float frameInterval = 1.0f / 60.0f; // 60fps
     while(running)
     {
-        lastTime = currentTime;
         currentTime = SDL_GetTicks();
-        unsigned int delta = (currentTime - lastTime) / 1000;
+        frameDelta += (currentTime - lastTime) / 1000.0f;
 
-        if (true)
+        if (frameDelta >= frameInterval)
         {
-            render(delta);
-
             SDL_Event event;
             while (SDL_PollEvent(&event))
             {
@@ -65,21 +64,26 @@ void Engine::start()
                     }
                 }
             }
+            //update(delta);
+            render(frameDelta);
+
+            frameDelta = 0;
         }
+        lastTime = currentTime;
     }
 }
 
-void Engine::render(unsigned int delta)
+void Engine::render(const float delta)
 {
     std::cout << delta << std::endl;
-    const SpriteSheet &sheet = spriteLoader.getSpriteSheets()[0];
+    auto &sheet = spriteLoader.getSpriteSheets()[0];
     SDL_RenderClear(ren);
     SDL_Rect destRect;
     destRect.x = 50;
     destRect.y = 50;
-    destRect.w = sheet.getSize().width;
-    destRect.h = sheet.getSize().height;
-    SDL_RenderCopy(ren, sheet.getTexture(), nullptr, &destRect);
+    destRect.w = sheet->getSize().width;
+    destRect.h = sheet->getSize().height;
+    SDL_RenderCopy(ren, sheet->getTexture(), nullptr, &destRect);
     SDL_RenderPresent(ren);
 }
 

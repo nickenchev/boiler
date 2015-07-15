@@ -1,11 +1,12 @@
 #include "spritesheet.h"
 
-SpriteSheetFrame::SpriteSheetFrame(std::string filename, const SpriteSheet &spriteSheet, Rect sourceRect) : filename(filename), spriteSheet(spriteSheet), sourceRect(sourceRect)
-{
-}
-
-SpriteSheet::SpriteSheet(std::string imageFile, Size size, SDL_Texture *texture) : size(size)
+SpriteSheet::SpriteSheet(std::string imageFile, Size size, SDL_Texture *texture, int numFrames) : size(size)
 {
     this->imageFile = imageFile;
     this->texture = texture;
+    this->numFrames = numFrames;
+}
+
+void SpriteSheet::addFrame(const SpriteSheetFrame &frame)
+{
 }
