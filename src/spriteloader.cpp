@@ -13,7 +13,7 @@ SpriteLoader::SpriteLoader(Engine &engine) : Component(std::string(COMPONENT_NAM
 {
 }
 
-std::unique_ptr<SpriteSheet> &SpriteLoader::loadSheet(std::string filename)
+SpriteSheet *SpriteLoader::loadSheet(std::string filename)
 {
     //read the spritesheet manifest
     std::ifstream jsonFile(filename);
@@ -21,7 +21,8 @@ std::unique_ptr<SpriteSheet> &SpriteLoader::loadSheet(std::string filename)
     {
         Json::Value json;
         jsonFile >> json;
-        
+        jsonFile.close();
+
         const int numFrames = json["frames"].size();
         std::string imageFile = "data/" + json["meta"]["image"].asString();
 
@@ -41,8 +42,8 @@ std::unique_ptr<SpriteSheet> &SpriteLoader::loadSheet(std::string filename)
 
         int width = json["meta"]["size"]["w"].asInt();
         int height = json["meta"]["size"]["h"].asInt();
-        auto sheet = std::make_unique<SpriteSheet>(imageFile, Size(width, height), texture, numFrames);
 
+        std::map<std::string, SpriteSheetFrame> frames;
         //setup the individual frames
         for (auto it = json["frames"].begin(); it != json["frames"].end(); ++it)
         {
@@ -53,10 +54,10 @@ std::unique_ptr<SpriteSheet> &SpriteLoader::loadSheet(std::string filename)
             int w = sprite["frame"]["w"].asInt();
             int h = sprite["frame"]["h"].asInt();
             Rect sourceRect(x, y, w, h);
-            auto sheetFrame = std::make_unique<SpriteSheetFrame>(frameFilename, sheet, sourceRect);
+            frames.insert(std::pair<std::string, SpriteSheetFrame>(frameFilename,
+                              SpriteSheetFrame(frameFilename, sourceRect)));
         }
-        jsonFile.close();
-
+        auto sheet = std::make_unique<SpriteSheet>(imageFile, Size(width, height), texture, frames);
         const Size &size = sheet->getSize();
         log("Loaded " + filename + "(" + std::to_string(size.width) + ", " + std::to_string(size.height) + ")");
 
@@ -67,7 +68,7 @@ std::unique_ptr<SpriteSheet> &SpriteLoader::loadSheet(std::string filename)
     {
         error("Coudn't find sprite sheet: " + filename);
     }
-    return spriteSheets[spriteSheets.size() - 1];
+    return spriteSheets[spriteSheets.size() - 1].get();
 }
 
 SpriteLoader::~SpriteLoader()

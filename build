@@ -1,0 +1,3 @@
+#!/bin/bash
+make -k
+./ctags_update

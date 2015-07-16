@@ -10,12 +10,11 @@ class SpriteSheet;
 class SpriteSheetFrame
 {
     std::string filename;
-    std::unique_ptr<SpriteSheet> &spriteSheet;
     Rect sourceRect;
 
 public:
-    SpriteSheetFrame(std::string filename, std::unique_ptr<SpriteSheet> &spriteSheet, Rect sourceRect);
-    const std::unique_ptr<SpriteSheet> &getSpriteSheet() const { return spriteSheet; }
+    SpriteSheetFrame(std::string filename, Rect sourceRect);
+    const std::string &getFilename() const { return filename; }
     Rect getSourceRect() const { return sourceRect; }
 };
 

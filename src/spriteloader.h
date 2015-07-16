@@ -20,7 +20,7 @@ public:
     ~SpriteLoader();
 
     //sprite handling methods
-    std::unique_ptr<SpriteSheet> &loadSheet(std::string filename);
+    SpriteSheet *loadSheet(std::string filename);
     const std::vector<std::unique_ptr<SpriteSheet>> &getSpriteSheets() const { return spriteSheets; }
 };
 

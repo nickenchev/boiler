@@ -35,18 +35,39 @@ void Engine::initialize()
     {
         std::cout << " - Preferred Path: " << SDL_GetPrefPath("ensoft", "sdl_engine") << std::endl;
         std::cout << " - Base Path: " << SDL_GetBasePath() << std::endl;
+
+        //initialize basic engine stuff
+        frameInterval = 1.0f / 60.0f; // 60fps
     }
 }
 
 void Engine::start()
 {
+    //do some loading
+    std::string filename = "data/random.json";
+    playerSheet = getSpriteLoader().loadSheet(filename);
+
+    //basic player setup
+    player.frame.position.y = 200;
+    frameNum = 1;
+    numFrames = 2;
+    animTime = 0;
+    timePerFrame = 0.2f;
+
+    //start processing events
+    run();
+}
+
+void Engine::run()
+{
     running = true;
-    const float frameInterval = 1.0f / 60.0f; // 60fps
     while(running)
     {
+        //get the delta time
         currentTime = SDL_GetTicks();
         frameDelta += (currentTime - lastTime) / 1000.0f;
 
+        //if its time to process a frame, do it here 
         if (frameDelta >= frameInterval)
         {
             SDL_Event event;
@@ -56,15 +77,20 @@ void Engine::start()
                 {
                     case SDL_KEYDOWN:
                     {
-                        if (event.key.keysym.sym == SDLK_ESCAPE)
-                        {
-                            stop();
-                        }
+                        SDL_Keycode keyCode = event.key.keysym.sym;
+                        keys[keyCode] = true;
+                        break;
+                    }
+                    case SDL_KEYUP:
+                    {
+                        SDL_Keycode keyCode = event.key.keysym.sym;
+                        keys[keyCode] = false;
                         break;
                     }
                 }
             }
-            //update(delta);
+            //update the state and render to screen
+            update(frameDelta);
             render(frameDelta);
 
             frameDelta = 0;
@@ -73,17 +99,57 @@ void Engine::start()
     }
 }
 
+void Engine::update(const float delta)
+{
+    //animation stuff
+    animTime += delta;
+    if (animTime >= timePerFrame)
+    {
+        ++frameNum;
+        if (frameNum > numFrames)
+        {
+            frameNum = 1;
+        }
+        animTime = 0;
+    }
+    std::cout << frameNum << ":" << numFrames << std::endl;
+
+    // check keyboard and modify state
+    if (keys[SDLK_a])
+    {
+        Vector2 vel(0, 1.0f);
+        player.frame.position.x -= 1;
+    }
+    else if (keys[SDLK_d])
+    {
+        Vector2 vel(0, -1.0f);
+        player.frame.position.x += 1;
+    }
+    else if (keys[SDLK_ESCAPE])
+    {
+        stop();
+    }
+}
+
 void Engine::render(const float delta)
 {
-    std::cout << delta << std::endl;
-    auto &sheet = spriteLoader.getSpriteSheets()[0];
+    char buffer[128];
+    sprintf(buffer, "walk_r_%02d.png", frameNum);
+    const SpriteSheetFrame &frame = playerSheet->getFrame(std::string(buffer));
     SDL_RenderClear(ren);
+
+    SDL_Rect sourceRect;
+    sourceRect.x = frame.getSourceRect().position.x;
+    sourceRect.y = frame.getSourceRect().position.y;
+    sourceRect.w = frame.getSourceRect().size.width;
+    sourceRect.h = frame.getSourceRect().size.height;
+
     SDL_Rect destRect;
-    destRect.x = 50;
-    destRect.y = 50;
-    destRect.w = sheet->getSize().width;
-    destRect.h = sheet->getSize().height;
-    SDL_RenderCopy(ren, sheet->getTexture(), nullptr, &destRect);
+    destRect.x = player.frame.position.x;
+    destRect.y = player.frame.position.y;
+    destRect.w = frame.getSourceRect().size.width;
+    destRect.h = frame.getSourceRect().size.height; 
+    SDL_RenderCopy(ren, playerSheet->getTexture(), &sourceRect, &destRect);
     SDL_RenderPresent(ren);
 }
 

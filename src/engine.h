@@ -2,6 +2,7 @@
 #define ENGINE_H
 
 #include "spriteloader.h"
+#include "entity.h"
 
 class SDL_Window;
 class SDL_Renderer;
@@ -13,11 +14,19 @@ class Engine
     bool running = true;
     SpriteLoader spriteLoader;
     unsigned int lastTime, currentTime;
-    float frameDelta;
+    float frameDelta, frameInterval;
+    bool keys[256];
 
+    void run();
+    void update(const float delta);
     void render(const float delta);
 
     //scene specific stuff
+    SpriteSheet *playerSheet;
+    Entity player;
+    int frameNum, numFrames;
+    float animTime;
+    float timePerFrame;
 
 public:
     Engine();
