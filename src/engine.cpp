@@ -52,7 +52,7 @@ void Engine::start()
     frameNum = 1;
     numFrames = 2;
     animTime = 0;
-    timePerFrame = 0.2f;
+    timePerFrame = 0.4f;
 
     //start processing events
     run();
@@ -112,7 +112,6 @@ void Engine::update(const float delta)
         }
         animTime = 0;
     }
-    std::cout << frameNum << ":" << numFrames << std::endl;
 
     // check keyboard and modify state
     if (keys[SDLK_a])
