@@ -22,7 +22,7 @@ public:
     SDL_Texture *getTexture() const { return texture; }
     std::string getImageFile() const { return imageFile; }
     const Size &getSize() const { return size; }
-    const SpriteSheetFrame &getFrame(std::string frameName) const { return frames.find(frameName)->second; }
+    const SpriteSheetFrame *getFrame(std::string frameName) const { return &(frames.find(frameName)->second); }
 };
 
 #endif // SPRITESHEET_H

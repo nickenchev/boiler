@@ -28,6 +28,11 @@ class Engine
     float animTime;
     float timePerFrame;
 
+    const SpriteSheetFrame *frame;
+    std::vector<const SpriteSheetFrame*> *currentAnimation;
+    std::vector<const SpriteSheetFrame*> walkLeft;
+    std::vector<const SpriteSheetFrame*> walkRight;
+
 public:
     Engine();
     ~Engine();
