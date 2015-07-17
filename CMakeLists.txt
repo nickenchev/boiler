@@ -21,7 +21,8 @@ set(SRC_FILES
   src/engine.cpp
   src/spritesheet.cpp
   src/spritesheetframe.cpp
-  src/component.cpp)
+  src/component.cpp
+  src/gamepart.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES}) 
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY})

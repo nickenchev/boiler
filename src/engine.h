@@ -4,6 +4,7 @@
 #include "spriteloader.h"
 #include "entity.h"
 
+class Part;
 class SDL_Window;
 class SDL_Renderer;
 
@@ -21,26 +22,17 @@ class Engine
     void update(const float delta);
     void render(const float delta);
 
-    //scene specific stuff
-    SpriteSheet *playerSheet;
-    Entity player;
-    int frameNum, numFrames;
-    float animTime;
-    float timePerFrame;
-
-    const SpriteSheetFrame *frame;
-    std::vector<const SpriteSheetFrame*> *currentAnimation;
-    std::vector<const SpriteSheetFrame*> walkLeft;
-    std::vector<const SpriteSheetFrame*> walkRight;
+    Part *part;
 
 public:
     Engine();
     ~Engine();
 
     void initialize();
-    void start();
-    void stop() { running = false; }
+    void start(Part *part);
+    void quit() { running = false; }
 
+    bool keyState(int keyNum) const { return keys[keyNum]; }
     SpriteLoader &getSpriteLoader() { return spriteLoader; }
     SDL_Window *getWindow() const { return win; }
     SDL_Renderer *getRenderer() const { return ren; }
