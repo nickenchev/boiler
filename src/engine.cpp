@@ -111,12 +111,12 @@ Engine::~Engine()
 {
     if (win)
     {
-        std::cout << "* Destroing Window" << std::endl;
+        std::cout << "* Destroying Window" << std::endl;
         SDL_DestroyWindow(win);
     }
     if (ren)
     {
-        std::cout << "* Destroing Renderer" << std::endl;
+        std::cout << "* Destroying Renderer" << std::endl;
         SDL_DestroyRenderer(ren);
     }
     SDL_Quit();

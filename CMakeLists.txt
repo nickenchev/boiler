@@ -11,7 +11,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin/)
 
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
-include_directories(${SDL2_INCLUDE_DIR} ${SDL2_IMAGE_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/include)
+include_directories(
+  ${SDL2_INCLUDE_DIR}
+  ${SDL2_IMAGE_INCLUDE_DIR}
+  ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/include/tinyxml2)
 
 set(SRC_FILES
   src/main.cpp
@@ -22,7 +26,8 @@ set(SRC_FILES
   src/spritesheet.cpp
   src/spritesheetframe.cpp
   src/component.cpp
-  src/gamepart.cpp)
+  src/gamepart.cpp
+  src/tinyxml2.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES}) 
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY})

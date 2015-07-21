@@ -54,8 +54,15 @@ SpriteSheet *SpriteLoader::loadSheet(std::string filename)
             int w = sprite["frame"]["w"].asInt();
             int h = sprite["frame"]["h"].asInt();
             Rect sourceRect(x, y, w, h);
+            bool rotated = sprite["rotated"].asBool();
+            bool trimmed = sprite["trimmed"].asBool();
+
+            int pivotX = sprite["pivot"]["x"].asInt();
+            int pivotY = sprite["pivot"]["y"].asInt();
+            Vector2 pivot(pivotX, pivotY);
             frames.insert(std::pair<std::string, SpriteSheetFrame>(frameFilename,
-                              SpriteSheetFrame(frameFilename, sourceRect)));
+                                                                   SpriteSheetFrame(frameFilename, sourceRect, rotated,
+                                                                                    trimmed, pivot)));
         }
         auto sheet = std::make_unique<SpriteSheet>(imageFile, Size(width, height), texture, frames);
         const Size &size = sheet->getSize();
