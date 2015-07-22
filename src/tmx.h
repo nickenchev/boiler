@@ -57,6 +57,10 @@ namespace ensoft
 
     struct Tile : TmxComponent
     {
+        int id;
+        string terrain;
+        float probability;
+
         using TmxComponent::TmxComponent;
     };
 

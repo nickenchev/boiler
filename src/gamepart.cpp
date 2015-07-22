@@ -9,6 +9,7 @@
 #include <map>
 #include "tinyxml2.h"
 #include "tmx.h"
+#include "base64.h"
 
 using namespace tinyxml2;
 
@@ -16,6 +17,11 @@ string getAttributeString(XMLElement *elem, const char *key)
 {
     const char *str = elem->Attribute(key);
     return (str) ? string(str) : string("");
+}
+
+void loadData(std::string data)
+{
+    auto result = base64_decode(data);
 }
 
 ensoft::Properties loadProperties(XMLElement *sourceElement)

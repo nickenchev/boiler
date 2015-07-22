@@ -27,7 +27,8 @@ set(SRC_FILES
   src/spritesheetframe.cpp
   src/component.cpp
   src/gamepart.cpp
-  src/tinyxml2.cpp)
+  src/tinyxml2.cpp
+  src/base64.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES}) 
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY})
