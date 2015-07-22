@@ -11,9 +11,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin/)
 
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
+find_package(ZLIB REQUIRED)
+
 include_directories(
   ${SDL2_INCLUDE_DIR}
   ${SDL2_IMAGE_INCLUDE_DIR}
+  ${ZLIB_INCLUDE_DIR}
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/include/tinyxml2)
 
@@ -31,4 +34,4 @@ set(SRC_FILES
   src/base64.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES}) 
-target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY})
+target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY})

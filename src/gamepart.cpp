@@ -7,9 +7,11 @@
 #include "spritesheetframe.h"
 
 #include <map>
+#include <zlib.h>
 #include "tinyxml2.h"
 #include "tmx.h"
 #include "base64.h"
+#include "string_util.h"
 
 using namespace tinyxml2;
 
@@ -21,7 +23,37 @@ string getAttributeString(XMLElement *elem, const char *key)
 
 void loadData(std::string data)
 {
-    auto result = base64_decode(data);
+    vector<BYTE> decoded = base64_decode(data);
+
+    // TODO: look into better predicting the de-compressed size of the data
+    const int compressionFactor = 1000;
+    const unsigned long buffSize = decoded.size() * compressionFactor;
+
+    uLong sourceLen = decoded.size();
+    uLongf destLen = buffSize;
+    Bytef buffer[buffSize];
+
+    int result = uncompress(buffer, &destLen, &decoded[0], sourceLen);
+    if (result != Z_OK)
+    {
+    }
+    else
+    {
+        int offset = 0;
+        do
+        {
+            u_int32_t value = *((u_int32_t *)&buffer[offset]);
+            offset += 4;
+
+            if (value != 0)
+            {
+                std::cout << value << " "; 
+            }
+
+        } while (offset < destLen);
+    }
+
+    std::cout << buffSize << " -> " << destLen << std::endl;
 }
 
 ensoft::Properties loadProperties(XMLElement *sourceElement)
@@ -40,7 +72,7 @@ ensoft::Properties loadProperties(XMLElement *sourceElement)
     return ensoft::Properties(props);
 }
 
-ensoft::Map loadTmx()
+void loadTmx()
 {
     XMLDocument doc;
     XMLError error = doc.LoadFile("data/test_map.tmx");
@@ -95,6 +127,14 @@ ensoft::Map loadTmx()
             layer.opacity = xlayer->FloatAttribute("opacity");
             layer.visible = xlayer->BoolAttribute("visible");
             map.layers.push_back(layer);
+
+            // load the data element
+            XMLElement *xdata = xlayer->FirstChildElement("data");
+            if (xdata)
+            {
+                string data = trim_copy(xdata->GetText());
+                loadData(data);
+            }
             
             xlayer = xlayer->NextSiblingElement("layer");
         }
@@ -150,7 +190,6 @@ ensoft::Map loadTmx()
             xobjectgroup = xobjectgroup->NextSiblingElement("objectgroup");
         }
     }
-    return map;
 }
 
 void GamePart::start()
@@ -173,8 +212,7 @@ void GamePart::start()
 
     currentAnimation = &walkRight;
 
-    ensoft::Map map = loadTmx();
-    std::cout << "Done" << std::endl;
+    loadTmx();
 }
 
 void GamePart::update(const float delta)

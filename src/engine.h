@@ -4,6 +4,8 @@
 #include "spriteloader.h"
 #include "entity.h"
 
+#define MAX_KEYS 256
+
 class Part;
 class SDL_Window;
 class SDL_Renderer;
@@ -16,7 +18,7 @@ class Engine
     SpriteLoader spriteLoader;
     unsigned int lastTime, currentTime;
     float frameDelta, frameInterval;
-    bool keys[256];
+    bool keys[MAX_KEYS];
 
     void run();
     void update(const float delta);
