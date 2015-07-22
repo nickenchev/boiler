@@ -40,7 +40,7 @@ ensoft::Properties loadProperties(XMLElement *sourceElement)
     return ensoft::Properties(props);
 }
 
-void loadTmx()
+ensoft::Map loadTmx()
 {
     XMLDocument doc;
     XMLError error = doc.LoadFile("data/test_map.tmx");
@@ -150,6 +150,7 @@ void loadTmx()
             xobjectgroup = xobjectgroup->NextSiblingElement("objectgroup");
         }
     }
+    return map;
 }
 
 void GamePart::start()
@@ -172,7 +173,8 @@ void GamePart::start()
 
     currentAnimation = &walkRight;
 
-    loadTmx();
+    ensoft::Map map = loadTmx();
+    std::cout << "Done" << std::endl;
 }
 
 void GamePart::update(const float delta)
