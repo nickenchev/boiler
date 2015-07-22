@@ -6,10 +6,33 @@
 #include "spritesheet.h"
 #include "spritesheetframe.h"
 
+#include <map>
 #include "tinyxml2.h"
 #include "tmx.h"
 
 using namespace tinyxml2;
+
+string getAttributeString(XMLElement *elem, const char *key)
+{
+    const char *str = elem->Attribute(key);
+    return (str) ? string(str) : string("");
+}
+
+ensoft::Properties loadProperties(XMLElement *sourceElement)
+{
+    XMLElement *xprops = sourceElement->FirstChildElement("properties");
+    std::map<string, ensoft::Property> props;
+    if (xprops)
+    {
+        XMLElement *xprop = xprops->FirstChildElement("property");
+        ensoft::Property prop;
+        prop.name = getAttributeString(xprop, "name");
+        prop.value = getAttributeString(xprop, "value");
+
+        props.insert(std::pair<string, ensoft::Property>(prop.name, prop));
+    }
+    return ensoft::Properties(props);
+}
 
 void loadTmx()
 {
@@ -23,28 +46,26 @@ void loadTmx()
     else
     {
         // start parsing the TMX map
-        XMLElement *xmlmap = doc.FirstChildElement("map");
-        Map map;
-        map.version = xmlmap->Attribute("version");
-        map.orientation = xmlmap->Attribute("orientation");
-        map.width = xmlmap->IntAttribute("width");
-        map.height = xmlmap->IntAttribute("height");
-        map.tilewidth = xmlmap->IntAttribute("tilewidth");
-        map.tileheight = xmlmap->IntAttribute("tileheight");
-        map.renderorder = xmlmap->Attribute("renderorder");
+        XMLElement *xmap = doc.FirstChildElement("map");
+        
+        ensoft::Map map(loadProperties(xmap));
+        map.version = xmap->Attribute("version");
+        map.orientation = xmap->Attribute("orientation");
+        map.width = xmap->IntAttribute("width");
+        map.height = xmap->IntAttribute("height");
+        map.tilewidth = xmap->IntAttribute("tilewidth");
+        map.tileheight = xmap->IntAttribute("tileheight");
+        map.renderorder = xmap->Attribute("renderorder");
+        map.properties = loadProperties(xmap);
 
         // load all the tilesets
-        XMLElement *xtileset = xmlmap->FirstChildElement("tileset");
+        XMLElement *xtileset = xmap->FirstChildElement("tileset");
         while (xtileset)
         {
-            TileSet tileSet;
+            ensoft::TileSet tileSet(loadProperties(xtileset));
             tileSet.firstgid = xtileset->IntAttribute("firstgid");
 
-            const char *source = xtileset->Attribute("source");
-            if (source)
-            {
-                tileSet.source = source;
-            }
+            tileSet.source = getAttributeString(xtileset, "source");
             tileSet.name = xtileset->Attribute("name");
             tileSet.tilewidth = xtileset->IntAttribute("tilewidth");
             tileSet.tileheight = xtileset->IntAttribute("tileheight");
@@ -56,20 +77,71 @@ void loadTmx()
             xtileset = xtileset->NextSiblingElement("tileset");
         }
 
-        XMLElement *xlayer = xmlmap->FirstChildElement("layer");
+        XMLElement *xlayer = xmap->FirstChildElement("layer");
         while (xlayer)
         {
-            Layer layer;
+            ensoft::Layer layer(loadProperties(xlayer));
             layer.name = xlayer->Attribute("name");
             layer.x = xlayer->IntAttribute("x");
             layer.y = xlayer->IntAttribute("y");
             layer.width = xlayer->IntAttribute("width");
             layer.height = xlayer->IntAttribute("height");
             layer.opacity = xlayer->FloatAttribute("opacity");
-            layer.visible = xlayer->IntAttribute("visible");
+            layer.visible = xlayer->BoolAttribute("visible");
             map.layers.push_back(layer);
             
             xlayer = xlayer->NextSiblingElement("layer");
+        }
+
+        XMLElement *ximagelayer = xmap->FirstChildElement("imagelayer");
+        while (ximagelayer)
+        {
+            ensoft::ImageLayer imageLayer(loadProperties(xlayer));
+            imageLayer.name = ximagelayer->Attribute("name");
+            imageLayer.x = ximagelayer->IntAttribute("x");
+            imageLayer.y = ximagelayer->IntAttribute("y");
+            imageLayer.width = ximagelayer->IntAttribute("width");
+            imageLayer.height = ximagelayer->IntAttribute("height");
+            imageLayer.opacity = ximagelayer->FloatAttribute("opacity");
+            imageLayer.visible = ximagelayer->BoolAttribute("visible");
+            map.imageLayers.push_back(imageLayer);
+
+            ximagelayer = ximagelayer->NextSiblingElement("imagelayer");
+        }
+
+        XMLElement *xobjectgroup = xmap->FirstChildElement("objectgroup");
+        while (xobjectgroup)
+        {
+            ensoft::ObjectGroup objectGroup(loadProperties(xobjectgroup));
+            objectGroup.name = xobjectgroup->Attribute("name");
+            objectGroup.x = xobjectgroup->IntAttribute("x");
+            objectGroup.y = xobjectgroup->IntAttribute("y");
+            objectGroup.width = xobjectgroup->IntAttribute("width");
+            objectGroup.height = xobjectgroup->IntAttribute("height");
+            objectGroup.opacity = xobjectgroup->FloatAttribute("opacity");
+            objectGroup.visible = xobjectgroup->BoolAttribute("visible");
+
+            //grab the objects
+            XMLElement *xobject = xobjectgroup->FirstChildElement("object");
+            while (xobject)
+            {
+                ensoft::Object object(loadProperties(xobject));
+                object.id = xobject->Attribute("id");
+                object.name = xobject->Attribute("name");
+                object.type = getAttributeString(xobject, "type");
+                object.x = xobject->IntAttribute("x");
+                object.y = xobject->IntAttribute("y");
+                object.width = xobject->IntAttribute("witdth");
+                object.height = xobject->IntAttribute("height");
+                object.gid = xobject->IntAttribute("gid");
+                object.visible = xobject->BoolAttribute("visible");
+                objectGroup.objects.push_back(object);
+
+                xobject = xobject->NextSiblingElement("object");
+            }
+            map.objectGroups.push_back(objectGroup);
+
+            xobjectgroup = xobjectgroup->NextSiblingElement("objectgroup");
         }
     }
 }

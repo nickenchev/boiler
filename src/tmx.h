@@ -1,39 +1,109 @@
 #include <string>
 #include <vector>
+#include <map>
 
 using namespace std;
 
-struct TileSet;
-struct Layer;
-
-struct Map
+namespace ensoft
 {
-    string version, orientation;
-    int width, height, tilewidth, tileheight;
-    string renderorder;
+    struct TileSet;
+    struct Tile;
+    struct Layer;
+    struct ImageLayer;
+    struct ObjectGroup;
+    struct Object;
 
-    vector<TileSet> tilesets;
-    vector<Layer> layers;
-};
+    struct Property
+    {
+        string name, value;
+    };
+    struct Properties
+    {
+        map<string, Property> properties;
 
-struct TileSet
-{
-    int firstgid;
-    string source, name;
-    int tilewidth, tileheight, spacing, margin;
-};
+        Properties(const map<string, Property> &properties) : properties(properties) { }
 
-struct TileOffset
-{
-    int x, y;
-};
+        string getValue(string key) const { return properties.find(key)->second.value; }
+    };
 
-struct Layer
-{
-    string name;
-    int x, y, width, height;
-    float opacity;
-    int visible;
+    struct TmxComponent
+    {
+        Properties properties;
+        explicit TmxComponent(const Properties &properties) : properties(properties) { }
+    };
 
-    Layer() : x(0), y(0), opacity(1), visible(1) { }
-};
+    struct Map : TmxComponent
+    {
+        string version, orientation;
+        int width, height, tilewidth, tileheight;
+        string renderorder;
+
+        vector<TileSet> tilesets;
+        vector<Layer> layers;
+        vector<ImageLayer> imageLayers;
+        vector<ObjectGroup> objectGroups;
+
+        using TmxComponent::TmxComponent;
+    };
+
+    struct TileSet : TmxComponent
+    {
+        int firstgid;
+        string source, name;
+        int tilewidth, tileheight, spacing, margin;
+
+        using TmxComponent::TmxComponent;
+    };
+
+    struct Tile : TmxComponent
+    {
+        using TmxComponent::TmxComponent;
+    };
+
+    struct TileOffset
+    {
+        int x, y;
+    };
+
+    struct Layer : TmxComponent
+    {
+        string name;
+        int x, y, width, height;
+        float opacity;
+        bool visible;
+
+        using TmxComponent::TmxComponent;
+    };
+
+    struct ImageLayer : TmxComponent
+    {
+        string name;
+        int x, y, width, height;
+        float opacity;
+        bool visible;
+
+        using TmxComponent::TmxComponent;
+    };
+
+    struct ObjectGroup : TmxComponent
+    {
+        string name, color;
+        int x, y, width, height;
+        float opacity;
+        bool visible;
+        vector<ensoft::Object> objects;
+
+        using TmxComponent::TmxComponent;
+    };
+
+    struct Object : TmxComponent
+    {
+        string id, name, type;
+        int x, y, width, height;
+        float rotation;
+        int gid;
+        bool visible;
+
+        using TmxComponent::TmxComponent;
+    };
+}

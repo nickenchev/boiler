@@ -1,13 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" nextobjectid="1">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" nextobjectid="17">
  <tileset firstgid="1" name="Ground" tilewidth="16" tileheight="16">
   <tile id="0">
    <image width="16" height="16" source="ground_1.png"/>
   </tile>
  </tileset>
  <layer name="Tile Layer 1" width="100" height="100">
+  <properties>
+   <property name="height" value="6"/>
+   <property name="material" value="grass"/>
+  </properties>
   <data encoding="base64" compression="zlib">
    eJzt0MkJAAAIA0Htv2mL8ABhBvYdSAQAAAAAAAAAAAAAAADAT3nU9D49fgUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC2FQuRAC8=
   </data>
  </layer>
+ <objectgroup name="Enemies">
+  <object id="8" name="Zombie" x="383" y="531"/>
+  <object id="9" name="Zombie" x="437" y="555"/>
+  <object id="10" name="Zombie" x="530" y="542"/>
+ </objectgroup>
+ <objectgroup name="Player">
+  <properties>
+   <property name="health" value="100"/>
+  </properties>
+  <object id="14" name="Spawn" x="95" y="532"/>
+ </objectgroup>
 </map>
