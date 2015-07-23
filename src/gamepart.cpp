@@ -44,12 +44,6 @@ void loadData(std::string data)
         {
             u_int32_t value = *((u_int32_t *)&buffer[offset]);
             offset += 4;
-
-            if (value != 0)
-            {
-                std::cout << value << " "; 
-            }
-
         } while (offset < destLen);
     }
 
@@ -109,8 +103,21 @@ void loadTmx()
             tileSet.tileheight = xtileset->IntAttribute("tileheight");
             tileSet.spacing = xtileset->IntAttribute("spacing");
             tileSet.margin = xtileset->IntAttribute("margin");
-            map.tilesets.push_back(tileSet);
 
+            // get the tiles for this tileset
+            XMLElement *xtile = xtileset->FirstChildElement("tile");
+            while (xtile)
+            {
+                ensoft::Tile tile(loadProperties(xtile));
+                tile.id = xtile->IntAttribute("id");
+                tile.terrain = getAttributeString(xtile, "terrain");
+                tile.probability = xtile->FloatAttribute("probability");
+                tileSet.tiles.push_back(tile);
+
+                xtile = xtile->NextSiblingElement("tile");
+            }
+
+            map.tilesets.push_back(tileSet);
             // try to find another tileset
             xtileset = xtileset->NextSiblingElement("tileset");
         }

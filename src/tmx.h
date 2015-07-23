@@ -51,6 +51,7 @@ namespace ensoft
         int firstgid;
         string source, name;
         int tilewidth, tileheight, spacing, margin;
+        vector<Tile> tiles;
 
         using TmxComponent::TmxComponent;
     };
