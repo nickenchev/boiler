@@ -21,7 +21,7 @@ string getAttributeString(XMLElement *elem, const char *key)
     return (str) ? string(str) : string("");
 }
 
-void loadData(std::string data)
+void loadData(std::vector<ensoft::TileSet> &tileSets, std::string data)
 {
     vector<BYTE> decoded = base64_decode(data);
 
@@ -34,20 +34,48 @@ void loadData(std::string data)
     Bytef buffer[buffSize];
 
     int result = uncompress(buffer, &destLen, &decoded[0], sourceLen);
+    std::map<int, ensoft::Tile *> tilesUsed;
     if (result != Z_OK)
     {
+        // TODO: Error handle
     }
     else
     {
         int offset = 0;
         do
         {
-            u_int32_t value = *((u_int32_t *)&buffer[offset]);
+            u_int32_t tileGid = *((u_int32_t *)&buffer[offset]);
+
+            // figure out which tileset the tile belongs to
+            ensoft::TileSet *tileSet = nullptr;
+            for (int i = 0; i < tileSets.size(); ++i)
+            {
+                if (tileSets[i].tiles.size())
+                {
+                    int lastGid = tileSets[i].firstgid + tileSets[i].tiles.size() - 1;
+                    if (tileGid <= lastGid)
+                    {
+                        tileSet = &tileSets[i];
+                        i = tileSets.size();
+                    }
+                }
+            }
+
+            if (tileSet)
+            {
+                for (int i = 0; i < tileSet->tiles.size(); ++i)
+                {
+                    if (tileGid == tileSet->firstgid + tileSet->tiles[i].id)
+                    {
+                        tilesUsed[tileGid] = &tileSet->tiles[i];
+                    }
+                }
+            }
             offset += 4;
         } while (offset < destLen);
-    }
 
-    std::cout << buffSize << " -> " << destLen << std::endl;
+        std::cout << "Tiles Loaded." << std::endl;
+    }
 }
 
 ensoft::Properties loadProperties(XMLElement *sourceElement)
@@ -140,7 +168,7 @@ void loadTmx()
             if (xdata)
             {
                 string data = trim_copy(xdata->GetText());
-                loadData(data);
+                loadData(map.tilesets, data);
             }
             
             xlayer = xlayer->NextSiblingElement("layer");
