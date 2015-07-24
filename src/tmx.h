@@ -38,6 +38,7 @@ namespace ensoft
         int width, height, tilewidth, tileheight;
         string renderorder;
 
+        map<int, Tile *> allTiles;
         vector<TileSet> tilesets;
         vector<Layer> layers;
         vector<ImageLayer> imageLayers;
@@ -65,6 +66,15 @@ namespace ensoft
         using TmxComponent::TmxComponent;
     };
 
+    struct TileRef
+    {
+        Tile *tile;
+        TileRef() : tile(nullptr) { }
+        TileRef(Tile *tile) : tile(tile) { }
+
+        bool hasTile() const { return tile != nullptr; }
+    };
+
     struct TileOffset
     {
         int x, y;
@@ -76,6 +86,7 @@ namespace ensoft
         int x, y, width, height;
         float opacity;
         bool visible;
+        vector<TileRef> tiles;
 
         using TmxComponent::TmxComponent;
     };

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" nextobjectid="17">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" nextobjectid="18">
  <tileset firstgid="1" name="Ground" tilewidth="16" tileheight="16">
   <tile id="0">
    <image width="16" height="16" source="ground_1.png"/>
@@ -11,7 +11,7 @@
    <property name="material" value="grass"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   eJzt0MkJAAAIA0Htv2mL8ABhBvYdSAQAAAAAAAAAAAAAAADAT3nU9D49fgUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC2FQuRAC8=
+   eJzt2dsKgzAUBED7/z9dpEihRfByYjZhBnyVzVmNossCAAAAAAAwl9fOQQ6d5GnZyd49efZI1yJ35dqrZ5nW1ZEclZ3cOc8o1/QVZ+dTOYdZ95az7qxtxnn0UHWN6ePf0bm2uM/18fU72x57rT4+Up5lCRl6SnuvSMnRQ1IPm8RMraWvOTlbpbS9aU96vgoj9LAZJedVI3Wxapm15xxG62HzxLfzp43axWov991/EHe/J7Y6b7re+WebZwXzAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgFpvlAwAxA==
   </data>
  </layer>
  <objectgroup name="Enemies">

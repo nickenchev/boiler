@@ -6,12 +6,14 @@
 #include "spritesheet.h"
 #include "spritesheetframe.h"
 
+#define GLM_COMPILER 0
 #include <map>
 #include <zlib.h>
 #include "tinyxml2.h"
 #include "tmx.h"
 #include "base64.h"
 #include "string_util.h"
+#include <glm/glm.hpp>
 
 using namespace tinyxml2;
 
@@ -21,7 +23,7 @@ string getAttributeString(XMLElement *elem, const char *key)
     return (str) ? string(str) : string("");
 }
 
-void loadData(std::vector<ensoft::TileSet> &tileSets, std::string data)
+void loadData(ensoft::Layer &layer, ensoft::Map &map, std::string data)
 {
     vector<BYTE> decoded = base64_decode(data);
 
@@ -34,6 +36,7 @@ void loadData(std::vector<ensoft::TileSet> &tileSets, std::string data)
     Bytef buffer[buffSize];
 
     int result = uncompress(buffer, &destLen, &decoded[0], sourceLen);
+    std::vector<u_int32_t> tileList;
     std::map<int, ensoft::Tile *> tilesUsed;
     if (result != Z_OK)
     {
@@ -45,36 +48,18 @@ void loadData(std::vector<ensoft::TileSet> &tileSets, std::string data)
         do
         {
             u_int32_t tileGid = *((u_int32_t *)&buffer[offset]);
-
-            // figure out which tileset the tile belongs to
-            ensoft::TileSet *tileSet = nullptr;
-            for (int i = 0; i < tileSets.size(); ++i)
+            if (tileGid != 0)
             {
-                if (tileSets[i].tiles.size())
-                {
-                    int lastGid = tileSets[i].firstgid + tileSets[i].tiles.size() - 1;
-                    if (tileGid <= lastGid)
-                    {
-                        tileSet = &tileSets[i];
-                        i = tileSets.size();
-                    }
-                }
+                ensoft::Tile *tile = map.allTiles[tileGid];
+                std::cout << tile->id << std::endl;
+                layer.tiles.push_back(ensoft::TileRef(tile));
             }
-
-            if (tileSet)
+            else
             {
-                for (int i = 0; i < tileSet->tiles.size(); ++i)
-                {
-                    if (tileGid == tileSet->firstgid + tileSet->tiles[i].id)
-                    {
-                        tilesUsed[tileGid] = &tileSet->tiles[i];
-                    }
-                }
+                layer.tiles.push_back(ensoft::TileRef());
             }
             offset += 4;
         } while (offset < destLen);
-
-        std::cout << "Tiles Loaded." << std::endl;
     }
 }
 
@@ -124,7 +109,6 @@ void loadTmx()
         {
             ensoft::TileSet tileSet(loadProperties(xtileset));
             tileSet.firstgid = xtileset->IntAttribute("firstgid");
-
             tileSet.source = getAttributeString(xtileset, "source");
             tileSet.name = xtileset->Attribute("name");
             tileSet.tilewidth = xtileset->IntAttribute("tilewidth");
@@ -141,6 +125,10 @@ void loadTmx()
                 tile.terrain = getAttributeString(xtile, "terrain");
                 tile.probability = xtile->FloatAttribute("probability");
                 tileSet.tiles.push_back(tile);
+
+                // keep track of all tiles and their global IDs
+                int tileGid = tileSet.firstgid + tile.id;
+                map.allTiles[tileGid] = &tile;
 
                 xtile = xtile->NextSiblingElement("tile");
             }
@@ -168,7 +156,7 @@ void loadTmx()
             if (xdata)
             {
                 string data = trim_copy(xdata->GetText());
-                loadData(map.tilesets, data);
+                loadData(layer, map, data);
             }
             
             xlayer = xlayer->NextSiblingElement("layer");
