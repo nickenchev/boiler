@@ -16,6 +16,21 @@
 
 using namespace tinyxml2;
 
+SDL_Rect make_rect(glm::vec2 position, Size size)
+{
+    SDL_Rect rect;
+    rect.x = position.x;
+    rect.y = position.y;
+    rect.w = size.width;
+    rect.h = size.height;
+    return rect;
+}
+
+SDL_Rect make_rect(Rect frame)
+{
+    return make_rect(frame.position, frame.size);
+}
+
 string getAttributeString(XMLElement *elem, const char *key)
 {
     const char *str = elem->Attribute(key);
@@ -48,7 +63,7 @@ void loadData(ensoft::Layer &layer, ensoft::Map *map, std::string data)
 
     int result = uncompress(buffer, &destLen, &decoded[0], sourceLen);
     std::vector<u_int32_t> tileList;
-    std::map<int, ensoft::Tile *> tilesUsed;
+    std::map<int, ensoft::TmxTile *> tilesUsed;
     if (result != Z_OK)
     {
         // TODO: Error handle
@@ -111,7 +126,7 @@ std::unique_ptr<ensoft::Map> loadTmx()
         XMLElement *xtileset = xmap->FirstChildElement("tileset");
         while (xtileset)
         {
-            auto tileSet = std::make_unique<ensoft::TileSet>(loadProperties(xtileset));
+            auto tileSet = std::make_unique<ensoft::TmxTileSet>(loadProperties(xtileset));
             tileSet->firstgid = xtileset->IntAttribute("firstgid");
             tileSet->source = getAttributeString(xtileset, "source");
             tileSet->name = xtileset->Attribute("name");
@@ -124,7 +139,7 @@ std::unique_ptr<ensoft::Map> loadTmx()
             XMLElement *xtile = xtileset->FirstChildElement("tile");
             while (xtile)
             {
-                auto tile = make_unique<ensoft::Tile>(loadProperties(xtile));
+                auto tile = make_unique<ensoft::TmxTile>(loadProperties(xtile));
                 tile->id = xtile->IntAttribute("id");
                 tile->terrain = getAttributeString(xtile, "terrain");
                 tile->probability = xtile->FloatAttribute("probability");
@@ -244,6 +259,29 @@ void GamePart::start()
     currentAnimation = &walkRight;
 
     tmxMap = std::move(loadTmx());
+    // create the entities from the tile info
+
+    int tileNum = 0;
+    int x = 0, y = 0;
+    for (int w = 0; w < tmxMap->width; ++w)
+    {
+        for (int h = 0; h < tmxMap->height; ++h)
+        {
+            int tileGid = tmxMap->layers[0]->tiles[tileNum];
+            if (tileGid)
+            {
+                const ensoft::TmxTile *tmxTile= tmxMap->allTiles[tileGid];
+                Tile tile(*tmxTile);
+                tile.frame = Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight);
+                tiles.push_back(std::move(tile));
+            }
+
+            x += tmxMap->tilewidth;
+            tileNum++;
+        }
+        y += tmxMap->tileheight;
+        x = 0;
+    }
 }
 
 void GamePart::update(const float delta)
@@ -259,7 +297,7 @@ void GamePart::update(const float delta)
         }
         animTime = 0;
     }
-    frame = (*currentAnimation)[frameNum - 1];
+    spriteFrame = (*currentAnimation)[frameNum - 1];
 
     // check keyboard and modify state
     if (engine->keyState(SDLK_a))
@@ -280,55 +318,19 @@ void GamePart::update(const float delta)
 
 void GamePart::render()
 {
-    SDL_Rect sourceRect;
-    sourceRect.x = frame->getSourceRect().position.x;
-    sourceRect.y = frame->getSourceRect().position.y;
-    sourceRect.w = frame->getSourceRect().size.width;
-    sourceRect.h = frame->getSourceRect().size.height;
+    SDL_Rect sourceRect = make_rect(spriteFrame->getSourceRect());
+    SDL_Rect destRect = make_rect(player.frame.position, spriteFrame->getSourceRect().size);
 
-    SDL_Rect destRect;
-    destRect.x = player.frame.position.x;
-    destRect.y = player.frame.position.y;
-    destRect.w = frame->getSourceRect().size.width;
-    destRect.h = frame->getSourceRect().size.height; 
-
-    double angle = frame->isRotated() ? -90 : 0;
+    double angle = spriteFrame->isRotated() ? -90 : 0;
     SDL_RenderCopyEx(engine->getRenderer(), playerSheet->getTexture(), &sourceRect, &destRect, angle, NULL, SDL_FLIP_NONE);
 
-    int x = 0;
-    int y = 0;
-    int tileW = tmxMap->tilewidth;
-    int tileH = tmxMap->tileheight;
-
-    int tileNum = 0;
-    for (int w = 0; w < tmxMap->width; ++w)
+    // draw the tiles
+    for (const auto &tile : tiles)
     {
-        for (int h = 0; h < tmxMap->height; ++h)
-        {
-            int tileGid = tmxMap->layers[0]->tiles[tileNum];
-            if (tileGid)
-            {
-                const ensoft::Tile *tile = tmxMap->allTiles[tileGid];
-                const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tile->image.source);
+        const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tile.getTmxTile().image.source);
 
-                SDL_Rect srect;
-                srect.x = tileFrame->getSourceRect().position.x;
-                srect.y = tileFrame->getSourceRect().position.y;
-                srect.w = tileFrame->getSourceRect().size.width;
-                srect.h = tileFrame->getSourceRect().size.height;
-
-                SDL_Rect drect;
-                drect.x = x;
-                drect.y = y;
-                drect.w = tileW;
-                drect.h = tileH;
-                SDL_RenderCopy(engine->getRenderer(), tilesSheet->getTexture(), &srect, &drect);
-            }
-
-            x += tmxMap->tilewidth;
-            tileNum++;
-        }
-        y += tmxMap->tileheight;
-        x = 0;
+        SDL_Rect srect = make_rect(tileFrame->getSourceRect().position, tileFrame->getSourceRect().size);
+        SDL_Rect drect = make_rect(tile.frame);
+        SDL_RenderCopy(engine->getRenderer(), tilesSheet->getTexture(), &srect, &drect);
     }
 }

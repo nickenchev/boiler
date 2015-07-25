@@ -7,8 +7,8 @@ using namespace std;
 
 namespace ensoft
 {
-    struct TileSet;
-    struct Tile;
+    struct TmxTileSet;
+    struct TmxTile;
     struct Layer;
     struct ImageLayer;
     struct ObjectGroup;
@@ -39,8 +39,8 @@ namespace ensoft
         int width, height, tilewidth, tileheight;
         string renderorder;
 
-        map<int, Tile *> allTiles;
-        vector<unique_ptr<TileSet>> tilesets;
+        map<int, TmxTile *> allTiles;
+        vector<unique_ptr<TmxTileSet>> tilesets;
         vector<unique_ptr<Layer>> layers;
         vector<unique_ptr<ImageLayer>> imageLayers;
         vector<unique_ptr<ObjectGroup>> objectGroups;
@@ -48,12 +48,12 @@ namespace ensoft
         using TmxComponent::TmxComponent;
     };
 
-    struct TileSet : TmxComponent
+    struct TmxTileSet : TmxComponent
     {
         int firstgid;
         string source, name;
         int tilewidth, tileheight, spacing, margin;
-        vector<unique_ptr<Tile>> tiles;
+        vector<unique_ptr<TmxTile>> tiles;
 
         using TmxComponent::TmxComponent;
     };
@@ -64,7 +64,7 @@ namespace ensoft
         int width, height;
     };
 
-    struct Tile : TmxComponent
+    struct TmxTile : TmxComponent
     {
         int id;
         string terrain;
