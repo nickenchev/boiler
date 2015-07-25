@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" nextobjectid="3">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" nextobjectid="16">
  <tileset firstgid="1" name="Ground" tilewidth="16" tileheight="16">
   <tile id="0">
    <image width="16" height="16" source="ground_1.png"/>
@@ -10,13 +10,12 @@
  </imagelayer>
  <layer name="Tile Layer 1" width="100" height="100">
   <data encoding="base64" compression="zlib">
-   eJzt0TEOgDAMBMHz/z9NQ4WchBRIIGYkF273EgAAAAAAAAAAAAAAAAAAAICkzhv99J5oVBnvYZOxO312+1XWe9ikt2qz2+/afLbHnzfpWrzpAAAAAAAAAAAAAAAAAAAAAAAAAAAAvuIAzyoATg==
+   eJzt2EsOhCAQBUDn/peetWaQTwOmnarEpYivEZDjAAAAAAAAAAAAAAAAAAAA4E0+gxdzZcz22t9s/S9Z/R4r2v41fjKOqasdtai13/v80lz5hjl0db9r2fTmd7d2ZV/XZvZ5dB/w9DVLtK2M42eFGRlEs1SHs2iWo/XIOq/uEM1z9H7KevKJrkW+izaljGbvE9SiXXQv1vK/pR77tPxvsU9tzmOvu3MDnpH53AYAAAAAAAAAAAAAAAAAAAAA+G9fYlMArg==
   </data>
  </layer>
  <objectgroup name="Player">
   <properties>
    <property name="health" value="100"/>
   </properties>
-  <object id="2" x="22" y="713"/>
  </objectgroup>
 </map>

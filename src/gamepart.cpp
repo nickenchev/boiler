@@ -230,7 +230,7 @@ void GamePart::start()
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player.frame.position.y = 200;
+    player.frame.position.y = 690;
     frameNum = 1;
     numFrames = 2;
     animTime = 0;

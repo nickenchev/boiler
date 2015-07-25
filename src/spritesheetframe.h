@@ -13,10 +13,10 @@ class SpriteSheetFrame
     Rect sourceRect;
     bool rotated;
     bool trimmed;
-    Vector2 pivot;
+    glm::vec2 pivot;
 
 public:
-    SpriteSheetFrame(std::string filename, Rect sourceRect, bool rotated, bool trimmed, const Vector2 &pivot);
+    SpriteSheetFrame(std::string filename, Rect sourceRect, bool rotated, bool trimmed, const glm::vec2 &pivot);
     const std::string &getFilename() const { return filename; }
     Rect getSourceRect() const { return sourceRect; }
     bool isRotated() const { return rotated; }

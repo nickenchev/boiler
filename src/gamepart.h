@@ -11,10 +11,12 @@ class GamePart : public Part
 {
     //scene specific stuff
     SpriteSheet *playerSheet, *tilesSheet;
-    Entity player;
     int frameNum, numFrames;
     float animTime;
     float timePerFrame;
+
+    Entity player;
+    glm::vec2 playerVel;
 
     std::unique_ptr<ensoft::Map> tmxMap;
     const SpriteSheetFrame *frame;

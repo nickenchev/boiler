@@ -59,7 +59,7 @@ SpriteSheet *SpriteLoader::loadSheet(std::string filename)
 
             int pivotX = sprite["pivot"]["x"].asInt();
             int pivotY = sprite["pivot"]["y"].asInt();
-            Vector2 pivot(pivotX, pivotY);
+            glm::vec2 pivot(pivotX, pivotY);
             frames.insert(std::pair<std::string, SpriteSheetFrame>(frameFilename,
                                                                    SpriteSheetFrame(frameFilename, sourceRect, rotated,
                                                                                     trimmed, pivot)));

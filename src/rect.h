@@ -1,12 +1,9 @@
 #ifndef RECT
 #define RECT
 
-struct Vector2
-{
-    int x, y;
-    Vector2() { x = 0; y = 0; }
-    Vector2(int x, int y) : x(x), y(y) { }
-};
+#define GLM_COMPILER 0
+
+#include <glm/glm.hpp>
 
 struct Size
 {
@@ -17,7 +14,7 @@ struct Size
 
 struct Rect
 {
-    Vector2 position;
+    glm::vec2 position;
     Size size;
     Rect() { }
     Rect(int x, int y, int width, int height) : position(x, y), size(width, height) { }
