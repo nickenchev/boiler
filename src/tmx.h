@@ -1,4 +1,5 @@
 #include <string>
+#include <memory>
 #include <vector>
 #include <map>
 
@@ -39,10 +40,10 @@ namespace ensoft
         string renderorder;
 
         map<int, Tile *> allTiles;
-        vector<TileSet> tilesets;
-        vector<Layer> layers;
-        vector<ImageLayer> imageLayers;
-        vector<ObjectGroup> objectGroups;
+        vector<unique_ptr<TileSet>> tilesets;
+        vector<unique_ptr<Layer>> layers;
+        vector<unique_ptr<ImageLayer>> imageLayers;
+        vector<unique_ptr<ObjectGroup>> objectGroups;
 
         using TmxComponent::TmxComponent;
     };
@@ -52,9 +53,15 @@ namespace ensoft
         int firstgid;
         string source, name;
         int tilewidth, tileheight, spacing, margin;
-        vector<Tile> tiles;
+        vector<unique_ptr<Tile>> tiles;
 
         using TmxComponent::TmxComponent;
+    };
+
+    struct Image
+    {
+        string format, source, trans;
+        int width, height;
     };
 
     struct Tile : TmxComponent
@@ -62,17 +69,9 @@ namespace ensoft
         int id;
         string terrain;
         float probability;
+        Image image;
 
         using TmxComponent::TmxComponent;
-    };
-
-    struct TileRef
-    {
-        Tile *tile;
-        TileRef() : tile(nullptr) { }
-        TileRef(Tile *tile) : tile(tile) { }
-
-        bool hasTile() const { return tile != nullptr; }
     };
 
     struct TileOffset
@@ -86,7 +85,7 @@ namespace ensoft
         int x, y, width, height;
         float opacity;
         bool visible;
-        vector<TileRef> tiles;
+        vector<int> tiles;
 
         using TmxComponent::TmxComponent;
     };
@@ -97,6 +96,7 @@ namespace ensoft
         int x, y, width, height;
         float opacity;
         bool visible;
+        Image image;
 
         using TmxComponent::TmxComponent;
     };
@@ -107,7 +107,7 @@ namespace ensoft
         int x, y, width, height;
         float opacity;
         bool visible;
-        vector<ensoft::Object> objects;
+        vector<unique_ptr<Object>> objects;
 
         using TmxComponent::TmxComponent;
     };

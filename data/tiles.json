@@ -1,0 +1,21 @@
+{"frames": [
+
+{
+	"filename": "ground_1.png",
+	"frame": {"x":2,"y":2,"w":16,"h":11},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":5,"w":16,"h":11},
+	"sourceSize": {"w":16,"h":16},
+	"pivot": {"x":0.5,"y":0.5}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "tiles.png",
+	"format": "RGBA8888",
+	"size": {"w":20,"h":15},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:e6b06631c535bca95ea0f0511e96dc04:c860b1046bc573061662cd0aea2347e6:accbe1e7e294ded8391337fc1c446319$"
+}
+}

@@ -10,7 +10,6 @@
 #include <map>
 #include <zlib.h>
 #include "tinyxml2.h"
-#include "tmx.h"
 #include "base64.h"
 #include "string_util.h"
 #include <glm/glm.hpp>
@@ -23,7 +22,19 @@ string getAttributeString(XMLElement *elem, const char *key)
     return (str) ? string(str) : string("");
 }
 
-void loadData(ensoft::Layer &layer, ensoft::Map &map, std::string data)
+ensoft::Image loadImage(XMLElement *element)
+{
+    XMLElement *ximage = element->FirstChildElement("image");
+    std::string format = getAttributeString(ximage, "format");
+    std::string source = getAttributeString(ximage, "source");
+    std::string trans = getAttributeString(ximage, "trans");
+    int width = ximage->IntAttribute("width");
+    int height = ximage->IntAttribute("height");
+
+    return ensoft::Image{format, source, trans, width, height};
+}
+
+void loadData(ensoft::Layer &layer, ensoft::Map *map, std::string data)
 {
     vector<BYTE> decoded = base64_decode(data);
 
@@ -48,16 +59,8 @@ void loadData(ensoft::Layer &layer, ensoft::Map &map, std::string data)
         do
         {
             u_int32_t tileGid = *((u_int32_t *)&buffer[offset]);
-            if (tileGid != 0)
-            {
-                ensoft::Tile *tile = map.allTiles[tileGid];
-                std::cout << tile->id << std::endl;
-                layer.tiles.push_back(ensoft::TileRef(tile));
-            }
-            else
-            {
-                layer.tiles.push_back(ensoft::TileRef());
-            }
+            layer.tiles.push_back(tileGid);
+
             offset += 4;
         } while (offset < destLen);
     }
@@ -79,10 +82,11 @@ ensoft::Properties loadProperties(XMLElement *sourceElement)
     return ensoft::Properties(props);
 }
 
-void loadTmx()
+std::unique_ptr<ensoft::Map> loadTmx()
 {
     XMLDocument doc;
     XMLError error = doc.LoadFile("data/test_map.tmx");
+    std::unique_ptr<ensoft::Map> map;
 
     if (error != XMLError::XML_NO_ERROR)
     {
@@ -93,47 +97,48 @@ void loadTmx()
         // start parsing the TMX map
         XMLElement *xmap = doc.FirstChildElement("map");
         
-        ensoft::Map map(loadProperties(xmap));
-        map.version = xmap->Attribute("version");
-        map.orientation = xmap->Attribute("orientation");
-        map.width = xmap->IntAttribute("width");
-        map.height = xmap->IntAttribute("height");
-        map.tilewidth = xmap->IntAttribute("tilewidth");
-        map.tileheight = xmap->IntAttribute("tileheight");
-        map.renderorder = xmap->Attribute("renderorder");
-        map.properties = loadProperties(xmap);
+        map = std::make_unique<ensoft::Map>(loadProperties(xmap));
+        map->version = xmap->Attribute("version");
+        map->orientation = xmap->Attribute("orientation");
+        map->width = xmap->IntAttribute("width");
+        map->height = xmap->IntAttribute("height");
+        map->tilewidth = xmap->IntAttribute("tilewidth");
+        map->tileheight = xmap->IntAttribute("tileheight");
+        map->renderorder = xmap->Attribute("renderorder");
+        map->properties = loadProperties(xmap);
 
         // load all the tilesets
         XMLElement *xtileset = xmap->FirstChildElement("tileset");
         while (xtileset)
         {
-            ensoft::TileSet tileSet(loadProperties(xtileset));
-            tileSet.firstgid = xtileset->IntAttribute("firstgid");
-            tileSet.source = getAttributeString(xtileset, "source");
-            tileSet.name = xtileset->Attribute("name");
-            tileSet.tilewidth = xtileset->IntAttribute("tilewidth");
-            tileSet.tileheight = xtileset->IntAttribute("tileheight");
-            tileSet.spacing = xtileset->IntAttribute("spacing");
-            tileSet.margin = xtileset->IntAttribute("margin");
+            auto tileSet = std::make_unique<ensoft::TileSet>(loadProperties(xtileset));
+            tileSet->firstgid = xtileset->IntAttribute("firstgid");
+            tileSet->source = getAttributeString(xtileset, "source");
+            tileSet->name = xtileset->Attribute("name");
+            tileSet->tilewidth = xtileset->IntAttribute("tilewidth");
+            tileSet->tileheight = xtileset->IntAttribute("tileheight");
+            tileSet->spacing = xtileset->IntAttribute("spacing");
+            tileSet->margin = xtileset->IntAttribute("margin");
 
             // get the tiles for this tileset
             XMLElement *xtile = xtileset->FirstChildElement("tile");
             while (xtile)
             {
-                ensoft::Tile tile(loadProperties(xtile));
-                tile.id = xtile->IntAttribute("id");
-                tile.terrain = getAttributeString(xtile, "terrain");
-                tile.probability = xtile->FloatAttribute("probability");
-                tileSet.tiles.push_back(tile);
+                auto tile = make_unique<ensoft::Tile>(loadProperties(xtile));
+                tile->id = xtile->IntAttribute("id");
+                tile->terrain = getAttributeString(xtile, "terrain");
+                tile->probability = xtile->FloatAttribute("probability");
+                tile->image = loadImage(xtile);
 
                 // keep track of all tiles and their global IDs
-                int tileGid = tileSet.firstgid + tile.id;
-                map.allTiles[tileGid] = &tile;
+                int tileGid = tileSet->firstgid + tile->id;
+                map->allTiles[tileGid] = tile.get();
 
+                tileSet->tiles.push_back(std::move(tile));
                 xtile = xtile->NextSiblingElement("tile");
             }
 
-            map.tilesets.push_back(tileSet);
+            map->tilesets.push_back(std::move(tileSet));
             // try to find another tileset
             xtileset = xtileset->NextSiblingElement("tileset");
         }
@@ -141,39 +146,41 @@ void loadTmx()
         XMLElement *xlayer = xmap->FirstChildElement("layer");
         while (xlayer)
         {
-            ensoft::Layer layer(loadProperties(xlayer));
-            layer.name = xlayer->Attribute("name");
-            layer.x = xlayer->IntAttribute("x");
-            layer.y = xlayer->IntAttribute("y");
-            layer.width = xlayer->IntAttribute("width");
-            layer.height = xlayer->IntAttribute("height");
-            layer.opacity = xlayer->FloatAttribute("opacity");
-            layer.visible = xlayer->BoolAttribute("visible");
-            map.layers.push_back(layer);
+            auto layer = std::make_unique<ensoft::Layer>(loadProperties(xlayer));
+            layer->name = xlayer->Attribute("name");
+            layer->x = xlayer->IntAttribute("x");
+            layer->y = xlayer->IntAttribute("y");
+            layer->width = xlayer->IntAttribute("width");
+            layer->height = xlayer->IntAttribute("height");
+            layer->opacity = xlayer->FloatAttribute("opacity");
+            layer->visible = xlayer->BoolAttribute("visible");
 
             // load the data element
             XMLElement *xdata = xlayer->FirstChildElement("data");
             if (xdata)
             {
                 string data = trim_copy(xdata->GetText());
-                loadData(layer, map, data);
+                loadData(*layer, map.get(), data);
             }
             
+            map->layers.push_back(std::move(layer));
             xlayer = xlayer->NextSiblingElement("layer");
         }
 
         XMLElement *ximagelayer = xmap->FirstChildElement("imagelayer");
         while (ximagelayer)
         {
-            ensoft::ImageLayer imageLayer(loadProperties(xlayer));
-            imageLayer.name = ximagelayer->Attribute("name");
-            imageLayer.x = ximagelayer->IntAttribute("x");
-            imageLayer.y = ximagelayer->IntAttribute("y");
-            imageLayer.width = ximagelayer->IntAttribute("width");
-            imageLayer.height = ximagelayer->IntAttribute("height");
-            imageLayer.opacity = ximagelayer->FloatAttribute("opacity");
-            imageLayer.visible = ximagelayer->BoolAttribute("visible");
-            map.imageLayers.push_back(imageLayer);
+            auto imageLayer = std::make_unique<ensoft::ImageLayer>(loadProperties(ximagelayer));
+            imageLayer->name = ximagelayer->Attribute("name");
+            imageLayer->x = ximagelayer->IntAttribute("x");
+            imageLayer->y = ximagelayer->IntAttribute("y");
+            imageLayer->width = ximagelayer->IntAttribute("width");
+            imageLayer->height = ximagelayer->IntAttribute("height");
+            imageLayer->opacity = ximagelayer->FloatAttribute("opacity");
+            imageLayer->visible = ximagelayer->BoolAttribute("visible");
+
+            imageLayer->image = loadImage(ximagelayer);
+            map->imageLayers.push_back(std::move(imageLayer));
 
             ximagelayer = ximagelayer->NextSiblingElement("imagelayer");
         }
@@ -181,45 +188,46 @@ void loadTmx()
         XMLElement *xobjectgroup = xmap->FirstChildElement("objectgroup");
         while (xobjectgroup)
         {
-            ensoft::ObjectGroup objectGroup(loadProperties(xobjectgroup));
-            objectGroup.name = xobjectgroup->Attribute("name");
-            objectGroup.x = xobjectgroup->IntAttribute("x");
-            objectGroup.y = xobjectgroup->IntAttribute("y");
-            objectGroup.width = xobjectgroup->IntAttribute("width");
-            objectGroup.height = xobjectgroup->IntAttribute("height");
-            objectGroup.opacity = xobjectgroup->FloatAttribute("opacity");
-            objectGroup.visible = xobjectgroup->BoolAttribute("visible");
+            auto objectGroup = std::make_unique<ensoft::ObjectGroup>(loadProperties(xobjectgroup));
+            objectGroup->name = xobjectgroup->Attribute("name");
+            objectGroup->x = xobjectgroup->IntAttribute("x");
+            objectGroup->y = xobjectgroup->IntAttribute("y");
+            objectGroup->width = xobjectgroup->IntAttribute("width");
+            objectGroup->height = xobjectgroup->IntAttribute("height");
+            objectGroup->opacity = xobjectgroup->FloatAttribute("opacity");
+            objectGroup->visible = xobjectgroup->BoolAttribute("visible");
 
             //grab the objects
             XMLElement *xobject = xobjectgroup->FirstChildElement("object");
             while (xobject)
             {
-                ensoft::Object object(loadProperties(xobject));
-                object.id = xobject->Attribute("id");
-                object.name = xobject->Attribute("name");
-                object.type = getAttributeString(xobject, "type");
-                object.x = xobject->IntAttribute("x");
-                object.y = xobject->IntAttribute("y");
-                object.width = xobject->IntAttribute("witdth");
-                object.height = xobject->IntAttribute("height");
-                object.gid = xobject->IntAttribute("gid");
-                object.visible = xobject->BoolAttribute("visible");
-                objectGroup.objects.push_back(object);
+                auto object = std::make_unique<ensoft::Object>(loadProperties(xobject));
+                object->id = xobject->Attribute("id");
+                object->name = getAttributeString(xobject, "name");
+                object->type = getAttributeString(xobject, "type");
+                object->x = xobject->IntAttribute("x");
+                object->y = xobject->IntAttribute("y");
+                object->width = xobject->IntAttribute("witdth");
+                object->height = xobject->IntAttribute("height");
+                object->gid = xobject->IntAttribute("gid");
+                object->visible = xobject->BoolAttribute("visible");
+                objectGroup->objects.push_back(std::move(object));
 
                 xobject = xobject->NextSiblingElement("object");
             }
-            map.objectGroups.push_back(objectGroup);
-
+            map->objectGroups.push_back(std::move(objectGroup));
             xobjectgroup = xobjectgroup->NextSiblingElement("objectgroup");
         }
     }
+
+    return map; 
 }
 
 void GamePart::start()
 {
     //do some loading
-    std::string filename = "data/zodas2.json";
-    playerSheet = engine->getSpriteLoader().loadSheet(filename);
+    playerSheet = engine->getSpriteLoader().loadSheet("data/zodas2.json");
+    tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
     player.frame.position.y = 200;
@@ -235,7 +243,7 @@ void GamePart::start()
 
     currentAnimation = &walkRight;
 
-    loadTmx();
+    tmxMap = std::move(loadTmx());
 }
 
 void GamePart::update(const float delta)
@@ -286,4 +294,41 @@ void GamePart::render()
 
     double angle = frame->isRotated() ? -90 : 0;
     SDL_RenderCopyEx(engine->getRenderer(), playerSheet->getTexture(), &sourceRect, &destRect, angle, NULL, SDL_FLIP_NONE);
+
+    int x = 0;
+    int y = 0;
+    int tileW = tmxMap->tilewidth;
+    int tileH = tmxMap->tileheight;
+
+    int tileNum = 0;
+    for (int w = 0; w < tmxMap->width; ++w)
+    {
+        for (int h = 0; h < tmxMap->height; ++h)
+        {
+            int tileGid = tmxMap->layers[0]->tiles[tileNum];
+            if (tileGid)
+            {
+                const ensoft::Tile *tile = tmxMap->allTiles[tileGid];
+                const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tile->image.source);
+
+                SDL_Rect srect;
+                srect.x = tileFrame->getSourceRect().position.x;
+                srect.y = tileFrame->getSourceRect().position.y;
+                srect.w = tileFrame->getSourceRect().size.width;
+                srect.h = tileFrame->getSourceRect().size.height;
+
+                SDL_Rect drect;
+                drect.x = x;
+                drect.y = y;
+                drect.w = tileW;
+                drect.h = tileH;
+                SDL_RenderCopy(engine->getRenderer(), tilesSheet->getTexture(), &srect, &drect);
+            }
+
+            x += tmxMap->tilewidth;
+            tileNum++;
+        }
+        y += tmxMap->tileheight;
+        x = 0;
+    }
 }

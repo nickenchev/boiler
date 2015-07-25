@@ -1,6 +1,8 @@
 #include <vector>
+#include <memory>
 #include "part.h"
 #include "entity.h"
+#include "tmx.h"
 
 class SpriteSheet;
 class SpriteSheetFrame;
@@ -8,12 +10,13 @@ class SpriteSheetFrame;
 class GamePart : public Part
 {
     //scene specific stuff
-    SpriteSheet *playerSheet;
+    SpriteSheet *playerSheet, *tilesSheet;
     Entity player;
     int frameNum, numFrames;
     float animTime;
     float timePerFrame;
 
+    std::unique_ptr<ensoft::Map> tmxMap;
     const SpriteSheetFrame *frame;
     std::vector<const SpriteSheetFrame*> *currentAnimation;
     std::vector<const SpriteSheetFrame*> standLeft;

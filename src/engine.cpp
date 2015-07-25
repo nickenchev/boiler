@@ -5,6 +5,9 @@
 #include "spritesheet.h"
 #include "part.h"
 
+#define RES_WIDTH 1024
+#define RES_HEIGHT 768
+
 Engine::Engine() : spriteLoader(*this), keys{0}
 {
     lastTime = currentTime = 0;
@@ -16,7 +19,7 @@ void Engine::initialize()
     bool success = false;
     if (SDL_Init(SDL_INIT_VIDEO) == 0)
     {
-        win = SDL_CreateWindow("Boiler", 0, 0, 640, 480, SDL_WINDOW_OPENGL);
+        win = SDL_CreateWindow("Boiler", 0, 0, RES_WIDTH, RES_HEIGHT, SDL_WINDOW_OPENGL);
         if (win)
         {
             ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
