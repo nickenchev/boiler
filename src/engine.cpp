@@ -106,15 +106,12 @@ void Engine::update(const float delta)
 
 void Engine::render(const float delta)
 {
-    //SDL_RenderClear(ren);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     part->render();
 
     SDL_GL_SwapWindow(win);
-
-    //SDL_RenderPresent(ren);
 }
 
 Engine::~Engine()

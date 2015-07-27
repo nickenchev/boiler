@@ -282,16 +282,17 @@ void GamePart::start()
     }
 
     // 2D vertex and texture coords
-    GLfloat size = 50.0f;
+    GLfloat sizeW = player.frame.size.width;
+    GLfloat sizeH = player.frame.size.height;
     GLfloat vertices[] =
     {
-        0.0f, size, 0.0f, 1.0f,
-        size, 0.0f, 1.0f, 0.0f,
+        0.0f, sizeH, 0.0f, 1.0f,
+        sizeW, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
 
-        0.0f, size, 0.0f, 1.0f,
-        size, size, 1.0f, 1.0f,
-        size, 0.0f, 1.0f, 0.0f
+        0.0f, sizeH, 0.0f, 1.0f,
+        sizeW, sizeH, 1.0f, 1.0f,
+        sizeW, 0.0f, 1.0f, 0.0f
     };
 
     program = std::make_unique<ShaderProgram>("shader");
