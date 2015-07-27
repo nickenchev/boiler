@@ -4,6 +4,7 @@
 #include "entity.h"
 #include "tile.h"
 #include "tmx.h"
+#include "shaderprogram.h"
 
 class SpriteSheet;
 class SpriteSheetFrame;
@@ -28,8 +29,13 @@ class GamePart : public Part
     std::vector<const SpriteSheetFrame*> walkLeft;
     std::vector<const SpriteSheetFrame*> walkRight;
 
+    // render stuff
+    std::unique_ptr<ShaderProgram> program;
+    GLuint vao, vbo, mvpUniform;
+
 public:
-    GamePart(Engine *engine) : Part(engine) { }
+    GamePart(Engine *engine);
+    ~GamePart();
     void start() override;
     void update(const float delta) override;
     void render() override;

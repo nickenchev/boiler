@@ -6,8 +6,9 @@
 #include "spritesheet.h"
 #include "spritesheetframe.h"
 
-#include "sdl_util.h"
+#include "sdl_util.h" //TODO: Meh?
 
+// LOAD TMX Stuff
 #define GLM_COMPILER 0
 #include <map>
 #include <zlib.h>
@@ -16,7 +17,16 @@
 #include "string_util.h"
 #include <glm/glm.hpp>
 
+// OpenGL Rendering
+#include "opengl.h"
+#include <glm/gtc/matrix_transform.hpp>
+
 using namespace tinyxml2;
+using namespace std;
+
+GamePart::GamePart(Engine *engine) : Part(engine)
+{
+}
 
 string getAttributeString(XMLElement *elem, const char *key)
 {
@@ -232,7 +242,8 @@ void GamePart::start()
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player.frame.position.y = 690;
+    player.frame.position = glm::vec2(20, 300);
+    player.frame.size = Size(15, 31);
     frameNum = 1;
     numFrames = 2;
     animTime = 0;
@@ -269,6 +280,38 @@ void GamePart::start()
         y += tmxMap->tileheight;
         x = 0;
     }
+
+    // 2D vertex and texture coords
+    GLfloat size = 50.0f;
+    GLfloat vertices[] =
+    {
+        0.0f, size, 0.0f, 1.0f,
+        size, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f,
+
+        0.0f, size, 0.0f, 1.0f,
+        size, size, 1.0f, 1.0f,
+        size, 0.0f, 1.0f, 0.0f
+    };
+
+    program = std::make_unique<ShaderProgram>("shader");
+
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // pass the vertices
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+
+    // cleanup
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
 }
 
 void GamePart::update(const float delta)
@@ -305,20 +348,46 @@ void GamePart::update(const float delta)
 
 void GamePart::render()
 {
+    glUseProgram(program->getShaderProgram());
+
+    // opengl sprite render
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(getEngine()->getScreenWidth()),
+                                      static_cast<GLfloat>(getEngine()->getScreenHeight()), 0.0f, -1.0f, 1.0f);
+
+    // create the model matrix, by getting a 3D vector from the Entity's vec2 position
+    glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(player.frame.position, 0.0f));
+    projection = projection * model;
+
+    glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &projection[0][0]);
+
+    // the sprite becomes TEXTURE0 in the shader
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, playerSheet->getTexture());
+
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+
+    glUseProgram(0);
     // draw the player
-    SDL_Rect sourceRect = make_rect(spriteFrame->getSourceRect());
-    SDL_Rect destRect = make_rect(player.frame.position, spriteFrame->getSourceRect().size);
+//    SDL_Rect sourceRect = make_rect(spriteFrame->getSourceRect());
+//    SDL_Rect destRect = make_rect(player.frame.position, spriteFrame->getSourceRect().size);
+//
+//    double angle = spriteFrame->isRotated() ? -90 : 0;
+//    SDL_RenderCopyEx(engine->getRenderer(), playerSheet->getTexture(), &sourceRect, &destRect, angle, NULL, SDL_FLIP_NONE);
+//
+//    // draw the tiles
+//    for (const auto &tile : tiles)
+//    {
+//        const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tile.getTmxTile().image.source);
+//
+//        SDL_Rect srect = make_rect(tileFrame->getSourceRect().position, tileFrame->getSourceRect().size);
+//        SDL_Rect drect = make_rect(tile.frame);
+//        SDL_RenderCopy(engine->getRenderer(), tilesSheet->getTexture(), &srect, &drect);
+//    }
+}
 
-    double angle = spriteFrame->isRotated() ? -90 : 0;
-    SDL_RenderCopyEx(engine->getRenderer(), playerSheet->getTexture(), &sourceRect, &destRect, angle, NULL, SDL_FLIP_NONE);
-
-    // draw the tiles
-    for (const auto &tile : tiles)
-    {
-        const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tile.getTmxTile().image.source);
-
-        SDL_Rect srect = make_rect(tileFrame->getSourceRect().position, tileFrame->getSourceRect().size);
-        SDL_Rect drect = make_rect(tile.frame);
-        SDL_RenderCopy(engine->getRenderer(), tilesSheet->getTexture(), &srect, &drect);
-    }
+GamePart::~GamePart()
+{
+    glDeleteBuffers(1, &vbo); // VAO references the buffer now
 }

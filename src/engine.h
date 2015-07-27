@@ -1,19 +1,24 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+#include <SDL.h>
+
 #include "spriteloader.h"
 #include "entity.h"
+
+#define RES_WIDTH 1024
+#define RES_HEIGHT 768
 
 #define MAX_KEYS 256
 
 class Part;
 class SDL_Window;
-class SDL_Renderer;
 
 class Engine
 {
+    SDL_GLContext glContext;
     SDL_Window *win = nullptr;
-    SDL_Renderer *ren = nullptr;
+
     bool running = true;
     SpriteLoader spriteLoader;
     unsigned int lastTime, currentTime;
@@ -37,7 +42,8 @@ public:
     bool keyState(int keyNum) const { return keys[keyNum]; }
     SpriteLoader &getSpriteLoader() { return spriteLoader; }
     SDL_Window *getWindow() const { return win; }
-    SDL_Renderer *getRenderer() const { return ren; }
+    int getScreenWidth() const { return RES_WIDTH; }
+    int getScreenHeight() const { return RES_HEIGHT; }
 };
 
 #endif // ENGINE_H

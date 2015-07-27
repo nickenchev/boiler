@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <SDL_image.h>
+#include <OpenGL/gl3.h>
 
 #include "spriteloader.h"
 #include "json/json.h"
@@ -27,17 +28,25 @@ SpriteSheet *SpriteLoader::loadSheet(std::string filename)
         std::string imageFile = "data/" + json["meta"]["image"].asString();
 
         //read the sprite image name and load the texture
-        SDL_Renderer *renderer = getEngine().getRenderer();
         SDL_Surface *surface = IMG_Load(imageFile.c_str());
-        SDL_Texture *texture = nullptr;
+        GLuint texture;
         if (surface)
         {
-            texture = SDL_CreateTextureFromSurface(renderer, surface);
-            if (texture)
-            {
-                textures.push_back(texture);
-                SDL_FreeSurface(surface);
-            }
+            // create the opengl texture and fill it with surface data
+            glGenTextures(1, &texture);
+
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
+
+            // set nearest neighbour filtering
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            // unbind the texture 
+            glBindTexture(GL_TEXTURE_2D, 0);
+            
+            textures.push_back(texture);
+            SDL_FreeSurface(surface);
         }
 
         int width = json["meta"]["size"]["w"].asInt();
@@ -81,8 +90,9 @@ SpriteSheet *SpriteLoader::loadSheet(std::string filename)
 SpriteLoader::~SpriteLoader()
 {
     std::cout << "* SpriteLoader cleanup (" << textures.size() << " textures)." << std::endl;
-    for (auto it = textures.begin(); it != textures.end(); ++it)
+    for (auto itr = textures.begin(); itr != textures.end(); ++itr)
     {
-        SDL_DestroyTexture(*it);
+        GLuint texture = *itr;
+        glDeleteTextures(1, &texture);
     }
 }

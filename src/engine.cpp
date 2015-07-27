@@ -1,12 +1,9 @@
-#include <SDL.h>
 #include <SDL_image.h>
 #include <iostream>
+#include <OpenGL/gl3.h>
 #include "engine.h"
 #include "spritesheet.h"
 #include "part.h"
-
-#define RES_WIDTH 1024
-#define RES_HEIGHT 768
 
 Engine::Engine() : spriteLoader(*this), keys{0}
 {
@@ -22,8 +19,14 @@ void Engine::initialize()
         win = SDL_CreateWindow("Boiler", 0, 0, RES_WIDTH, RES_HEIGHT, SDL_WINDOW_OPENGL);
         if (win)
         {
-            ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
-            if (ren)
+            // setup opengl
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+            glContext = SDL_GL_CreateContext(win);
+            if (glContext)
             {
                 IMG_Init(IMG_INIT_PNG);
                 success = true;
@@ -103,24 +106,28 @@ void Engine::update(const float delta)
 
 void Engine::render(const float delta)
 {
-    SDL_RenderClear(ren);
+    //SDL_RenderClear(ren);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     part->render();
 
-    SDL_RenderPresent(ren);
+    SDL_GL_SwapWindow(win);
+
+    //SDL_RenderPresent(ren);
 }
 
 Engine::~Engine()
 {
+    if (glContext)
+    {
+        std::cout << "* Destroying GL Context" << std::endl;
+        SDL_GL_DeleteContext(glContext);
+    }
     if (win)
     {
         std::cout << "* Destroying Window" << std::endl;
         SDL_DestroyWindow(win);
-    }
-    if (ren)
-    {
-        std::cout << "* Destroying Renderer" << std::endl;
-        SDL_DestroyRenderer(ren);
     }
     SDL_Quit();
 }

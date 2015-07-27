@@ -9,10 +9,11 @@
 #include "spritesheet.h"
 
 class SDL_Texture;
+typedef unsigned int GLuint;
 
 class SpriteLoader : Component
 {
-    std::vector<SDL_Texture*> textures;
+    std::vector<GLuint> textures;
     std::vector<std::unique_ptr<SpriteSheet>> spriteSheets;
 
 public:

@@ -13,6 +13,8 @@ public:
     virtual void start() = 0;
     virtual void update(const float delta) = 0;
     virtual void render() = 0;
+
+    const Engine *getEngine() const { return engine; }
 };
 
 #endif /* PART_H */
