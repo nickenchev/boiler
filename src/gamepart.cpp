@@ -284,15 +284,16 @@ void GamePart::start()
     // 2D vertex and texture coords
     GLfloat sizeW = player.frame.size.width;
     GLfloat sizeH = player.frame.size.height;
+
     GLfloat vertices[] =
     {
-        0.0f, sizeH, 0.0f, 1.0f,
-        sizeW, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, sizeH,
+        sizeW, 0.0f,
+        0.0f, 0.0f,
 
-        0.0f, sizeH, 0.0f, 1.0f,
-        sizeW, sizeH, 1.0f, 1.0f,
-        sizeW, 0.0f, 1.0f, 0.0f
+        0.0f, sizeH,
+        sizeW, sizeH,
+        sizeW, 0.0f
     };
 
     program = std::make_unique<ShaderProgram>("shader");
@@ -300,13 +301,21 @@ void GamePart::start()
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    // setup a VBO for the vertices
+    glGenBuffers(1, &vboVerts);
+    glBindBuffer(GL_ARRAY_BUFFER, vboVerts);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // pass the vertices
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+
+    // setup a VBO for the texture coordinates
+    glGenBuffers(1, &vboTexCoords);
+    glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
 
     // cleanup
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -349,6 +358,31 @@ void GamePart::update(const float delta)
 
 void GamePart::render()
 {
+    // setup spritesheet texture coordinate
+    const Rect &frameRect = spriteFrame->getSourceRect();
+    GLfloat texX = frameRect.position.x / playerSheet->getSize().width;
+    GLfloat texY = frameRect.position.y / playerSheet->getSize().height;
+    GLfloat texU = (frameRect.size.width + frameRect.position.x) / playerSheet->getSize().width;
+    GLfloat texV = (frameRect.size.height + frameRect.position.y) / playerSheet->getSize().height;
+    GLfloat tempCoords[] =
+    {
+        texX, texV,
+        texU, texY,
+        texX, texY,
+
+        texX, texV,
+        texU, texV,
+        texU, texY
+    };
+
+    for (int i = 0; i < 12; ++i)
+    {
+        texCoords[i] = tempCoords[i];
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(texCoords), texCoords);
+
+    // select the shader program and start rendering the scene
     glUseProgram(program->getShaderProgram());
 
     // opengl sprite render
@@ -357,6 +391,7 @@ void GamePart::render()
 
     // create the model matrix, by getting a 3D vector from the Entity's vec2 position
     glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(player.frame.position, 0.0f));
+    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
     projection = projection * model;
 
     glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &projection[0][0]);
@@ -371,8 +406,8 @@ void GamePart::render()
 
     glUseProgram(0);
     // draw the player
-//    SDL_Rect sourceRect = make_rect(spriteFrame->getSourceRect());
-//    SDL_Rect destRect = make_rect(player.frame.position, spriteFrame->getSourceRect().size);
+//    SDL_Rect sourceRect = make_rect(frameRect);
+//    SDL_Rect destRect = make_rect(player.frame.position, frameRect.size);
 //
 //    double angle = spriteFrame->isRotated() ? -90 : 0;
 //    SDL_RenderCopyEx(engine->getRenderer(), playerSheet->getTexture(), &sourceRect, &destRect, angle, NULL, SDL_FLIP_NONE);
@@ -390,5 +425,6 @@ void GamePart::render()
 
 GamePart::~GamePart()
 {
-    glDeleteBuffers(1, &vbo); // VAO references the buffer now
+    glDeleteBuffers(1, &vboVerts); // VAO references the buffer now
+    glDeleteBuffers(1, &vboTexCoords);
 }

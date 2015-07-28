@@ -22,6 +22,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/include/tinyxml2)
 
+set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 set(SRC_FILES
   src/main.cpp
   src/engine.cpp
@@ -36,5 +37,5 @@ set(SRC_FILES
   src/base64.cpp
   src/shaderprogram.cpp)
 
-add_executable(${PROJECT_NAME} ${SRC_FILES}) 
+add_executable(${PROJECT_NAME} ${SRC_FILES} ${SHADER_FILES})
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY})

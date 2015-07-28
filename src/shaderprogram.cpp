@@ -61,8 +61,8 @@ ShaderProgram::ShaderProgram(std::string name) : name(name)
 {
     //load the shader sources
     std::string vertSrc, fragSrc;
-    loadShader("data/" + name + ".vert", &vertSrc);
-    loadShader("data/" + name + ".frag", &fragSrc);
+    loadShader("data/shaders/" + name + ".vert", &vertSrc);
+    loadShader("data/shaders/" + name + ".frag", &fragSrc);
 
     try
     {
@@ -80,8 +80,9 @@ ShaderProgram::ShaderProgram(std::string name) : name(name)
         glAttachShader(shaderProgram, vertShader);
         glAttachShader(shaderProgram, fragShader);
 
-        //bind the named parameter vPosition to attribute index 0
-        glBindAttribLocation(shaderProgram, 0, "vPosition");
+        //bind the named parameters to their vertex attrib indices
+        glBindAttribLocation(shaderProgram, 0, "vertCoords");
+        glBindAttribLocation(shaderProgram, 1, "texCoords");
 
         //link the shader program
         glLinkProgram(shaderProgram);
