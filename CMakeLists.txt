@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.2)
 project(engine)
 
-set(CMAKE_CXX_COMPILER /usr/local/Cellar/llvm/3.6.1/bin/clang++)
+#set(CMAKE_CXX_COMPILER /usr/local/Cellar/llvm/3.6.1/bin/clang++)
+set(CMAKE_CXX_COMPILER /usr/bin/g++-5)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -12,7 +13,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin/)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(OPENGL REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
 
 include_directories(
   ${SDL2_INCLUDE_DIR}
@@ -20,7 +22,8 @@ include_directories(
   ${ZLIB_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIR}
   ${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_SOURCE_DIR}/include/tinyxml2)
+  ${PROJECT_SOURCE_DIR}/include/tinyxml2
+  ${GLEW_INCLUDE_DIR})
 
 set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 set(SRC_FILES
@@ -38,4 +41,4 @@ set(SRC_FILES
   src/shaderprogram.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SHADER_FILES})
-target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY})
+target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})

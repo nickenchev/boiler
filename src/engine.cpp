@@ -1,6 +1,6 @@
 #include <SDL_image.h>
 #include <iostream>
-#include <OpenGL/gl3.h>
+#include "opengl.h"
 #include "engine.h"
 #include "spritesheet.h"
 #include "part.h"
@@ -28,6 +28,15 @@ void Engine::initialize()
             glContext = SDL_GL_CreateContext(win);
             if (glContext)
             {
+                std::cout << " - Using Context: OpenGL " << glGetString(GL_VERSION) << std::endl; 
+
+                // require "experimental" as not all OpenGL features are marked "standard"
+                glewExperimental = GL_TRUE;
+                if (glewInit() != GLEW_OK)
+                {
+                    std::cerr << "Error initializing GLEW" << std::endl;
+                }
+                
                 IMG_Init(IMG_INIT_PNG);
                 success = true;
             }

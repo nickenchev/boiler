@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <SDL_image.h>
-#include <OpenGL/gl3.h>
+#include "opengl.h"
 
 #include "spriteloader.h"
 #include "json/json.h"
