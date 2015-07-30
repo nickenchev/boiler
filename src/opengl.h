@@ -1,4 +1,5 @@
-//#include <OpenGL/gl3.h>
+// Includes of OpenGL headers for various platforms
+
 #ifdef __APPLE__
 
 #include <GL/glew.h>

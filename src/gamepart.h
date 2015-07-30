@@ -31,7 +31,7 @@ class GamePart : public Part
 
     // render stuff
     std::unique_ptr<ShaderProgram> program;
-    unsigned int vao, vboVerts, vboTexCoords, mvpUniform;
+    unsigned int vao, vboVerts, mvpUniform;
     float texCoords[12];
 
 public:

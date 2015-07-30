@@ -36,7 +36,7 @@ SpriteSheet *SpriteLoader::loadSheet(std::string filename)
             glGenTextures(1, &texture);
 
             glBindTexture(GL_TEXTURE_2D, texture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, surface->pixels);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
 
             // set nearest neighbour filtering
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -44,6 +44,11 @@ SpriteSheet *SpriteLoader::loadSheet(std::string filename)
 
             // unbind the texture 
             glBindTexture(GL_TEXTURE_2D, 0);
+
+            if (glGetError() != GL_NO_ERROR)
+            {
+                error("Unable to create GL texture.");
+            }
             
             textures.push_back(texture);
             SDL_FreeSurface(surface);
@@ -62,6 +67,34 @@ SpriteSheet *SpriteLoader::loadSheet(std::string filename)
             int y = sprite["frame"]["y"].asInt();
             int w = sprite["frame"]["w"].asInt();
             int h = sprite["frame"]["h"].asInt();
+
+            // calculate the opengl texture coords
+            float texX = x / static_cast<float>(width);
+            float texY = y / static_cast<float>(height);
+            float texW = (x + w) / static_cast<float>(width);
+            float texH = (y + h) / static_cast<float>(height);
+            GLfloat texCoords[] =
+            {
+                texX, texH,
+                texW, texY,
+                texX, texY,
+
+                texX, texH,
+                texW, texH,
+                texW, texY
+            };
+
+            // create a VBO to hold each frame's texture coords
+            GLuint texCoordVbo;
+            glGenBuffers(1, &texCoordVbo);
+            glBindBuffer(GL_ARRAY_BUFFER, texCoordVbo);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_DYNAMIC_DRAW);
+
+            if (glGetError() != GL_NO_ERROR)
+            {
+                error("Unable to create the texture coordinate VBO.");
+            }
+            
             Rect sourceRect(x, y, w, h);
             bool rotated = sprite["rotated"].asBool();
             bool trimmed = sprite["trimmed"].asBool();
@@ -71,7 +104,8 @@ SpriteSheet *SpriteLoader::loadSheet(std::string filename)
             glm::vec2 pivot(pivotX, pivotY);
             frames.insert(std::pair<std::string, SpriteSheetFrame>(frameFilename,
                                                                    SpriteSheetFrame(frameFilename, sourceRect, rotated,
-                                                                                    trimmed, pivot)));
+                                                                                    trimmed, pivot, texCoordVbo)));
+            log("Loaded frame: " + frameFilename);
         }
         auto sheet = std::make_unique<SpriteSheet>(imageFile, Size(width, height), texture, frames);
         const Size &size = sheet->getSize();
@@ -89,7 +123,16 @@ SpriteSheet *SpriteLoader::loadSheet(std::string filename)
 
 SpriteLoader::~SpriteLoader()
 {
-    std::cout << "* SpriteLoader cleanup (" << textures.size() << " textures)." << std::endl;
+    log("Deleting texture map VBOs");
+    for (auto &sheet : spriteSheets)
+    {
+        for (const auto &frameName : sheet->getAllFrames())
+        {
+            GLuint vbo = sheet->getFrame(frameName.first)->getTexCoordsVbo();
+            glDeleteBuffers(1, &vbo);
+        }
+    }
+    log("Deleting (" + std::to_string(textures.size()) + " textures).");
     for (auto itr = textures.begin(); itr != textures.end(); ++itr)
     {
         GLuint texture = *itr;

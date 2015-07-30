@@ -36,6 +36,8 @@ void Engine::initialize()
                 {
                     std::cerr << "Error initializing GLEW" << std::endl;
                 }
+                // glewInit() queries extensions incorrectly, clearing errors here
+                glGetError();
                 
                 IMG_Init(IMG_INIT_PNG);
                 success = true;

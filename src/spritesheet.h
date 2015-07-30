@@ -22,7 +22,8 @@ public:
     const GLuint &getTexture() const { return texture; }
     std::string getImageFile() const { return imageFile; }
     const Size &getSize() const { return size; }
-    const SpriteSheetFrame *getFrame(std::string frameName) const { return &(frames.find(frameName)->second); }
+    const SpriteSheetFrame *getFrame(const std::string frameName) const { return &(frames.find(frameName)->second); }
+    const std::map<std::string, SpriteSheetFrame> &getAllFrames() const { return frames; }
 };
 
 #endif // SPRITESHEET_H

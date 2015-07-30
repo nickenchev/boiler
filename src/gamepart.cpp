@@ -309,13 +309,8 @@ void GamePart::start()
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
 
-    // setup a VBO for the texture coordinates
-    glGenBuffers(1, &vboTexCoords);
-    glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_DYNAMIC_DRAW);
-
+    //enable this attrib array for the tex VBOs
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
 
     // cleanup
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -358,32 +353,13 @@ void GamePart::update(const float delta)
 
 void GamePart::render()
 {
-    // setup spritesheet texture coordinate
-    const Rect &frameRect = spriteFrame->getSourceRect();
-    GLfloat texX = frameRect.position.x / playerSheet->getSize().width;
-    GLfloat texY = frameRect.position.y / playerSheet->getSize().height;
-    GLfloat texU = (frameRect.size.width + frameRect.position.x) / playerSheet->getSize().width;
-    GLfloat texV = (frameRect.size.height + frameRect.position.y) / playerSheet->getSize().height;
-    GLfloat tempCoords[] =
-    {
-        texX, texV,
-        texU, texY,
-        texX, texY,
-
-        texX, texV,
-        texU, texV,
-        texU, texY
-    };
-
-    for (int i = 0; i < 12; ++i)
-    {
-        texCoords[i] = tempCoords[i];
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(texCoords), texCoords);
-
-    // select the shader program and start rendering the scene
     glUseProgram(program->getShaderProgram());
+
+    // set the vao for the current sprite
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, spriteFrame->getTexCoordsVbo());
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
 
     // opengl sprite render
     glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(getEngine()->getScreenWidth()),
@@ -400,7 +376,6 @@ void GamePart::render()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, playerSheet->getTexture());
 
-    glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
 
@@ -426,5 +401,4 @@ void GamePart::render()
 GamePart::~GamePart()
 {
     glDeleteBuffers(1, &vboVerts); // VAO references the buffer now
-    glDeleteBuffers(1, &vboTexCoords);
 }
