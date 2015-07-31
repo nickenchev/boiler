@@ -400,5 +400,11 @@ void GamePart::render()
 
 GamePart::~GamePart()
 {
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+
     glDeleteBuffers(1, &vboVerts); // VAO references the buffer now
+
+    glDeleteVertexArrays(1, &vao);
+    glBindVertexArray(0);
 }
