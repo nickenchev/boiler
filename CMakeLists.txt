@@ -38,7 +38,8 @@ set(SRC_FILES
   src/gamepart.cpp
   src/tinyxml2.cpp
   src/base64.cpp
-  src/shaderprogram.cpp)
+  src/shaderprogram.cpp
+  src/entity.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SHADER_FILES})
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})

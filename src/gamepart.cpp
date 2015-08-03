@@ -242,8 +242,9 @@ void GamePart::start()
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player.frame.position = glm::vec2(20, 300);
-    player.frame.size = Size(15, 31);
+    entities.push_back(std::make_unique<Entity>(Rect(30, 200, 15, 31)));
+    player = entities.back().get();
+
     frameNum = 1;
     numFrames = 2;
     animTime = 0;
@@ -256,66 +257,30 @@ void GamePart::start()
 
     currentAnimation = &walkRight;
 
-    tmxMap = std::move(loadTmx());
-    // create the entities from the tile info
-
-    int tileNum = 0;
-    int x = 0, y = 0;
-    for (int w = 0; w < tmxMap->width; ++w)
-    {
-        for (int h = 0; h < tmxMap->height; ++h)
-        {
-            int tileGid = tmxMap->layers[0]->tiles[tileNum];
-            if (tileGid)
-            {
-                const ensoft::TmxTile *tmxTile= tmxMap->allTiles[tileGid];
-                Tile tile(*tmxTile);
-                tile.frame = Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight);
-                tiles.push_back(std::move(tile));
-            }
-
-            x += tmxMap->tilewidth;
-            tileNum++;
-        }
-        y += tmxMap->tileheight;
-        x = 0;
-    }
-
-    // 2D vertex and texture coords
-    GLfloat sizeW = player.frame.size.width;
-    GLfloat sizeH = player.frame.size.height;
-
-    GLfloat vertices[] =
-    {
-        0.0f, sizeH,
-        sizeW, 0.0f,
-        0.0f, 0.0f,
-
-        0.0f, sizeH,
-        sizeW, sizeH,
-        sizeW, 0.0f
-    };
-
+//    tmxMap = std::move(loadTmx());
+//    // create the entities from the tile info
+//    int tileNum = 0;
+//    int x = 0, y = 0;
+//    for (int w = 0; w < tmxMap->width; ++w)
+//    {
+//        for (int h = 0; h < tmxMap->height; ++h)
+//        {
+//            int tileGid = tmxMap->layers[0]->tiles[tileNum];
+//            if (tileGid)
+//            {
+//                const ensoft::TmxTile *tmxTile= tmxMap->allTiles[tileGid];
+//                Tile tile(*tmxTile, Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight));
+//                tiles.push_back(std::move(tile));
+//            }
+//
+//            x += tmxMap->tilewidth;
+//            tileNum++;
+//        }
+//        y += tmxMap->tileheight;
+//        x = 0;
+//    }
+    // setup the shader
     program = std::make_unique<ShaderProgram>("shader");
-
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // setup a VBO for the vertices
-    glGenBuffers(1, &vboVerts);
-    glBindBuffer(GL_ARRAY_BUFFER, vboVerts);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
-
-    //enable this attrib array for the tex VBOs
-    glEnableVertexAttribArray(1);
-
-    // cleanup
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
     mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
 }
 
@@ -338,12 +303,12 @@ void GamePart::update(const float delta)
     if (engine->keyState(SDLK_a))
     {
         currentAnimation = &walkLeft;
-        player.frame.position.x -= 2;
+        player->frame.position.x -= 2;
     }
     else if (engine->keyState(SDLK_d))
     {
         currentAnimation = &walkRight;
-        player.frame.position.x += 2;
+        player->frame.position.x += 2;
     }
     else if (engine->keyState(SDLK_ESCAPE))
     {
@@ -356,8 +321,9 @@ void GamePart::render()
     glUseProgram(program->getShaderProgram());
 
     // set the vao for the current sprite
-    glBindVertexArray(vao);
+    glBindVertexArray(player->getVao());
 
+    // binds the current frames texture VBO and ensure it is linked to the current VAO
     glBindBuffer(GL_ARRAY_BUFFER, spriteFrame->getTexCoordsVbo());
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
 
@@ -366,7 +332,7 @@ void GamePart::render()
                                       static_cast<GLfloat>(getEngine()->getScreenHeight()), 0.0f, -1.0f, 1.0f);
 
     // create the model matrix, by getting a 3D vector from the Entity's vec2 position
-    glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(player.frame.position, 0.0f));
+    glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(player->frame.position, 0.0f));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
     projection = projection * model;
 
@@ -400,11 +366,4 @@ void GamePart::render()
 
 GamePart::~GamePart()
 {
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-
-    glDeleteBuffers(1, &vboVerts); // VAO references the buffer now
-
-    glDeleteVertexArrays(1, &vao);
-    glBindVertexArray(0);
 }

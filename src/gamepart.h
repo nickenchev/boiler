@@ -17,7 +17,8 @@ class GamePart : public Part
     float animTime;
     float timePerFrame;
 
-    Entity player;
+    std::vector<std::unique_ptr<Entity>> entities;
+    Entity *player;
     std::vector<Tile> tiles;
     glm::vec2 playerVel;
 
@@ -37,6 +38,7 @@ class GamePart : public Part
 public:
     GamePart(Engine *engine);
     ~GamePart();
+
     void start() override;
     void update(const float delta) override;
     void render() override;

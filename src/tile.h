@@ -12,7 +12,7 @@ class Tile : public Entity
 {
     const ensoft::TmxTile &tmxTile;
 public:
-    Tile(const ensoft::TmxTile &tmxTile) : tmxTile(tmxTile) { }
+    Tile(const ensoft::TmxTile &tmxTile, Rect frame) : Entity(frame), tmxTile(tmxTile) { }
 
     const ensoft::TmxTile &getTmxTile() const { return tmxTile; }
 };
