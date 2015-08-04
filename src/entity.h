@@ -2,15 +2,18 @@
 #define ENTITY_H
 
 #include "rect.h"
-#include <GLM/glm.hpp>
+#include <glm/glm.hpp>
 
 #define ATTRIB_ARRAY_VERTEX 0
 #define ATTRIB_ARRAY_TEXTURE 1
+
+class SpriteSheetFrame;
 
 class Entity
 {
     unsigned int meshVao;
     unsigned int vertVbo;
+    glm::mat4 modelMatrix;
     
 public:
     Entity();
@@ -19,8 +22,10 @@ public:
 
     Rect frame;
     glm::vec2 scale;
+    const SpriteSheetFrame *spriteFrame;
 
     unsigned int getVao() const { return meshVao; }
+    const glm::mat4 &getMatrix();
 };
 
 

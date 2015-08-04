@@ -42,4 +42,6 @@ public:
     void start() override;
     void update(const float delta) override;
     void render() override;
+    void drawEntity(Entity *entity);
+    Entity *addEntity(std::unique_ptr<Entity> entity);
 };

@@ -9,7 +9,6 @@
 #include "sdl_util.h" //TODO: Meh?
 
 // LOAD TMX Stuff
-#define GLM_COMPILER 0
 #include <map>
 #include <zlib.h>
 #include "tinyxml2.h"
@@ -19,6 +18,7 @@
 
 // OpenGL Rendering
 #include "opengl.h"
+#define GLM_COMPILER 0
 #include <glm/gtc/matrix_transform.hpp>
 
 using namespace tinyxml2;
@@ -242,8 +242,7 @@ void GamePart::start()
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    entities.push_back(std::make_unique<Entity>(Rect(30, 200, 15, 31)));
-    player = entities.back().get();
+    player = addEntity(std::make_unique<Entity>(Rect(30, 200, 15, 31)));
 
     frameNum = 1;
     numFrames = 2;
@@ -269,7 +268,8 @@ void GamePart::start()
 //            if (tileGid)
 //            {
 //                const ensoft::TmxTile *tmxTile= tmxMap->allTiles[tileGid];
-//                Tile tile(*tmxTile, Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight));
+//                auto tile = std::make_unique<Tile>(*tmxTile, Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight));
+//                //Tile tile(*tmxTile, );
 //                tiles.push_back(std::move(tile));
 //            }
 //
@@ -297,7 +297,7 @@ void GamePart::update(const float delta)
         }
         animTime = 0;
     }
-    spriteFrame = (*currentAnimation)[frameNum - 1];
+    player->spriteFrame = (*currentAnimation)[frameNum - 1];
 
     // check keyboard and modify state
     if (engine->keyState(SDLK_a))
@@ -320,30 +320,10 @@ void GamePart::render()
 {
     glUseProgram(program->getShaderProgram());
 
-    // set the vao for the current sprite
-    glBindVertexArray(player->getVao());
-
-    // binds the current frames texture VBO and ensure it is linked to the current VAO
-    glBindBuffer(GL_ARRAY_BUFFER, spriteFrame->getTexCoordsVbo());
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
-
-    // opengl sprite render
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(getEngine()->getScreenWidth()),
-                                      static_cast<GLfloat>(getEngine()->getScreenHeight()), 0.0f, -1.0f, 1.0f);
-
-    // create the model matrix, by getting a 3D vector from the Entity's vec2 position
-    glm::mat4 model = glm::translate(glm::mat4(1), glm::vec3(player->frame.position, 0.0f));
-    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-    projection = projection * model;
-
-    glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &projection[0][0]);
-
-    // the sprite becomes TEXTURE0 in the shader
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, playerSheet->getTexture());
-
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
+    for (auto &entity : entities)
+    {
+        drawEntity(entity.get());
+    }
 
     glUseProgram(0);
     // draw the player
@@ -364,6 +344,38 @@ void GamePart::render()
 //    }
 }
 
+void GamePart::drawEntity(Entity *entity)
+{
+    // set the vao for the current sprite
+    glBindVertexArray(entity->getVao());
+
+    // binds the current frames texture VBO and ensure it is linked to the current VAO
+    glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+
+    // opengl sprite render
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(getEngine()->getScreenWidth()),
+                                      static_cast<GLfloat>(getEngine()->getScreenHeight()), 0.0f, -1.0f, 1.0f);
+
+    const glm::mat4 &model = entity->getMatrix();
+    projection = projection * model;
+
+    glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &projection[0][0]);
+
+    // the sprite becomes TEXTURE0 in the shader
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, playerSheet->getTexture());
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+}
+
 GamePart::~GamePart()
 {
+}
+
+Entity *GamePart::addEntity(std::unique_ptr<Entity> entity)
+{
+    entities.push_back(std::move(entity));
+    return entities.back().get();
 }
