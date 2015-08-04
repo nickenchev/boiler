@@ -8,7 +8,7 @@ Entity::Entity() : Entity(Rect())
 {
 }
 
-Entity::Entity(Rect frame)
+Entity::Entity(Rect frame) : scale(1, 1)
 {
     this->frame = frame;
 
@@ -60,6 +60,6 @@ const glm::mat4 &Entity::getMatrix()
 {
     // create the model matrix, by getting a 3D vector from the Entity's vec2 position
     modelMatrix = glm::translate(glm::mat4(1), glm::vec3(frame.position, 0.0f));
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f, 1.0f, 1.0f));
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(scale.x, scale.y, 1.0f));
     return modelMatrix;
 }

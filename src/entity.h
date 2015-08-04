@@ -8,6 +8,7 @@
 #define ATTRIB_ARRAY_TEXTURE 1
 
 class SpriteSheetFrame;
+class SpriteSheet;
 
 class Entity
 {
@@ -22,6 +23,8 @@ public:
 
     Rect frame;
     glm::vec2 scale;
+
+    const SpriteSheet *spriteSheet;
     const SpriteSheetFrame *spriteFrame;
 
     unsigned int getVao() const { return meshVao; }

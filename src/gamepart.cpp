@@ -243,6 +243,8 @@ void GamePart::start()
 
     //basic player setup
     player = addEntity(std::make_unique<Entity>(Rect(30, 200, 15, 31)));
+    player->spriteSheet = playerSheet;
+    player->scale = glm::vec2(2, 2);
 
     frameNum = 1;
     numFrames = 2;
@@ -256,29 +258,31 @@ void GamePart::start()
 
     currentAnimation = &walkRight;
 
-//    tmxMap = std::move(loadTmx());
-//    // create the entities from the tile info
-//    int tileNum = 0;
-//    int x = 0, y = 0;
-//    for (int w = 0; w < tmxMap->width; ++w)
-//    {
-//        for (int h = 0; h < tmxMap->height; ++h)
-//        {
-//            int tileGid = tmxMap->layers[0]->tiles[tileNum];
-//            if (tileGid)
-//            {
-//                const ensoft::TmxTile *tmxTile= tmxMap->allTiles[tileGid];
-//                auto tile = std::make_unique<Tile>(*tmxTile, Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight));
-//                //Tile tile(*tmxTile, );
-//                tiles.push_back(std::move(tile));
-//            }
-//
-//            x += tmxMap->tilewidth;
-//            tileNum++;
-//        }
-//        y += tmxMap->tileheight;
-//        x = 0;
-//    }
+    tmxMap = std::move(loadTmx());
+    // create the entities from the tile info
+    int tileNum = 0;
+    int x = 0, y = 0;
+    for (int w = 0; w < tmxMap->width; ++w)
+    {
+        for (int h = 0; h < tmxMap->height; ++h)
+        {
+            int tileGid = tmxMap->layers[0]->tiles[tileNum];
+            if (tileGid)
+            {
+                const ensoft::TmxTile *tmxTile= tmxMap->allTiles[tileGid];
+
+                Entity *tile = addEntity(std::make_unique<Entity>(Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight)));
+                const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tmxTile->image.source);
+                tile->spriteSheet = tilesSheet;
+                tile->spriteFrame = tileFrame;
+            }
+
+            x += tmxMap->tilewidth;
+            tileNum++;
+        }
+        y += tmxMap->tileheight;
+        x = 0;
+    }
     // setup the shader
     program = std::make_unique<ShaderProgram>("shader");
     mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
@@ -336,7 +340,6 @@ void GamePart::render()
 //    // draw the tiles
 //    for (const auto &tile : tiles)
 //    {
-//        const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tile.getTmxTile().image.source);
 //
 //        SDL_Rect srect = make_rect(tileFrame->getSourceRect().position, tileFrame->getSourceRect().size);
 //        SDL_Rect drect = make_rect(tile.frame);
@@ -364,7 +367,7 @@ void GamePart::drawEntity(Entity *entity)
 
     // the sprite becomes TEXTURE0 in the shader
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, playerSheet->getTexture());
+    glBindTexture(GL_TEXTURE_2D, entity->spriteSheet->getTexture());
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
