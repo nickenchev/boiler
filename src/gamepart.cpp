@@ -9,12 +9,12 @@
 #include "sdl_util.h" //TODO: Meh?
 
 // LOAD TMX Stuff
+#include <glm/glm.hpp>
 #include <map>
 #include <zlib.h>
 #include "tinyxml2.h"
 #include "base64.h"
 #include "string_util.h"
-#include <glm/glm.hpp>
 
 // OpenGL Rendering
 #include "opengl.h"
@@ -23,10 +23,6 @@
 
 using namespace tinyxml2;
 using namespace std;
-
-GamePart::GamePart(Engine *engine) : Part(engine)
-{
-}
 
 string getAttributeString(XMLElement *elem, const char *key)
 {
@@ -235,7 +231,7 @@ std::unique_ptr<ensoft::Map> loadTmx()
     return map; 
 }
 
-void GamePart::start()
+GamePart::GamePart(Engine *engine) : Part(engine)
 {
     //do some loading
     playerSheet = engine->getSpriteLoader().loadSheet("data/zodas2.json");
@@ -244,6 +240,8 @@ void GamePart::start()
     //basic player setup
     player = addEntity(std::make_unique<Entity>(Rect(30, 706, 15, 31)));
     player->spriteSheet = playerSheet;
+
+    gravity = glm::vec2(0, 0.6);
 
     frameNum = 1;
     numFrames = 2;
@@ -258,12 +256,13 @@ void GamePart::start()
     currentAnimation = &walkRight;
 
     tmxMap = std::move(loadTmx());
+    Entity tileMap[100][100];
     // create the entities from the tile info
     int tileNum = 0;
     int x = 0, y = 0;
-    for (int w = 0; w < tmxMap->width; ++w)
+    for (int r = 0; r < tmxMap->width; ++r)
     {
-        for (int h = 0; h < tmxMap->height; ++h)
+        for (int c = 0; c < tmxMap->height; ++c)
         {
             int tileGid = tmxMap->layers[0]->tiles[tileNum];
             if (tileGid)
@@ -288,6 +287,10 @@ void GamePart::start()
     mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
 }
 
+void GamePart::start()
+{
+}
+
 void GamePart::detectCollision(Entity *objectA, Entity *objectB)
 {
 }
@@ -307,10 +310,7 @@ void GamePart::update(const float delta)
     }
     player->spriteFrame = (*currentAnimation)[frameNum - 1];
 
-    // physics stuff
-
     // check keyboard and modify state
-    glm::vec2 velocity;
     if (engine->keyState(SDLK_a))
     {
         currentAnimation = &walkLeft;
@@ -318,15 +318,40 @@ void GamePart::update(const float delta)
     }
     else if (engine->keyState(SDLK_d))
     {
+        int x = player->frame.position.x + player->frame.size.width;
+
         currentAnimation = &walkRight;
         velocity.x = 1;
+
     }
-    else if (engine->keyState(SDLK_ESCAPE))
+    else
+    {
+        velocity.x = 0;
+    }
+
+    if (engine->keyState(SDLK_j))
+    {
+        if (velocity.y == 0)
+        {
+            velocity.y = -7;
+        }
+    }
+
+    if (engine->keyState(SDLK_ESCAPE))
     {
         engine->quit();
     }
 
     player->frame.position += velocity;
+    if (player->frame.position.y < 706)
+    {
+        velocity += gravity;
+    }
+    else
+    {
+        player->frame.position.y = 706;
+        velocity.y = 0;
+    }
 }
 
 void GamePart::render()

@@ -19,8 +19,8 @@ class GamePart : public Part
 
     std::vector<std::unique_ptr<Entity>> entities;
     Entity *player;
-    std::vector<Tile> tiles;
-    glm::vec2 playerVel;
+    glm::vec2 velocity;
+    glm::vec2 gravity;
 
     std::unique_ptr<ensoft::Map> tmxMap;
     const SpriteSheetFrame *spriteFrame;
