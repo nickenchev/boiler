@@ -35,6 +35,8 @@ class GamePart : public Part
     unsigned int vao, vboVerts, mvpUniform;
     float texCoords[12];
 
+    void detectCollision(Entity *objectA, Entity *objectB);
+
 public:
     GamePart(Engine *engine);
     ~GamePart();

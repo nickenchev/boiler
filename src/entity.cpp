@@ -8,7 +8,7 @@ Entity::Entity() : Entity(Rect())
 {
 }
 
-Entity::Entity(Rect frame) : scale(1, 1)
+Entity::Entity(Rect frame) : pivot(0.5f, 0.5f), scale(1.0f, 1.0f)
 {
     this->frame = frame;
 
@@ -58,8 +58,11 @@ Entity::~Entity()
 
 const glm::mat4 &Entity::getMatrix()
 {
+    // offset the player position based on the pivot modifier
+    glm::vec2 pivotPos(frame.position.x - frame.size.width * pivot.x,
+                       frame.position.y - frame.size.height * pivot.y);
     // create the model matrix, by getting a 3D vector from the Entity's vec2 position
-    modelMatrix = glm::translate(glm::mat4(1), glm::vec3(frame.position, 0.0f));
+    modelMatrix = glm::translate(glm::mat4(1), glm::vec3(pivotPos, 0.0f));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(scale.x, scale.y, 1.0f));
     return modelMatrix;
 }

@@ -242,9 +242,8 @@ void GamePart::start()
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = addEntity(std::make_unique<Entity>(Rect(30, 200, 15, 31)));
+    player = addEntity(std::make_unique<Entity>(Rect(30, 706, 15, 31)));
     player->spriteSheet = playerSheet;
-    player->scale = glm::vec2(2, 2);
 
     frameNum = 1;
     numFrames = 2;
@@ -273,6 +272,7 @@ void GamePart::start()
 
                 Entity *tile = addEntity(std::make_unique<Entity>(Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight)));
                 const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tmxTile->image.source);
+                tile->pivot = glm::vec2(0, 0);
                 tile->spriteSheet = tilesSheet;
                 tile->spriteFrame = tileFrame;
             }
@@ -286,6 +286,10 @@ void GamePart::start()
     // setup the shader
     program = std::make_unique<ShaderProgram>("shader");
     mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
+}
+
+void GamePart::detectCollision(Entity *objectA, Entity *objectB)
+{
 }
 
 void GamePart::update(const float delta)
@@ -303,21 +307,26 @@ void GamePart::update(const float delta)
     }
     player->spriteFrame = (*currentAnimation)[frameNum - 1];
 
+    // physics stuff
+
     // check keyboard and modify state
+    glm::vec2 velocity;
     if (engine->keyState(SDLK_a))
     {
         currentAnimation = &walkLeft;
-        player->frame.position.x -= 2;
+        velocity.x = -1;
     }
     else if (engine->keyState(SDLK_d))
     {
         currentAnimation = &walkRight;
-        player->frame.position.x += 2;
+        velocity.x = 1;
     }
     else if (engine->keyState(SDLK_ESCAPE))
     {
         engine->quit();
     }
+
+    player->frame.position += velocity;
 }
 
 void GamePart::render()

@@ -22,6 +22,7 @@ public:
     ~Entity();
 
     Rect frame;
+    glm::vec2 pivot;
     glm::vec2 scale;
 
     const SpriteSheet *spriteSheet;
