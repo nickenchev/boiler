@@ -19,6 +19,7 @@ class GamePart : public Part
 
     std::vector<std::unique_ptr<Entity>> entities;
     Entity *player;
+    bool isJumping;
     glm::vec2 velocity;
     glm::vec2 gravity;
 

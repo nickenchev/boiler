@@ -241,7 +241,7 @@ GamePart::GamePart(Engine *engine) : Part(engine)
     player = addEntity(std::make_unique<Entity>(Rect(30, 706, 15, 31)));
     player->spriteSheet = playerSheet;
 
-    gravity = glm::vec2(0, 0.6);
+    gravity = glm::vec2(0, 0.5f);
 
     frameNum = 1;
     numFrames = 2;
@@ -310,6 +310,10 @@ void GamePart::update(const float delta)
     }
     player->spriteFrame = (*currentAnimation)[frameNum - 1];
 
+    int xLeft = player->frame.position.x;
+    int xRight = player->frame.position.x + player->frame.size.width;
+    int y = player->frame.position.y + player->frame.size.height;
+
     // check keyboard and modify state
     if (engine->keyState(SDLK_a))
     {
@@ -318,7 +322,6 @@ void GamePart::update(const float delta)
     }
     else if (engine->keyState(SDLK_d))
     {
-        int x = player->frame.position.x + player->frame.size.width;
 
         currentAnimation = &walkRight;
         velocity.x = 1;
