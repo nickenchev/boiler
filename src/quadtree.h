@@ -2,6 +2,11 @@
 #define QUADTREE_H
 
 #include <vector>
+#include "rect.h"
+
+#define NUM_SUBNODES 4
+
+class Entity;
 
 class Quadtree
 {
@@ -9,11 +14,20 @@ class Quadtree
     const int maxSubLevels;
 
     int level;
-    std::vector<
+    std::vector<Entity *> objects;
+    Rect bounds;
+    Quadtree *nodes[NUM_SUBNODES];
+
+    int getIndex(const Rect &rect) const;
 
 public:
-    Quadtree();
-};
+    Quadtree(int level, const Rect &bounds);
+    ~Quadtree();
 
+    void clear();
+    void split();
+    void insert(Entity *entity);
+    void retrieve(std::vector<Entity *> &objects, const Rect &rect) const;
+};
 
 #endif /* QUADTREE_H */

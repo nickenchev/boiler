@@ -5,6 +5,7 @@
 #include "tile.h"
 #include "tmx.h"
 #include "shaderprogram.h"
+#include "quadtree.h"
 
 class SpriteSheet;
 class SpriteSheetFrame;
@@ -17,6 +18,7 @@ class GamePart : public Part
     float animTime;
     float timePerFrame;
 
+    Quadtree qtree;
     std::vector<std::unique_ptr<Entity>> entities;
     Entity *player;
     bool isJumping;
@@ -35,8 +37,6 @@ class GamePart : public Part
     std::unique_ptr<ShaderProgram> program;
     unsigned int vao, vboVerts, mvpUniform;
     float texCoords[12];
-
-    void detectCollision(Entity *objectA, Entity *objectB);
 
 public:
     GamePart(Engine *engine);

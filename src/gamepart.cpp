@@ -231,14 +231,14 @@ std::unique_ptr<ensoft::Map> loadTmx()
     return map; 
 }
 
-GamePart::GamePart(Engine *engine) : Part(engine)
+GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(), engine->getScreenHeight()))
 {
     //do some loading
     playerSheet = engine->getSpriteLoader().loadSheet("data/zodas2.json");
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = addEntity(std::make_unique<Entity>(Rect(30, 706, 15, 31)));
+    player = addEntity(std::make_unique<Entity>(Rect(30, 450, 15, 31)));
     player->spriteSheet = playerSheet;
 
     gravity = glm::vec2(0, 0.5f);
@@ -291,12 +291,60 @@ void GamePart::start()
 {
 }
 
-void GamePart::detectCollision(Entity *objectA, Entity *objectB)
-{
-}
-
 void GamePart::update(const float delta)
 {
+    // update the quad tree
+    qtree.clear();
+    for (auto &e : entities)
+    {
+        qtree.insert(e.get());
+    }
+
+    // check what the player may collide with
+    std::vector<Entity*> closeObjects(5);
+    std::vector<Entity*> collisions(5);
+    qtree.retrieve(closeObjects, player->frame);
+    std::cout << "********" << std::endl;
+    bool allowLeft = true;
+    bool allowRight = true;
+    bool allowUp = true;
+    bool allowDown = true;
+    const Rect &rect = player->frame;
+
+    for (auto e : closeObjects)
+    {
+        if (e != player && e != nullptr)
+        {
+            if (player->frame.intersects(e->frame))
+            {
+                std::cout << "(" << e->frame.position.x << "," << e->frame.position.y << ")" << std::endl;
+
+                const Rect &collObj = e->frame;
+                collisions.push_back(e);
+
+                if (collObj.position.x + collObj.size.width >= rect.position.x &&
+                    collObj.position.x < rect.position.x)
+                {
+                    allowLeft = false;
+                }
+                else if (collObj.position.x <= rect.position.x + rect.size.width)
+                {
+                    allowRight = false;
+                }
+                if (collObj.position.y + collObj.size.height >= rect.position.y &&
+                         collObj.position.y < rect.position.y)
+                {
+                    allowUp = false;
+                }
+                else if (collObj.position.y <= rect.position.y + rect.size.height)
+                {
+                    allowDown = false;
+                    std::cout << "NO DOWN!" << std::endl;
+                }
+            }
+        }
+    }
+
     //animation stuff
     animTime += delta;
     if (animTime >= timePerFrame)
@@ -318,14 +366,28 @@ void GamePart::update(const float delta)
     if (engine->keyState(SDLK_a))
     {
         currentAnimation = &walkLeft;
-        velocity.x = -1;
+
+        if (allowLeft)
+        {
+            velocity.x = -1;
+        }
+        else 
+        {
+            velocity.x = 0;
+        }
     }
     else if (engine->keyState(SDLK_d))
     {
-
         currentAnimation = &walkRight;
-        velocity.x = 1;
 
+        if (allowRight)
+        {
+            velocity.x = 1;
+        }
+        else
+        {
+            velocity.x = 0;
+        }
     }
     else
     {
@@ -346,13 +408,12 @@ void GamePart::update(const float delta)
     }
 
     player->frame.position += velocity;
-    if (player->frame.position.y < 706)
+    if (allowDown)
     {
         velocity += gravity;
     }
     else
     {
-        player->frame.position.y = 706;
         velocity.y = 0;
     }
 }

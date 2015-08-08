@@ -8,7 +8,7 @@ Entity::Entity() : Entity(Rect())
 {
 }
 
-Entity::Entity(Rect frame) : pivot(0.5f, 0.5f), scale(1.0f, 1.0f)
+Entity::Entity(Rect frame) : pivot(0, 0), scale(1.0f, 1.0f)
 {
     this->frame = frame;
 

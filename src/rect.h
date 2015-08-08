@@ -19,6 +19,8 @@ struct Rect
     Rect() { }
     Rect(int x, int y, int width, int height) : position(x, y), size(width, height) { }
     Rect(const Rect &rect) { *this = rect; }
+
+    bool intersects(const Rect &rect);
 };
 
 #endif // RECT
