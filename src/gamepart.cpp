@@ -241,7 +241,7 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     player = addEntity(std::make_unique<Entity>(Rect(30, 450, 15, 31)));
     player->spriteSheet = playerSheet;
 
-    gravity = glm::vec2(0, 0.5f);
+    gravity = glm::vec2(0, 0.3f);
 
     frameNum = 1;
     numFrames = 2;
@@ -293,57 +293,8 @@ void GamePart::start()
 
 void GamePart::update(const float delta)
 {
-    // update the quad tree
-    qtree.clear();
-    for (auto &e : entities)
-    {
-        qtree.insert(e.get());
-    }
-
-    // check what the player may collide with
-    std::vector<Entity*> closeObjects(5);
-    std::vector<Entity*> collisions(5);
-    qtree.retrieve(closeObjects, player->frame);
-    std::cout << "********" << std::endl;
-    bool allowLeft = true;
-    bool allowRight = true;
-    bool allowUp = true;
-    bool allowDown = true;
-    const Rect &rect = player->frame;
-
-    for (auto e : closeObjects)
-    {
-        if (e != player && e != nullptr)
-        {
-            if (player->frame.intersects(e->frame))
-            {
-                std::cout << "(" << e->frame.position.x << "," << e->frame.position.y << ")" << std::endl;
-
-                const Rect &collObj = e->frame;
-                collisions.push_back(e);
-
-                if (collObj.position.x + collObj.size.width >= rect.position.x &&
-                    collObj.position.x < rect.position.x)
-                {
-                    allowLeft = false;
-                }
-                else if (collObj.position.x <= rect.position.x + rect.size.width)
-                {
-                    allowRight = false;
-                }
-                if (collObj.position.y + collObj.size.height >= rect.position.y &&
-                         collObj.position.y < rect.position.y)
-                {
-                    allowUp = false;
-                }
-                else if (collObj.position.y <= rect.position.y + rect.size.height)
-                {
-                    allowDown = false;
-                    std::cout << "NO DOWN!" << std::endl;
-                }
-            }
-        }
-    }
+    // make sure the player's position is updated first
+    player->frame.position += velocity;
 
     //animation stuff
     animTime += delta;
@@ -358,9 +309,24 @@ void GamePart::update(const float delta)
     }
     player->spriteFrame = (*currentAnimation)[frameNum - 1];
 
-    int xLeft = player->frame.position.x;
-    int xRight = player->frame.position.x + player->frame.size.width;
-    int y = player->frame.position.y + player->frame.size.height;
+    // update the quad tree
+    qtree.clear();
+    for (auto &e : entities)
+    {
+        qtree.insert(e.get());
+    }
+
+    // check what the player may collide with
+    std::vector<Entity*> closeObjects;
+    qtree.retrieve(closeObjects, player->frame);
+    std::cout << "********" << std::endl;
+    bool allowLeft = true;
+    bool allowRight = true;
+    bool allowUp = true;
+    bool allowDown = true;
+    const Rect &rect = player->frame;
+
+    std::cout << player->frame.position.y << std::endl;
 
     // check keyboard and modify state
     if (engine->keyState(SDLK_a))
@@ -371,10 +337,6 @@ void GamePart::update(const float delta)
         {
             velocity.x = -1;
         }
-        else 
-        {
-            velocity.x = 0;
-        }
     }
     else if (engine->keyState(SDLK_d))
     {
@@ -384,16 +346,55 @@ void GamePart::update(const float delta)
         {
             velocity.x = 1;
         }
-        else
-        {
-            velocity.x = 0;
-        }
     }
     else
     {
         velocity.x = 0;
     }
+    if (engine->keyState(SDLK_ESCAPE))
+    {
+        engine->quit();
+    }
 
+    for (auto e : closeObjects)
+    {
+        if (e != player)
+        {
+            if (player->frame.intersects(e->frame))
+            {
+                //std::cout << "(" << e->frame.position.x << "," << e->frame.position.y << ")" << std::endl;
+                //std::cout << player->frame.position.x << "," << player->frame.position.y << std::endl;
+
+                const Rect &collObj = e->frame;
+
+                if (collObj.position.x < rect.position.x &&
+                    collObj.position.y < rect.position.y + rect.size.height)
+                {
+                    allowLeft = false;
+                    velocity.x = 0;
+                }
+                else if (collObj.position.x > rect.position.x &&
+                         collObj.position.y < rect.position.y + rect.size.height)
+                {
+                    allowRight = false;
+                    velocity.x = 0;
+                }
+                else if (collObj.getCentre().y < rect.getCentre().y)
+                {
+                    allowUp = false;
+                    velocity.y = 0;
+                }
+                else if (collObj.getCentre().y > rect.getCentre().y)
+                {
+                    allowDown = false;
+                    velocity.y = 0;
+                    float newHeight = collObj.position.y - rect.size.height;
+                    player->frame.position.y = newHeight;
+                }
+            }
+        }
+    }
+    // only change the velocity if there's a jump
     if (engine->keyState(SDLK_j))
     {
         if (velocity.y == 0)
@@ -402,19 +403,13 @@ void GamePart::update(const float delta)
         }
     }
 
-    if (engine->keyState(SDLK_ESCAPE))
-    {
-        engine->quit();
-    }
-
-    player->frame.position += velocity;
     if (allowDown)
     {
-        velocity += gravity;
-    }
-    else
-    {
-        velocity.y = 0;
+        // limit the falling velocity
+        if (velocity.y <= 10)
+        {
+            velocity += gravity;
+        }
     }
 }
 
@@ -428,21 +423,6 @@ void GamePart::render()
     }
 
     glUseProgram(0);
-    // draw the player
-//    SDL_Rect sourceRect = make_rect(frameRect);
-//    SDL_Rect destRect = make_rect(player.frame.position, frameRect.size);
-//
-//    double angle = spriteFrame->isRotated() ? -90 : 0;
-//    SDL_RenderCopyEx(engine->getRenderer(), playerSheet->getTexture(), &sourceRect, &destRect, angle, NULL, SDL_FLIP_NONE);
-//
-//    // draw the tiles
-//    for (const auto &tile : tiles)
-//    {
-//
-//        SDL_Rect srect = make_rect(tileFrame->getSourceRect().position, tileFrame->getSourceRect().size);
-//        SDL_Rect drect = make_rect(tile.frame);
-//        SDL_RenderCopy(engine->getRenderer(), tilesSheet->getTexture(), &srect, &drect);
-//    }
 }
 
 void GamePart::drawEntity(Entity *entity)

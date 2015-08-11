@@ -21,6 +21,7 @@ struct Rect
     Rect(const Rect &rect) { *this = rect; }
 
     bool intersects(const Rect &rect);
+    glm::vec2 getCentre() const;
 };
 
 #endif // RECT
