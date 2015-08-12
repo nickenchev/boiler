@@ -1,6 +1,6 @@
 #include "rect.h"
 
-bool Rect::intersects(const Rect &rect)
+bool Rect::collides(const Rect &rect)
 {
     int x1a = position.x;
     int x2a = position.x + size.width;
