@@ -2,6 +2,9 @@
 #include "quadtree.h"
 #include "entity.h"
 
+#define MAX_OBJECTS 10
+#define MAX_SUB_LEVELS 10
+
 Quadtree::Quadtree(int level, const Rect &bounds) : maxObjects(MAX_OBJECTS), maxSubLevels(MAX_SUB_LEVELS), bounds(bounds)
 {
     //std::cout << "(" << bounds.position.x << "," << bounds.position.y << " " << bounds.size.width << "x" << bounds.size.height << ")" << std::endl;
@@ -81,7 +84,6 @@ int Quadtree::getIndex(const Rect &rect) const
 
 void Quadtree::insert(Entity *entity)
 {
-    bool recurse = false;
     if (nodes[0] != nullptr)
     {
         int index = getIndex(entity->frame);
@@ -89,32 +91,29 @@ void Quadtree::insert(Entity *entity)
         if (index != -1)
         {
             nodes[index]->insert(entity);
-            recurse = true;
+            return;
         }
     }
 
-    if (!recurse)
+    objects.push_back(entity);
+    if (objects.size() > maxObjects && level < maxSubLevels)
     {
-        objects.push_back(entity);
-        if (objects.size() > maxObjects && level < maxSubLevels)
+        if (nodes[0] == nullptr)
         {
-            if (nodes[0] == nullptr)
+            split();
+        }
+        int i = 0;
+        while (i < objects.size())
+        {
+            int index = getIndex(objects[i]->frame);
+            if (index != -1)
             {
-                split();
+                nodes[index]->insert(objects[i]);
+                objects.erase(objects.begin() + i);
             }
-            int i = 0;
-            while (i < objects.size())
+            else
             {
-                int index = getIndex(objects[i]->frame);
-                if (index != -1)
-                {
-                    nodes[index]->insert(objects[i]);
-                    objects.erase(objects.begin() + i);
-                }
-                else
-                {
-                    ++i;
-                }
+                ++i;
             }
         }
     }
@@ -127,7 +126,13 @@ void Quadtree::retrieve(std::vector<Entity*> &objects, const Rect &rect) const
     {
         nodes[index]->retrieve(objects, rect);
     }
-
+    else if (index == -1 && nodes[0] != nullptr)
+    {
+        for (int i = 0; i < NUM_SUBNODES; ++i)
+        {
+            nodes[i]->retrieve(objects, rect);
+        }
+    }
     objects.insert(objects.end(), this->objects.begin(), this->objects.end());
 }
 

@@ -112,6 +112,7 @@ void Engine::run()
 
 void Engine::update(const float delta)
 {
+    part->handleInput();
     part->update(delta);
 }
 

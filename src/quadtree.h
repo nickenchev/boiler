@@ -4,8 +4,6 @@
 #include <vector>
 #include "rect.h"
 
-#define MAX_OBJECTS 10
-#define MAX_SUB_LEVELS 10
 #define NUM_SUBNODES 4
 
 class Entity;
