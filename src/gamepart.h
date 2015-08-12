@@ -43,6 +43,7 @@ public:
     ~GamePart();
 
     void start() override;
+    void handleInput() override;
     void update(const float delta) override;
     void render() override;
     void drawEntity(Entity *entity);

@@ -238,7 +238,7 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = addEntity(std::make_unique<Entity>(Rect(30, 450, 15, 31)));
+    player = addEntity(std::make_unique<Entity>(Rect(30, 650, 15, 31)));
     player->spriteSheet = playerSheet;
 
     gravity = glm::vec2(0, 0.3f);
@@ -291,11 +291,39 @@ void GamePart::start()
 {
 }
 
+void GamePart::handleInput()
+{
+    // check keyboard and modify state
+    if (engine->keyState(SDLK_a))
+    {
+        currentAnimation = &walkLeft;
+        velocity.x = -1;
+    }
+    else if (engine->keyState(SDLK_d))
+    {
+        currentAnimation = &walkRight;
+        velocity.x = 1;
+    }
+    else
+    {
+        velocity.x = 0;
+    }
+    if (engine->keyState(SDLK_ESCAPE))
+    {
+        engine->quit();
+    }
+    // only change the velocity if there's a jump
+    if (engine->keyState(SDLK_j))
+    {
+        if (velocity.y == 0)
+        {
+            velocity.y = -7;
+        }
+    }
+}
+
 void GamePart::update(const float delta)
 {
-    // make sure the player's position is updated first
-    player->frame.position += velocity;
-
     //animation stuff
     animTime += delta;
     if (animTime >= timePerFrame)
@@ -309,107 +337,73 @@ void GamePart::update(const float delta)
     }
     player->spriteFrame = (*currentAnimation)[frameNum - 1];
 
+    // check what the player may collide with
+    std::vector<Entity*> closeObjects;
+    qtree.retrieve(closeObjects, player->frame);
+
+    bool onFloor = false;
+
+    cout << velocity.x << endl;
+    for (auto e : closeObjects)
+    {
+        if (player->frame.collides(e->frame))
+        {
+            if (e != player)
+            {
+                if (e->frame.position.y <= player->frame.position.y + player->frame.size.height &&
+                    e->frame.position.y > player->frame.getCentre().y)
+                {
+                    if (velocity.y >= 0)
+                    {
+                        player->frame.position.y = e->frame.position.y - player->frame.size.height;
+                        onFloor = true;
+                    }
+                }
+                else if (e->frame.position.y + e->frame.size.height >= player->frame.position.y &&
+                         e->frame.position.y < player->frame.getCentre().y)
+                {
+                    player->frame.position.y = e->frame.position.y + e->frame.size.height;
+                    velocity.y = 0;
+                }
+                else if (e->frame.position.x < player->frame.position.x + player->frame.size.width &&
+                         velocity.x > 0)
+                {
+                    cout << "R" << endl;
+                    velocity.x = 0;
+                }
+                else if (e->frame.position.x + e->frame.size.width > player->frame.position.x &&
+                         velocity.x < 0)
+                {
+                    cout << "L" << endl;
+                    velocity.x = 0;
+                }
+            }
+        }
+    }
+
+    // only apply gravity on non-floored objects
+    if (!onFloor) 
+    {
+        if (velocity.y < 7.0f)
+        {
+            velocity += gravity;
+        }
+    }
+    else
+    {
+        // don't floor if we're jumping
+        if (velocity.y > 0)
+        {
+            velocity.y = 0;
+        }
+    }
+    player->frame.position += velocity;
+
     // update the quad tree
     qtree.clear();
     for (auto &e : entities)
     {
         qtree.insert(e.get());
-    }
-
-    // check what the player may collide with
-    std::vector<Entity*> closeObjects;
-    qtree.retrieve(closeObjects, player->frame);
-    std::cout << "********" << std::endl;
-    bool allowLeft = true;
-    bool allowRight = true;
-    bool allowUp = true;
-    bool allowDown = true;
-    const Rect &rect = player->frame;
-
-    std::cout << player->frame.position.y << std::endl;
-
-    // check keyboard and modify state
-    if (engine->keyState(SDLK_a))
-    {
-        currentAnimation = &walkLeft;
-
-        if (allowLeft)
-        {
-            velocity.x = -1;
-        }
-    }
-    else if (engine->keyState(SDLK_d))
-    {
-        currentAnimation = &walkRight;
-
-        if (allowRight)
-        {
-            velocity.x = 1;
-        }
-    }
-    else
-    {
-        velocity.x = 0;
-    }
-    if (engine->keyState(SDLK_ESCAPE))
-    {
-        engine->quit();
-    }
-
-    for (auto e : closeObjects)
-    {
-        if (e != player)
-        {
-            if (player->frame.intersects(e->frame))
-            {
-                //std::cout << "(" << e->frame.position.x << "," << e->frame.position.y << ")" << std::endl;
-                //std::cout << player->frame.position.x << "," << player->frame.position.y << std::endl;
-
-                const Rect &collObj = e->frame;
-
-                if (collObj.position.x < rect.position.x &&
-                    collObj.position.y < rect.position.y + rect.size.height)
-                {
-                    allowLeft = false;
-                    velocity.x = 0;
-                }
-                else if (collObj.position.x > rect.position.x &&
-                         collObj.position.y < rect.position.y + rect.size.height)
-                {
-                    allowRight = false;
-                    velocity.x = 0;
-                }
-                else if (collObj.getCentre().y < rect.getCentre().y)
-                {
-                    allowUp = false;
-                    velocity.y = 0;
-                }
-                else if (collObj.getCentre().y > rect.getCentre().y)
-                {
-                    allowDown = false;
-                    velocity.y = 0;
-                    float newHeight = collObj.position.y - rect.size.height;
-                    player->frame.position.y = newHeight;
-                }
-            }
-        }
-    }
-    // only change the velocity if there's a jump
-    if (engine->keyState(SDLK_j))
-    {
-        if (velocity.y == 0)
-        {
-            velocity.y = -7;
-        }
-    }
-
-    if (allowDown)
-    {
-        // limit the falling velocity
-        if (velocity.y <= 10)
-        {
-            velocity += gravity;
-        }
     }
 }
 

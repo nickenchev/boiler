@@ -3,7 +3,7 @@
 #include "entity.h"
 
 #define MAX_OBJECTS 10
-#define MAX_SUB_LEVELS 10
+#define MAX_SUB_LEVELS 5 
 
 Quadtree::Quadtree(int level, const Rect &bounds) : maxObjects(MAX_OBJECTS), maxSubLevels(MAX_SUB_LEVELS), bounds(bounds)
 {
