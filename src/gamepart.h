@@ -23,7 +23,7 @@ class GamePart : public Part
     Entity *player;
     bool isJumping;
     glm::vec2 velocity;
-    glm::vec2 gravity;
+    const float gravity;
 
     std::unique_ptr<ensoft::Map> tmxMap;
     const SpriteSheetFrame *spriteFrame;
@@ -37,6 +37,10 @@ class GamePart : public Part
     std::unique_ptr<ShaderProgram> program;
     unsigned int vao, vboVerts, mvpUniform;
     float texCoords[12];
+
+    // physics stuff
+    float yLimit;
+    bool jumping;
 
 public:
     GamePart(Engine *engine);

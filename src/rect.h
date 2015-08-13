@@ -20,6 +20,11 @@ struct Rect
     Rect(int x, int y, int width, int height) : position(x, y), size(width, height) { }
     Rect(const Rect &rect) { *this = rect; }
 
+    float getMinX() const { return position.x; }
+    float getMaxX() const { return position.x + size.width; }
+    float getMinY() const { return position.y; }
+    float getMaxY() const { return position.y + size.height; }
+
     bool collides(const Rect &rect);
     glm::vec2 getCentre() const;
 };

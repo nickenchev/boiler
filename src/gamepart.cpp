@@ -231,18 +231,18 @@ std::unique_ptr<ensoft::Map> loadTmx()
     return map; 
 }
 
-GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(), engine->getScreenHeight()))
+GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(), engine->getScreenHeight())),
+                                     gravity(9.8f)
 {
     //do some loading
     playerSheet = engine->getSpriteLoader().loadSheet("data/zodas2.json");
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = addEntity(std::make_unique<Entity>(Rect(30, 650, 15, 31)));
+    player = addEntity(std::make_unique<Entity>(Rect(30, 550, 15, 31)));
     player->spriteSheet = playerSheet;
 
-    gravity = glm::vec2(0, 0.3f);
-
+    // animation setup
     frameNum = 1;
     numFrames = 2;
     animTime = 0;
@@ -255,8 +255,14 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
 
     currentAnimation = &walkRight;
 
+    // physics setup
+    yLimit = 0;
+    jumping = false;
+
+    // tilemap setup
     tmxMap = std::move(loadTmx());
     Entity tileMap[100][100];
+
     // create the entities from the tile info
     int tileNum = 0;
     int x = 0, y = 0;
@@ -297,12 +303,12 @@ void GamePart::handleInput()
     if (engine->keyState(SDLK_a))
     {
         currentAnimation = &walkLeft;
-        velocity.x = -1;
+        velocity.x = -50;
     }
     else if (engine->keyState(SDLK_d))
     {
         currentAnimation = &walkRight;
-        velocity.x = 1;
+        velocity.x = 50;
     }
     else
     {
@@ -317,9 +323,71 @@ void GamePart::handleInput()
     {
         if (velocity.y == 0)
         {
-            velocity.y = -7;
+            velocity.y = -200;
+            jumping = true;
         }
     }
+}
+
+bool clipLine(int d, const Rect &box, const glm::vec2 &v0, const glm::vec2 &v1, float &fLow, float &fHigh)
+{
+    bool isIntersection = true;
+
+    // get the fraction of the line (v0->v1) that intersects the box
+    float boxDimLow = box.position[d];
+    float boxDimHigh = box.position[d] + ((d == 0) ? box.size.width : box.size.height);
+    float fDimLow = (boxDimLow - v0[d]) / (v1[d] - v0[d]);
+    float fDimHigh = (boxDimHigh - v0[d]) / (v1[d] - v0[d]);
+
+    // swap if needed, varies depending on direction of ray
+    if (fDimLow > fDimHigh)
+    {
+        std::swap(fDimLow, fDimHigh);
+    }
+
+    // make sure we're not completely missing
+    if (fDimHigh < fLow)
+    {
+        isIntersection = false;
+    }
+    else if (fDimLow > fHigh)
+    {
+        isIntersection = false;
+    }
+    else
+    {
+        fLow = std::max(fDimLow, fLow);
+        fHigh = std::min(fDimHigh, fHigh);
+    }
+
+    if (fLow > fHigh)
+    {
+        isIntersection = false;
+    }
+
+    return isIntersection;
+}
+
+bool rayCollides(const glm::vec2 &v0, const glm::vec2 &v1, const Rect &aabb, glm::vec2 &vIntersect)
+{
+    // ray cast and see if the player collides with this
+    float fLow = 0;
+    float fHigh = 1;
+
+    // clip x (0) and y(0) dimensions to get the line segment that collides
+    bool isIntersection = false;
+    if (clipLine(0, aabb, v0, v1, fLow, fHigh))
+    {
+        if (clipLine(1, aabb, v0, v1, fLow, fHigh))
+        {
+            // get the full vector (b) and the vector the represents the first intersection point on the box
+            glm::vec2 b = v1 - v0;
+            vIntersect = v0 + b * fLow; // fLow is the fraction that represents the initial intersection
+
+            isIntersection = true;
+        }
+    }
+    return isIntersection;
 }
 
 void GamePart::update(const float delta)
@@ -338,73 +406,94 @@ void GamePart::update(const float delta)
     player->spriteFrame = (*currentAnimation)[frameNum - 1];
 
     // check what the player may collide with
-    std::vector<Entity*> closeObjects;
-    qtree.retrieve(closeObjects, player->frame);
-
-    bool onFloor = false;
-
-    cout << velocity.x << endl;
-    for (auto e : closeObjects)
-    {
-        if (player->frame.collides(e->frame))
-        {
-            if (e != player)
-            {
-                if (e->frame.position.y <= player->frame.position.y + player->frame.size.height &&
-                    e->frame.position.y > player->frame.getCentre().y)
-                {
-                    if (velocity.y >= 0)
-                    {
-                        player->frame.position.y = e->frame.position.y - player->frame.size.height;
-                        onFloor = true;
-                    }
-                }
-                else if (e->frame.position.y + e->frame.size.height >= player->frame.position.y &&
-                         e->frame.position.y < player->frame.getCentre().y)
-                {
-                    player->frame.position.y = e->frame.position.y + e->frame.size.height;
-                    velocity.y = 0;
-                }
-                else if (e->frame.position.x < player->frame.position.x + player->frame.size.width &&
-                         velocity.x > 0)
-                {
-                    cout << "R" << endl;
-                    velocity.x = 0;
-                }
-                else if (e->frame.position.x + e->frame.size.width > player->frame.position.x &&
-                         velocity.x < 0)
-                {
-                    cout << "L" << endl;
-                    velocity.x = 0;
-                }
-            }
-        }
-    }
-
-    // only apply gravity on non-floored objects
-    if (!onFloor) 
-    {
-        if (velocity.y < 7.0f)
-        {
-            velocity += gravity;
-        }
-    }
-    else
-    {
-        // don't floor if we're jumping
-        if (velocity.y > 0)
-        {
-            velocity.y = 0;
-        }
-    }
-    player->frame.position += velocity;
-
-    // update the quad tree
     qtree.clear();
     for (auto &e : entities)
     {
         qtree.insert(e.get());
     }
+    std::vector<Entity*> closeObjects;
+    qtree.retrieve(closeObjects, player->frame);
+
+    // check for collisions in the player's movement
+    bool bottomCollide = false;
+    for (auto e : closeObjects)
+    {
+        if (e != player)
+        {
+            float numRays = 3;
+
+            // check bottom
+            for (int r = 0; r < numRays; ++r)
+            {
+                float rayInterval = player->frame.size.width / (numRays - 1);
+                float rayOffset = r * rayInterval;
+
+                glm::vec2 v0(player->frame.position.x + rayOffset, player->frame.getMaxY());
+                glm::vec2 v1 = v0 + velocity * delta;
+                glm::vec2 vIntersect;
+                if (rayCollides(v0, v1, e->frame, vIntersect))
+                {
+                    if (vIntersect.y < yLimit || yLimit == 0)
+                    {
+                        yLimit = vIntersect.y;
+                    }
+                    bottomCollide = true;
+                    jumping = false;
+                }
+            }
+
+            // check right
+            if (velocity.x > 0)
+            {
+                for (int r = 0; r < numRays; ++r)
+                {
+                    float rayInterval = player->frame.size.width / (numRays - 1);
+                    float rayOffset = r * rayInterval;
+
+                    glm::vec2 v0(player->frame.getMaxX(), player->frame.position.y + rayOffset);
+                    glm::vec2 v1 = v0 + velocity * delta;
+                    glm::vec2 vIntersect;
+                    if (rayCollides(v0, v1, e->frame, vIntersect))
+                    {
+                        velocity.x = 0;
+                    }
+                }
+            }
+            else if (velocity.x < 0)
+            {
+                for (int r = 0; r < numRays; ++r)
+                {
+                    float rayInterval = player->frame.size.width / (numRays - 1);
+                    float rayOffset = r * rayInterval;
+
+                    glm::vec2 v0(player->frame.getMinX(), player->frame.position.y + rayOffset);
+                    glm::vec2 v1 = v0 + velocity * delta;
+                    glm::vec2 vIntersect;
+                    if (rayCollides(v0, v1, e->frame, vIntersect))
+                    {
+                        velocity.x = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    if (!bottomCollide)
+    {
+        yLimit = 0;
+    }
+    // figure out whether to apply gravity
+    bool grounded = (player->frame.getMaxY() <= yLimit);
+    if (grounded && !jumping)
+    {
+        velocity.y = 0;
+    }
+    else
+    {
+        velocity.y += gravity;
+    }
+
+    player->frame.position += velocity * delta;
 }
 
 void GamePart::render()
