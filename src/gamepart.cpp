@@ -256,7 +256,6 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     currentAnimation = &walkRight;
 
     // physics setup
-    yLimit = 0;
     jumping = false;
 
     // tilemap setup
@@ -415,7 +414,7 @@ void GamePart::update(const float delta)
     qtree.retrieve(closeObjects, player->frame);
 
     // check for collisions in the player's movement
-    bool bottomCollide = false;
+    float yLimit = 0;
     for (auto e : closeObjects)
     {
         if (e != player)
@@ -437,8 +436,6 @@ void GamePart::update(const float delta)
                     {
                         yLimit = vIntersect.y;
                     }
-                    bottomCollide = true;
-                    jumping = false;
                 }
             }
 
@@ -478,14 +475,11 @@ void GamePart::update(const float delta)
         }
     }
 
-    if (!bottomCollide)
-    {
-        yLimit = 0;
-    }
     // figure out whether to apply gravity
     bool grounded = (player->frame.getMaxY() <= yLimit);
-    if (grounded && !jumping)
+    if (grounded)
     {
+        player->frame.position.y = yLimit - player->frame.size.height;
         velocity.y = 0;
     }
     else

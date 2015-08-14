@@ -39,7 +39,6 @@ class GamePart : public Part
     float texCoords[12];
 
     // physics stuff
-    float yLimit;
     bool jumping;
 
 public:
