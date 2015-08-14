@@ -413,6 +413,10 @@ void GamePart::update(const float delta)
     std::vector<Entity*> closeObjects;
     qtree.retrieve(closeObjects, player->frame);
 
+    // apply gravity before calculating final velocity
+    velocity.y += gravity;
+    glm::vec2 moveAmount = velocity * delta;
+
     // check for collisions in the player's movement
     float yLimit = 0;
     for (auto e : closeObjects)
@@ -428,19 +432,22 @@ void GamePart::update(const float delta)
                 float rayOffset = r * rayInterval;
 
                 glm::vec2 v0(player->frame.position.x + rayOffset, player->frame.getMaxY());
-                glm::vec2 v1 = v0 + velocity * delta;
+                glm::vec2 v1 = v0 + moveAmount;
                 glm::vec2 vIntersect;
                 if (rayCollides(v0, v1, e->frame, vIntersect))
                 {
-                    if (vIntersect.y < yLimit || yLimit == 0)
+                    // diff is the line between v0 and point of intersection
+                    glm::vec2 diff = vIntersect - v0;
+                    if (diff.y >= 0)
                     {
-                        yLimit = vIntersect.y;
+                        moveAmount.y = diff.y;
+                        velocity.y = 0;
                     }
                 }
             }
 
             // check right
-            if (velocity.x > 0)
+            if (moveAmount.x > 0)
             {
                 for (int r = 0; r < numRays; ++r)
                 {
@@ -448,15 +455,16 @@ void GamePart::update(const float delta)
                     float rayOffset = r * rayInterval;
 
                     glm::vec2 v0(player->frame.getMaxX(), player->frame.position.y + rayOffset);
-                    glm::vec2 v1 = v0 + velocity * delta;
+                    glm::vec2 v1 = v0 + moveAmount;
                     glm::vec2 vIntersect;
                     if (rayCollides(v0, v1, e->frame, vIntersect))
                     {
-                        velocity.x = 0;
+                        glm::vec2 diff = vIntersect - v0;
+                        moveAmount.x = diff.x;
                     }
                 }
             }
-            else if (velocity.x < 0)
+            else if (moveAmount.x < 0)
             {
                 for (int r = 0; r < numRays; ++r)
                 {
@@ -464,30 +472,20 @@ void GamePart::update(const float delta)
                     float rayOffset = r * rayInterval;
 
                     glm::vec2 v0(player->frame.getMinX(), player->frame.position.y + rayOffset);
-                    glm::vec2 v1 = v0 + velocity * delta;
+                    glm::vec2 v1 = v0 + moveAmount;
                     glm::vec2 vIntersect;
                     if (rayCollides(v0, v1, e->frame, vIntersect))
                     {
-                        velocity.x = 0;
+                        glm::vec2 diff = vIntersect - v0;
+                        moveAmount.x = diff.x;
                     }
                 }
             }
         }
     }
 
-    // figure out whether to apply gravity
-    bool grounded = (player->frame.getMaxY() <= yLimit);
-    if (grounded)
-    {
-        player->frame.position.y = yLimit - player->frame.size.height;
-        velocity.y = 0;
-    }
-    else
-    {
-        velocity.y += gravity;
-    }
-
-    player->frame.position += velocity * delta;
+    //cout << moveAmount.x << "," << moveAmount.y << endl;
+    player->frame.position += moveAmount;
 }
 
 void GamePart::render()
