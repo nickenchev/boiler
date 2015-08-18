@@ -323,7 +323,7 @@ void GamePart::handleInput()
     {
         if (velocity.y == 0)
         {
-            velocity.y = -200;
+            velocity.y = -250;
             jumping = true;
         }
     }
@@ -375,7 +375,7 @@ void GamePart::update(const float delta)
                     float rayOffset = r * rayInterval;
 
                     glm::vec2 v0(player->frame.position.x + rayOffset, player->frame.getMaxY());
-                    glm::vec2 v1 = v0 + moveAmount;
+                    glm::vec2 v1 = v0 + glm::vec2(0, moveAmount.y);
                     glm::vec2 vIntersect;
                     if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
                     {
@@ -399,12 +399,19 @@ void GamePart::update(const float delta)
                     float rayOffset = r * rayInterval;
 
                     glm::vec2 v0(player->frame.getMaxX(), player->frame.position.y + rayOffset);
-                    glm::vec2 v1 = v0 + moveAmount;
+                    glm::vec2 v1 = v0 + glm::vec2(moveAmount.x, 0);
                     glm::vec2 vIntersect;
                     if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
                     {
                         glm::vec2 diff = vIntersect - v0;
-                        moveAmount.x = diff.x;
+                        if (diff.x > 0)
+                        {
+                            moveAmount.x = diff.x;
+                        }
+                        else
+                        {
+                            moveAmount.x = 0;
+                        }
                     }
                 }
             }
@@ -416,12 +423,19 @@ void GamePart::update(const float delta)
                     float rayOffset = r * rayInterval;
 
                     glm::vec2 v0(player->frame.getMinX(), player->frame.position.y + rayOffset);
-                    glm::vec2 v1 = v0 + moveAmount;
+                    glm::vec2 v1 = v0 + glm::vec2(moveAmount.x, 0);
                     glm::vec2 vIntersect;
                     if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
                     {
                         glm::vec2 diff = vIntersect - v0;
-                        moveAmount.x = diff.x;
+                        if (diff.x > 0)
+                        {
+                            moveAmount.x = diff.x;
+                        }
+                        else
+                        {
+                            moveAmount.x = 0;
+                        }
                     }
                 }
             }
