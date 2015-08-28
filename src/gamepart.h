@@ -6,6 +6,7 @@
 #include "tmx.h"
 #include "shaderprogram.h"
 #include "quadtree.h"
+#include "bmfont.h"
 
 class SpriteSheet;
 class SpriteSheetFrame;
@@ -24,6 +25,8 @@ class GamePart : public Part
     bool isJumping;
     glm::vec2 velocity;
     const float gravity;
+
+    BMFont textFont;
 
     std::unique_ptr<ensoft::Map> tmxMap;
     const SpriteSheetFrame *spriteFrame;

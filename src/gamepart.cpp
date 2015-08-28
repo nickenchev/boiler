@@ -233,7 +233,7 @@ std::unique_ptr<ensoft::Map> loadTmx()
 }
 
 GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(), engine->getScreenHeight())),
-                                     gravity(9.8f)
+                                     gravity(9.8f), textFont("data/font.fnt")
 {
     //do some loading
     playerSheet = engine->getSpriteLoader().loadSheet("data/zodas2.json");
@@ -303,12 +303,12 @@ void GamePart::handleInput()
     if (engine->keyState(SDLK_a))
     {
         currentAnimation = &walkLeft;
-        velocity.x = -50;
+        velocity.x = -75;
     }
     else if (engine->keyState(SDLK_d))
     {
         currentAnimation = &walkRight;
-        velocity.x = 50;
+        velocity.x = 75;
     }
     else
     {
@@ -321,9 +321,9 @@ void GamePart::handleInput()
     // only change the velocity if there's a jump
     if (engine->keyState(SDLK_j))
     {
-        if (velocity.y == 0)
+        if (velocity.y == 0 )
         {
-            velocity.y = -250;
+            velocity.y = -350;
             jumping = true;
         }
     }
@@ -355,6 +355,7 @@ void GamePart::update(const float delta)
 
     // apply gravity before calculating final velocity
     velocity.y += gravity;
+    // get movement amount based on time delta
     glm::vec2 moveAmount = velocity * delta;
 
     // check for collisions in the player's movement
@@ -366,9 +367,9 @@ void GamePart::update(const float delta)
         {
             float numRays = 3;
 
+            // check bottom
             if (moveAmount.y > 0)
             {
-                // check bottom
                 for (int r = 0; r < numRays; ++r)
                 {
                     float rayInterval = player->frame.size.width / (numRays - 1);
@@ -376,6 +377,30 @@ void GamePart::update(const float delta)
 
                     glm::vec2 v0(player->frame.position.x + rayOffset, player->frame.getMaxY());
                     glm::vec2 v1 = v0 + glm::vec2(0, moveAmount.y);
+                    glm::vec2 vIntersect;
+                    if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
+                    {
+                        // diff is the line between v0 and point of intersection
+                        glm::vec2 diff = vIntersect - v0;
+                        if (diff.y >= 0)
+                        {
+                            moveAmount.y = diff.y;
+                            velocity.y = 0;
+                            jumping = false;
+                        }
+                    }
+                }
+            }
+            else if (jumping)
+            {
+                // check top
+                for (int r = 0; r < numRays; ++r)
+                {
+                    float rayInterval = player->frame.size.width / (numRays - 1);
+                    float rayOffset = r * rayInterval;
+
+                    glm::vec2 v0(player->frame.position.x + rayOffset, player->frame.getMinY());
+                    glm::vec2 v1 = v0 + glm::vec2(0, -moveAmount.y);
                     glm::vec2 vIntersect;
                     if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
                     {
@@ -395,10 +420,11 @@ void GamePart::update(const float delta)
             {
                 for (int r = 0; r < numRays; ++r)
                 {
-                    float rayInterval = player->frame.size.width / (numRays - 1);
+                    float rayInterval = (player->frame.size.height - 2) / (numRays - 1);
                     float rayOffset = r * rayInterval;
 
-                    glm::vec2 v0(player->frame.getMaxX(), player->frame.position.y + rayOffset);
+                    float ypos = player->frame.position.y + 1;
+                    glm::vec2 v0(player->frame.getMaxX(), ypos + rayOffset);
                     glm::vec2 v1 = v0 + glm::vec2(moveAmount.x, 0);
                     glm::vec2 vIntersect;
                     if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
@@ -419,10 +445,12 @@ void GamePart::update(const float delta)
             {
                 for (int r = 0; r < numRays; ++r)
                 {
-                    float rayInterval = player->frame.size.width / (numRays - 1);
+                    // subtracking 2 pixels to ensure even division in order to start horizontal casts with an offset
+                    float rayInterval = (player->frame.size.height - 2) / (numRays - 1);
                     float rayOffset = r * rayInterval;
 
-                    glm::vec2 v0(player->frame.getMinX(), player->frame.position.y + rayOffset);
+                    float ypos = player->frame.position.y + 1;
+                    glm::vec2 v0(player->frame.getMinX(), ypos + rayOffset);
                     glm::vec2 v1 = v0 + glm::vec2(moveAmount.x, 0);
                     glm::vec2 vIntersect;
                     if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
@@ -442,7 +470,7 @@ void GamePart::update(const float delta)
         }
     }
 
-    //cout << moveAmount.x << "," << moveAmount.y << endl;
+    // change the player's position based on the allowed movement amount
     player->frame.position += moveAmount;
 }
 
