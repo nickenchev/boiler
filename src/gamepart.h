@@ -14,7 +14,7 @@ class SpriteSheetFrame;
 class GamePart : public Part
 {
     //scene specific stuff
-    SpriteSheet *playerSheet, *tilesSheet;
+    std::shared_ptr<SpriteSheet> playerSheet, tilesSheet;
     int frameNum, numFrames;
     float animTime;
     float timePerFrame;

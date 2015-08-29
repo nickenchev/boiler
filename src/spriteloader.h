@@ -7,22 +7,19 @@
 
 #include "component.h"
 #include "spritesheet.h"
+#include "texture.h"
 
 class SDL_Texture;
 typedef unsigned int GLuint;
 
 class SpriteLoader : Component
 {
-    std::vector<GLuint> textures;
-    std::vector<std::unique_ptr<SpriteSheet>> spriteSheets;
-
 public:
     SpriteLoader(Engine &engine);
     ~SpriteLoader();
 
     //sprite handling methods
-    SpriteSheet *loadSheet(std::string filename);
-    const std::vector<std::unique_ptr<SpriteSheet>> &getSpriteSheets() const { return spriteSheets; }
+    std::shared_ptr<SpriteSheet> loadSheet(std::string filename);
 };
 
 #endif // SPRITELOADER_H

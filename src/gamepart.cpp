@@ -504,9 +504,8 @@ void GamePart::drawEntity(Entity *entity)
 
     glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &projection[0][0]);
 
-    // the sprite becomes TEXTURE0 in the shader
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, entity->spriteSheet->getTexture());
+    // set the current texture
+    getEngine()->getRenderer().setActiveTexture(entity->spriteSheet->getTexture());
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);

@@ -3,6 +3,7 @@
 
 #include "rect.h"
 #include <glm/glm.hpp>
+#include <memory>
 
 #define ATTRIB_ARRAY_VERTEX 0
 #define ATTRIB_ARRAY_TEXTURE 1
@@ -25,7 +26,7 @@ public:
     glm::vec2 pivot;
     glm::vec2 scale;
 
-    const SpriteSheet *spriteSheet;
+    std::shared_ptr<SpriteSheet> spriteSheet;
     const SpriteSheetFrame *spriteFrame;
 
     unsigned int getVao() const { return meshVao; }

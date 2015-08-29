@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include <SDL_image.h>
-#include "opengl.h"
 
 #include "spriteloader.h"
 #include "json/json.h"
@@ -14,10 +13,11 @@ SpriteLoader::SpriteLoader(Engine &engine) : Component(std::string(COMPONENT_NAM
 {
 }
 
-SpriteSheet *SpriteLoader::loadSheet(std::string filename)
+std::shared_ptr<SpriteSheet> SpriteLoader::loadSheet(std::string filename)
 {
     //read the spritesheet manifest
     std::ifstream jsonFile(filename);
+    std::shared_ptr<SpriteSheet> sheet;
     if (jsonFile.is_open())
     {
         Json::Value json;
@@ -29,113 +29,76 @@ SpriteSheet *SpriteLoader::loadSheet(std::string filename)
 
         //read the sprite image name and load the texture
         SDL_Surface *surface = IMG_Load(imageFile.c_str());
-        GLuint texture;
         if (surface)
         {
-            // create the opengl texture and fill it with surface data
-            glGenTextures(1, &texture);
-
-            glBindTexture(GL_TEXTURE_2D, texture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
-
-            // set nearest neighbour filtering
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-            // unbind the texture 
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            if (glGetError() != GL_NO_ERROR)
-            {
-                error("Unable to create GL texture.");
-            }
-            
-            textures.push_back(texture);
+            auto texture = getEngine().getRenderer().createTexture(Size(surface->w, surface->h), surface->pixels);
             SDL_FreeSurface(surface);
-        }
 
-        int width = json["meta"]["size"]["w"].asInt();
-        int height = json["meta"]["size"]["h"].asInt();
+            int width = json["meta"]["size"]["w"].asInt();
+            int height = json["meta"]["size"]["h"].asInt();
 
-        std::map<std::string, SpriteSheetFrame> frames;
-        //setup the individual frames
-        for (auto it = json["frames"].begin(); it != json["frames"].end(); ++it)
-        {
-            Json::Value sprite = *it;
-            std::string frameFilename = sprite["filename"].asString();
-            int x = sprite["frame"]["x"].asInt();
-            int y = sprite["frame"]["y"].asInt();
-            int w = sprite["frame"]["w"].asInt();
-            int h = sprite["frame"]["h"].asInt();
-
-            // calculate the opengl texture coords
-            float texX = x / static_cast<float>(width);
-            float texY = y / static_cast<float>(height);
-            float texW = (x + w) / static_cast<float>(width);
-            float texH = (y + h) / static_cast<float>(height);
-            GLfloat texCoords[] =
+            std::map<std::string, SpriteSheetFrame> frames;
+            //setup the individual frames
+            for (auto it = json["frames"].begin(); it != json["frames"].end(); ++it)
             {
-                texX, texH,
-                texW, texY,
-                texX, texY,
+                Json::Value sprite = *it;
+                std::string frameFilename = sprite["filename"].asString();
+                int x = sprite["frame"]["x"].asInt();
+                int y = sprite["frame"]["y"].asInt();
+                int w = sprite["frame"]["w"].asInt();
+                int h = sprite["frame"]["h"].asInt();
 
-                texX, texH,
-                texW, texH,
-                texW, texY
-            };
+                // calculate the opengl texture coords
+                float texX = x / static_cast<float>(width);
+                float texY = y / static_cast<float>(height);
+                float texW = (x + w) / static_cast<float>(width);
+                float texH = (y + h) / static_cast<float>(height);
+                GLfloat texCoords[] =
+                {
+                    texX, texH,
+                    texW, texY,
+                    texX, texY,
 
-            // create a VBO to hold each frame's texture coords
-            GLuint texCoordVbo;
-            glGenBuffers(1, &texCoordVbo);
-            glBindBuffer(GL_ARRAY_BUFFER, texCoordVbo);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_DYNAMIC_DRAW);
+                    texX, texH,
+                    texW, texH,
+                    texW, texY
+                };
 
-            if (glGetError() != GL_NO_ERROR)
-            {
-                error("Unable to create the texture coordinate VBO.");
+                // create a VBO to hold each frame's texture coords
+                GLuint texCoordVbo;
+                glGenBuffers(1, &texCoordVbo);
+                glBindBuffer(GL_ARRAY_BUFFER, texCoordVbo);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_DYNAMIC_DRAW);
+
+                if (glGetError() != GL_NO_ERROR)
+                {
+                    error("Unable to create the texture coordinate VBO.");
+                }
+
+                Rect sourceRect(x, y, w, h);
+                bool rotated = sprite["rotated"].asBool();
+                bool trimmed = sprite["trimmed"].asBool();
+
+                int pivotX = sprite["pivot"]["x"].asInt();
+                int pivotY = sprite["pivot"]["y"].asInt();
+                glm::vec2 pivot(pivotX, pivotY);
+                frames.insert(std::pair<std::string, SpriteSheetFrame>(frameFilename,
+                                                                    SpriteSheetFrame(frameFilename, sourceRect, rotated,
+                                                                                        trimmed, pivot, texCoordVbo)));
+                log("Loaded frame: " + frameFilename);
             }
-            
-            Rect sourceRect(x, y, w, h);
-            bool rotated = sprite["rotated"].asBool();
-            bool trimmed = sprite["trimmed"].asBool();
-
-            int pivotX = sprite["pivot"]["x"].asInt();
-            int pivotY = sprite["pivot"]["y"].asInt();
-            glm::vec2 pivot(pivotX, pivotY);
-            frames.insert(std::pair<std::string, SpriteSheetFrame>(frameFilename,
-                                                                   SpriteSheetFrame(frameFilename, sourceRect, rotated,
-                                                                                    trimmed, pivot, texCoordVbo)));
-            log("Loaded frame: " + frameFilename);
+            sheet = std::make_shared<SpriteSheet>(imageFile, Size(width, height), texture, frames);
+            const Size &size = sheet->getSize();
+            log("Loaded " + filename + "(" + std::to_string(size.width) + ", " + std::to_string(size.height) + ")");
         }
-        auto sheet = std::make_unique<SpriteSheet>(imageFile, Size(width, height), texture, frames);
-        const Size &size = sheet->getSize();
-        log("Loaded " + filename + "(" + std::to_string(size.width) + ", " + std::to_string(size.height) + ")");
-
-        //finally move the sheet into storage
-        spriteSheets.push_back(std::move(sheet));
     }
     else
     {
         error("Coudn't find sprite sheet: " + filename);
     }
-    return spriteSheets[spriteSheets.size() - 1].get();
+    return sheet;
 }
 
 SpriteLoader::~SpriteLoader()
 {
-    log("Deleting texture map VBOs");
-    for (auto &sheet : spriteSheets)
-    {
-        for (const auto &frameName : sheet->getAllFrames())
-        {
-            GLuint vbo = sheet->getFrame(frameName.first)->getTexCoordsVbo();
-            glDeleteBuffers(1, &vbo);
-        }
-    }
-    log("Deleting (" + std::to_string(textures.size()) + " textures).");
-    for (auto itr = textures.begin(); itr != textures.end(); ++itr)
-    {
-        GLuint texture = *itr;
-        glDeleteTextures(1, &texture);
-    }
 }
