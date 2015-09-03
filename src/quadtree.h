@@ -1,6 +1,7 @@
 #ifndef QUADTREE_H
 #define QUADTREE_H
 
+#include <memory>
 #include <vector>
 #include "rect.h"
 
@@ -14,7 +15,7 @@ class Quadtree
     const int maxSubLevels;
 
     int level;
-    std::vector<Entity *> objects;
+    std::vector<std::shared_ptr<Entity>> objects;
     Rect bounds;
     Quadtree *nodes[NUM_SUBNODES];
 
@@ -26,8 +27,8 @@ public:
 
     void clear();
     void split();
-    void insert(Entity *entity);
-    void retrieve(std::vector<Entity *> &objects, const Rect &rect) const;
+    void insert(std::shared_ptr<Entity> entity);
+    void retrieve(std::vector<std::shared_ptr<Entity>> &objects, const Rect &rect) const;
 };
 
 #endif /* QUADTREE_H */

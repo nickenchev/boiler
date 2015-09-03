@@ -20,8 +20,7 @@ class GamePart : public Part
     float timePerFrame;
 
     Quadtree qtree;
-    std::vector<std::unique_ptr<Entity>> entities;
-    Entity *player;
+    std::shared_ptr<Entity> player;
     bool isJumping;
     glm::vec2 velocity;
     const float gravity;
@@ -42,7 +41,7 @@ class GamePart : public Part
     float texCoords[12];
 
     // physics stuff
-    bool jumping;
+    bool jumping, onGround;
 
 public:
     GamePart(Engine *engine);
@@ -53,5 +52,4 @@ public:
     void update(const float delta) override;
     void render() override;
     void drawEntity(Entity *entity);
-    Entity *addEntity(std::unique_ptr<Entity> entity);
 };

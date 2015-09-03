@@ -82,7 +82,7 @@ int Quadtree::getIndex(const Rect &rect) const
     return index;
 }
 
-void Quadtree::insert(Entity *entity)
+void Quadtree::insert(std::shared_ptr<Entity> entity)
 {
     if (nodes[0] != nullptr)
     {
@@ -119,7 +119,7 @@ void Quadtree::insert(Entity *entity)
     }
 }
 
-void Quadtree::retrieve(std::vector<Entity*> &objects, const Rect &rect) const
+void Quadtree::retrieve(std::vector<std::shared_ptr<Entity>> &objects, const Rect &rect) const
 {
     int index = getIndex(rect);
     if (index != -1 && nodes[0] != nullptr)

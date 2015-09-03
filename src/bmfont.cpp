@@ -105,6 +105,7 @@ BMFont::BMFont(std::string filename)
                 }
                 charList.push_back(std::move(charObj));
 
+                // finally map the letter to the charmap
                 const Char *charPtr = &charList[charList.size() - 1];
                 charMap.insert(std::make_pair(letter, charPtr));
                 

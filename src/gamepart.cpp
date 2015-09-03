@@ -240,8 +240,9 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = addEntity(std::make_unique<Entity>(Rect(30, 550, 15, 31)));
+    player = std::make_shared<Entity>(Rect(30, 550, 15, 31));
     player->spriteSheet = playerSheet;
+    addEntity(player);
 
     // animation setup
     frameNum = 1;
@@ -275,7 +276,9 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
             {
                 const ensoft::TmxTile *tmxTile= tmxMap->allTiles[tileGid];
 
-                Entity *tile = addEntity(std::make_unique<Entity>(Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight)));
+                auto tile = std::make_shared<Entity>(Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight));
+                addEntity(tile);
+
                 const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tmxTile->image.source);
                 tile->pivot = glm::vec2(0, 0);
                 tile->spriteSheet = tilesSheet;
@@ -348,9 +351,9 @@ void GamePart::update(const float delta)
     qtree.clear();
     for (auto &e : entities)
     {
-        qtree.insert(e.get());
+        qtree.insert(e);
     }
-    std::vector<Entity*> closeObjects;
+    std::vector<std::shared_ptr<Entity>> closeObjects;
     qtree.retrieve(closeObjects, player->frame);
 
     // apply gravity before calculating final velocity
@@ -370,12 +373,13 @@ void GamePart::update(const float delta)
             // check bottom
             if (moveAmount.y > 0)
             {
+                float rayInterval = (player->frame.size.width - 2) / (numRays - 1);
+                float xOrigin = player->frame.getMinX() + 1;
                 for (int r = 0; r < numRays; ++r)
                 {
-                    float rayInterval = player->frame.size.width / (numRays - 1);
                     float rayOffset = r * rayInterval;
 
-                    glm::vec2 v0(player->frame.position.x + rayOffset, player->frame.getMaxY());
+                    glm::vec2 v0(xOrigin + rayOffset, player->frame.getMaxY());
                     glm::vec2 v1 = v0 + glm::vec2(0, moveAmount.y);
                     glm::vec2 vIntersect;
                     if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
@@ -391,68 +395,20 @@ void GamePart::update(const float delta)
                     }
                 }
             }
-            else if (jumping)
+
+            if (moveAmount.x != 0)
             {
-                // check top
+                float rayInterval = (player->frame.size.height - 2) / (numRays - 1);
+                float ypos = player->frame.position.y + 1;
+                float xOrigin = (moveAmount.x < 0) ? player->frame.getMinX() : player->frame.getMaxX();
+
                 for (int r = 0; r < numRays; ++r)
                 {
-                    float rayInterval = player->frame.size.width / (numRays - 1);
                     float rayOffset = r * rayInterval;
-
-                    glm::vec2 v0(player->frame.position.x + rayOffset, player->frame.getMinY());
-                    glm::vec2 v1 = v0 + glm::vec2(0, -moveAmount.y);
-                    glm::vec2 vIntersect;
-                    if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
-                    {
-                        // diff is the line between v0 and point of intersection
-                        glm::vec2 diff = vIntersect - v0;
-                        if (diff.y >= 0)
-                        {
-                            moveAmount.y = diff.y;
-                            velocity.y = 0;
-                        }
-                    }
-                }
-            }
-
-            // check right
-            if (moveAmount.x > 0)
-            {
-                for (int r = 0; r < numRays; ++r)
-                {
-                    float rayInterval = (player->frame.size.height - 2) / (numRays - 1);
-                    float rayOffset = r * rayInterval;
-
-                    float ypos = player->frame.position.y + 1;
-                    glm::vec2 v0(player->frame.getMaxX(), ypos + rayOffset);
+                    glm::vec2 v0(xOrigin, ypos + rayOffset);
                     glm::vec2 v1 = v0 + glm::vec2(moveAmount.x, 0);
                     glm::vec2 vIntersect;
-                    if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
-                    {
-                        glm::vec2 diff = vIntersect - v0;
-                        if (diff.x > 0)
-                        {
-                            moveAmount.x = diff.x;
-                        }
-                        else
-                        {
-                            moveAmount.x = 0;
-                        }
-                    }
-                }
-            }
-            else if (moveAmount.x < 0)
-            {
-                for (int r = 0; r < numRays; ++r)
-                {
-                    // subtracking 2 pixels to ensure even division in order to start horizontal casts with an offset
-                    float rayInterval = (player->frame.size.height - 2) / (numRays - 1);
-                    float rayOffset = r * rayInterval;
 
-                    float ypos = player->frame.position.y + 1;
-                    glm::vec2 v0(player->frame.getMinX(), ypos + rayOffset);
-                    glm::vec2 v1 = v0 + glm::vec2(moveAmount.x, 0);
-                    glm::vec2 vIntersect;
                     if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
                     {
                         glm::vec2 diff = vIntersect - v0;
@@ -513,10 +469,4 @@ void GamePart::drawEntity(Entity *entity)
 
 GamePart::~GamePart()
 {
-}
-
-Entity *GamePart::addEntity(std::unique_ptr<Entity> entity)
-{
-    entities.push_back(std::move(entity));
-    return entities.back().get();
 }
