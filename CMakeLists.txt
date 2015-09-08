@@ -29,8 +29,10 @@ set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 set(SRC_FILES
   src/main.cpp
   src/engine.cpp
+  src/renderer.cpp
   src/openglrenderer.cpp
   src/opengltexture.cpp
+  src/tmxloader.cpp
   src/jsoncpp.cpp
   src/spriteloader.cpp
   src/engine.cpp
