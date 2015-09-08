@@ -12,8 +12,9 @@
 
 using namespace std;
 
-GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(), engine->getScreenHeight())),
-                                     gravity(9.8f), textFont("data/font.fnt")
+GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(),
+                                                                 engine->getScreenHeight())),
+                                     textFont("data/font.fnt"), gravity(9.8f)
 {
     //do some loading
     playerSheet = engine->getSpriteLoader().loadSheet("data/zodas2.json");
@@ -154,7 +155,7 @@ void GamePart::update(const float delta)
             float numRays = 3;
 
             // check bottom
-            if (moveAmount.y != 0)
+            if (moveAmount.y > 0)
             {
                 float rayInterval = (player->frame.size.width - 2) / (numRays - 1);
                 float xOrigin = player->frame.getMinX() + 1;
@@ -174,6 +175,29 @@ void GamePart::update(const float delta)
                             moveAmount.y = diff.y;
                             velocity.y = 0;
                             grounded = true;
+                        }
+                    }
+                }
+            }
+            else if (moveAmount.y < 0)
+            {
+                float rayInterval = (player->frame.size.width - 2) / (numRays - 1);
+                float xOrigin = player->frame.getMinX() + 1;
+                for (int r = 0; r < numRays; ++r)
+                {
+                    float rayOffset = r * rayInterval;
+
+                    glm::vec2 v0(xOrigin + rayOffset, player->frame.getMinY());
+                    glm::vec2 v1 = v0 + glm::vec2(0, moveAmount.y);
+                    glm::vec2 vIntersect;
+                    if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
+                    {
+                        // diff is the line between v0 and point of intersection
+                        glm::vec2 diff = vIntersect - v0;
+                        if (diff.y >= 0)
+                        {
+                            moveAmount.y = diff.y;
+                            velocity.y = 0;
                         }
                     }
                 }
@@ -211,8 +235,4 @@ void GamePart::update(const float delta)
 
     // change the player's position based on the allowed movement amount
     player->frame.position += moveAmount;
-}
-
-GamePart::~GamePart()
-{
 }

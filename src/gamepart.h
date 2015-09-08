@@ -42,7 +42,6 @@ class GamePart : public Part
 
 public:
     GamePart(Engine *engine);
-    ~GamePart();
 
     void start() override;
     void handleInput() override;
