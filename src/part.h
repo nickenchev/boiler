@@ -19,10 +19,10 @@ public:
     virtual void start() = 0;
     virtual void handleInput() = 0;
     virtual void update(const float delta) = 0;
-    virtual void render() = 0;
 
     const Engine *getEngine() const { return engine; }
     void addEntity(std::shared_ptr<Entity> entity);
+    const std::vector<std::shared_ptr<Entity>> &getEntities() const { return entities; }
 };
 
 #endif /* PART_H */

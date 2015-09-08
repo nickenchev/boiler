@@ -3,6 +3,8 @@
 
 #include "renderer.h"
 
+class Entity;
+
 class OpenGLRenderer : public Renderer
 {
 public:
@@ -10,6 +12,7 @@ public:
 
     std::shared_ptr<Texture> createTexture(const Size &textureSize, const void *pixelData) const override;
     void setActiveTexture(const Texture &texture) const override;
+    void render() const override;
 };
 
 

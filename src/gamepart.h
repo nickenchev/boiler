@@ -4,7 +4,6 @@
 #include "entity.h"
 #include "tile.h"
 #include "tmx.h"
-#include "shaderprogram.h"
 #include "quadtree.h"
 #include "bmfont.h"
 
@@ -21,7 +20,6 @@ class GamePart : public Part
 
     Quadtree qtree;
     std::shared_ptr<Entity> player;
-    bool isJumping;
     glm::vec2 velocity;
     const float gravity;
 
@@ -36,12 +34,11 @@ class GamePart : public Part
     std::vector<const SpriteSheetFrame*> walkRight;
 
     // render stuff
-    std::unique_ptr<ShaderProgram> program;
     unsigned int vao, vboVerts, mvpUniform;
     float texCoords[12];
 
     // physics stuff
-    bool jumping, onGround;
+    bool grounded;
 
 public:
     GamePart(Engine *engine);
@@ -50,6 +47,5 @@ public:
     void start() override;
     void handleInput() override;
     void update(const float delta) override;
-    void render() override;
     void drawEntity(Entity *entity);
 };

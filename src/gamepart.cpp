@@ -6,231 +6,11 @@
 #include "spritesheet.h"
 #include "spritesheetframe.h"
 #include "raycaster.h"
+#include "tmxloader.h"
 
 #include "sdl_util.h" //TODO: Meh?
 
-// LOAD TMX Stuff
-#include <glm/glm.hpp>
-#include <map>
-#include <zlib.h>
-#include "tinyxml2.h"
-#include "base64.h"
-#include "string_util.h"
-
-// OpenGL Rendering
-#include "opengl.h"
-#define GLM_COMPILER 0
-#include <glm/gtc/matrix_transform.hpp>
-
-using namespace tinyxml2;
 using namespace std;
-
-string getAttributeString(XMLElement *elem, const char *key)
-{
-    const char *str = elem->Attribute(key);
-    return (str) ? string(str) : string("");
-}
-
-ensoft::Image loadImage(XMLElement *element)
-{
-    XMLElement *ximage = element->FirstChildElement("image");
-    std::string format = getAttributeString(ximage, "format");
-    std::string source = getAttributeString(ximage, "source");
-    std::string trans = getAttributeString(ximage, "trans");
-    int width = ximage->IntAttribute("width");
-    int height = ximage->IntAttribute("height");
-
-    return ensoft::Image{format, source, trans, width, height};
-}
-
-void loadData(ensoft::Layer &layer, ensoft::Map *map, std::string data)
-{
-    vector<BYTE> decoded = base64_decode(data);
-
-    // TODO: look into better predicting the de-compressed size of the data
-    const int compressionFactor = 1000;
-    const unsigned long buffSize = decoded.size() * compressionFactor;
-
-    uLong sourceLen = decoded.size();
-    uLongf destLen = buffSize;
-    Bytef buffer[buffSize];
-
-    int result = uncompress(buffer, &destLen, &decoded[0], sourceLen);
-    std::vector<u_int32_t> tileList;
-    std::map<int, ensoft::TmxTile *> tilesUsed;
-    if (result != Z_OK)
-    {
-        // TODO: Error handle
-    }
-    else
-    {
-        int offset = 0;
-        do
-        {
-            u_int32_t tileGid = *((u_int32_t *)&buffer[offset]);
-            layer.tiles.push_back(tileGid);
-
-            offset += 4;
-        } while (offset < destLen);
-    }
-}
-
-ensoft::Properties loadProperties(XMLElement *sourceElement)
-{
-    XMLElement *xprops = sourceElement->FirstChildElement("properties");
-    std::map<string, ensoft::Property> props;
-    if (xprops)
-    {
-        XMLElement *xprop = xprops->FirstChildElement("property");
-        ensoft::Property prop;
-        prop.name = getAttributeString(xprop, "name");
-        prop.value = getAttributeString(xprop, "value");
-
-        props.insert(std::pair<string, ensoft::Property>(prop.name, prop));
-    }
-    return ensoft::Properties(props);
-}
-
-std::unique_ptr<ensoft::Map> loadTmx()
-{
-    XMLDocument doc;
-    XMLError error = doc.LoadFile("data/test_map.tmx");
-    std::unique_ptr<ensoft::Map> map;
-
-    if (error != XMLError::XML_NO_ERROR)
-    {
-        std::cout << "Error code: " << error << std::endl;
-    }
-    else
-    {
-        // start parsing the TMX map
-        XMLElement *xmap = doc.FirstChildElement("map");
-        
-        map = std::make_unique<ensoft::Map>(loadProperties(xmap));
-        map->version = xmap->Attribute("version");
-        map->orientation = xmap->Attribute("orientation");
-        map->width = xmap->IntAttribute("width");
-        map->height = xmap->IntAttribute("height");
-        map->tilewidth = xmap->IntAttribute("tilewidth");
-        map->tileheight = xmap->IntAttribute("tileheight");
-        map->renderorder = xmap->Attribute("renderorder");
-        map->properties = loadProperties(xmap);
-
-        // load all the tilesets
-        XMLElement *xtileset = xmap->FirstChildElement("tileset");
-        while (xtileset)
-        {
-            auto tileSet = std::make_unique<ensoft::TmxTileSet>(loadProperties(xtileset));
-            tileSet->firstgid = xtileset->IntAttribute("firstgid");
-            tileSet->source = getAttributeString(xtileset, "source");
-            tileSet->name = xtileset->Attribute("name");
-            tileSet->tilewidth = xtileset->IntAttribute("tilewidth");
-            tileSet->tileheight = xtileset->IntAttribute("tileheight");
-            tileSet->spacing = xtileset->IntAttribute("spacing");
-            tileSet->margin = xtileset->IntAttribute("margin");
-
-            // get the tiles for this tileset
-            XMLElement *xtile = xtileset->FirstChildElement("tile");
-            while (xtile)
-            {
-                auto tile = make_unique<ensoft::TmxTile>(loadProperties(xtile));
-                tile->id = xtile->IntAttribute("id");
-                tile->terrain = getAttributeString(xtile, "terrain");
-                tile->probability = xtile->FloatAttribute("probability");
-                tile->image = loadImage(xtile);
-
-                // keep track of all tiles and their global IDs
-                int tileGid = tileSet->firstgid + tile->id;
-                map->allTiles[tileGid] = tile.get();
-
-                tileSet->tiles.push_back(std::move(tile));
-                xtile = xtile->NextSiblingElement("tile");
-            }
-
-            map->tilesets.push_back(std::move(tileSet));
-            // try to find another tileset
-            xtileset = xtileset->NextSiblingElement("tileset");
-        }
-
-        XMLElement *xlayer = xmap->FirstChildElement("layer");
-        while (xlayer)
-        {
-            auto layer = std::make_unique<ensoft::Layer>(loadProperties(xlayer));
-            layer->name = xlayer->Attribute("name");
-            layer->x = xlayer->IntAttribute("x");
-            layer->y = xlayer->IntAttribute("y");
-            layer->width = xlayer->IntAttribute("width");
-            layer->height = xlayer->IntAttribute("height");
-            layer->opacity = xlayer->FloatAttribute("opacity");
-            layer->visible = xlayer->BoolAttribute("visible");
-
-            // load the data element
-            XMLElement *xdata = xlayer->FirstChildElement("data");
-            if (xdata)
-            {
-                string data = trim_copy(xdata->GetText());
-                loadData(*layer, map.get(), data);
-            }
-            
-            map->layers.push_back(std::move(layer));
-            xlayer = xlayer->NextSiblingElement("layer");
-        }
-
-        XMLElement *ximagelayer = xmap->FirstChildElement("imagelayer");
-        while (ximagelayer)
-        {
-            auto imageLayer = std::make_unique<ensoft::ImageLayer>(loadProperties(ximagelayer));
-            imageLayer->name = ximagelayer->Attribute("name");
-            imageLayer->x = ximagelayer->IntAttribute("x");
-            imageLayer->y = ximagelayer->IntAttribute("y");
-            imageLayer->width = ximagelayer->IntAttribute("width");
-            imageLayer->height = ximagelayer->IntAttribute("height");
-            imageLayer->opacity = ximagelayer->FloatAttribute("opacity");
-            imageLayer->visible = ximagelayer->BoolAttribute("visible");
-
-            imageLayer->image = loadImage(ximagelayer);
-            map->imageLayers.push_back(std::move(imageLayer));
-
-            ximagelayer = ximagelayer->NextSiblingElement("imagelayer");
-        }
-
-        XMLElement *xobjectgroup = xmap->FirstChildElement("objectgroup");
-        while (xobjectgroup)
-        {
-            auto objectGroup = std::make_unique<ensoft::ObjectGroup>(loadProperties(xobjectgroup));
-            objectGroup->name = xobjectgroup->Attribute("name");
-            objectGroup->x = xobjectgroup->IntAttribute("x");
-            objectGroup->y = xobjectgroup->IntAttribute("y");
-            objectGroup->width = xobjectgroup->IntAttribute("width");
-            objectGroup->height = xobjectgroup->IntAttribute("height");
-            objectGroup->opacity = xobjectgroup->FloatAttribute("opacity");
-            objectGroup->visible = xobjectgroup->BoolAttribute("visible");
-
-            //grab the objects
-            XMLElement *xobject = xobjectgroup->FirstChildElement("object");
-            while (xobject)
-            {
-                auto object = std::make_unique<ensoft::Object>(loadProperties(xobject));
-                object->id = xobject->Attribute("id");
-                object->name = getAttributeString(xobject, "name");
-                object->type = getAttributeString(xobject, "type");
-                object->x = xobject->IntAttribute("x");
-                object->y = xobject->IntAttribute("y");
-                object->width = xobject->IntAttribute("witdth");
-                object->height = xobject->IntAttribute("height");
-                object->gid = xobject->IntAttribute("gid");
-                object->visible = xobject->BoolAttribute("visible");
-                objectGroup->objects.push_back(std::move(object));
-
-                xobject = xobject->NextSiblingElement("object");
-            }
-            map->objectGroups.push_back(std::move(objectGroup));
-            xobjectgroup = xobjectgroup->NextSiblingElement("objectgroup");
-        }
-    }
-
-    return map; 
-}
 
 GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(), engine->getScreenHeight())),
                                      gravity(9.8f), textFont("data/font.fnt")
@@ -258,11 +38,11 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     currentAnimation = &walkRight;
 
     // physics setup
-    jumping = false;
+    grounded = false;
 
     // tilemap setup
-    tmxMap = std::move(loadTmx());
     Entity tileMap[100][100];
+    tmxMap = TmxLoader::loadMap("data/test_map.tmx");
 
     // create the entities from the tile info
     int tileNum = 0;
@@ -274,7 +54,7 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
             int tileGid = tmxMap->layers[0]->tiles[tileNum];
             if (tileGid)
             {
-                const ensoft::TmxTile *tmxTile= tmxMap->allTiles[tileGid];
+                const ensoft::TmxTile *tmxTile = tmxMap->allTiles[tileGid];
 
                 auto tile = std::make_shared<Entity>(Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight));
                 addEntity(tile);
@@ -291,9 +71,6 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
         y += tmxMap->tileheight;
         x = 0;
     }
-    // setup the shader
-    program = std::make_unique<ShaderProgram>("shader");
-    mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
 }
 
 void GamePart::start()
@@ -324,10 +101,11 @@ void GamePart::handleInput()
     // only change the velocity if there's a jump
     if (engine->keyState(SDLK_j))
     {
-        if (velocity.y == 0 )
+        if (grounded)
         {
+            grounded = false;
+            // applies negative force (jump)
             velocity.y = -350;
-            jumping = true;
         }
     }
 }
@@ -357,7 +135,12 @@ void GamePart::update(const float delta)
     qtree.retrieve(closeObjects, player->frame);
 
     // apply gravity before calculating final velocity
-    velocity.y += gravity;
+    const float terminalVelocity = 1000;
+    if (velocity.y < terminalVelocity)
+    {
+        velocity.y += gravity;
+    }
+
     // get movement amount based on time delta
     glm::vec2 moveAmount = velocity * delta;
 
@@ -371,7 +154,7 @@ void GamePart::update(const float delta)
             float numRays = 3;
 
             // check bottom
-            if (moveAmount.y > 0)
+            if (moveAmount.y != 0)
             {
                 float rayInterval = (player->frame.size.width - 2) / (numRays - 1);
                 float xOrigin = player->frame.getMinX() + 1;
@@ -390,7 +173,7 @@ void GamePart::update(const float delta)
                         {
                             moveAmount.y = diff.y;
                             velocity.y = 0;
-                            jumping = false;
+                            grounded = true;
                         }
                     }
                 }
@@ -428,43 +211,6 @@ void GamePart::update(const float delta)
 
     // change the player's position based on the allowed movement amount
     player->frame.position += moveAmount;
-}
-
-void GamePart::render()
-{
-    glUseProgram(program->getShaderProgram());
-
-    for (auto &entity : entities)
-    {
-        drawEntity(entity.get());
-    }
-
-    glUseProgram(0);
-}
-
-void GamePart::drawEntity(Entity *entity)
-{
-    // set the vao for the current sprite
-    glBindVertexArray(entity->getVao());
-
-    // binds the current frames texture VBO and ensure it is linked to the current VAO
-    glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
-
-    // opengl sprite render
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(getEngine()->getScreenWidth()),
-                                      static_cast<GLfloat>(getEngine()->getScreenHeight()), 0.0f, -1.0f, 1.0f);
-
-    const glm::mat4 &model = entity->getMatrix();
-    projection = projection * model;
-
-    glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &projection[0][0]);
-
-    // set the current texture
-    getEngine()->getRenderer().setActiveTexture(entity->spriteSheet->getTexture());
-
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
 }
 
 GamePart::~GamePart()

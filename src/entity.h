@@ -24,6 +24,7 @@ public:
 
     Rect frame;
     glm::vec2 pivot;
+
     glm::vec2 scale;
 
     std::shared_ptr<SpriteSheet> spriteSheet;

@@ -5,12 +5,14 @@
 #include "spritesheet.h"
 #include "part.h"
 #include "openglrenderer.h"
+#include "entity.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
 Engine::Engine() : spriteLoader(*this), keys{0}
 {
     renderer = std::make_unique<RENDERER_CLASS>(*this);
+
     lastTime = currentTime = 0;
     frameDelta = 0;
 }
@@ -56,16 +58,23 @@ void Engine::initialize()
     }
     else
     {
+        // initialization was successful
         std::cout << " - Preferred Path: " << SDL_GetPrefPath("ensoft", "sdl_engine") << std::endl;
         std::cout << " - Base Path: " << SDL_GetBasePath() << std::endl;
 
-        //initialize basic engine stuff
+        // initialize basic engine stuff
         frameInterval = 1.0f / 60.0f; // 60fps
+
+        // compile the default shader program
+        program = std::make_unique<ShaderProgram>("shader");
     }
 }
 
 void Engine::start(Part *part)
 {
+    //setup global scaling
+    globalScale = glm::vec2(1.5f, 1.5f);
+
     //store the incoming part and start it
     this->part = part;
     part->start();
@@ -126,7 +135,7 @@ void Engine::render(const float delta)
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    part->render();
+    renderer->render();
 
     SDL_GL_SwapWindow(win);
 }
