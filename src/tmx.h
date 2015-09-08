@@ -1,3 +1,6 @@
+#ifndef TMX_H
+#define TMX_H
+
 #include <string>
 #include <memory>
 #include <vector>
@@ -123,3 +126,5 @@ namespace ensoft
         using TmxComponent::TmxComponent;
     };
 }
+
+#endif /* TMX_H */
