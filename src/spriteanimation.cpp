@@ -3,8 +3,11 @@
 SpriteAnimation::SpriteAnimation(float duration)
 {
     this->duration = duration;
+    numPlays = 0;
     frameNum = 1;
     animTime = 0;
+    timesToPlay = 1;
+    loop = true;
 }
 
 void SpriteAnimation::update(float delta)
@@ -19,6 +22,7 @@ void SpriteAnimation::update(float delta)
         if (frameNum > frames.size())
         {
             frameNum = 1;
+            numPlays++;
         }
         animTime = 0;
     }
@@ -27,4 +31,11 @@ void SpriteAnimation::update(float delta)
 const SpriteSheetFrame *SpriteAnimation::getCurrentFrame() const
 {
     return frames[frameNum - 1];
+}
+
+void SpriteAnimation::restart()
+{
+    frameNum = 1;
+    animTime = 0;
+    numPlays = 0;
 }

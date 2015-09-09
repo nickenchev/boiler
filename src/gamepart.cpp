@@ -132,6 +132,7 @@ void GamePart::handleInput()
         if (grounded)
         {
             currentAnimation = &jump;
+            jump.restart();
             jumping = true;
             grounded = false;
             // applies negative force (jump)
@@ -144,7 +145,7 @@ void GamePart::update(const float delta)
 {
     // update the animations
     player->spriteFrame = (*currentAnimation).getCurrentFrame();
-    if (!currentAnimation->isFinished() || currentAnimation->loop)
+//    if (!currentAnimation->isFinished() || currentAnimation->loop)
     {
         currentAnimation->update(delta);
     }
