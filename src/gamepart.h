@@ -27,14 +27,14 @@ class GamePart : public Part
     BMFont textFont;
 
     std::unique_ptr<ensoft::Map> tmxMap;
-    SpriteAnimation *currentAnimation, stand;
+    SpriteAnimation *currentAnimation, stand, run, jump, falling;
 
     // render stuff
     unsigned int vao, vboVerts, mvpUniform;
     float texCoords[12];
 
     // physics stuff
-    bool grounded;
+    bool grounded, jumping;
 
 public:
     GamePart(Engine *engine);

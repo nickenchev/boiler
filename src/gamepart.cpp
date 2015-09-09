@@ -14,14 +14,15 @@ using namespace std;
 
 GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(),
                                                                  engine->getScreenHeight())),
-                                     textFont("data/font.fnt"), gravity(9.8f), stand(1.0f)
+                                     textFont("data/font.fnt"), gravity(9.8f), stand(0.7f), run(0.7f),
+                                     jump(0.7f), falling(0)
 {
     //do some loading
     playerSheet = engine->getSpriteLoader().loadSheet("data/kof.json");
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = std::make_shared<Entity>(Rect(30, 550, 59, 103));
+    player = std::make_shared<Entity>(Rect(30, 550, 15, 31));
     player->spriteSheet = playerSheet;
     addEntity(player);
 
@@ -30,11 +31,25 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     stand.addFrame(playerSheet->getFrame("stand_03.png"));
     stand.addFrame(playerSheet->getFrame("stand_04.png"));
     stand.addFrame(playerSheet->getFrame("stand_05.png"));
+    run.addFrame(playerSheet->getFrame("run_01.png"));
+    run.addFrame(playerSheet->getFrame("run_02.png"));
+    run.addFrame(playerSheet->getFrame("run_03.png"));
+    run.addFrame(playerSheet->getFrame("run_04.png"));
+    run.addFrame(playerSheet->getFrame("run_05.png"));
+    run.addFrame(playerSheet->getFrame("run_06.png"));
+    jump.addFrame(playerSheet->getFrame("jump_01.png"));
+    jump.addFrame(playerSheet->getFrame("jump_02.png"));
+    jump.addFrame(playerSheet->getFrame("jump_03.png"));
+    jump.addFrame(playerSheet->getFrame("jump_04.png"));
+    jump.addFrame(playerSheet->getFrame("jump_05.png"));
+    jump.loop = false;
+    falling.addFrame(playerSheet->getFrame("jump_05.png"));
 
     currentAnimation = &stand;
 
     // physics setup
     grounded = false;
+    jumping = false;
 
     // tilemap setup
     Entity tileMap[100][100];
@@ -79,17 +94,32 @@ void GamePart::handleInput()
     if (engine->keyState(SDLK_a))
     {
         //currentAnimation = &walkLeft;
-        velocity.x = -75;
+        velocity.x = -110;
         player->flipH = false;
+        if (grounded)
+        {
+            currentAnimation = &run;
+        }
     }
     else if (engine->keyState(SDLK_d))
     {
         //currentAnimation = &walkRight;
-        velocity.x = 75;
+        velocity.x = 110;
         player->flipH = true;
+        if (grounded)
+        {
+            currentAnimation = &run;
+        }
     }
     else
     {
+        // prepare the animations for the next play
+        run.restart();
+
+        if (grounded)
+        {
+            currentAnimation = &stand;
+        }
         velocity.x = 0;
     }
     if (engine->keyState(SDLK_ESCAPE))
@@ -101,9 +131,11 @@ void GamePart::handleInput()
     {
         if (grounded)
         {
+            currentAnimation = &jump;
+            jumping = true;
             grounded = false;
             // applies negative force (jump)
-            velocity.y = -350;
+            velocity.y = -250;
         }
     }
 }
@@ -112,7 +144,10 @@ void GamePart::update(const float delta)
 {
     // update the animations
     player->spriteFrame = (*currentAnimation).getCurrentFrame();
-    stand.update(delta);
+    if (!currentAnimation->isFinished() || currentAnimation->loop)
+    {
+        currentAnimation->update(delta);
+    }
 
     // check what the player may collide with
     qtree.clear();
@@ -147,6 +182,7 @@ void GamePart::update(const float delta)
             {
                 float rayInterval = (player->frame.size.width - 2) / (numRays - 1);
                 float xOrigin = player->frame.getMinX() + 1;
+                bool collision = false;
                 for (int r = 0; r < numRays; ++r)
                 {
                     float rayOffset = r * rayInterval;
@@ -163,8 +199,15 @@ void GamePart::update(const float delta)
                             moveAmount.y = diff.y;
                             velocity.y = 0;
                             grounded = true;
+                            jumping = false;
+                            collision = true;
                         }
                     }
+                }
+                // if no collision was found, entity is falling
+                if (!collision)
+                {
+                    grounded = false;
                 }
             }
             else if (moveAmount.y < 0)
@@ -219,6 +262,11 @@ void GamePart::update(const float delta)
                 }
             }
         }
+    }
+
+    if (!grounded && !jumping)
+    {
+        currentAnimation = &falling;
     }
 
     // change the player's position based on the allowed movement amount
