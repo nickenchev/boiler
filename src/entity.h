@@ -23,9 +23,8 @@ public:
     ~Entity();
 
     Rect frame;
-    glm::vec2 pivot;
-
-    glm::vec2 scale;
+    bool flipH, flipV;
+    glm::vec2 pivot, scale;
 
     std::shared_ptr<SpriteSheet> spriteSheet;
     const SpriteSheetFrame *spriteFrame;
