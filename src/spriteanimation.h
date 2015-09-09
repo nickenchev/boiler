@@ -21,7 +21,7 @@ public:
     void update(float delta);
     const SpriteSheetFrame *getCurrentFrame() const;
     void restart();
-    bool isFinished() const { return numPlays < timesToPlay; }
+    bool isFinished() const;
 };
 
 #endif /* SPRITEANIMATION_H */

@@ -1,3 +1,4 @@
+#include <iostream>
 #include "spriteanimation.h"
 
 SpriteAnimation::SpriteAnimation(float duration)
@@ -13,16 +14,21 @@ SpriteAnimation::SpriteAnimation(float duration)
 void SpriteAnimation::update(float delta)
 {
     float timePerFrame = duration / frames.size();
-
-    //animation stuff
     animTime += delta;
     if (animTime >= timePerFrame)
     {
         ++frameNum;
         if (frameNum > frames.size())
         {
-            frameNum = 1;
             numPlays++;
+            if (!isFinished() || loop)
+            {
+                frameNum = 1;
+            }
+            else
+            {
+                frameNum--;
+            }
         }
         animTime = 0;
     }
@@ -38,4 +44,9 @@ void SpriteAnimation::restart()
     frameNum = 1;
     animTime = 0;
     numPlays = 0;
+}
+
+bool SpriteAnimation::isFinished() const
+{
+    return numPlays >= timesToPlay;
 }
