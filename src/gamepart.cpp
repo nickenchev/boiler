@@ -190,7 +190,7 @@ void GamePart::update(const float delta)
     {
         if (e != player)
         {
-            float numRays = 3;
+            float numRays = 9;
 
             // check bottom
             if (moveAmount.y > 0)
@@ -279,6 +279,7 @@ void GamePart::update(const float delta)
         }
     }
 
+    // if the player is falling at a certain velocity, change animation
     if (!grounded && !jumping && velocity.y > 100)
     {
         currentAnimation = &falling;
