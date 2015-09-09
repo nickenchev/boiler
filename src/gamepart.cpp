@@ -14,15 +14,15 @@ using namespace std;
 
 GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(),
                                                                  engine->getScreenHeight())),
-                                     textFont("data/font.fnt"), gravity(9.8f), stand(0.7f), run(0.7f),
-                                     jump(0.5f), falling(0), punch(0.5f)
+                                     textFont("data/font.fnt"), gravity(9.8f), stand(0.6f), run(0.6f),
+                                     jump(0.6f), falling(0), punch(0.6f)
 {
     //do some loading
     playerSheet = engine->getSpriteLoader().loadSheet("data/kof.json");
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = std::make_shared<Entity>(Rect(30, 300, 29, 51));
+    player = std::make_shared<Entity>(Rect(30, -30, 29, 51));
     player->spriteSheet = playerSheet;
     addEntity(player);
 
