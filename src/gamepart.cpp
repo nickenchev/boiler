@@ -14,29 +14,24 @@ using namespace std;
 
 GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(),
                                                                  engine->getScreenHeight())),
-                                     textFont("data/font.fnt"), gravity(9.8f)
+                                     textFont("data/font.fnt"), gravity(9.8f), stand(1.0f)
 {
     //do some loading
-    playerSheet = engine->getSpriteLoader().loadSheet("data/zodas2.json");
+    playerSheet = engine->getSpriteLoader().loadSheet("data/kof.json");
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = std::make_shared<Entity>(Rect(30, 550, 15, 31));
+    player = std::make_shared<Entity>(Rect(30, 550, 59, 103));
     player->spriteSheet = playerSheet;
     addEntity(player);
 
-    // animation setup
-    frameNum = 1;
-    numFrames = 2;
-    animTime = 0;
-    timePerFrame = 0.15f;
+    stand.addFrame(playerSheet->getFrame("stand_01.png"));
+    stand.addFrame(playerSheet->getFrame("stand_02.png"));
+    stand.addFrame(playerSheet->getFrame("stand_03.png"));
+    stand.addFrame(playerSheet->getFrame("stand_04.png"));
+    stand.addFrame(playerSheet->getFrame("stand_05.png"));
 
-    walkLeft.push_back(playerSheet->getFrame("walk_left_01.png"));
-    walkLeft.push_back(playerSheet->getFrame("walk_left_02.png"));
-    walkRight.push_back(playerSheet->getFrame("walk_right_01.png"));
-    walkRight.push_back(playerSheet->getFrame("walk_right_02.png"));
-
-    currentAnimation = &walkRight;
+    currentAnimation = &stand;
 
     // physics setup
     grounded = false;
@@ -83,13 +78,15 @@ void GamePart::handleInput()
     // check keyboard and modify state
     if (engine->keyState(SDLK_a))
     {
-        currentAnimation = &walkLeft;
+        //currentAnimation = &walkLeft;
         velocity.x = -75;
+        player->flipH = false;
     }
     else if (engine->keyState(SDLK_d))
     {
-        currentAnimation = &walkRight;
+        //currentAnimation = &walkRight;
         velocity.x = 75;
+        player->flipH = true;
     }
     else
     {
@@ -113,18 +110,9 @@ void GamePart::handleInput()
 
 void GamePart::update(const float delta)
 {
-    //animation stuff
-    animTime += delta;
-    if (animTime >= timePerFrame)
-    {
-        ++frameNum;
-        if (frameNum > numFrames)
-        {
-            frameNum = 1;
-        }
-        animTime = 0;
-    }
-    player->spriteFrame = (*currentAnimation)[frameNum - 1];
+    // update the animations
+    player->spriteFrame = (*currentAnimation).getCurrentFrame();
+    stand.update(delta);
 
     // check what the player may collide with
     qtree.clear();

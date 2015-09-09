@@ -6,6 +6,7 @@
 #include "tmx.h"
 #include "quadtree.h"
 #include "bmfont.h"
+#include "spriteanimation.h"
 
 class SpriteSheet;
 class SpriteSheetFrame;
@@ -26,12 +27,7 @@ class GamePart : public Part
     BMFont textFont;
 
     std::unique_ptr<ensoft::Map> tmxMap;
-    const SpriteSheetFrame *spriteFrame;
-    std::vector<const SpriteSheetFrame*> *currentAnimation;
-    std::vector<const SpriteSheetFrame*> standLeft;
-    std::vector<const SpriteSheetFrame*> standRight;
-    std::vector<const SpriteSheetFrame*> walkLeft;
-    std::vector<const SpriteSheetFrame*> walkRight;
+    SpriteAnimation *currentAnimation, stand;
 
     // render stuff
     unsigned int vao, vboVerts, mvpUniform;
