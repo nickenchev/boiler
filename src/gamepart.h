@@ -27,7 +27,7 @@ class GamePart : public Part
     BMFont textFont;
 
     std::unique_ptr<ensoft::Map> tmxMap;
-    SpriteAnimation *currentAnimation, stand, run, jump, falling;
+    SpriteAnimation *currentAnimation, stand, run, jump, falling, punch;
 
     // render stuff
     unsigned int vao, vboVerts, mvpUniform;

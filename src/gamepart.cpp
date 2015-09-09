@@ -15,14 +15,14 @@ using namespace std;
 GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(),
                                                                  engine->getScreenHeight())),
                                      textFont("data/font.fnt"), gravity(9.8f), stand(0.7f), run(0.7f),
-                                     jump(0.7f), falling(0)
+                                     jump(0.5f), falling(0), punch(0.5f)
 {
     //do some loading
     playerSheet = engine->getSpriteLoader().loadSheet("data/kof.json");
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = std::make_shared<Entity>(Rect(30, 550, 15, 31));
+    player = std::make_shared<Entity>(Rect(30, 300, 29, 51));
     player->spriteSheet = playerSheet;
     addEntity(player);
 
@@ -44,6 +44,12 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     jump.addFrame(playerSheet->getFrame("jump_05.png"));
     jump.loop = false;
     falling.addFrame(playerSheet->getFrame("jump_05.png"));
+    punch.addFrame(playerSheet->getFrame("punch_01.png"));
+    punch.addFrame(playerSheet->getFrame("punch_02.png"));
+    punch.addFrame(playerSheet->getFrame("punch_03.png"));
+    punch.addFrame(playerSheet->getFrame("punch_04.png"));
+    punch.addFrame(playerSheet->getFrame("punch_05.png"));
+    punch.loop = false;
 
     currentAnimation = &stand;
 
@@ -139,13 +145,21 @@ void GamePart::handleInput()
             velocity.y = -250;
         }
     }
+    else if (engine->keyState(SDLK_k))
+    {
+        if (punch.isFinished())
+        {
+            punch.restart();
+        }
+        currentAnimation = &punch;
+    }
 }
 
 void GamePart::update(const float delta)
 {
     // update the animations
     player->spriteFrame = (*currentAnimation).getCurrentFrame();
-//    if (!currentAnimation->isFinished() || currentAnimation->loop)
+    if (!currentAnimation->isFinished() || currentAnimation->loop)
     {
         currentAnimation->update(delta);
     }
