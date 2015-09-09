@@ -265,7 +265,7 @@ void GamePart::update(const float delta)
         }
     }
 
-    if (!grounded && !jumping)
+    if (!grounded && !jumping && velocity.y > 100)
     {
         currentAnimation = &falling;
     }
