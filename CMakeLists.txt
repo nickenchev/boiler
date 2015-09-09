@@ -48,7 +48,8 @@ set(SRC_FILES
   src/rect.cpp
   src/raycaster.cpp
   src/bmfont.cpp
-  src/part.cpp)
+  src/part.cpp
+  src/spriteanimation.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SHADER_FILES})
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
