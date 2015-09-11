@@ -1,7 +1,6 @@
 #ifndef RECT
 #define RECT
 
-#define GLM_COMPILER 0
 #include <glm/glm.hpp>
 
 struct Size

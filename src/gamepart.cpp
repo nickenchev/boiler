@@ -22,7 +22,7 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = std::make_shared<Entity>(Rect(30, -30, 29, 51));
+    player = std::make_shared<Entity>(Rect(30, -50, 29, 51));
     player->spriteSheet = playerSheet;
     addEntity(player);
 
@@ -102,30 +102,17 @@ void GamePart::handleInput()
         //currentAnimation = &walkLeft;
         velocity.x = -110;
         player->flipH = false;
-        if (grounded)
-        {
-            currentAnimation = &run;
-        }
     }
     else if (engine->keyState(SDLK_d))
     {
         //currentAnimation = &walkRight;
         velocity.x = 110;
         player->flipH = true;
-        if (grounded)
-        {
-            currentAnimation = &run;
-        }
     }
     else
     {
         // prepare the animations for the next play
         run.restart();
-
-        if (grounded)
-        {
-            currentAnimation = &stand;
-        }
         velocity.x = 0;
     }
     if (engine->keyState(SDLK_ESCAPE))
@@ -184,94 +171,73 @@ void GamePart::update(const float delta)
     glm::vec2 moveAmount = velocity * delta;
 
     // check for collisions in the player's movement
-    float yLimit = 0;
     RayCaster rayCaster;
-    for (auto e : closeObjects)
+    float numRays = 5;
+    glm::vec2 ray(moveAmount);
+    if (moveAmount.y > 0)
     {
-        if (e != player)
+        for (auto e : closeObjects)
         {
-            float numRays = 9;
-
-            // check bottom
-            if (moveAmount.y > 0)
+            if (e != player)
             {
-                float rayInterval = (player->frame.size.width - 2) / (numRays - 1);
-                float xOrigin = player->frame.getMinX() + 1;
-                bool collision = false;
-                for (int r = 0; r < numRays; ++r)
+                //cout << "DOWN TEST" << endl;
+                glm::vec2 diff;
+                if (rayCaster.detectVertical(player->frame, e->frame, moveAmount, numRays, false, diff))
                 {
-                    float rayOffset = r * rayInterval;
-
-                    glm::vec2 v0(xOrigin + rayOffset, player->frame.getMaxY());
-                    glm::vec2 v1 = v0 + glm::vec2(0, moveAmount.y);
-                    glm::vec2 vIntersect;
-                    if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
-                    {
-                        // diff is the line between v0 and point of intersection
-                        glm::vec2 diff = vIntersect - v0;
-                        if (diff.y >= 0)
-                        {
-                            moveAmount.y = diff.y;
-                            velocity.y = 0;
-                            grounded = true;
-                            jumping = false;
-                            collision = true;
-                        }
-                    }
+                    ray.y = diff.y;
+                    velocity.y = 0;
+                    grounded = true;
+                    jumping = false;
                 }
-                // if no collision was found, entity is falling
-                if (!collision)
+                else if (!grounded)
                 {
                     grounded = false;
                 }
             }
-            else if (moveAmount.y < 0)
+        }
+    }
+    else if (moveAmount.y < 0)
+    {
+        for (auto e : closeObjects)
+        {
+            if (e != player)
             {
-                float rayInterval = (player->frame.size.width - 2) / (numRays - 1);
-                float xOrigin = player->frame.getMinX() + 1;
-                for (int r = 0; r < numRays; ++r)
+                glm::vec2 diff;
+                if (rayCaster.detectVertical(player->frame, e->frame, moveAmount, numRays, true, diff))
                 {
-                    float rayOffset = r * rayInterval;
-
-                    glm::vec2 v0(xOrigin + rayOffset, player->frame.getMinY());
-                    glm::vec2 v1 = v0 + glm::vec2(0, moveAmount.y);
-                    glm::vec2 vIntersect;
-                    if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
-                    {
-                        // diff is the line between v0 and point of intersection
-                        glm::vec2 diff = vIntersect - v0;
-                        if (diff.y >= 0)
-                        {
-                            moveAmount.y = diff.y;
-                            velocity.y = 0;
-                        }
-                    }
+                    ray.y = diff.y;
+                    velocity.y = 0;
                 }
             }
-
-            if (moveAmount.x != 0)
+        }
+    }
+    // check horizontal
+    if (moveAmount.x != 0)
+    {
+        for (auto e : closeObjects)
+        {
+            if (e != player)
             {
-                float rayInterval = (player->frame.size.height - 2) / (numRays - 1);
-                float ypos = player->frame.position.y + 1;
-                float xOrigin = (moveAmount.x < 0) ? player->frame.getMinX() : player->frame.getMaxX();
+                float rayInterval = player->frame.size.height / (numRays - 1);
+                float ypos = player->frame.position.y;
+                // decide wither rays are firing left or right
+                float xOrigin = (moveAmount.x < 0) ? player->frame.getMinX() - 1: player->frame.getMaxX() + 1;
 
                 for (int r = 0; r < numRays; ++r)
                 {
                     float rayOffset = r * rayInterval;
-                    glm::vec2 v0(xOrigin, ypos + rayOffset);
+                    float yOffset = std::min(ypos + rayOffset, player->frame.getMaxY());
+                    glm::vec2 v0(xOrigin, yOffset);
                     glm::vec2 v1 = v0 + glm::vec2(moveAmount.x, 0);
                     glm::vec2 vIntersect;
 
                     if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
                     {
                         glm::vec2 diff = vIntersect - v0;
-                        if (diff.x > 0)
+                        if (diff.x >= 0)
                         {
-                            moveAmount.x = diff.x;
-                        }
-                        else
-                        {
-                            moveAmount.x = 0;
+                            ray.x = diff.x;
+                            velocity.x = 0;
                         }
                     }
                 }
@@ -284,7 +250,22 @@ void GamePart::update(const float delta)
     {
         currentAnimation = &falling;
     }
+    else if (!jumping)
+    {
+        if (ray.x > 0)
+        {
+            currentAnimation = &run;
+        }
+        else if (ray.x < 0)
+        {
+            currentAnimation = &run;
+        }
+        else
+        {
+            currentAnimation = &stand;
+        }
+    }
 
     // change the player's position based on the allowed movement amount
-    player->frame.position += moveAmount;
+    player->frame.position += ray;
 }

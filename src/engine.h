@@ -2,17 +2,14 @@
 #define ENGINE_H
 
 #include <memory>
-#include <SDL.h>
-
 #include "spriteloader.h"
-#include "entity.h"
-#include "renderer.h"
 
 #define RES_WIDTH 1024
 #define RES_HEIGHT 768
 
 #define MAX_KEYS 256
 
+class Renderer;
 class Part;
 class SDL_Window;
 

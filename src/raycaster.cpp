@@ -1,3 +1,4 @@
+#include <iostream>
 #include <algorithm>
 #include "raycaster.h"
 
@@ -60,4 +61,54 @@ bool RayCaster::rayCollides(const glm::vec2 &v0, const glm::vec2 &v1, const Rect
         }
     }
     return isIntersection;
+}
+
+bool RayCaster::detectCollisions(const Rect &source, const Rect &dest, float originX, float originY,
+                                 int numRays, float rayInterval, const glm::vec2 &ray, glm::vec2 &diff)
+{
+    bool collision = false;
+    float maxOffset = source.getMaxX();
+#ifdef DEBUG
+    std::cout << "-----------------------------------" << std::endl;
+    std::cout << "X: " << source.getMinX() << "  " << source.getMaxX() << std::endl;
+#endif
+    for (int r = 0; r < numRays; ++r)
+    {
+        float rayOffset = r * rayInterval;
+        float xOffset = originX + rayOffset;
+        xOffset = (xOffset > maxOffset) ? maxOffset : xOffset;
+
+        glm::vec2 v0(xOffset, originY);
+        glm::vec2 v1 = v0 + ray;
+
+#ifdef DEBUG
+        std::cout << "(" << v0.x << "," << v0.y << ") --> ";
+        std::cout << "(" << v1.x << "," << v1.y << ")" << std::endl;
+#endif
+        
+        glm::vec2 vIntersect;
+        if (rayCollides(v0, v1, dest, vIntersect))
+        {
+#ifdef DEBUG
+            std::cout << "  --- "<< dest.getMinX() << "," << dest.getMaxX() << std::endl;
+#endif
+            // diff is the line between v0 and point of intersection
+            glm::vec2 diffTemp = vIntersect - v0;
+            float intersectLength = diffTemp.length();
+            if (intersectLength >= 0)
+            {
+                diff = diffTemp;
+                collision = true;
+            }
+        }
+    }
+
+    return collision;
+}
+
+bool RayCaster::detectVertical(const Rect &source, const Rect &dest, const glm::vec2 ray, int numRays, bool top, glm::vec2 &diff)
+{
+    float rayInterval = source.size.width / (numRays - 1);
+    float originY = top ? source.getMinY() : source.getMaxY();
+    return detectCollisions(source, dest, source.getMinX(), originY, numRays, rayInterval, glm::vec2(0, ray.y), diff);
 }
