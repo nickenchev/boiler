@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 project(engine)
 
-set(CMAKE_CXX_COMPILER /usr/local/Cellar/llvm/3.6.2/bin/clang++)
+#set(CMAKE_CXX_COMPILER /usr/local/Cellar/llvm/3.6.2/bin/clang++)
 #set(CMAKE_CXX_COMPILER /usr/bin/g++-5)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(CMAKE_BUILD_TYPE Debug)
