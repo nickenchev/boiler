@@ -1,3 +1,6 @@
+#include <iostream>
+#include <SDL.h>
+#include <SDL_image.h>
 #define GLM_COMPILER 0
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -13,6 +16,65 @@
 
 OpenGLRenderer::OpenGLRenderer(Engine &engine) : Renderer(std::string(COMPONENT_NAME), engine)
 {
+    bool success = false;
+    if (SDL_Init(SDL_INIT_VIDEO) == 0)
+    {
+        win = SDL_CreateWindow("Boiler", 0, 0, RES_WIDTH, RES_HEIGHT, SDL_WINDOW_OPENGL);
+        if (win)
+        {
+            // setup opengl
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+            glContext = SDL_GL_CreateContext(win);
+            if (glContext)
+            {
+                std::cout << " - Using Context: OpenGL " << glGetString(GL_VERSION) << std::endl; 
+
+                // require "experimental" as not all OpenGL features are marked "standard"
+                glewExperimental = GL_TRUE;
+                if (glewInit() != GLEW_OK)
+                {
+                    std::cerr << "Error initializing GLEW" << std::endl;
+                }
+                // glewInit() queries extensions incorrectly, clearing errors here
+                glGetError();
+                
+                IMG_Init(IMG_INIT_PNG);
+
+                // compile the default shader program
+                program = std::make_unique<ShaderProgram>("shader");
+                success = true;
+            }
+        }
+    }
+
+    if (!success)
+    {
+        std::cout << "Error Initializing SDL: " << SDL_GetError() << std::endl;
+    }
+
+    // setup a RBO for a colour target
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, getEngine().getScreenWidth(),
+                          getEngine().getScreenHeight());
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    // setup the FBO
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbo);
+
+    // make sure FBO is all good
+    GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
+    {
+        error("Error initializing FBO / RBO target.");
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 std::shared_ptr<Texture> OpenGLRenderer::createTexture(const Size &textureSize, const void *pixelData) const
@@ -49,9 +111,12 @@ void OpenGLRenderer::setActiveTexture(const Texture &texture) const
 
 void OpenGLRenderer::render() const
 {
-    const ShaderProgram *program = getEngine().getProgram();
+    const ShaderProgram *program = getEngine().getRenderer().getProgram();
     glUseProgram(program->getShaderProgram());
     GLuint mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
+
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     const std::vector<std::shared_ptr<Entity>> &entities = getEngine().getPart()->getEntities();
     for (auto &entity : entities)
@@ -65,7 +130,7 @@ void OpenGLRenderer::render() const
 
         // opengl sprite render
         glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(getEngine().getScreenWidth()),
-                                        static_cast<GLfloat>(getEngine().getScreenHeight()), 0.0f, -1.0f, 1.0f);
+                                          static_cast<GLfloat>(getEngine().getScreenHeight()), 0.0f, -1.0f, 1.0f);
 
         const glm::mat4 &model = entity->getMatrix();
 
@@ -80,5 +145,22 @@ void OpenGLRenderer::render() const
         glBindVertexArray(0);
     }
 
+    SDL_GL_SwapWindow(win);
     glUseProgram(0);
+}
+
+OpenGLRenderer::~OpenGLRenderer()
+{
+    if (glContext)
+    {
+        std::cout << "* Destroying GL Context" << std::endl;
+        SDL_GL_DeleteContext(glContext);
+    }
+    if (win)
+    {
+        std::cout << "* Destroying Window" << std::endl;
+        SDL_DestroyWindow(win);
+    }
+    glDeleteRenderbuffers(1, &rbo);
+    glDeleteFramebuffers(1, &fbo);
 }

@@ -7,7 +7,6 @@
 #include "spriteloader.h"
 #include "entity.h"
 #include "renderer.h"
-#include "shaderprogram.h"
 
 #define RES_WIDTH 1024
 #define RES_HEIGHT 768
@@ -19,11 +18,7 @@ class SDL_Window;
 
 class Engine
 {
-    SDL_GLContext glContext;
-    SDL_Window *win = nullptr;
     std::unique_ptr<Renderer> renderer;
-    std::unique_ptr<ShaderProgram> program;
-    glm::vec2 globalScale;
 
     bool running = true;
     SpriteLoader spriteLoader;
@@ -47,11 +42,9 @@ public:
 
     const Renderer &getRenderer() const { return *renderer.get(); }
     const Part *getPart() const { return part; }
-    const ShaderProgram *getProgram() const { return program.get(); }
 
     bool keyState(int keyNum) const { return keys[keyNum]; }
     SpriteLoader &getSpriteLoader() { return spriteLoader; }
-    SDL_Window *getWindow() const { return win; }
     int getScreenWidth() const { return RES_WIDTH; }
     int getScreenHeight() const { return RES_HEIGHT; }
 };
