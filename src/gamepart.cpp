@@ -174,13 +174,31 @@ void GamePart::update(const float delta)
     RayCaster rayCaster;
     float numRays = 5;
     glm::vec2 ray(moveAmount);
+
+    // check horizontal
+    if (moveAmount.x != 0)
+    {
+        for (auto e : closeObjects)
+        {
+            if (e != player)
+            {
+                bool left = (velocity.x < 0) ? true : false;
+                glm::vec2 diff;
+                if (rayCaster.detectHorizontal(player->frame, e->frame, moveAmount, numRays, left, diff))
+                {
+                    e->scale = glm::vec2(0.5f, 0.5f);
+                    ray.x = diff.x;
+                    velocity.x = 0;
+                }
+            }
+        }
+    }
     if (moveAmount.y > 0)
     {
         for (auto e : closeObjects)
         {
             if (e != player)
             {
-                //cout << "DOWN TEST" << endl;
                 glm::vec2 diff;
                 if (rayCaster.detectVertical(player->frame, e->frame, moveAmount, numRays, false, diff))
                 {
@@ -207,39 +225,6 @@ void GamePart::update(const float delta)
                 {
                     ray.y = diff.y;
                     velocity.y = 0;
-                }
-            }
-        }
-    }
-    // check horizontal
-    if (moveAmount.x != 0)
-    {
-        for (auto e : closeObjects)
-        {
-            if (e != player)
-            {
-                float rayInterval = player->frame.size.height / (numRays - 1);
-                float ypos = player->frame.position.y;
-                // decide wither rays are firing left or right
-                float xOrigin = (moveAmount.x < 0) ? player->frame.getMinX() - 1: player->frame.getMaxX() + 1;
-
-                for (int r = 0; r < numRays; ++r)
-                {
-                    float rayOffset = r * rayInterval;
-                    float yOffset = std::min(ypos + rayOffset, player->frame.getMaxY());
-                    glm::vec2 v0(xOrigin, yOffset);
-                    glm::vec2 v1 = v0 + glm::vec2(moveAmount.x, 0);
-                    glm::vec2 vIntersect;
-
-                    if (rayCaster.rayCollides(v0, v1, e->frame, vIntersect))
-                    {
-                        glm::vec2 diff = vIntersect - v0;
-                        if (diff.x >= 0)
-                        {
-                            ray.x = diff.x;
-                            velocity.x = 0;
-                        }
-                    }
                 }
             }
         }

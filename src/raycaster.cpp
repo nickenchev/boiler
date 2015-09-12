@@ -2,6 +2,8 @@
 #include <algorithm>
 #include "raycaster.h"
 
+#define DEBUG
+
 bool RayCaster::clipLine(int d, const Rect &box, const glm::vec2 &v0, const glm::vec2 &v1, float &fLow, float &fHigh)
 {
     bool isIntersection = true;
@@ -64,34 +66,26 @@ bool RayCaster::rayCollides(const glm::vec2 &v0, const glm::vec2 &v1, const Rect
 }
 
 bool RayCaster::detectCollisions(const Rect &source, const Rect &dest, float originX, float originY,
-                                 int numRays, float rayInterval, const glm::vec2 &ray, glm::vec2 &diff)
+                                 int numRays, glm::vec2 rayInterval, const glm::vec2 &ray, glm::vec2 &diff)
 {
     bool collision = false;
     float maxOffset = source.getMaxX();
-#ifdef DEBUG
-    std::cout << "-----------------------------------" << std::endl;
-    std::cout << "X: " << source.getMinX() << "  " << source.getMaxX() << std::endl;
-#endif
+
+    glm::vec2 v0(originX, originY);
     for (int r = 0; r < numRays; ++r)
     {
-        float rayOffset = r * rayInterval;
-        float xOffset = originX + rayOffset;
-        xOffset = (xOffset > maxOffset) ? maxOffset : xOffset;
-
-        glm::vec2 v0(xOffset, originY);
         glm::vec2 v1 = v0 + ray;
-
-#ifdef DEBUG
-        std::cout << "(" << v0.x << "," << v0.y << ") --> ";
-        std::cout << "(" << v1.x << "," << v1.y << ")" << std::endl;
-#endif
-        
         glm::vec2 vIntersect;
+
+        if (rayInterval.y > 0)
+        {
+            // only log horizontal
+            std::cout << v0.x << " --> " << v1.x << std::endl;
+        }
+
+        // check if the current ray collides with dest
         if (rayCollides(v0, v1, dest, vIntersect))
         {
-#ifdef DEBUG
-            std::cout << "  --- "<< dest.getMinX() << "," << dest.getMaxX() << std::endl;
-#endif
             // diff is the line between v0 and point of intersection
             glm::vec2 diffTemp = vIntersect - v0;
             float intersectLength = diffTemp.length();
@@ -101,6 +95,10 @@ bool RayCaster::detectCollisions(const Rect &source, const Rect &dest, float ori
                 collision = true;
             }
         }
+        // calculate the next ray origin, cap at bbox max x/y
+        v0 += rayInterval;
+        v0.x = (v0.x > source.getMaxX()) ? source.getMaxX() : v0.x;
+        v0.y = (v0.y > source.getMaxY()) ? source.getMaxY() : v0.y;
     }
 
     return collision;
@@ -108,7 +106,14 @@ bool RayCaster::detectCollisions(const Rect &source, const Rect &dest, float ori
 
 bool RayCaster::detectVertical(const Rect &source, const Rect &dest, const glm::vec2 ray, int numRays, bool top, glm::vec2 &diff)
 {
-    float rayInterval = source.size.width / (numRays - 1);
+    glm::vec2 rayInterval(source.size.width / (numRays - 1), 0);
     float originY = top ? source.getMinY() : source.getMaxY();
     return detectCollisions(source, dest, source.getMinX(), originY, numRays, rayInterval, glm::vec2(0, ray.y), diff);
+}
+
+bool RayCaster::detectHorizontal(const Rect &source, const Rect &dest, const glm::vec2 ray, int numRays, bool left, glm::vec2 &diff)
+{
+    glm::vec2 rayInterval(0, source.size.height / (numRays - 1));
+    float originX = left ? source.getMinX() : source.getMaxX();
+    return detectCollisions(source, dest, originX, source.getMinY(), numRays, rayInterval, glm::vec2(ray.x, 0), diff);
 }
