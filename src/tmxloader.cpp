@@ -1,7 +1,6 @@
 #include <map>
 #include <zlib.h>
 #include <iostream>
-#define GLM_COMPILER 0
 #include <glm/glm.hpp>
 #include "tmxloader.h"
 #include "tinyxml2.h"
