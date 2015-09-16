@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(engine)
+project(mygame)
 
 #set(CMAKE_CXX_COMPILER /usr/local/Cellar/llvm/3.6.2/bin/clang++)
 #set(CMAKE_CXX_COMPILER /usr/bin/g++-5)
