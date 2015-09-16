@@ -1,2 +1,8 @@
 bin
 CMakeFiles
+/compile_commands.json
+/TAGS
+/Makefile
+/CMakeCache.txt
+/cmake_install.cmake
+#*#
