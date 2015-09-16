@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 project(engine)
 
-set(CMAKE_CXX_COMPILER /usr/local/Cellar/llvm/3.6.2/bin/clang++)
+#set(CMAKE_CXX_COMPILER /usr/local/Cellar/llvm/3.6.2/bin/clang++)
 #set(CMAKE_CXX_COMPILER /usr/bin/g++-5)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(CMAKE_BUILD_TYPE Debug)
@@ -25,9 +25,8 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/include/tinyxml2
   ${GLEW_INCLUDE_DIR})
 
-set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
-set(SRC_FILES
-  src/main.cpp
+# Engine related sources
+add_library(boiler
   src/engine.cpp
   src/renderer.cpp
   src/openglrenderer.cpp
@@ -35,11 +34,9 @@ set(SRC_FILES
   src/tmxloader.cpp
   src/jsoncpp.cpp
   src/spriteloader.cpp
-  src/engine.cpp
   src/spritesheet.cpp
   src/spritesheetframe.cpp
   src/component.cpp
-  src/gamepart.cpp
   src/tinyxml2.cpp
   src/base64.cpp
   src/shaderprogram.cpp
@@ -49,7 +46,14 @@ set(SRC_FILES
   src/raycaster.cpp
   src/bmfont.cpp
   src/part.cpp
-  src/spriteanimation.cpp)
+  src/spriteanimation.cpp
+  src/line.cpp)
+
+# Game related sources
+set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
+set(SRC_FILES
+  src/main.cpp
+  src/gamepart.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SHADER_FILES})
-target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+target_link_libraries(${PROJECT_NAME} boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})

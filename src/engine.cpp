@@ -3,7 +3,6 @@
 #include <iostream>
 #include "opengl.h"
 #include "engine.h"
-#include "spritesheet.h"
 #include "part.h"
 #include "openglrenderer.h"
 #include "entity.h"
@@ -20,6 +19,7 @@ void Engine::initialize()
 {
     bool success = false;
 
+    // create and initialize the renderer
     renderer = std::make_unique<RENDERER_CLASS>(*this);
     
     // initialization was successful

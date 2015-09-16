@@ -1,5 +1,4 @@
 #include <iostream>
-#define GLM_COMPILER 0
 #include <glm/gtc/matrix_transform.hpp>
 #include "entity.h"
 #include "opengl.h"
