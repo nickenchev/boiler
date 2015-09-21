@@ -107,6 +107,6 @@ ShaderProgram::ShaderProgram(std::string name) : name(name)
 
 ShaderProgram::~ShaderProgram()
 {
-    std::cout << "* Deleting shader: " << name << std::endl;
+    std::cout << "* Deleting Shader Program: " << name << std::endl;
     glDeleteProgram(shaderProgram);
 }
