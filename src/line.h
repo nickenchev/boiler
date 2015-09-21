@@ -4,6 +4,13 @@
 #include <glm/glm.hpp>
 #include "rect.h"
 
+class StandardForm
+{
+    float a, b, c;
+public:
+    StandardForm(glm::vec2 p0, glm::vec2 p1);
+};
+
 class Line
 {
     const glm::vec2 p0, p1;
@@ -12,10 +19,9 @@ class Line
 public:
     Line(glm::vec2 p0, glm::vec2 p1);
 
-    inline bool intersects(const Rect &rect)
-    {
-        return true;
-    }
+    float getSlope() const { return slope; }
+
+    bool intersects(const Line &rect);
 };
 
 

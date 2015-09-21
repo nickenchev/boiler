@@ -1,3 +1,6 @@
+#ifndef GAMEPART_H
+#define GAMEPART_H
+
 #include <vector>
 #include <memory>
 #include "part.h"
@@ -44,3 +47,5 @@ public:
     void update(const float delta) override;
     void drawEntity(Entity *entity);
 };
+
+#endif /* GAMEPART_H */
