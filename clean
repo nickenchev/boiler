@@ -1,5 +1,4 @@
 #!/bin/bash
-rm -rf bin
 rm -rf CMakeFiles
 rm compile_commands.json
 rm Makefile
