@@ -26,6 +26,7 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
 
     // setup the camera
     camera.frame.position = player->frame.position;
+    camera.setCentralEntity(player);
     getEngine()->getRenderer().setCamera(&camera);
 
     stand.addFrame(playerSheet->getFrame("stand_01.png"));
