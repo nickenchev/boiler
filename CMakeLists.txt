@@ -47,7 +47,8 @@ add_library(boiler
   src/bmfont.cpp
   src/part.cpp
   src/spriteanimation.cpp
-  src/line.cpp)
+  src/line.cpp
+  src/camera.cpp)
 
 # Game related sources
 set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)

@@ -2,6 +2,7 @@
 #include <SDL.h>
 
 #include "engine.h"
+#include "renderer.h"
 #include "gamepart.h"
 #include "spritesheet.h"
 #include "spritesheetframe.h"
@@ -12,10 +13,7 @@
 
 using namespace std;
 
-GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(),
-                                                                 engine->getScreenHeight())),
-                                     textFont("data/font.fnt"), gravity(9.8f), stand(0.6f), run(0.6f),
-                                     jump(0.6f), falling(0), punch(0.6f)
+GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(), engine->getScreenHeight())), textFont("data/font.fnt"), gravity(9.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), maxSpeed(10, 10), jumpForceY(-250), camera(Rect(0, 0, 640, 480))
 {
     //do some loading
     playerSheet = engine->getSpriteLoader().loadSheet("data/kof.json");
@@ -25,6 +23,10 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     player = std::make_shared<Entity>(Rect(30, -50, 29, 51));
     player->spriteSheet = playerSheet;
     addEntity(player);
+
+    // setup the camera
+    camera.frame.position = player->frame.position;
+    getEngine()->getRenderer().setCamera(&camera);
 
     stand.addFrame(playerSheet->getFrame("stand_01.png"));
     stand.addFrame(playerSheet->getFrame("stand_02.png"));
@@ -129,7 +131,7 @@ void GamePart::handleInput()
             jumping = true;
             grounded = false;
             // applies negative force (jump)
-            velocity.y = -250;
+            velocity.y += jumpForceY;
         }
     }
     else if (engine->keyState(SDLK_k))
@@ -253,4 +255,5 @@ void GamePart::update(const float delta)
 
     // change the player's position based on the allowed movement amount
     player->frame.position += ray;
+    camera.frame.position += ray;
 }

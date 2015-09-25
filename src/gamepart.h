@@ -10,6 +10,7 @@
 #include "quadtree.h"
 #include "bmfont.h"
 #include "spriteanimation.h"
+#include "camera.h"
 
 class SpriteSheet;
 class SpriteSheetFrame;
@@ -21,13 +22,21 @@ class GamePart : public Part
     std::shared_ptr<Entity> player;
     BMFont textFont;
     std::unique_ptr<ensoft::Map> tmxMap;
+
+    Camera camera;
+
+    // animation related
     SpriteAnimation *currentAnimation, stand, run, jump, falling, punch;
 
-    // physics stuff
-    bool grounded, jumping;
+    // collision detection specific
     Quadtree qtree;
-    glm::vec2 velocity;
+
+    // physics stuff
+    const glm::vec2 maxSpeed;
     const float gravity;
+    const float jumpForceY;
+    glm::vec2 velocity;
+    bool grounded, jumping;
 
 public:
     GamePart(Engine *engine);

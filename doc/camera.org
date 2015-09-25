@@ -1,0 +1,10 @@
+* Camera and OpenGL Integration
+** Figure out which entities are within the current view
+   1. Initialize Camera details
+      - Camera Rect: Used for keeping track of X, Y position and WIDTH and HEIGHT of view.
+   2. Detect which objects need to be drawn.
+      - Use basic bounding box collision to decide which which objects are within view.
+      - Use calculation based on tile size to figure out exactly which tiles to draw:
+        * camera.width / tile.width = number of tiles horizontally
+        * camera.height / tile.height = number of tiles vertically
+   3. 

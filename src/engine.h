@@ -37,7 +37,7 @@ public:
     void start(Part *part);
     void quit() { running = false; }
 
-    const Renderer &getRenderer() const { return *renderer.get(); }
+    Renderer &getRenderer() const { return *renderer.get(); }
     const Part *getPart() const { return part; }
 
     bool keyState(int keyNum) const { return keys[keyNum]; }
