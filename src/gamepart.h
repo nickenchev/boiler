@@ -10,7 +10,8 @@
 #include "quadtree.h"
 #include "bmfont.h"
 #include "spriteanimation.h"
-#include "camera.h"
+#include "platformercamera.h"
+#include "playerstandstate.h"
 
 class SpriteSheet;
 class SpriteSheetFrame;
@@ -23,9 +24,10 @@ class GamePart : public Part
     BMFont textFont;
     std::unique_ptr<ensoft::Map> tmxMap;
 
-    Camera camera;
+    PlatformerCamera camera;
 
     // animation related
+    EntityState *playerState;
     SpriteAnimation *currentAnimation, stand, run, jump, falling, punch;
 
     // collision detection specific

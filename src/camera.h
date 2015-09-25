@@ -8,12 +8,14 @@
 class Entity;
 
 class Camera
-
 {
+protected:
     std::shared_ptr<Entity> centralEntity;
 
 public:
     Camera(const Rect &frame);
+
+    virtual void update() = 0;
 
     Rect frame;
 

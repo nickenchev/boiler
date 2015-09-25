@@ -8,9 +8,14 @@
 
 struct Size
 {
-    int width, height;
-    Size() { width = 0; height = 0; }
-    Size(int width, int height) : width(width), height(height) { }
+    int dimensions[2];
+    Size() { dimensions[0] = 0; dimensions[1] = 0; }
+    Size(int width, int height) : dimensions {width, height} { }
+
+    int getWidth() const { return dimensions[DIM_X]; }
+    int getHeight() const { return dimensions[DIM_Y]; }
+    void setWidth(int width) { dimensions[DIM_X] = width; }
+    void setHeight(int height) { dimensions[DIM_Y] = height; }
 };
 
 struct Rect
@@ -23,29 +28,15 @@ struct Rect
 
     inline float getMin(int dimension) const
     {
-        float result = 0;
-        if (dimension == DIM_X)
-        {
-            result = position.x;
-        }
-        else if (dimension == DIM_Y)
-        {
-            result = position.y;
-        }
-        return result;
+        return position[dimension];
     } 
     inline float getMax(int dimension) const
     {
-        float result = 0;
-        if (dimension == DIM_X)
-        {
-            result = position.x + size.width;
-        }
-        else if (dimension == DIM_Y)
-        {
-            result = position.y + size.height;
-        }
-        return result;
+        return position[dimension] + size.dimensions[dimension];
+    }
+    inline float getMid(int dimension) const
+    {
+        return size.dimensions[dimension] / 2;
     }
 
     bool collides(const Rect &rect);

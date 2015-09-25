@@ -14,8 +14,8 @@ Entity::Entity(Rect frame) : pivot(0, 0), scale(1.0f, 1.0f)
     this->frame = frame;
 
     // 2D vertex and texture coords
-    GLfloat sizeW = frame.size.width;
-    GLfloat sizeH = frame.size.height;
+    GLfloat sizeW = frame.size.getWidth();
+    GLfloat sizeH = frame.size.getHeight();
 
     GLfloat vertices[] =
     {
@@ -60,19 +60,19 @@ Entity::~Entity()
 const glm::mat4 &Entity::getMatrix()
 {
     // offset the player position based on the pivot modifier
-    glm::vec2 pivotPos(frame.position.x - frame.size.width * pivot.x,
-                       frame.position.y - frame.size.height * pivot.y);
+    glm::vec2 pivotPos(frame.position.x - frame.size.getWidth() * pivot.x,
+                       frame.position.y - frame.size.getHeight() * pivot.y);
 
     float scaleX = scale.x;
     float scaleY = scale.y;
     if (flipH)
     {
-        pivotPos.x += frame.size.width;
+        pivotPos.x += frame.size.getWidth();
         scaleX *= -1;
     }
     if (flipV)
     {
-        pivotPos.y += frame.size.height;
+        pivotPos.y += frame.size.getHeight();
         scaleY *= -1;
     }
     // create the model matrix, by getting a 3D vector from the Entity's vec2 position

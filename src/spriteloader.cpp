@@ -90,7 +90,7 @@ std::shared_ptr<SpriteSheet> SpriteLoader::loadSheet(std::string filename)
             }
             sheet = std::make_shared<SpriteSheet>(imageFile, Size(width, height), texture, frames);
             const Size &size = sheet->getSize();
-            log("Loaded " + filename + "(" + std::to_string(size.width) + ", " + std::to_string(size.height) + ")");
+            log("Loaded " + filename + "(" + std::to_string(size.getWidth()) + ", " + std::to_string(size.getHeight()) + ")");
         }
     }
     else

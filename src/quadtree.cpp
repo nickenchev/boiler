@@ -33,8 +33,8 @@ void Quadtree::clear()
 
 void Quadtree::split()
 {
-    int subWidth = bounds.size.width / 2;
-    int subHeight = bounds.size.height / 2;
+    int subWidth = bounds.size.getWidth() / 2;
+    int subHeight = bounds.size.getHeight() / 2;
     int x = bounds.position.x;
     int y = bounds.position.y;
 
@@ -48,13 +48,13 @@ void Quadtree::split()
 int Quadtree::getIndex(const Rect &rect) const
 {
     int index = -1;
-    double vMidpoint = bounds.position.x + bounds.size.width / 2;
-    double hMidpoint = bounds.position.y + bounds.size.height / 2;
+    double vMidpoint = bounds.position.x + bounds.size.getWidth() / 2;
+    double hMidpoint = bounds.position.y + bounds.size.getHeight() / 2;
 
-    bool topQuadrant = (rect.position.y < hMidpoint && rect.position.y + rect.size.height < hMidpoint);
+    bool topQuadrant = (rect.position.y < hMidpoint && rect.position.y + rect.size.getHeight() < hMidpoint);
     bool bottomQuadrant = (rect.position.y > hMidpoint);
 
-    if (rect.position.x < vMidpoint && rect.position.x + rect.size.width < vMidpoint)
+    if (rect.position.x < vMidpoint && rect.position.x + rect.size.getWidth() < vMidpoint)
     {
         // object can fit in the left quadrant
         if (topQuadrant)

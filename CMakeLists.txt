@@ -48,7 +48,8 @@ add_library(boiler
   src/part.cpp
   src/spriteanimation.cpp
   src/line.cpp
-  src/camera.cpp)
+  src/camera.cpp
+  src/platformercamera.cpp)
 
 # Game related sources
 set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)

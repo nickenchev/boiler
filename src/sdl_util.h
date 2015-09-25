@@ -9,8 +9,8 @@ SDL_Rect make_rect(glm::vec2 position, Size size)
     SDL_Rect rect;
     rect.x = position.x;
     rect.y = position.y;
-    rect.w = size.width;
-    rect.h = size.height;
+    rect.w = size.getWidth();
+    rect.h = size.getHeight();
     return rect;
 }
 

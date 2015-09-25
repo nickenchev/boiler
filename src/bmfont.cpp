@@ -69,8 +69,8 @@ BMFont::BMFont(std::string filename)
                 charObj.id = charElem->IntAttribute("id");
                 charObj.frame.position.x = charElem->IntAttribute("x");
                 charObj.frame.position.y = charElem->IntAttribute("y");
-                charObj.frame.size.width = charElem->IntAttribute("width");
-                charObj.frame.size.height = charElem->IntAttribute("height");
+                charObj.frame.size.setWidth(charElem->IntAttribute("width"));
+                charObj.frame.size.setHeight(charElem->IntAttribute("height"));
                 charObj.xoffset = charElem->IntAttribute("xoffset");
                 charObj.yoffset = charElem->IntAttribute("yoffset");
                 charObj.xadvance = charElem->IntAttribute("xadvance");

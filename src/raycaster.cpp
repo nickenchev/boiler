@@ -8,7 +8,7 @@ bool RayCaster::clipLine(int d, const Rect &box, const glm::vec2 &v0, const glm:
 
     // get the fraction of the line (v0->v1) that intersects the box
     float boxDimLow = box.position[d];
-    float boxDimHigh = box.position[d] + ((d == 0) ? box.size.width : box.size.height);
+    float boxDimHigh = box.position[d] + ((d == 0) ? box.size.getWidth() : box.size.getHeight());
     float fDimLow = (boxDimLow - v0[d]) / (v1[d] - v0[d]);
     float fDimHigh = (boxDimHigh - v0[d]) / (v1[d] - v0[d]);
 
@@ -100,14 +100,14 @@ bool RayCaster::detectCollisions(const Rect &source, const Rect &dest, float ori
 
 bool RayCaster::detectVertical(const Rect &source, const Rect &dest, const glm::vec2 ray, int numRays, bool top, glm::vec2 &diff)
 {
-    glm::vec2 rayInterval(source.size.width / (numRays - 1), 0);
+    glm::vec2 rayInterval(source.size.getWidth() / (numRays - 1), 0);
     float originY = top ? source.getMin(DIM_Y) : source.getMax(DIM_Y);
     return detectCollisions(source, dest, source.getMin(DIM_X), originY, numRays, rayInterval, glm::vec2(0, ray.y), diff, false);
 }
 
 bool RayCaster::detectHorizontal(const Rect &source, const Rect &dest, const glm::vec2 ray, int numRays, bool left, glm::vec2 &diff)
 {
-    glm::vec2 rayInterval(0, source.size.height / (numRays - 1));
+    glm::vec2 rayInterval(0, source.size.getHeight() / (numRays - 1));
     float originX = left ? source.getMin(DIM_X) : source.getMax(DIM_X);
     return detectCollisions(source, dest, originX, source.getMin(DIM_Y), numRays, rayInterval, glm::vec2(ray.x, 0), diff, true);
 }
