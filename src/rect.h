@@ -36,7 +36,7 @@ struct Rect
     }
     inline float getMid(int dimension) const
     {
-        return size.dimensions[dimension] / 2;
+        return position[dimension] + size.dimensions[dimension] / 2;
     }
 
     bool collides(const Rect &rect);
