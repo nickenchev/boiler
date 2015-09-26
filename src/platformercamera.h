@@ -6,9 +6,9 @@
 class PlatformerCamera : public Camera
 {
 public:
-    PlatformerCamera(const Rect &frame) : Camera(frame) { }
+    using Camera::Camera;
 
-    void update();
+    void update(glm::vec2 moveAmount) override;
 };
 
 

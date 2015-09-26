@@ -13,7 +13,7 @@
 
 using namespace std;
 
-GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(), engine->getScreenHeight())), textFont("data/font.fnt"), gravity(9.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), maxSpeed(10, 10), jumpForceY(-250), camera(Rect(0, 0, 640, 480))
+GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(), engine->getScreenHeight())), textFont("data/font.fnt"), gravity(9.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), maxSpeed(10, 10), jumpForceY(-250) 
 {
     //do some loading
     playerSheet = engine->getSpriteLoader().loadSheet("data/kof.json");
@@ -23,11 +23,6 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     player = std::make_shared<Entity>(Rect(30, -50, 29, 51));
     player->spriteSheet = playerSheet;
     addEntity(player);
-
-    // setup the camera
-    camera.frame.position = player->frame.position;
-    camera.setCentralEntity(player);
-    getEngine()->getRenderer().setCamera(&camera);
 
     stand.addFrame(playerSheet->getFrame("stand_01.png"));
     stand.addFrame(playerSheet->getFrame("stand_02.png"));
@@ -91,6 +86,13 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
         y += tmxMap->tileheight;
         x = 0;
     }
+
+    // setup the camera
+    int mapWidth = tmxMap->width * tmxMap->tilewidth;
+    int mapHeight = tmxMap->height * tmxMap->tileheight;
+    camera = std::make_shared<PlatformerCamera>(Rect(0, 0, 640, 480), Size(mapWidth, mapHeight));
+    camera->setCentralEntity(player);
+    getEngine()->getRenderer().setCamera(camera);
 }
 
 void GamePart::start()
@@ -255,6 +257,5 @@ void GamePart::update(const float delta)
     }
 
     // change the player's position based on the allowed movement amount
-    player->frame.position += ray;
-    camera.frame.position += ray;
+    camera->update(ray);
 }

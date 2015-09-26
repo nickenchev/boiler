@@ -13,11 +13,12 @@ protected:
     std::shared_ptr<Entity> centralEntity;
 
 public:
-    Camera(const Rect &frame);
+    explicit Camera(const Rect &frame, const Size &mapSize);
 
-    virtual void update() = 0;
+    virtual void update(glm::vec2 moveAmount) = 0;
 
     Rect frame;
+    Size mapSize;
 
     void setCentralEntity(std::shared_ptr<Entity> centralEntity);
     const std::shared_ptr<Entity> &getCentralEntity() const { return centralEntity; }

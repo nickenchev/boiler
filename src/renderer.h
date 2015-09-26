@@ -15,13 +15,13 @@ class Renderer : public Component
 
 protected:
     std::unique_ptr<ShaderProgram> program;
-    Camera *camera;
+    std::shared_ptr<Camera> camera;
 
 public:
     Renderer(std::string name, const Engine &engine);
 
     const ShaderProgram *getProgram() const { return program.get(); }
-    void setCamera(Camera *camera) { this->camera = camera; }
+    void setCamera(std::shared_ptr<Camera> camera) { this->camera = camera; }
 
     virtual std::shared_ptr<Texture> createTexture(const Size &textureSize, const void *pixelData) const = 0;
     virtual void setActiveTexture(const Texture &texture) const = 0;

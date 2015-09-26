@@ -24,7 +24,7 @@ class GamePart : public Part
     BMFont textFont;
     std::unique_ptr<ensoft::Map> tmxMap;
 
-    PlatformerCamera camera;
+    std::shared_ptr<Camera> camera;
 
     // animation related
     EntityState *playerState;

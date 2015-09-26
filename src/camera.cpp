@@ -1,6 +1,6 @@
 #include "camera.h"
 
-Camera::Camera(const Rect &frame) : frame(frame), centralEntity(nullptr)
+Camera::Camera(const Rect &frame, const Size &mapSize) : frame(frame), mapSize(mapSize), centralEntity(nullptr)
 {
 }
 
