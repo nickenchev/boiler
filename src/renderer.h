@@ -12,7 +12,6 @@ class Camera;
 class Renderer : public Component
 {
     glm::vec2 globalScale;
-
 protected:
     std::unique_ptr<ShaderProgram> program;
     std::shared_ptr<Camera> camera;
@@ -22,6 +21,9 @@ public:
 
     const ShaderProgram *getProgram() const { return program.get(); }
     void setCamera(std::shared_ptr<Camera> camera) { this->camera = camera; }
+
+    const glm::vec2 &getGlobalScale() const { return globalScale; }
+    void setGlobalScale(const glm::vec2 &scale) { this->globalScale = scale; }
 
     virtual std::shared_ptr<Texture> createTexture(const Size &textureSize, const void *pixelData) const = 0;
     virtual void setActiveTexture(const Texture &texture) const = 0;

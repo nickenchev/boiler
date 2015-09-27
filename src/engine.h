@@ -4,8 +4,8 @@
 #include <memory>
 #include "spriteloader.h"
 
-#define RES_WIDTH 320
-#define RES_HEIGHT 240 
+#define RES_WIDTH 1024 
+#define RES_HEIGHT 768 
 
 #define MAX_KEYS 256
 

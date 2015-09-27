@@ -127,9 +127,12 @@ void OpenGLRenderer::render() const
         glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
 
+        GLfloat orthoW = getEngine().getScreenWidth() / getEngine().getRenderer().getGlobalScale().x;
+        GLfloat orthoH = getEngine().getScreenHeight() / getEngine().getRenderer().getGlobalScale().y;
+
         // opengl sprite render
-        glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(getEngine().getScreenWidth()),
-                                          static_cast<GLfloat>(getEngine().getScreenHeight()), 0.0f, -1.0f, 1.0f);
+        glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW),
+                                          static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
 
         glm::mat4 model = entity->getMatrix();
 
