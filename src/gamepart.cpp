@@ -20,7 +20,7 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = std::make_shared<Entity>(Rect(30, -50, 29, 51));
+    player = std::make_shared<Entity>(Rect(30, -50, 22, 38));
     player->spriteSheet = playerSheet;
     addEntity(player);
 
@@ -90,7 +90,7 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     // setup the camera
     int mapWidth = tmxMap->width * tmxMap->tilewidth;
     int mapHeight = tmxMap->height * tmxMap->tileheight;
-    camera = std::make_shared<PlatformerCamera>(Rect(0, 0, 640, 480), Size(mapWidth, mapHeight));
+    camera = std::make_shared<PlatformerCamera>(Rect(0, 0, getEngine()->getScreenWidth(), getEngine()->getScreenHeight()), Size(mapWidth, mapHeight));
     camera->setCentralEntity(player);
     getEngine()->getRenderer().setCamera(camera);
 }
@@ -181,9 +181,9 @@ void GamePart::update(const float delta)
     glm::vec2 ray(moveAmount);
 
     // check horizontal
-    if (moveAmount.x != 0)
+    if (moveAmount.x < 0)
     {
-        for (auto e : closeObjects)
+        for (auto e : entities)
         {
             if (e != player)
             {
@@ -191,7 +191,7 @@ void GamePart::update(const float delta)
                 glm::vec2 diff;
                 if (rayCaster.detectHorizontal(player->frame, e->frame, moveAmount, numRays, left, diff))
                 {
-                    e->scale = glm::vec2(0.5f, 0.5f);
+                    //e->scale = glm::vec2(0.5f, 0.5f);
                     ray.x = diff.x;
                     velocity.x = 0;
                 }
@@ -238,6 +238,7 @@ void GamePart::update(const float delta)
     // if the player is falling at a certain velocity, change animation
     if (!grounded && !jumping && velocity.y > 100)
     {
+        cout << "Falling" << endl;
         currentAnimation = &falling;
     }
     else if (!jumping)
@@ -256,6 +257,7 @@ void GamePart::update(const float delta)
         }
     }
 
-    // change the player's position based on the allowed movement amount
+    // update the player position and camera accordingly
+    player->frame.position += ray;
     camera->update(ray);
 }

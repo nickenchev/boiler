@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include "raycaster.h"
+#include "engine.h"
 
 bool RayCaster::clipLine(int d, const Rect &box, const glm::vec2 &v0, const glm::vec2 &v1, float &fLow, float &fHigh)
 {
@@ -68,24 +69,27 @@ bool RayCaster::detectCollisions(const Rect &source, const Rect &dest, float ori
                                  int numRays, glm::vec2 rayInterval, const glm::vec2 &ray, glm::vec2 &diff, bool horizontal)
 {
     bool collision = false;
-    float maxOffset = source.getMax(DIM_X);
-
     glm::vec2 v0(originX, originY);
+
     for (int r = 0; r < numRays; ++r)
     {
         glm::vec2 v1 = v0 + ray;
         glm::vec2 vIntersect;
 
+//        if (horizontal)
+//            std::cout << v0.x << ", " << v0.y << " --> " << v1.x << ", " << v1.y << std::endl;
+
+        // the lower this number ends up, the closer the object
+        float lowestFraction = 1;
+
         // check if the current ray collides with dest
-        float lowestFraction = 0;
         if (rayCollides(v0, v1, dest, vIntersect, lowestFraction))
         {
             // diff is the line between v0 and point of intersection
-            glm::vec2 diffTemp = vIntersect - v0;
-            float intersectLength = diffTemp.length();
+            glm::vec2 diffTest = vIntersect - v0;
             if (lowestFraction < 1)
             {
-                diff = diffTemp;
+                diff = diffTest;
                 collision = true;
             }
         }
@@ -100,14 +104,14 @@ bool RayCaster::detectCollisions(const Rect &source, const Rect &dest, float ori
 
 bool RayCaster::detectVertical(const Rect &source, const Rect &dest, const glm::vec2 ray, int numRays, bool top, glm::vec2 &diff)
 {
-    glm::vec2 rayInterval(source.size.getWidth() / (numRays - 1), 0);
+    glm::vec2 rayInterval((source.size.getWidth() - 4) / (numRays - 1), 0);
     float originY = top ? source.getMin(DIM_Y) : source.getMax(DIM_Y);
-    return detectCollisions(source, dest, source.getMin(DIM_X), originY, numRays, rayInterval, glm::vec2(0, ray.y), diff, false);
+    return detectCollisions(source, dest, source.getMin(DIM_X) + 2, originY, numRays, rayInterval, glm::vec2(0, ray.y), diff, false);
 }
 
 bool RayCaster::detectHorizontal(const Rect &source, const Rect &dest, const glm::vec2 ray, int numRays, bool left, glm::vec2 &diff)
 {
-    glm::vec2 rayInterval(0, source.size.getHeight() / (numRays - 1));
+    glm::vec2 rayInterval(0, (source.size.getHeight() - 4) / (numRays - 1));
     float originX = left ? source.getMin(DIM_X) : source.getMax(DIM_X);
-    return detectCollisions(source, dest, originX, source.getMin(DIM_Y), numRays, rayInterval, glm::vec2(ray.x, 0), diff, true);
+    return detectCollisions(source, dest, originX, source.getMin(DIM_Y) + 2, numRays, rayInterval, glm::vec2(ray.x, 0), diff, true);
 }
