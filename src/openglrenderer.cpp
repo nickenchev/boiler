@@ -134,17 +134,20 @@ void OpenGLRenderer::render() const
         glm::mat4 model = entity->getMatrix();
 
         // factor in the camera position
+        glm::mat4 mvpMatrix;
         if (this->camera)
         {
             const Rect &rect = camera->frame;
-            // generate a translation matrix to offset camera coords
-            model = glm::translate(model, glm::vec3(-rect.position.x, -rect.position.y, 0));
+            glm::mat4 view = glm::lookAt(glm::vec3(rect.position.x, rect.position.y, 1.0f),
+                                         glm::vec3(rect.position.x, rect.position.y, -1.0f),
+                                         glm::vec3(0, 1.0f, 0));
+            projection = projection * view;
         }
+        mvpMatrix = projection * model;
         
         // get the final matrix
-        projection = projection * model;
 
-        glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &projection[0][0]);
+        glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
 
         // set the current texture
         setActiveTexture(entity->spriteSheet->getTexture());
