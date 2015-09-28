@@ -2,6 +2,7 @@
 #include <string>
 #include "spriteloader.h"
 #include "engine.h"
+#include "renderer.h"
 #include "gamepart.h"
 
 int main()
@@ -10,7 +11,10 @@ int main()
     Engine engine;
     engine.initialize();
 
-    GamePart part(&engine);
+    // custom init
+    engine.getRenderer().setGlobalScale(glm::vec2(3.0f, 3.0f));
+
+    GamePart part(engine);
     engine.start(&part);
 
     return 0;

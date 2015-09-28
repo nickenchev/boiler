@@ -8,11 +8,11 @@ class Engine;
 class Component
 {
     std::string name;
-    const Engine &engine;
+    Engine &engine;
 protected:
-    const Engine &getEngine() const { return engine; }
+    Engine &getEngine() const { return engine; }
 public:
-    Component(std::string name, const Engine &engine) : name(name), engine(engine) { }
+    Component(std::string name, Engine &engine) : name(name), engine(engine) { }
 
     void log(std::string message) const;
     void error(std::string message) const;

@@ -41,7 +41,7 @@ class GamePart : public Part
     bool grounded, jumping;
 
 public:
-    GamePart(Engine *engine);
+    GamePart(Engine &engine);
 
     void start() override;
     void handleInput() override;

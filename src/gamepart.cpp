@@ -13,11 +13,11 @@
 
 using namespace std;
 
-GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->getScreenWidth(), engine->getScreenHeight())), textFont("data/font.fnt"), gravity(9.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), maxSpeed(10, 10), jumpForceY(-250) 
+GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.getScreenWidth(), engine.getScreenHeight())), textFont("data/font.fnt"), gravity(9.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), maxSpeed(10, 10), jumpForceY(-250) 
 {
     //do some loading
-    playerSheet = engine->getSpriteLoader().loadSheet("data/kof.json");
-    tilesSheet = engine->getSpriteLoader().loadSheet("data/tiles.json");
+    playerSheet = getEngine().getSpriteLoader().loadSheet("data/kof.json");
+    tilesSheet = getEngine().getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
     player = std::make_shared<Entity>(Rect(30, -50, 22, 38));
@@ -90,9 +90,11 @@ GamePart::GamePart(Engine *engine) : Part(engine), qtree(0, Rect(0, 0, engine->g
     // setup the camera
     int mapWidth = tmxMap->width * tmxMap->tilewidth;
     int mapHeight = tmxMap->height * tmxMap->tileheight;
-    camera = std::make_shared<PlatformerCamera>(Rect(0, 0, getEngine()->getScreenWidth(), getEngine()->getScreenHeight()), Size(mapWidth, mapHeight));
+    int camWidth = getEngine().getScreenWidth() / getEngine().getRenderer().getGlobalScale().x;
+    int camHeight = getEngine().getScreenHeight() / getEngine().getRenderer().getGlobalScale().y;
+    camera = std::make_shared<PlatformerCamera>(Rect(0, 0, camWidth, camHeight), Size(mapWidth, mapHeight));
     camera->setCentralEntity(player);
-    getEngine()->getRenderer().setCamera(camera);
+    getEngine().getRenderer().setCamera(camera);
 }
 
 void GamePart::start()
@@ -102,13 +104,13 @@ void GamePart::start()
 void GamePart::handleInput()
 {
     // check keyboard and modify state
-    if (engine->keyState(SDLK_a))
+    if (getEngine().keyState(SDLK_a))
     {
         //currentAnimation = &walkLeft;
         velocity.x = -110;
         player->flipH = false;
     }
-    else if (engine->keyState(SDLK_d))
+    else if (getEngine().keyState(SDLK_d))
     {
         //currentAnimation = &walkRight;
         velocity.x = 110;
@@ -120,12 +122,12 @@ void GamePart::handleInput()
         run.restart();
         velocity.x = 0;
     }
-    if (engine->keyState(SDLK_ESCAPE))
+    if (getEngine().keyState(SDLK_ESCAPE))
     {
-        engine->quit();
+        getEngine().quit();
     }
     // only change the velocity if there's a jump
-    if (engine->keyState(SDLK_j))
+    if (getEngine().keyState(SDLK_j))
     {
         if (grounded)
         {
@@ -137,7 +139,7 @@ void GamePart::handleInput()
             velocity.y += jumpForceY;
         }
     }
-    else if (engine->keyState(SDLK_k))
+    else if (getEngine().keyState(SDLK_k))
     {
         if (punch.isFinished())
         {

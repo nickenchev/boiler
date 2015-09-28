@@ -17,7 +17,7 @@ protected:
     std::shared_ptr<Camera> camera;
 
 public:
-    Renderer(std::string name, const Engine &engine);
+    Renderer(std::string name, Engine &engine);
 
     const ShaderProgram *getProgram() const { return program.get(); }
     void setCamera(std::shared_ptr<Camera> camera) { this->camera = camera; }

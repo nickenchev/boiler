@@ -18,7 +18,7 @@ OpenGLRenderer::OpenGLRenderer(Engine &engine) : Renderer(std::string(COMPONENT_
     bool success = false;
     if (SDL_Init(SDL_INIT_VIDEO) == 0)
     {
-        win = SDL_CreateWindow("Boiler", 0, 0, RES_WIDTH, RES_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);
+        win = SDL_CreateWindow("Boiler", 0, 0, RES_WIDTH, RES_HEIGHT, SDL_WINDOW_OPENGL);
         if (win)
         {
             // setup opengl
