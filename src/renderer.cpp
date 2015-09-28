@@ -1,9 +1,6 @@
 #include "renderer.h"
 
-Renderer::Renderer(std::string name, Engine &engine) : Component(name, engine)
+Renderer::Renderer(std::string name, Engine &engine) : Component(name, engine), clearColor(0, 0, 0), globalScale(1.0f, 1.0f)
 {
-    //setup global scaling
-    globalScale = glm::vec2(1.0f, 1.0f);
-
     camera = nullptr;
 }

@@ -58,8 +58,7 @@ OpenGLRenderer::OpenGLRenderer(Engine &engine) : Renderer(std::string(COMPONENT_
     // setup a RBO for a colour target
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, getEngine().getScreenWidth(),
-                          getEngine().getScreenHeight());
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, getEngine().getScreenWidth(), getEngine().getScreenHeight());
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
     // setup the FBO
@@ -74,6 +73,10 @@ OpenGLRenderer::OpenGLRenderer(Engine &engine) : Renderer(std::string(COMPONENT_
         error("Error initializing FBO / RBO target.");
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // enable blending on all buffers
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 std::shared_ptr<Texture> OpenGLRenderer::createTexture(const Size &textureSize, const void *pixelData) const
@@ -114,7 +117,7 @@ void OpenGLRenderer::render() const
     glUseProgram(program->getShaderProgram());
     GLuint mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     const std::vector<std::shared_ptr<Entity>> &entities = getEngine().getPart()->getEntities();
