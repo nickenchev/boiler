@@ -126,6 +126,7 @@ std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
                 // keep track of all tiles and their global IDs
                 int tileGid = tileSet->firstgid + tile->id;
                 map->allTiles[tileGid] = tile.get();
+                std::cout << "[TMX Loader] Added: " << tile->image.source << " GID: " << tileGid << std::endl;
 
                 tileSet->tiles.push_back(std::move(tile));
                 xtile = xtile->NextSiblingElement("tile");

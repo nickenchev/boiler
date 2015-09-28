@@ -13,14 +13,15 @@
 
 using namespace std;
 
-GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.getScreenWidth(), engine.getScreenHeight())), textFont("data/font.fnt"), gravity(9.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), maxSpeed(10, 10), jumpForceY(-250) 
+GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.getScreenWidth(), engine.getScreenHeight())), textFont("data/font.fnt"), gravity(15.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), maxSpeed(15, 15), jumpForceY(-600) 
 {
+    getEngine().getRenderer().setClearColor(Color3(0.8f, 0.8f, 1.0f));
     //do some loading
     playerSheet = getEngine().getSpriteLoader().loadSheet("data/kof.json");
     tilesSheet = getEngine().getSpriteLoader().loadSheet("data/tiles.json");
 
     //basic player setup
-    player = std::make_shared<Entity>(Rect(30, -50, 22, 38));
+    player = std::make_shared<Entity>(Rect(30, -50, 62, 102));
     player->spriteSheet = playerSheet;
     addEntity(player);
 
@@ -57,7 +58,7 @@ GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.ge
 
     // tilemap setup
     Entity tileMap[100][100];
-    tmxMap = TmxLoader::loadMap("data/test_map.tmx");
+    tmxMap = TmxLoader::loadMap("data/demo_map.tmx");
 
     // create the entities from the tile info
     int tileNum = 0;
@@ -103,17 +104,18 @@ void GamePart::start()
 
 void GamePart::handleInput()
 {
+    float horizontalVelocity = 190.0f;
     // check keyboard and modify state
     if (getEngine().keyState(SDLK_a))
     {
         //currentAnimation = &walkLeft;
-        velocity.x = -110;
+        velocity.x = -horizontalVelocity;
         player->flipH = false;
     }
     else if (getEngine().keyState(SDLK_d))
     {
         //currentAnimation = &walkRight;
-        velocity.x = 110;
+        velocity.x = horizontalVelocity;
         player->flipH = true;
     }
     else
@@ -240,7 +242,6 @@ void GamePart::update(const float delta)
     // if the player is falling at a certain velocity, change animation
     if (!grounded && !jumping && velocity.y > 100)
     {
-        cout << "Falling" << endl;
         currentAnimation = &falling;
     }
     else if (!jumping)

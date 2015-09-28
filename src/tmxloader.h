@@ -5,7 +5,6 @@
 #include <string>
 #include "tmx.h"
 
-
 class TmxLoader
 {
 public:

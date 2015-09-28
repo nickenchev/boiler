@@ -11,9 +11,6 @@ int main()
     Engine engine;
     engine.initialize();
 
-    // custom init
-    engine.getRenderer().setGlobalScale(glm::vec2(3.0f, 3.0f));
-
     GamePart part(engine);
     engine.start(&part);
 
