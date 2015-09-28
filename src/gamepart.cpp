@@ -63,29 +63,44 @@ GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.ge
     // create the entities from the tile info
     int tileNum = 0;
     int x = 0, y = 0;
-    for (int r = 0; r < tmxMap->width; ++r)
+    for (auto layer : tmxMap->layers)
     {
-        for (int c = 0; c < tmxMap->height; ++c)
+        cout << "Processing Layer: " << layer->name << endl;
+        auto mapLayer = std::make_shared<Entity>();
+
+        for (int r = 0; r < tmxMap->width; ++r)
         {
-            int tileGid = tmxMap->layers[0]->tiles[tileNum];
-            if (tileGid)
+            for (int c = 0; c < tmxMap->height; ++c)
             {
-                const ensoft::TmxTile *tmxTile = tmxMap->allTiles[tileGid];
+                int tileGid = layer->tiles[tileNum];
+                if (tileGid)
+                {
+                    const ensoft::TmxTile *tmxTile = tmxMap->allTiles[tileGid];
 
-                auto tile = std::make_shared<Entity>(Rect(x, y, tmxMap->tilewidth, tmxMap->tileheight));
-                addEntity(tile);
+					auto tile = std::make_shared<Entity>(Rect(x, y, tmxTile->image.width, tmxTile->image.height));
+                    if (layer->name == "Tile Layer 1")
+                    {
+                        tile->collides = true;
+                    }
 
-                const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tmxTile->image.source);
-                tile->pivot = glm::vec2(0, 0);
-                tile->spriteSheet = tilesSheet;
-                tile->spriteFrame = tileFrame;
+                    cout << "Looking for tile image source: " << tmxTile->image.source << " (" << tile->frame.size.getWidth() << "x" << tile->frame.size.getHeight() << ")" << endl;
+					const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tmxTile->image.source);
+					tile->pivot = glm::vec2(0, 0);
+					tile->spriteSheet = tilesSheet;
+					tile->spriteFrame = tileFrame;
+
+                    mapLayer->addChild(tile);
+                }
+                x += tmxMap->tilewidth;
+                tileNum++;
             }
-
-            x += tmxMap->tilewidth;
-            tileNum++;
+            y += tmxMap->tileheight;
+            x = 0;
         }
-        y += tmxMap->tileheight;
         x = 0;
+        y = 0;
+        tileNum = 0;
+        addEntity(mapLayer);
     }
 
     // setup the camera

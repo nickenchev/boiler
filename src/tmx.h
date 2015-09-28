@@ -44,7 +44,7 @@ namespace ensoft
 
         map<int, TmxTile *> allTiles;
         vector<unique_ptr<TmxTileSet>> tilesets;
-        vector<unique_ptr<Layer>> layers;
+        vector<shared_ptr<Layer>> layers;
         vector<unique_ptr<ImageLayer>> imageLayers;
         vector<unique_ptr<ObjectGroup>> objectGroups;
 

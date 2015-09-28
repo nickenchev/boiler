@@ -11,6 +11,7 @@ Entity::Entity(Rect frame) : pivot(0, 0), scale(1.0f, 1.0f)
 {
     flipH = false;
     flipV = false;
+    collides = false;
     this->frame = frame;
 
     // 2D vertex and texture coords

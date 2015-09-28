@@ -126,7 +126,7 @@ std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
                 // keep track of all tiles and their global IDs
                 int tileGid = tileSet->firstgid + tile->id;
                 map->allTiles[tileGid] = tile.get();
-                std::cout << "[TMX Loader] Added: " << tile->image.source << " GID: " << tileGid << std::endl;
+                std::cout << "[TMX Loader] Added: " << tile->image.source << " GID: " << tileGid << " Tileset: " << tileSet->name << std::endl;
 
                 tileSet->tiles.push_back(std::move(tile));
                 xtile = xtile->NextSiblingElement("tile");
@@ -140,7 +140,7 @@ std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
         XMLElement *xlayer = xmap->FirstChildElement("layer");
         while (xlayer)
         {
-            auto layer = std::make_unique<ensoft::Layer>(loadProperties(xlayer));
+            auto layer = std::make_shared<ensoft::Layer>(loadProperties(xlayer));
             layer->name = xlayer->Attribute("name");
             layer->x = xlayer->IntAttribute("x");
             layer->y = xlayer->IntAttribute("y");
@@ -157,7 +157,7 @@ std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
                 loadData(*layer, map.get(), data);
             }
             
-            map->layers.push_back(std::move(layer));
+            map->layers.push_back(layer);
             xlayer = xlayer->NextSiblingElement("layer");
         }
 
