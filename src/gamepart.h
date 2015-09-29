@@ -40,6 +40,8 @@ class GamePart : public Part
     glm::vec2 velocity;
     bool grounded, jumping;
 
+    void updateQuadtree();
+
 public:
     GamePart(Engine &engine);
 

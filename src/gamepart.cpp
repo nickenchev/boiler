@@ -166,6 +166,21 @@ void GamePart::handleInput()
     }
 }
 
+void GamePart::updateQuadtree()
+{
+    qtree.clear();
+    for (auto &e : entities)
+    {
+        for (auto c : e->getChildren())
+        {
+            if (c->collides)
+            {
+                qtree.insert(c);
+            }
+        }
+    }
+}
+
 void GamePart::update(const float delta)
 {
     // update the animations
@@ -176,11 +191,7 @@ void GamePart::update(const float delta)
     }
 
     // check what the player may collide with
-    qtree.clear();
-    for (auto &e : entities)
-    {
-        qtree.insert(e);
-    }
+    updateQuadtree();
     std::vector<std::shared_ptr<Entity>> closeObjects;
     qtree.retrieve(closeObjects, player->frame);
 
