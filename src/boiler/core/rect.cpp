@@ -15,10 +15,3 @@ bool Rect::collides(const Rect &rect)
     return (x2a >= x1b) && (x1a <= x2b) && (y2a >= y1b) && (y1a <= y2b);
 }
 
-glm::vec2 Rect::getCentre() const
-{
-    float x = position.x + size.getWidth() / 2;
-    float y = position.y + size.getHeight() / 2;
-
-    return glm::vec2(x, y);
-}

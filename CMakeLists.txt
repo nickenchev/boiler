@@ -23,36 +23,41 @@ include_directories(
   ${OPENGL_INCLUDE_DIR}
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/include/tinyxml2
-  ${GLEW_INCLUDE_DIR})
+  ${GLEW_INCLUDE_DIR}
+  ${PROJECT_SOURCE_DIR}/src/boiler/core
+  ${PROJECT_SOURCE_DIR}/src/boiler/video
+  ${PROJECT_SOURCE_DIR}/src/boiler/camera
+  ${PROJECT_SOURCE_DIR}/src/boiler/util)
 
 # Engine related sources
 add_library(boiler
-  src/engine.cpp
-  src/renderer.cpp
-  src/openglrenderer.cpp
-  src/opengltexture.cpp
-  src/tmxloader.cpp
-  src/jsoncpp.cpp
-  src/spriteloader.cpp
-  src/spritesheet.cpp
-  src/spritesheetframe.cpp
-  src/component.cpp
-  src/tinyxml2.cpp
-  src/base64.cpp
-  src/shaderprogram.cpp
-  src/entity.cpp
-  src/quadtree.cpp
-  src/rect.cpp
-  src/raycaster.cpp
-  src/bmfont.cpp
-  src/part.cpp
-  src/spriteanimation.cpp
-  src/line.cpp
-  src/camera.cpp
-  src/platformercamera.cpp)
+  src/boiler/core/engine.cpp
+  src/boiler/core/entity.cpp
+  src/boiler/core/part.cpp
+  src/boiler/core/component.cpp
+  src/boiler/core/tmxloader.cpp
+  src/boiler/core/spriteloader.cpp
+  src/boiler/core/spritesheet.cpp
+  src/boiler/core/spritesheetframe.cpp
+  src/boiler/core/base64.cpp
+  src/boiler/core/quadtree.cpp
+  src/boiler/core/rect.cpp
+  src/boiler/core/raycaster.cpp
+  src/boiler/core/bmfont.cpp
+  src/boiler/core/spriteanimation.cpp
+  src/boiler/core/line.cpp
+  src/boiler/video/renderer.cpp
+  src/boiler/video/openglrenderer.cpp
+  src/boiler/video/opengltexture.cpp
+  src/boiler/video/shaderprogram.cpp
+  src/boiler/camera/camera.cpp
+  src/boiler/camera/platformercamera.cpp
+  src/boiler/util/tinyxml2.cpp
+  src/boiler/util/jsoncpp.cpp)
+
+set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 
 # Game related sources
-set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 set(SRC_FILES
   src/main.cpp
   src/gamepart.cpp)

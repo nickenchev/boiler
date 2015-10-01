@@ -8,8 +8,8 @@ bool RayCaster::clipLine(int d, const Rect &box, const glm::vec2 &v0, const glm:
     bool isIntersection = true;
 
     // get the fraction of the line (v0->v1) that intersects the box
-    float boxDimLow = box.position[d];
-    float boxDimHigh = box.position[d] + ((d == 0) ? box.size.getWidth() : box.size.getHeight());
+    float boxDimLow = box.getMin(d);
+    float boxDimHigh = box.getMax(d);
     float fDimLow = (boxDimLow - v0[d]) / (v1[d] - v0[d]);
     float fDimHigh = (boxDimHigh - v0[d]) / (v1[d] - v0[d]);
 

@@ -12,7 +12,7 @@ class OpenGLRenderer : public Renderer
     SDL_Window *win = nullptr;
     unsigned int fbo, rbo;
 
-    void renderEntity(const std::shared_ptr<Entity> &entity, unsigned int mvpUniform) const;
+    void renderEntity(const std::shared_ptr<Entity> &entity, unsigned int mvpUniform, const glm::mat4 &viewProjection) const;
 
 public:
     OpenGLRenderer(Engine &engine);

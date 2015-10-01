@@ -100,11 +100,6 @@
    <image width="282" height="275" source="Tree_3.png"/>
   </tile>
  </tileset>
- <layer name="Water" width="30" height="30">
-  <data encoding="base64" compression="zlib">
-   eJztw7ENAAAEADAv8P+xdgcwaJNGwC85bqkRAACuNfyjAI0=
-  </data>
- </layer>
  <layer name="Background" width="30" height="30">
   <data encoding="base64" compression="zlib">
    eJztzSESACAIAEHQ//8Zg42Owd2ZyxfBj/K0HzzXbfoNAAB0BZtIAA0=
@@ -112,12 +107,17 @@
  </layer>
  <layer name="Background Objects" width="30" height="30">
   <data encoding="base64" compression="zlib">
-   eJxjYBgFAw1kh6GdckhsBSgtBqXlobQ0khpRJHUiQCyFplYEqmYUjAJyASjNizMg0p3MALqFGkAcj9xAlCmjYBSMglEwCkbBKBiaAAB0/gIT
+   eJxjYBgFAw1kh6GdclBaBogVoGwxKC0PpaWR1IsiqRMBYik0tSJQNaNgFJALQGlenAGR7mQG0C3UAOJ45AaiTBkFo2AUjIJRMApGwdAEALxNAi8=
+  </data>
+ </layer>
+ <layer name="Water" width="30" height="30">
+  <data encoding="base64" compression="zlib">
+   eJztw7ENAAAEADAv8P+xdgcwaJNGwC85bqkRAACuNfyjAI0=
   </data>
  </layer>
  <layer name="Tile Layer 1" width="30" height="30">
   <data encoding="base64" compression="zlib">
-   eJztkksKwCAMRLUf+289QO9/zsadiNEUUQqdB2+jiYMwSoGDPMmrQUbtnK9xN87rBPbevGbuNDPPMZBjRpOYN5Fzf55jJ5cCbeQdq0BIrkcpwo692Y/1aBXucp2U9IrrsMvemP84J3KukFuiJBcAAAD4Mw/wcwMW
+   eJztkksKwCAMRGM/9t96/9M27kSMpojdOA/eRhMHYYjAxd7s80NG65zeGRSOwbwR7owwLzGxc0GbmbeJ83Be4mS3Cl3iHUcgptSjHHHHvuynerQrd6VOanolddhnH8J/vAu7NsitUZMLAAAA9MwLqSQC+g==
   </data>
  </layer>
 </map>

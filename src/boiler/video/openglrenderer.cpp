@@ -9,7 +9,8 @@
 #include "opengltexture.h"
 #include "spritesheetframe.h"
 #include "engine.h"
-#include "gamepart.h"
+#include "part.h"
+#include "camera.h"
 
 #define COMPONENT_NAME "OpenGL Renderer"
 
@@ -18,7 +19,7 @@ OpenGLRenderer::OpenGLRenderer(Engine &engine) : Renderer(std::string(COMPONENT_
     bool success = false;
     if (SDL_Init(SDL_INIT_VIDEO) == 0)
     {
-        win = SDL_CreateWindow("Boiler", 0, 0, RES_WIDTH, RES_HEIGHT, SDL_WINDOW_OPENGL);
+        win = SDL_CreateWindow("Boiler", 0, 0, RES_WIDTH, RES_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN);
         if (win)
         {
             // setup opengl
@@ -91,7 +92,6 @@ std::shared_ptr<Texture> OpenGLRenderer::createTexture(const Size &textureSize, 
     // set nearest neighbour filtering
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
     // unbind the texId 
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -121,16 +121,32 @@ void OpenGLRenderer::render() const
     glClear(GL_COLOR_BUFFER_BIT);
 
     const std::vector<std::shared_ptr<Entity>> &entities = getEngine().getPart()->getEntities();
+
+    // prepare the matrices
+    GLfloat orthoW = getEngine().getScreenWidth() / getEngine().getRenderer().getGlobalScale().x;
+    GLfloat orthoH = getEngine().getScreenHeight() / getEngine().getRenderer().getGlobalScale().y;
+
+    // opengl sprite render
+    glm::mat4 viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW),
+                                      static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
+    if (this->camera)
+    {
+        const Rect &rect = camera->frame;
+        glm::mat4 view = glm::lookAt(glm::vec3(rect.position.x, rect.position.y, 1.0f),
+                                        glm::vec3(rect.position.x, rect.position.y, -1.0f),
+                                        glm::vec3(0, 1.0f, 0));
+        viewProjection = viewProjection * view;
+    }
     for (auto &entity : entities)
     {
-        renderEntity(entity, mvpUniform);
+        renderEntity(entity, mvpUniform, viewProjection);
     }
 
     SDL_GL_SwapWindow(win);
     glUseProgram(0);
 }
 
-void OpenGLRenderer::renderEntity(const std::shared_ptr<Entity> &entity, unsigned int mvpUniform) const
+void OpenGLRenderer::renderEntity(const std::shared_ptr<Entity> &entity, unsigned int mvpUniform, const glm::mat4 &viewProjection) const
 {
     // set the vao for the current sprite
     glBindVertexArray(entity->getVao());
@@ -144,28 +160,9 @@ void OpenGLRenderer::renderEntity(const std::shared_ptr<Entity> &entity, unsigne
         setActiveTexture(entity->spriteSheet->getTexture());
     }
 
-    GLfloat orthoW = getEngine().getScreenWidth() / getEngine().getRenderer().getGlobalScale().x;
-    GLfloat orthoH = getEngine().getScreenHeight() / getEngine().getRenderer().getGlobalScale().y;
 
-    // opengl sprite render
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW),
-                                        static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
-
-    glm::mat4 model = entity->getMatrix();
-
-    // factor in the camera position
-    glm::mat4 mvpMatrix;
-    if (this->camera)
-    {
-        const Rect &rect = camera->frame;
-        glm::mat4 view = glm::lookAt(glm::vec3(rect.position.x, rect.position.y, 1.0f),
-                                        glm::vec3(rect.position.x, rect.position.y, -1.0f),
-                                        glm::vec3(0, 1.0f, 0));
-        projection = projection * view;
-    }
-    mvpMatrix = projection * model;
-
-    // get the final matrix
+    const glm::mat4 &model = entity->getMatrix();
+    glm::mat4 mvpMatrix = viewProjection * model;
 
     glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
 
@@ -175,7 +172,7 @@ void OpenGLRenderer::renderEntity(const std::shared_ptr<Entity> &entity, unsigne
     // render all the children
     for (auto &entity : entity->getChildren())
     {
-        renderEntity(entity, mvpUniform);
+        renderEntity(entity, mvpUniform, viewProjection);
     }
 }
 

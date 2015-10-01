@@ -26,7 +26,7 @@ public:
 
     Rect frame;
     bool flipH, flipV, collides;
-    glm::vec2 pivot, scale;
+    glm::vec2 scale;
 
     std::shared_ptr<SpriteSheet> spriteSheet;
     const SpriteSheetFrame *spriteFrame;

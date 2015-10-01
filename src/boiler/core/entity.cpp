@@ -7,7 +7,7 @@ Entity::Entity() : Entity(Rect())
 {
 }
 
-Entity::Entity(Rect frame) : pivot(0, 0), scale(1.0f, 1.0f)
+Entity::Entity(Rect frame) : scale(1.0f, 1.0f)
 {
     flipH = false;
     flipV = false;
@@ -62,8 +62,8 @@ Entity::~Entity()
 const glm::mat4 &Entity::getMatrix()
 {
     // offset the player position based on the pivot modifier
-    glm::vec2 pivotPos(frame.position.x - frame.size.getWidth() * pivot.x,
-                       frame.position.y - frame.size.getHeight() * pivot.y);
+    glm::vec2 pivotPos(frame.position.x - frame.size.getWidth() * frame.pivot.x,
+                       frame.position.y - frame.size.getHeight() * frame.pivot.y);
 
     float scaleX = scale.x;
     float scaleY = scale.y;

@@ -21,26 +21,22 @@ struct Size
 struct Rect
 {
     glm::vec2 position;
+    glm::vec2 pivot;
     Size size;
     Rect() { }
-    Rect(int x, int y, int width, int height) : position(x, y), size(width, height) { }
+    Rect(int x, int y, int width, int height) : position(x, y), size(width, height), pivot(0, 0) { }
     Rect(const Rect &rect) { *this = rect; }
 
     inline float getMin(int dimension) const
     {
-        return position[dimension];
+        return position[dimension] - (size.dimensions[dimension] * pivot[dimension]);
     } 
     inline float getMax(int dimension) const
     {
-        return position[dimension] + size.dimensions[dimension];
-    }
-    inline float getMid(int dimension) const
-    {
-        return position[dimension] + size.dimensions[dimension] / 2;
+        return position[dimension] + size.dimensions[dimension] - (size.dimensions[dimension] * pivot[dimension]);
     }
 
     bool collides(const Rect &rect);
-    glm::vec2 getCentre() const;
 };
 
 #endif // RECT

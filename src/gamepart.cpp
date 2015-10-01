@@ -13,17 +13,12 @@
 
 using namespace std;
 
-GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.getScreenWidth(), engine.getScreenHeight())), textFont("data/font.fnt"), gravity(15.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), maxSpeed(15, 15), jumpForceY(-600) 
+GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.getScreenWidth(), engine.getScreenHeight())), textFont("data/font.fnt"), gravity(15.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), jumpForceY(-600) 
 {
     getEngine().getRenderer().setClearColor(Color3(0.8f, 0.8f, 1.0f));
     //do some loading
     playerSheet = getEngine().getSpriteLoader().loadSheet("data/kof.json");
     tilesSheet = getEngine().getSpriteLoader().loadSheet("data/tiles.json");
-
-    //basic player setup
-    player = std::make_shared<Entity>(Rect(30, -50, 62, 102));
-    player->spriteSheet = playerSheet;
-    addEntity(player);
 
     stand.addFrame(playerSheet->getFrame("stand_01.png"));
     stand.addFrame(playerSheet->getFrame("stand_02.png"));
@@ -70,6 +65,8 @@ GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.ge
 
         for (int r = 0; r < tmxMap->width; ++r)
         {
+            int tileWidth = tmxMap->tilewidth;
+            int tileHeight = tmxMap->tileheight;
             for (int c = 0; c < tmxMap->height; ++c)
             {
                 int tileGid = layer->tiles[tileNum];
@@ -82,19 +79,20 @@ GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.ge
                     {
                         tile->collides = true;
                     }
+                    tile->frame.pivot = glm::vec2(0, 1);
 
-                    cout << "Looking for tile image source: " << tmxTile->image.source << " (" << tile->frame.size.getWidth() << "x" << tile->frame.size.getHeight() << ")" << endl;
+                    //cout << "Looking for tile image source: " << tmxTile->image.source << " (" << tile->frame.size.getWidth() << "x" << tile->frame.size.getHeight() << ")" << endl;
 					const SpriteSheetFrame *tileFrame = tilesSheet->getFrame(tmxTile->image.source);
-					tile->pivot = glm::vec2(0, 0);
+					//tile->frame.pivot = glm::vec2(0, 1);
 					tile->spriteSheet = tilesSheet;
 					tile->spriteFrame = tileFrame;
 
                     mapLayer->addChild(tile);
                 }
-                x += tmxMap->tilewidth;
+                x += tileWidth;
                 tileNum++;
             }
-            y += tmxMap->tileheight;
+            y += tileHeight;
             x = 0;
         }
         x = 0;
@@ -102,6 +100,11 @@ GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.ge
         tileNum = 0;
         addEntity(mapLayer);
     }
+
+    //basic player setup
+    player = std::make_shared<Entity>(Rect(30, -50, 62, 102));
+    player->spriteSheet = playerSheet;
+    addEntity(player);
 
     // setup the camera
     int mapWidth = tmxMap->width * tmxMap->tilewidth;
@@ -119,7 +122,7 @@ void GamePart::start()
 
 void GamePart::handleInput()
 {
-    float horizontalVelocity = 190.0f;
+    float horizontalVelocity = 250.0f;
     // check keyboard and modify state
     if (getEngine().keyState(SDLK_a))
     {
@@ -213,7 +216,7 @@ void GamePart::update(const float delta)
     // check horizontal
     if (moveAmount.x < 0)
     {
-        for (auto e : entities)
+        for (auto e : closeObjects)
         {
             if (e != player)
             {

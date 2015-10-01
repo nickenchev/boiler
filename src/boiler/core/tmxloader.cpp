@@ -40,8 +40,6 @@ void loadData(ensoft::Layer &layer, ensoft::Map *map, std::string data)
     Bytef buffer[buffSize];
 
     int result = uncompress(buffer, &destLen, &decoded[0], sourceLen);
-    std::vector<u_int32_t> tileList;
-    std::map<int, ensoft::TmxTile *> tilesUsed;
     if (result != Z_OK)
     {
         // TODO: Error handle
