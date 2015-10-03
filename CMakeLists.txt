@@ -43,6 +43,7 @@ add_library(boiler
   src/boiler/core/quadtree.cpp
   src/boiler/core/rect.cpp
   src/boiler/core/raycaster.cpp
+  src/boiler/core/ray.cpp
   src/boiler/core/bmfont.cpp
   src/boiler/core/spriteanimation.cpp
   src/boiler/core/line.cpp

@@ -4,12 +4,6 @@
 #include <glm/glm.hpp>
 #include "rect.h"
 
-struct Ray
-{
-    glm::vec2 p1;
-    glm::vec2 p2;
-};
-
 class RayCaster
 {
     bool clipLine(int d, const Rect &box, const glm::vec2 &v0, const glm::vec2 &v1, float &fLow, float &fHigh);

@@ -23,6 +23,7 @@ struct Rect
     glm::vec2 position;
     glm::vec2 pivot;
     Size size;
+
     Rect() { }
     Rect(int x, int y, int width, int height) : position(x, y), size(width, height), pivot(0, 0) { }
     Rect(const Rect &rect) { *this = rect; }
