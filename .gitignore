@@ -8,3 +8,6 @@ CMakeFiles
 *.a
 /CMakeLists.txt.user
 /mygame.cbp
+/GPATH
+/GRTAGS
+/GTAGS
