@@ -11,3 +11,7 @@ CMakeFiles
 /GPATH
 /GRTAGS
 /GTAGS
+/.ninja_deps
+/.ninja_log
+/build.ninja
+/rules.ninja
