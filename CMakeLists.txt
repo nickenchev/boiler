@@ -62,6 +62,7 @@ set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 set(SRC_FILES
   src/main.cpp
   src/gamepart.cpp
+  src/triptych/gamepart.cpp
   src/triptych/GameCore/GameAttribute.cpp
   src/triptych/GameCore/Message.cpp
   src/triptych/GameCore/MessageQueue.cpp
