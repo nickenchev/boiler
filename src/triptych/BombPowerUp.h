@@ -16,8 +16,8 @@ class BombPowerUp : public PowerUp
 public:
     BombPowerUp();
     
-    vector<GridPosition> run(Board &board, Player &player);
-    bool canRecover(const Player &player) const;
+    vector<GridPosition> run(Board &board, Player &player) override;
+    bool canRecover(const Player &player) const override;
 };
 
 #endif /* defined(__triptych__BombPowerUp__) */

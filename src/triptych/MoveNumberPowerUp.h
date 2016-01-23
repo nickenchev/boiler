@@ -15,8 +15,8 @@ class MoveNumberPowerUp : public PowerUp
 {
 public:
     MoveNumberPowerUp();
-    vector<GridPosition> run(Board &board, Player &player);
-    bool canRecover(const Player &player) const;
+    vector<GridPosition> run(Board &board, Player &player) override;
+    bool canRecover(const Player &player) const override;
 };
 
 #endif /* defined(__triptych__MoveNumberPowerUp__) */

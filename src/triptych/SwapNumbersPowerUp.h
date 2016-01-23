@@ -17,7 +17,7 @@ public:
     SwapNumbersPowerUp();
 
     vector<GridPosition> run(Board &board, Player &player) override;
-    bool canRecover(const Player &player) const;
+    bool canRecover(const Player &player) const override;
 };
 
 #endif /* defined(__triptych__SwapNumbersPowerUp__) */
