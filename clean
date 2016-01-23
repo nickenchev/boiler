@@ -5,3 +5,5 @@ rm Makefile
 rm CMakeCache.txt
 rm CMakeFiles.txt.user
 rm cmake_install.cmake
+rm .ninja_*
+rm *.ninja
