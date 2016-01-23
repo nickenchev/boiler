@@ -61,7 +61,26 @@ set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 # Game related sources
 set(SRC_FILES
   src/main.cpp
-  src/gamepart.cpp)
+  src/gamepart.cpp
+  src/triptych/GameCore/GameAttribute.cpp
+  src/triptych/GameCore/Message.cpp
+  src/triptych/GameCore/MessageQueue.cpp
+  src/triptych/BankFromBoardPowerUp.cpp
+  src/triptych/Board.cpp
+  src/triptych/BoardCell.cpp
+  src/triptych/BombPowerUp.cpp
+  src/triptych/CopyNumberPowerUp.cpp
+  src/triptych/DeleteNumberPowerUp.cpp
+  src/triptych/GameDirector.cpp
+  src/triptych/GridPosition.cpp
+  src/triptych/MoveNumberPowerUp.cpp
+  src/triptych/Player.cpp
+  src/triptych/PowerUp.cpp
+  src/triptych/PromoteNumberPowerUp.cpp
+  src/triptych/SaveGameHeader.cpp
+  src/triptych/SwapNumbersPowerUp.cpp
+  src/triptych/Triptych.cpp
+  src/triptych/TriptychGame.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SHADER_FILES})
 target_link_libraries(${PROJECT_NAME} boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
