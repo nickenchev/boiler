@@ -11,8 +11,7 @@ int main()
     Engine engine;
     engine.initialize();
 
-    GamePart part(engine);
-    engine.start(&part);
+    engine.start(std::make_shared<GamePart>(engine));
 
     return 0;
 }

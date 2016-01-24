@@ -2,7 +2,9 @@
 #define ENGINE_H
 
 #include <memory>
+#include <vector>
 #include "spriteloader.h"
+#include "../input/mouseinputlistener.h"
 
 #define RES_WIDTH 800
 #define RES_HEIGHT 600 
@@ -16,6 +18,7 @@ class SDL_Window;
 class Engine
 {
     std::unique_ptr<Renderer> renderer;
+    std::vector<std::shared_ptr<MouseInputListener>> mouseListeners;
 
     bool running = true;
     SpriteLoader spriteLoader;
@@ -27,23 +30,25 @@ class Engine
     void update(const float delta);
     void render(const float delta);
 
-    Part *part;
+    std::shared_ptr<Part> part;
 
 public:
     Engine();
     ~Engine();
 
     void initialize();
-    void start(Part *part);
+    void start(std::shared_ptr<Part> part);
     void quit() { running = false; }
 
     Renderer &getRenderer() const { return *renderer.get(); }
-    const Part *getPart() const { return part; }
+    std::shared_ptr<Part> getPart() const { return part; }
 
     bool keyState(int keyNum) const { return keys[keyNum]; }
     SpriteLoader &getSpriteLoader() { return spriteLoader; }
     int getScreenWidth() const { return RES_WIDTH; }
     int getScreenHeight() const { return RES_HEIGHT; }
+
+    void addMouseListener(std::shared_ptr<MouseInputListener> listener);
 };
 
 #endif // ENGINE_H

@@ -3,12 +3,14 @@
 
 #include <memory>
 #include "part.h"
+#include "../input/mouseinputlistener.h"
+#include "../input/mousebuttonevent.h"
 #include "TriptychGame.h"
 #include "Array2D.h"
 
 class TriptychGame;
 
-class GamePart : public Part
+class GamePart : public Part, public MouseInputListener, public std::enable_shared_from_this<GamePart>
 {
     TriptychGame game;
     std::shared_ptr<SpriteSheet> mainSheet;
@@ -21,6 +23,9 @@ public:
     void start() override;
     void handleInput() override;
     void update(const float delta) override;
+
+    void onMouseMove() override;
+    void onMouseButton(const MouseButtonEvent event) override;
 };
 
 

@@ -8,6 +8,7 @@
 #include "component.h"
 
 typedef glm::vec3 Color3;
+typedef glm::vec4 Color4;
 
 class Camera;
 

@@ -6,6 +6,7 @@
 #include "part.h"
 #include "openglrenderer.h"
 #include "entity.h"
+#include "../input/mousebuttonevent.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
@@ -30,7 +31,7 @@ void Engine::initialize()
     frameInterval = 1.0f / 60.0f; // 60fps
 }
 
-void Engine::start(Part *part)
+void Engine::start(std::shared_ptr<Part> part)
 {
     //store the incoming part and start it
     this->part = part;
@@ -52,6 +53,7 @@ void Engine::run()
         //if its time to process a frame, do it here 
         if (frameDelta >= frameInterval)
         {
+            // poll input events
             SDL_Event event;
             while (SDL_PollEvent(&event))
             {
@@ -69,8 +71,56 @@ void Engine::run()
                         keys[keyCode] = false;
                         break;
                     }
+                    case SDL_MOUSEBUTTONUP:
+                    {
+                        ButtonState state = ButtonState::UP;
+                        MouseButton button;
+                        if (event.button.button == SDL_BUTTON_LEFT)
+                        {
+                            button = MouseButton::LEFT;
+                        }
+                        else if (event.button.button == SDL_BUTTON_MIDDLE)
+                        {
+                            button = MouseButton::MIDDLE;
+                        }
+                        else if (event.button.button == SDL_BUTTON_RIGHT)
+                        {
+                            button = MouseButton::RIGHT;
+                        }
+                        MouseButtonEvent buttonEvent(button, state);
+
+                        for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
+                        {
+                            std::shared_ptr<MouseInputListener> listener = static_cast<std::shared_ptr<MouseInputListener>>(*it);
+                            listener->onMouseButton(buttonEvent);
+                        }
+                        break;
+                    }
+                    case SDL_MOUSEBUTTONDOWN:
+                    {
+                        for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
+                        {
+                            std::shared_ptr<MouseInputListener> listener = static_cast<std::shared_ptr<MouseInputListener>>(*it);
+                            listener->setX(event.motion.x);
+                            listener->setY(event.motion.y);
+                            listener->onMouseMove();
+                        }
+                        break;
+                    }
+                    case SDL_MOUSEMOTION:
+                    {
+                        for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
+                        {
+                            std::shared_ptr<MouseInputListener> listener = static_cast<std::shared_ptr<MouseInputListener>>(*it);
+                            listener->setX(event.motion.x);
+                            listener->setY(event.motion.y);
+                            listener->onMouseMove();
+                        }
+                        break;
+                    }
                 }
             }
+            
             //update the state and render to screen
             update(frameDelta);
             render(frameDelta);
@@ -79,6 +129,12 @@ void Engine::run()
         }
         lastTime = currentTime;
     }
+}
+
+void Engine::addMouseListener(std::shared_ptr<MouseInputListener> listener)
+{
+    std::cout << " > Added mouse listener" << std::endl;
+    mouseListeners.push_back(listener);
 }
 
 void Engine::update(const float delta)
@@ -94,5 +150,6 @@ void Engine::render(const float delta)
 
 Engine::~Engine()
 {
+    mouseListeners.clear();
     SDL_Quit();
 }
