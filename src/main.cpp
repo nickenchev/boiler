@@ -3,7 +3,7 @@
 #include "spriteloader.h"
 #include "engine.h"
 #include "renderer.h"
-#include "gamepart.h"
+#include "triptych/gamepart.h"
 
 int main()
 {
