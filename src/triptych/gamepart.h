@@ -16,9 +16,10 @@ class GamePart : public Part, public MouseInputListener, public std::enable_shar
     std::shared_ptr<SpriteSheet> mainSheet;
     ensoft::Array2D<std::shared_ptr<Entity>> boardCells;
 
+    void showCurrentNumbers();
+
 public:
     GamePart(Engine &engine);
-    virtual ~GamePart();
 
     void start() override;
     void handleInput() override;

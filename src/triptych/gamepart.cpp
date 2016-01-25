@@ -35,18 +35,22 @@ GamePart::GamePart(Engine &engine) : Part(engine), game(GameType::NORMAL, 7, 7),
     }
 }
 
-GamePart::~GamePart()
+void GamePart::showCurrentNumbers()
 {
+    std::cout << game.getBoard().getCurrentNumber().value << ":" << game.getBoard().getCurrentNumber().stage << "    Next: "
+              << game.getBoard().getNextNumber().value << ":" << game.getBoard().getNextNumber().stage << std::endl;
 }
 
 void GamePart::start()
 {
-    game.getBoard().logBoard();
-
     getEngine().getRenderer().setClearColor(Color3(0.1f, 0.1f, 0.2f));
 
     // setup input listeners
     getEngine().addMouseListener(shared_from_this());
+
+    // 
+    game.getBoard().logBoard();
+    showCurrentNumbers();
 }
 
 void GamePart::handleInput()
@@ -75,23 +79,33 @@ void GamePart::onMouseButton(const MouseButtonEvent event)
             const auto &cellEntity = std::static_pointer_cast<CellEntity>(*itr);
             if (cellEntity->frame.collides(glm::vec2(getX(), getY())))
             {
-                const bool usingBank = game.getPlayer().bankSlotSelected();
-                const BoardCell &currentNumber = (usingBank) ? game.getPlayer().getSelectedBankCell() : game.getBoard().takeNumber();
-                game.turnBegin();
-
-                long placementScore = 0;
-                do
+                BoardCell &boardCell = game.getBoard().getCell(cellEntity->getRow(), cellEntity->getColumn());
+                if (boardCell.isEmpty())
                 {
-                    Triptych triptych(TriptychDirection::NONE);
-                    placementScore = game.getBoard().scorePlacement(cellEntity->getGridPosition(), triptych);
-                    if (placementScore)
-                    {
-                        std::cout << placementScore << std::endl;
-                        game.getBoard().logBoard();
-                    }
-                } while (placementScore > 0);
+                    game.turnBegin();
 
-                TurnInfo turnInfo = game.turnEnd();
+                    const bool usingBank = game.getPlayer().bankSlotSelected();
+                    const BoardCell currentNumber = (usingBank) ? game.getPlayer().getSelectedBankCell() : game.getBoard().takeNumber();
+                    boardCell = currentNumber;
+
+                    long placementScore = 0;
+                    do
+                    {
+                        Triptych triptych(TriptychDirection::NONE);
+                        placementScore = game.getBoard().scorePlacement(cellEntity->getGridPosition(), triptych);
+                        if (placementScore)
+                        {
+                            std::cout << placementScore << std::endl;
+                            game.getBoard().logBoard();
+                        }
+                    } while (placementScore > 0);
+
+                    TurnInfo turnInfo = game.turnEnd();
+
+                    game.getBoard().logBoard();
+                    showCurrentNumbers();
+                }
+                
             }
         }
     }
