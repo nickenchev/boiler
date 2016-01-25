@@ -1,7 +1,11 @@
+#include <glm/glm.hpp>
+
 #include "engine.h"
 #include "sdl.h"
 #include "gamepart.h"
 #include "renderer.h"
+
+#include "cellentity.h"
 
 GamePart::GamePart(Engine &engine) : Part(engine), game(GameType::NORMAL, 7, 7),
                                      boardCells(game.getBoard().getRows(),
@@ -15,16 +19,16 @@ GamePart::GamePart(Engine &engine) : Part(engine), game(GameType::NORMAL, 7, 7),
     int cellHeight = 75;
     int xOffset = 30;
     int yOffset = 30;
-    for (int r = 0; r < game.getBoard().getRows(); ++r)
+    for (int r = 1; r <= game.getBoard().getRows(); ++r)
     {
-        for (int c = 0; c < game.getBoard().getColumns(); ++c)
+        for (int c = 1; c <= game.getBoard().getColumns(); ++c)
         {
-            int x = c * cellWidth + xOffset;
-            int y = r * cellHeight + yOffset;
-            auto cell = std::make_shared<Entity>(Rect(x, y, cellWidth, cellHeight));
+            int x = (c - 1) * cellWidth + xOffset;
+            int y = (r - 1) * cellHeight + yOffset;
+            auto cell = std::make_shared<CellEntity>(r, c, Rect(x, y, cellWidth, cellHeight));
 
             cell->spriteSheet = mainSheet;
-            cell->spriteFrame = mainSheet->getFrame("menu_1.png");
+            cell->spriteFrame = mainSheet->getFrame("tile_1.png");
             addEntity(cell);
         }
     }
@@ -61,8 +65,18 @@ void GamePart::onMouseMove()
 }
 void GamePart::onMouseButton(const MouseButtonEvent event)
 {
-    game.turnBegin();
-    TurnInfo turnInfo = game.turnEnd();
+    auto entities = getEntities();
+    for (auto itr = entities.begin(); itr != entities.end(); ++itr)
+    {
+        const auto &entity = *itr;
+        const auto &cellEntity = std::static_pointer_cast<CellEntity>(entity);
+        if (cellEntity->frame.collides(glm::vec2(getX(), getY())))
+        {
+            std::cout << cellEntity->getRow() << ", " << cellEntity->getColumn() << std::endl;
+            game.turnBegin();
+            TurnInfo turnInfo = game.turnEnd();
 
-    game.getBoard().logBoard();
+            game.getBoard().logBoard();
+        }
+    }
 }

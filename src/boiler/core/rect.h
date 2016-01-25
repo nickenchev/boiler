@@ -38,6 +38,7 @@ struct Rect
     }
 
     bool collides(const Rect &rect);
+    bool collides(const glm::vec2 point);
 };
 
 #endif // RECT
