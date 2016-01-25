@@ -4,6 +4,7 @@
 #include "sdl.h"
 #include "gamepart.h"
 #include "renderer.h"
+#include "GameDirector.h"
 
 #include "cellentity.h"
 
@@ -42,7 +43,7 @@ void GamePart::start()
 {
     game.getBoard().logBoard();
 
-    getEngine().getRenderer().setClearColor(Color3(0.1f, 0.1f, 0.3f));
+    getEngine().getRenderer().setClearColor(Color3(0.1f, 0.1f, 0.2f));
 
     // setup input listeners
     getEngine().addMouseListener(shared_from_this());
@@ -65,18 +66,33 @@ void GamePart::onMouseMove()
 }
 void GamePart::onMouseButton(const MouseButtonEvent event)
 {
-    auto entities = getEntities();
-    for (auto itr = entities.begin(); itr != entities.end(); ++itr)
+    if (event.button == MouseButton::LEFT && event.state == ButtonState::UP)
     {
-        const auto &entity = *itr;
-        const auto &cellEntity = std::static_pointer_cast<CellEntity>(entity);
-        if (cellEntity->frame.collides(glm::vec2(getX(), getY())))
+        auto entities = getEntities();
+        for (auto itr = entities.begin(); itr != entities.end(); ++itr)
         {
-            std::cout << cellEntity->getRow() << ", " << cellEntity->getColumn() << std::endl;
-            game.turnBegin();
-            TurnInfo turnInfo = game.turnEnd();
+            // grab the cell entity and check if it was selected
+            const auto &cellEntity = std::static_pointer_cast<CellEntity>(*itr);
+            if (cellEntity->frame.collides(glm::vec2(getX(), getY())))
+            {
+                const bool usingBank = game.getPlayer().bankSlotSelected();
+                const BoardCell &currentNumber = (usingBank) ? game.getPlayer().getSelectedBankCell() : game.getBoard().takeNumber();
+                game.turnBegin();
 
-            game.getBoard().logBoard();
+                long placementScore = 0;
+                do
+                {
+                    Triptych triptych(TriptychDirection::NONE);
+                    placementScore = game.getBoard().scorePlacement(cellEntity->getGridPosition(), triptych);
+                    if (placementScore)
+                    {
+                        std::cout << placementScore << std::endl;
+                        game.getBoard().logBoard();
+                    }
+                } while (placementScore > 0);
+
+                TurnInfo turnInfo = game.turnEnd();
+            }
         }
     }
 }
