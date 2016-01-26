@@ -106,7 +106,6 @@ void GamePart::onMouseButton(const MouseButtonEvent event)
                     game.getBoard().logBoard();
                     showCurrentNumbers();
                 }
-                
             }
         }
     }
