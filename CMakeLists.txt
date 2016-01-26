@@ -47,10 +47,13 @@ add_library(boiler
   src/boiler/core/bmfont.cpp
   src/boiler/core/spriteanimation.cpp
   src/boiler/core/line.cpp
+  src/boiler/core/fileutils.cpp
   src/boiler/video/renderer.cpp
   src/boiler/video/openglrenderer.cpp
   src/boiler/video/opengltexture.cpp
   src/boiler/video/shaderprogram.cpp
+  src/boiler/video/imageloader.cpp
+  src/boiler/video/fontloader.cpp
   src/boiler/camera/camera.cpp
   src/boiler/camera/platformercamera.cpp
   src/boiler/util/tinyxml2.cpp

@@ -10,7 +10,7 @@
 
 #define RENDERER_CLASS OpenGLRenderer
 
-Engine::Engine() : spriteLoader(*this), keys{0}
+Engine::Engine() : spriteLoader(*this), imageLoader(*this), fontLoader(*this), keys{0}
 {
     lastTime = currentTime = 0;
     frameDelta = 0;

@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "part.h"
+#include "bmfont.h"
 #include "../input/mouseinputlistener.h"
 #include "../input/mousebuttonevent.h"
 #include "TriptychGame.h"
@@ -15,6 +16,7 @@ class GamePart : public Part, public MouseInputListener, public std::enable_shar
     TriptychGame game;
     std::shared_ptr<SpriteSheet> mainSheet;
     ensoft::Array2D<std::shared_ptr<Entity>> boardCells;
+    BMFont textFont;
 
     void showCurrentNumbers();
 

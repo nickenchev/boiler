@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 #include "spriteloader.h"
+#include "imageloader.h"
+#include "fontloader.h"
 #include "../input/mouseinputlistener.h"
 
 #define RES_WIDTH 800
@@ -21,7 +23,10 @@ class Engine
     std::vector<std::shared_ptr<MouseInputListener>> mouseListeners;
 
     bool running = true;
+
     SpriteLoader spriteLoader;
+    ImageLoader imageLoader;
+    FontLoader fontLoader;
     unsigned int lastTime, currentTime;
     float frameDelta, frameInterval;
     bool keys[MAX_KEYS];
@@ -44,7 +49,9 @@ public:
     std::shared_ptr<Part> getPart() const { return part; }
 
     bool keyState(int keyNum) const { return keys[keyNum]; }
-    SpriteLoader &getSpriteLoader() { return spriteLoader; }
+    const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
+    const ImageLoader &getImageLoader() const { return imageLoader; }
+    const FontLoader &getFontLoader() const { return fontLoader; }
     int getScreenWidth() const { return RES_WIDTH; }
     int getScreenHeight() const { return RES_HEIGHT; }
 

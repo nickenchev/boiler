@@ -4,12 +4,16 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <memory>
 #include "rect.h"
+
+class Texture;
 
 struct Page
 {
     int id;
     std::string file;
+    std::shared_ptr<Texture> texture;
 };
 
 struct Char
@@ -22,7 +26,7 @@ struct Char
     Char(const Page &page) : page(page) { }
 };
 
-class BMFont
+struct BMFont
 {
     std::string face, charset, padding, spacing;
     int size, stretchH, lineHeight, base, scaleW, scaleH, pages;
@@ -32,10 +36,7 @@ class BMFont
     std::vector<Char> charList;
     std::map<char, const Char *> charMap;
 
-    void loadInfo(std::string data);
-
-public:
-    BMFont(std::string filename);
+    BMFont();
 };
 
 #endif /* BMFONT_H */

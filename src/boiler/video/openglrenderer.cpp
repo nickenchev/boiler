@@ -1,3 +1,4 @@
+#include <string>
 #include <iostream>
 #include <SDL.h>
 #include <SDL_image.h>
@@ -98,6 +99,10 @@ std::shared_ptr<Texture> OpenGLRenderer::createTexture(const Size &textureSize, 
     if (glGetError() != GL_NO_ERROR)
     {
         error("Unable to create GL texId.");
+    }
+    else
+    {
+        log("Created texture with ID: " + std::to_string(texId));
     }
 
     return std::make_shared<OpenGLTexture>(texId);

@@ -10,7 +10,8 @@
 
 GamePart::GamePart(Engine &engine) : Part(engine), game(GameType::NORMAL, 7, 7),
                                      boardCells(game.getBoard().getRows(),
-                                                game.getBoard().getColumns())
+                                                game.getBoard().getColumns()),
+                                     textFont(getEngine().getFontLoader().loadBMFont("data/font.fnt"))
 {
     // load some game assets
     mainSheet = getEngine().getSpriteLoader().loadSheet("data/triptych.json");
