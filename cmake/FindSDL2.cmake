@@ -131,6 +131,7 @@ IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 		lib/x64
 		x86_64-w64-mingw32/lib
 		PATHS
+        /usr/local/lib
 		/sw
 		/opt/local
 		/opt/csw
@@ -146,6 +147,7 @@ ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
 		lib/x86
 		i686-w64-mingw32/lib
 		PATHS
+        /usr/local/lib
 		/sw
 		/opt/local
 		/opt/csw
@@ -170,6 +172,7 @@ IF(NOT SDL2_BUILDING_LIBRARY)
 				lib/x64
 				x86_64-w64-mingw32/lib
 				PATHS
+                /usr/local/lib
 				/sw
 				/opt/local
 				/opt/csw
@@ -186,6 +189,7 @@ IF(NOT SDL2_BUILDING_LIBRARY)
 				lib/x86
 				i686-w64-mingw32/lib
 				PATHS
+                /usr/local/lib
 				/sw
 				/opt/local
 				/opt/csw
