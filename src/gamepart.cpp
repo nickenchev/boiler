@@ -13,7 +13,9 @@
 
 using namespace std;
 
-GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.getScreenWidth(), engine.getScreenHeight())), textFont("data/font.fnt"), gravity(15.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), jumpForceY(-600) 
+GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.getScreenWidth(), engine.getScreenHeight())),
+                                     textFont(getEngine().getFontLoader().loadBMFont("data/font.fnt")),
+                                     gravity(15.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), jumpForceY(-600) 
 {
     getEngine().getRenderer().setClearColor(Color3(0.8f, 0.8f, 1.0f));
     //do some loading

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(mygame)
+project(triptych)
 
 #set(CMAKE_CXX_COMPILER /usr/local/Cellar/llvm/3.6.2/bin/clang++)
 #set(CMAKE_CXX_COMPILER /usr/bin/g++-5)
@@ -62,10 +62,10 @@ add_library(boiler
 set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 
 # Game related sources
-set(SRC_FILES
+add_library(game
   src/main.cpp
-  #src/gamepart.cpp
-  src/triptych/gamepart.cpp
+  src/gamepart.cpp
+  #src/triptych/gamepart.cpp
   src/triptych/GameCore/GameAttribute.cpp
   src/triptych/GameCore/Message.cpp
   src/triptych/GameCore/MessageQueue.cpp
@@ -86,5 +86,5 @@ set(SRC_FILES
   src/triptych/Triptych.cpp
   src/triptych/TriptychGame.cpp)
 
-add_executable(${PROJECT_NAME} ${SRC_FILES} ${SHADER_FILES})
-target_link_libraries(${PROJECT_NAME} boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+add_executable(${PROJECT_NAME} ${SHADER_FILES})
+target_link_libraries(${PROJECT_NAME} boiler game ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
