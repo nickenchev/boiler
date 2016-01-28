@@ -8,10 +8,12 @@
 int main()
 {
     std::cout << "* Starting..." << std::endl;
+
     Engine engine;
     engine.initialize();
 
-    engine.start(std::make_shared<GamePart>(engine));
+    auto part = std::make_shared<GamePart>(engine);
+    engine.start(part);
 
     return 0;
 }
