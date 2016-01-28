@@ -16,6 +16,10 @@ protected:
 public:
     Part(Engine &engine) : Component("Part", engine) { }
 
+    // disable copying
+    Part(const Part &part) = delete;
+    Part &operator=(const Part &part) = delete;
+
     virtual void start() = 0;
     virtual void handleInput() = 0;
     virtual void update(const float delta) = 0;
