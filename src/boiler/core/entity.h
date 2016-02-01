@@ -24,6 +24,8 @@ public:
     Entity(Rect frame);
     ~Entity();
 
+    virtual void onCreate() { }
+
     Rect frame;
     bool flipH, flipV, collides;
     glm::vec2 scale;

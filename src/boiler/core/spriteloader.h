@@ -15,7 +15,7 @@ typedef unsigned int GLuint;
 class SpriteLoader : Component
 {
 public:
-    SpriteLoader(Engine &engine);
+    SpriteLoader();
     ~SpriteLoader();
 
     //sprite handling methods

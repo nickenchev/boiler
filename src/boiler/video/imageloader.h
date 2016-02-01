@@ -9,9 +9,9 @@ class Texture;
 class ImageLoader : public Component
 {
 public:
-    ImageLoader(Engine &engine);
+    ImageLoader();
 
-    const std::shared_ptr<Texture> loadImage(const std::string filename) const;
+    const std::shared_ptr<Texture> loadImage(const std::string filePath) const;
 };
 
 #endif /* IMAGELOADER_H */

@@ -9,7 +9,7 @@
 
 #define COMPONENT_NAME "SpriteLoader"
 
-SpriteLoader::SpriteLoader(Engine &engine) : Component(std::string(COMPONENT_NAME), engine)
+SpriteLoader::SpriteLoader() : Component(std::string(COMPONENT_NAME))
 {
 }
 
@@ -30,7 +30,7 @@ const std::shared_ptr<SpriteSheet> SpriteLoader::loadSheet(std::string filename)
         std::string imageFile = "data/" + json["meta"]["image"].asString();
 
         //read the sprite image name and load the texture
-        auto texture = getEngine().getImageLoader().loadImage(imageFile);
+        auto texture = Engine::getInstance().getImageLoader().loadImage(imageFile);
 
         int width = json["meta"]["size"]["w"].asInt();
         int height = json["meta"]["size"]["h"].asInt();

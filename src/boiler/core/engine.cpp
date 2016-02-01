@@ -10,19 +10,25 @@
 
 #define RENDERER_CLASS OpenGLRenderer
 
-Engine::Engine() : spriteLoader(*this), imageLoader(*this), fontLoader(*this), keys{0}
+Engine::Engine() : spriteLoader(), imageLoader(), fontLoader(), keys{0}
 {
     lastTime = currentTime = 0;
     frameDelta = 0;
 }
 
-void Engine::initialize()
+Engine &Engine::getInstance()
 {
-    bool success = false;
+    static Engine instance;
+    return instance;
+}
 
+void Engine::initialize(const int resWidth, const int resHeight)
+{
+    this->resWidth = resWidth;
+    this->resHeight = resHeight;
     // create and initialize the renderer
-    renderer = std::make_unique<RENDERER_CLASS>(*this);
-    
+    renderer = std::make_unique<RENDERER_CLASS>();
+
     // initialization was successful
     std::cout << " - Preferred Path: " << SDL_GetPrefPath("ensoft", "sdl_engine") << std::endl;
     std::cout << " - Base Path: " << SDL_GetBasePath() << std::endl;

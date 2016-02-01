@@ -9,11 +9,10 @@ int main()
 {
     std::cout << "* Starting..." << std::endl;
 
-    Engine engine;
-    engine.initialize();
+    Engine::getInstance().initialize(640, 960);
 
-    auto part = std::make_shared<GamePart>(engine);
-    engine.start(part);
+    auto part = std::make_shared<GamePart>();
+    Engine::getInstance().start(part);
 
     return 0;
 }

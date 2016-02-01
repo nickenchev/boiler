@@ -15,12 +15,19 @@ using namespace std;
 
 GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.getScreenWidth(), engine.getScreenHeight())),
                                      textFont(getEngine().getFontLoader().loadBMFont("data/font.fnt")),
-                                     gravity(15.8f), stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f), jumpForceY(-600) 
+                                     gravity(15.8f), jumpForceY(-600),
+                                     stand(0.6f), run(0.6f), jump(0.6f), falling(0), punch(0.6f)
 {
-    getEngine().getRenderer().setClearColor(Color3(0.8f, 0.8f, 1.0f));
     //do some loading
     playerSheet = getEngine().getSpriteLoader().loadSheet("data/kof.json");
     tilesSheet = getEngine().getSpriteLoader().loadSheet("data/tiles.json");
+    // tilemap setup
+    tmxMap = TmxLoader::loadMap("data/demo_map.tmx");
+}
+
+void GamePart::start()
+{
+    getEngine().getRenderer().setClearColor(Color3(0.8f, 0.8f, 1.0f));
 
     stand.addFrame(playerSheet->getFrame("stand_01.png"));
     stand.addFrame(playerSheet->getFrame("stand_02.png"));
@@ -52,10 +59,6 @@ GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.ge
     // physics setup
     grounded = false;
     jumping = false;
-
-    // tilemap setup
-    Entity tileMap[100][100];
-    tmxMap = TmxLoader::loadMap("data/demo_map.tmx");
 
     // create the entities from the tile info
     int tileNum = 0;
@@ -118,13 +121,10 @@ GamePart::GamePart(Engine &engine) : Part(engine), qtree(0, Rect(0, 0, engine.ge
     getEngine().getRenderer().setCamera(camera);
 }
 
-void GamePart::start()
-{
-}
-
 void GamePart::handleInput()
 {
     float horizontalVelocity = 250.0f;
+
     // check keyboard and modify state
     if (getEngine().keyState(SDLK_a))
     {

@@ -7,21 +7,19 @@
 #include "../input/mouseinputlistener.h"
 #include "../input/mousebuttonevent.h"
 #include "TriptychGame.h"
-#include "Array2D.h"
 
 class TriptychGame;
 
 class GamePart : public Part, public MouseInputListener, public std::enable_shared_from_this<GamePart>
 {
     TriptychGame game;
-    std::shared_ptr<SpriteSheet> mainSheet;
-    ensoft::Array2D<std::shared_ptr<Entity>> boardCells;
+    std::shared_ptr<SpriteSheet> bigLayers;
     BMFont textFont;
 
     void showCurrentNumbers();
 
 public:
-    GamePart(Engine &engine);
+    GamePart();
 
     void start() override;
     void handleInput() override;

@@ -11,7 +11,7 @@ class OpenGLTexture : public Texture
     unsigned int textureId;
 
 public:
-    OpenGLTexture(unsigned int textureId);
+    OpenGLTexture(const std::string filePath, unsigned int textureId);
     ~OpenGLTexture();
     
     unsigned int getOpenGLTextureId() const { return textureId; }

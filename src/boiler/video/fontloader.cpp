@@ -14,7 +14,7 @@
 
 using namespace tinyxml2;
 
-FontLoader::FontLoader(Engine &engine) : Component(COMPONENT_NAME, engine)
+FontLoader::FontLoader() : Component(COMPONENT_NAME)
 {
 }
 
@@ -68,7 +68,7 @@ const BMFont FontLoader::loadBMFont(const std::string fontPath) const
                 Page pageObj;
                 pageObj.id = page->IntAttribute("id");
                 pageObj.file = page->Attribute("file");
-                pageObj.texture = getEngine().getImageLoader().loadImage(FileUtils::buildPath(imagePath, pageObj.file));
+                pageObj.texture = Engine::getInstance().getImageLoader().loadImage(FileUtils::buildPath(imagePath, pageObj.file));
                 font.pageList.push_back(std::move(pageObj));
 
                 page = page->NextSiblingElement();

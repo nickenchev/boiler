@@ -5,49 +5,44 @@
 #include "gamepart.h"
 #include "renderer.h"
 #include "GameDirector.h"
+#include "boardentity.h"
 
 #include "cellentity.h"
 
-GamePart::GamePart(Engine &engine) : Part(engine), game(GameType::NORMAL, 7, 7),
-                                     boardCells(game.getBoard().getRows(),
-                                                game.getBoard().getColumns()),
-                                     textFont(getEngine().getFontLoader().loadBMFont("data/font.fnt"))
+GamePart::GamePart() : Part(), game(GameType::NORMAL, 7, 7),
+                       textFont(Engine::getInstance().getFontLoader().loadBMFont("data/font.fnt"))
 {
+    const int screenWidth = Engine::getInstance().getScreenWidth();
+    const int screenHeight = Engine::getInstance().getScreenHeight();
+
     // load some game assets
-    mainSheet = getEngine().getSpriteLoader().loadSheet("data/triptych.json");
+    bigLayers = Engine::getInstance().getSpriteLoader().loadSheet("data/big_layers.json");
 
-    // create the board entities
-    int cellWidth = 75;
-    int cellHeight = 75;
-    int xOffset = 30;
-    int yOffset = 30;
-    for (int r = 1; r <= game.getBoard().getRows(); ++r)
-    {
-        for (int c = 1; c <= game.getBoard().getColumns(); ++c)
-        {
-            int x = (c - 1) * cellWidth + xOffset;
-            int y = (r - 1) * cellHeight + yOffset;
-            auto cell = std::make_shared<CellEntity>(r, c, Rect(x, y, cellWidth, cellHeight));
+    // draw the top layer
+    auto topLayer = std::make_shared<Entity>(Rect(0, 0, screenWidth, 400));
+    topLayer->spriteSheet = bigLayers;
+    topLayer->spriteFrame = bigLayers->getFrame("topLayer_1.png");
+    addEntity(topLayer);
 
-            cell->spriteSheet = mainSheet;
-            cell->spriteFrame = mainSheet->getFrame("tile_1.png");
-            addEntity(cell);
-        }
-    }
+    auto board = std::make_shared<BoardEntity>(game, Rect(0, 400, screenWidth, screenWidth));
+    board->onCreate();
+    addEntity(board);
 }
 
 void GamePart::showCurrentNumbers()
 {
-    std::cout << game.getBoard().getCurrentNumber().value << ":" << game.getBoard().getCurrentNumber().stage << "    Next: "
-              << game.getBoard().getNextNumber().value << ":" << game.getBoard().getNextNumber().stage << std::endl;
+    std::cout << game.getBoard().getCurrentNumber().value << ":"
+              << game.getBoard().getCurrentNumber().stage << "    Next: "
+              << game.getBoard().getNextNumber().value << ":"
+              << game.getBoard().getNextNumber().stage << std::endl;
 }
 
 void GamePart::start()
 {
-    getEngine().getRenderer().setClearColor(Color3(0.1f, 0.1f, 0.2f));
+    Engine::getInstance().getRenderer().setClearColor(Color3(0.1f, 0.1f, 0.2f));
 
     // setup input listeners
-    getEngine().addMouseListener(shared_from_this());
+    Engine::getInstance().addMouseListener(shared_from_this());
 
     // 
     game.getBoard().logBoard();
@@ -56,9 +51,9 @@ void GamePart::start()
 
 void GamePart::handleInput()
 {
-    if (getEngine().keyState(SDLK_ESCAPE))
+    if (Engine::getInstance().keyState(SDLK_ESCAPE))
     {
-        getEngine().quit();
+        Engine::getInstance().quit();
     }
 }
 

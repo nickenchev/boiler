@@ -14,7 +14,7 @@ protected:
     std::vector<std::shared_ptr<Entity>> entities;
 
 public:
-    Part(Engine &engine) : Component("Part", engine) { }
+    Part() : Component("Part") { }
 
     // disable copying
     Part(const Part &part) = delete;
