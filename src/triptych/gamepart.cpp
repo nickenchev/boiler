@@ -24,7 +24,9 @@ GamePart::GamePart() : Part(), game(GameType::NORMAL, 7, 7),
     topLayer->spriteFrame = bigLayers->getFrame("topLayer_1.png");
     addEntity(topLayer);
 
-    auto board = std::make_shared<BoardEntity>(game, Rect(0, 400, screenWidth, screenWidth));
+    const Size boardSize(screenWidth * 0.8f, screenWidth * 0.8f);
+    auto board = std::make_shared<BoardEntity>(game, Rect((screenWidth - boardSize.getWidth()) / 2,
+                                                          430, boardSize));
     board->onCreate();
     addEntity(board);
 }
@@ -44,7 +46,6 @@ void GamePart::start()
     // setup input listeners
     Engine::getInstance().addMouseListener(shared_from_this());
 
-    // 
     game.getBoard().logBoard();
     showCurrentNumbers();
 }
@@ -66,42 +67,5 @@ void GamePart::onMouseMove()
 }
 void GamePart::onMouseButton(const MouseButtonEvent event)
 {
-    if (event.button == MouseButton::LEFT && event.state == ButtonState::UP)
-    {
-        auto entities = getEntities();
-        for (auto itr = entities.begin(); itr != entities.end(); ++itr)
-        {
-            // grab the cell entity and check if it was selected
-            const auto &cellEntity = std::static_pointer_cast<CellEntity>(*itr);
-            if (cellEntity->frame.collides(glm::vec2(getX(), getY())))
-            {
-                BoardCell &boardCell = game.getBoard().getCell(cellEntity->getRow(), cellEntity->getColumn());
-                if (boardCell.isEmpty())
-                {
-                    game.turnBegin();
-
-                    const bool usingBank = game.getPlayer().bankSlotSelected();
-                    const BoardCell currentNumber = (usingBank) ? game.getPlayer().getSelectedBankCell() : game.getBoard().takeNumber();
-                    boardCell = currentNumber;
-
-                    long placementScore = 0;
-                    do
-                    {
-                        Triptych triptych(TriptychDirection::NONE);
-                        placementScore = game.getBoard().scorePlacement(cellEntity->getGridPosition(), triptych);
-                        if (placementScore)
-                        {
-                            std::cout << placementScore << std::endl;
-                            game.getBoard().logBoard();
-                        }
-                    } while (placementScore > 0);
-
-                    TurnInfo turnInfo = game.turnEnd();
-
-                    game.getBoard().logBoard();
-                    showCurrentNumbers();
-                }
-            }
-        }
-    }
+    showCurrentNumbers();
 }

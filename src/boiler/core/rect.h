@@ -26,6 +26,7 @@ struct Rect
 
     Rect() { }
     Rect(int x, int y, int width, int height) : position(x, y), size(width, height), pivot(0, 0) { }
+    Rect(int x, int y, const Size &size) : position(x, y), size(size), pivot(0, 0) { }
     Rect(const Rect &rect) { *this = rect; }
 
     inline float getMin(int dimension) const
