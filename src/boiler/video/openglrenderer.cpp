@@ -15,12 +15,14 @@
 
 #define COMPONENT_NAME "OpenGL Renderer"
 
-OpenGLRenderer::OpenGLRenderer(Engine &engine) : Renderer(std::string(COMPONENT_NAME), engine)
+OpenGLRenderer::OpenGLRenderer() : Renderer(std::string(COMPONENT_NAME))
 {
     bool success = false;
     if (SDL_Init(SDL_INIT_VIDEO) == 0)
     {
-        win = SDL_CreateWindow("Boiler", 0, 0, RES_WIDTH, RES_HEIGHT, SDL_WINDOW_OPENGL);
+        win = SDL_CreateWindow("Boiler", 0, 0,
+                               Engine::getInstance().getScreenWidth(),
+                               Engine::getInstance().getScreenHeight(), SDL_WINDOW_OPENGL);
         if (win)
         {
             // setup opengl
@@ -60,7 +62,7 @@ OpenGLRenderer::OpenGLRenderer(Engine &engine) : Renderer(std::string(COMPONENT_
     // setup a RBO for a colour target
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, getEngine().getScreenWidth(), getEngine().getScreenHeight());
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, Engine::getInstance().getScreenWidth(), Engine::getInstance().getScreenHeight());
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
     // setup the FBO
@@ -81,7 +83,7 @@ OpenGLRenderer::OpenGLRenderer(Engine &engine) : Renderer(std::string(COMPONENT_
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-std::shared_ptr<Texture> OpenGLRenderer::createTexture(const Size &textureSize, const void *pixelData) const
+std::shared_ptr<Texture> OpenGLRenderer::createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const
 {
     GLuint texId;
     // create the opengl texture and fill it with surface data
@@ -105,7 +107,7 @@ std::shared_ptr<Texture> OpenGLRenderer::createTexture(const Size &textureSize, 
         log("Created texture with ID: " + std::to_string(texId));
     }
 
-    return std::make_shared<OpenGLTexture>(texId);
+    return std::make_shared<OpenGLTexture>(filePath, texId);
 }
 
 void OpenGLRenderer::setActiveTexture(const Texture &texture) const
@@ -118,18 +120,18 @@ void OpenGLRenderer::setActiveTexture(const Texture &texture) const
 
 void OpenGLRenderer::render() const
 {
-    const ShaderProgram *program = getEngine().getRenderer().getProgram();
+    const ShaderProgram *program = Engine::getInstance().getRenderer().getProgram();
     glUseProgram(program->getShaderProgram());
     GLuint mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
 
     glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    const std::vector<std::shared_ptr<Entity>> &entities = getEngine().getPart()->getEntities();
+    const std::vector<std::shared_ptr<Entity>> &entities = Engine::getInstance().getPart()->getEntities();
 
     // prepare the matrices
-    GLfloat orthoW = getEngine().getScreenWidth() / getEngine().getRenderer().getGlobalScale().x;
-    GLfloat orthoH = getEngine().getScreenHeight() / getEngine().getRenderer().getGlobalScale().y;
+    GLfloat orthoW = Engine::getInstance().getScreenWidth() / Engine::getInstance().getRenderer().getGlobalScale().x;
+    GLfloat orthoH = Engine::getInstance().getScreenHeight() / Engine::getInstance().getRenderer().getGlobalScale().y;
 
     // opengl sprite render
     glm::mat4 viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW),

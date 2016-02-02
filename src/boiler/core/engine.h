@@ -8,17 +8,14 @@
 #include "fontloader.h"
 #include "../input/mouseinputlistener.h"
 
-#define RES_WIDTH 800
-#define RES_HEIGHT 600 
-
 #define MAX_KEYS 256
 
 class Renderer;
 class Part;
-class SDL_Window;
 
 class Engine
 {
+    int resWidth, resHeight;
     std::unique_ptr<Renderer> renderer;
     std::vector<std::shared_ptr<MouseInputListener>> mouseListeners;
 
@@ -37,11 +34,17 @@ class Engine
 
     std::shared_ptr<Part> part;
 
-public:
+    // singleton
     Engine();
     ~Engine();
 
-    void initialize();
+public:
+    Engine(const Engine &) = delete;
+    void operator=(const Engine &s) = delete;
+
+    static Engine &getInstance();
+
+    void initialize(const int resWidth, const int resHeight);
     void start(std::shared_ptr<Part> part);
     void quit() { running = false; }
 
@@ -52,8 +55,8 @@ public:
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
     const ImageLoader &getImageLoader() const { return imageLoader; }
     const FontLoader &getFontLoader() const { return fontLoader; }
-    int getScreenWidth() const { return RES_WIDTH; }
-    int getScreenHeight() const { return RES_HEIGHT; }
+    int getScreenWidth() const { return resWidth; }
+    int getScreenHeight() const { return resHeight; }
 
     void addMouseListener(std::shared_ptr<MouseInputListener> listener);
 };

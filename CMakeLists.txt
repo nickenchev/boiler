@@ -64,8 +64,8 @@ set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 # Game related sources
 add_library(game
   src/main.cpp
-  src/gamepart.cpp
-  #src/triptych/gamepart.cpp
+  #src/gamepart.cpp
+  src/triptych/gamepart.cpp
   src/triptych/GameCore/GameAttribute.cpp
   src/triptych/GameCore/Message.cpp
   src/triptych/GameCore/MessageQueue.cpp
@@ -84,7 +84,8 @@ add_library(game
   src/triptych/SaveGameHeader.cpp
   src/triptych/SwapNumbersPowerUp.cpp
   src/triptych/Triptych.cpp
-  src/triptych/TriptychGame.cpp)
+  src/triptych/TriptychGame.cpp
+  src/triptych/boardentity.cpp)
 
 add_executable(${PROJECT_NAME} ${SHADER_FILES})
 target_link_libraries(${PROJECT_NAME} boiler game ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})

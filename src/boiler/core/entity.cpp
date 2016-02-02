@@ -74,7 +74,7 @@ const glm::mat4 &Entity::getMatrix()
     }
     if (flipV)
     {
-        pivotPos.y += frame.size.getHeight();
+        pivotPos.x += frame.size.getHeight();
         scaleY *= -1;
     }
     // create the model matrix, by getting a 3D vector from the Entity's vec2 position

@@ -22,7 +22,7 @@ protected:
     std::shared_ptr<Camera> camera;
 
 public:
-    Renderer(std::string name, Engine &engine);
+    Renderer(std::string name);
 
     const ShaderProgram *getProgram() const { return program.get(); }
     void setCamera(std::shared_ptr<Camera> camera) { this->camera = camera; }
@@ -32,7 +32,7 @@ public:
     const Color3 &getClearColor() const { return clearColor; }
     void setClearColor(const Color3 &color) { clearColor = color; }
 
-    virtual std::shared_ptr<Texture> createTexture(const Size &textureSize, const void *pixelData) const = 0;
+    virtual std::shared_ptr<Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const = 0;
     virtual void setActiveTexture(const Texture &texture) const = 0;
     virtual void render() const = 0;
 };

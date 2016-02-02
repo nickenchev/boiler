@@ -5,17 +5,17 @@
 
 #define COMPONENT_NAME "SpriteLoader"
 
-ImageLoader::ImageLoader(Engine &engine) : Component(COMPONENT_NAME, engine)
+ImageLoader::ImageLoader() : Component(COMPONENT_NAME)
 {
 }
 
-const std::shared_ptr<Texture> ImageLoader::loadImage(const std::string filename) const
+const std::shared_ptr<Texture> ImageLoader::loadImage(const std::string filePath) const
 {
-    log("Loading image: " + filename);
-    SDL_Surface *surface = IMG_Load(filename.c_str());
+    log("Loading image: " + filePath);
+    SDL_Surface *surface = IMG_Load(filePath.c_str());
 
     assert(surface != nullptr);
-    auto texture = getEngine().getRenderer().createTexture(Size(surface->w, surface->h), surface->pixels);
+    auto texture = Engine::getInstance().getRenderer().createTexture(filePath, Size(surface->w, surface->h), surface->pixels);
 
     SDL_FreeSurface(surface);
 

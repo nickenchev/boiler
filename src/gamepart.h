@@ -18,20 +18,13 @@ class SpriteSheetFrame;
 
 class GamePart : public Part
 {
-    //scene specific stuff
+    EntityState *playerState;
     std::shared_ptr<SpriteSheet> playerSheet, tilesSheet;
     std::shared_ptr<Entity> player;
-    BMFont textFont;
     std::unique_ptr<ensoft::Map> tmxMap;
-
     std::shared_ptr<Camera> camera;
-
-    // animation related
-    EntityState *playerState;
-    SpriteAnimation *currentAnimation, stand, run, jump, falling, punch;
-
-    // collision detection specific
     Quadtree qtree;
+    BMFont textFont;
 
     // physics stuff
     const glm::vec2 maxSpeed;
@@ -39,6 +32,8 @@ class GamePart : public Part
     const float jumpForceY;
     glm::vec2 velocity;
     bool grounded, jumping;
+
+    SpriteAnimation *currentAnimation, stand, run, jump, falling, punch;
 
     void updateQuadtree();
 

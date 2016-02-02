@@ -6,7 +6,7 @@
         <key>texturePackerVersion</key>
         <string>3.7.1</string>
         <key>fileName</key>
-        <string>/Users/nenchev/Developer/projects/sdl_engine/data/triptych.tps</string>
+        <string>/Users/nenchev/Developer/projects/sdl_engine/data/num_stage_1.tps</string>
         <key>autoSDSettings</key>
         <array>
             <struct type="AutoSDSettings">
@@ -145,7 +145,7 @@
             <key>data</key>
             <struct type="DataFile">
                 <key>name</key>
-                <filename>triptych.json</filename>
+                <filename>num_stage_1.json</filename>
             </struct>
         </map>
         <key>multiPack</key>
@@ -188,45 +188,15 @@
         </struct>
         <key>fileList</key>
         <array>
-            <filename>../../triptych/textures/sprites/arrow.png</filename>
-            <filename>../../triptych/textures/sprites/bank_buy.png</filename>
-            <filename>../../triptych/textures/sprites/bank_sel.png</filename>
-            <filename>../../triptych/textures/sprites/bank.png</filename>
-            <filename>../../triptych/textures/sprites/btn_undo.png</filename>
-            <filename>../../triptych/textures/sprites/current_nums.png</filename>
-            <filename>../../triptych/textures/sprites/diskette.png</filename>
-            <filename>../../triptych/textures/sprites/help_icon.png</filename>
-            <filename>../../triptych/textures/sprites/menu_1.png</filename>
-            <filename>../../triptych/textures/sprites/menu_2.png</filename>
-            <filename>../../triptych/textures/sprites/menu_3.png</filename>
-            <filename>../../triptych/textures/sprites/menu_4.png</filename>
-            <filename>../../triptych/textures/sprites/menu_5.png</filename>
-            <filename>../../triptych/textures/sprites/menu_6.png</filename>
-            <filename>../../triptych/textures/sprites/menu_7.png</filename>
-            <filename>../../triptych/textures/sprites/menu_8.png</filename>
-            <filename>../../triptych/textures/sprites/menu_9.png</filename>
-            <filename>../../triptych/textures/sprites/menu_10.png</filename>
-            <filename>../../triptych/textures/sprites/menu_11.png</filename>
-            <filename>../../triptych/textures/sprites/pow_icon.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_1.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_2.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_3.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_4.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_5.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_6.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_7.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_8.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_9.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_10.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_11.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_12.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_13.png</filename>
-            <filename>../../triptych/textures/sprites/pow_wave_14.png</filename>
-            <filename>../../triptych/textures/sprites/powerup_buy_down.png</filename>
-            <filename>../../triptych/textures/sprites/powerup_buy.png</filename>
-            <filename>../../triptych/textures/sprites/powerup_disabled.png</filename>
-            <filename>../../triptych/textures/sprites/powerup.png</filename>
-            <filename>../../triptych/textures/sprites/tile_1.png</filename>
+            <filename>../../triptych/textures/sprites/num_1_1.png</filename>
+            <filename>../../triptych/textures/sprites/num_2_1.png</filename>
+            <filename>../../triptych/textures/sprites/num_3_1.png</filename>
+            <filename>../../triptych/textures/sprites/num_4_1.png</filename>
+            <filename>../../triptych/textures/sprites/num_5_1.png</filename>
+            <filename>../../triptych/textures/sprites/num_6_1.png</filename>
+            <filename>../../triptych/textures/sprites/num_7_1.png</filename>
+            <filename>../../triptych/textures/sprites/num_8_1.png</filename>
+            <filename>../../triptych/textures/sprites/num_9_1.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

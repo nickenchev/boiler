@@ -3,12 +3,12 @@
 
 #include "component.h"
 
-class BMFont;
+struct BMFont;
 
 class FontLoader : public Component
 {
 public:
-    FontLoader(Engine &engine);
+    FontLoader();
 
     const BMFont loadBMFont(const std::string fontPath) const;
 };

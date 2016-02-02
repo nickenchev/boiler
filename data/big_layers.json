@@ -1,0 +1,30 @@
+{"frames": [
+
+{
+	"filename": "powers_bg.png",
+	"frame": {"x":2,"y":2,"w":1242,"h":774},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1242,"h":774},
+	"sourceSize": {"w":1242,"h":774},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "topLayer_1.png",
+	"frame": {"x":2,"y":778,"w":1242,"h":751},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1242,"h":751},
+	"sourceSize": {"w":1242,"h":751},
+	"pivot": {"x":0.5,"y":0.5}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "big_layers.png",
+	"format": "RGBA8888",
+	"size": {"w":1246,"h":1531},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:0fdd12423803463077c8c2ef7e01ae72:82df3785b7b0c02569ee40f208aa1b78:1cc111c81e1ca2f435347c16213df109$"
+}
+}

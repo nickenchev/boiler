@@ -15,11 +15,11 @@ class OpenGLRenderer : public Renderer
     void renderEntity(const std::shared_ptr<Entity> &entity, unsigned int mvpUniform, const glm::mat4 &viewProjection) const;
 
 public:
-    OpenGLRenderer(Engine &engine);
+    OpenGLRenderer();
     ~OpenGLRenderer();
 
     SDL_Window *getWindow() const { return win; }
-    std::shared_ptr<Texture> createTexture(const Size &textureSize, const void *pixelData) const override;
+    std::shared_ptr<Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const override;
     void setActiveTexture(const Texture &texture) const override;
     void render() const override;
 };
