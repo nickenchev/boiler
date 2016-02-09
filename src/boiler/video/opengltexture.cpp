@@ -10,7 +10,7 @@ OpenGLTexture::OpenGLTexture(const std::string filePath, unsigned int textureId)
 
 OpenGLTexture::~OpenGLTexture()
 {
-    std::cout << "* Deleting OpenGL Texture: " << textureId << " - " << getFilePath() << std::endl;
+    std::cout << "* Deleting OpenGL Texture: " << textureId << " (" << getFilePath() << ")" << std::endl;
     if (textureId)
     {
         glDeleteTextures(1, &textureId);
