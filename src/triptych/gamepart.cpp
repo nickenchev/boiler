@@ -12,20 +12,19 @@
 GamePart::GamePart() : Part(), game(GameType::NORMAL, 7, 7),
                        textFont(Engine::getInstance().getFontLoader().loadBMFont("data/font.fnt"))
 {
-    const int screenWidth = Engine::getInstance().getScreenWidth();
-    const int screenHeight = Engine::getInstance().getScreenHeight();
+    const Size screenSize = Engine::getInstance().getScreenSize();
 
     // load some game assets
     bigLayers = Engine::getInstance().getSpriteLoader().loadSheet("data/big_layers.json");
 
     // draw the top layer
-    auto topLayer = std::make_shared<Entity>(Rect(0, 0, screenWidth, 400));
+    auto topLayer = std::make_shared<Entity>(Rect(0, 0, screenSize.getWidth(), 400));
     topLayer->spriteSheet = bigLayers;
     topLayer->spriteFrame = bigLayers->getFrame("topLayer_1.png");
     addEntity(topLayer);
 
-    const Size boardSize(screenWidth * 0.8f, screenWidth * 0.8f);
-    auto board = std::make_shared<BoardEntity>(game, Rect((screenWidth - boardSize.getWidth()) / 2,
+    const Size boardSize(screenSize.getWidth() * 0.8f, screenSize.getWidth() * 0.8f);
+    auto board = std::make_shared<BoardEntity>(game, Rect((screenSize.getWidth() - boardSize.getWidth()) / 2,
                                                           430, boardSize));
     board->onCreate();
     addEntity(board);

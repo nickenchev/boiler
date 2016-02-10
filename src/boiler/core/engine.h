@@ -55,8 +55,8 @@ public:
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
     const ImageLoader &getImageLoader() const { return imageLoader; }
     const FontLoader &getFontLoader() const { return fontLoader; }
-    int getScreenWidth() const { return resWidth; }
-    int getScreenHeight() const { return resHeight; }
+
+    const Size getScreenSize() const { return Size(resWidth, resHeight); }
 
     void addMouseListener(std::shared_ptr<MouseInputListener> listener);
 };

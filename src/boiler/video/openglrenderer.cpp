@@ -18,11 +18,13 @@
 OpenGLRenderer::OpenGLRenderer() : Renderer(std::string(COMPONENT_NAME))
 {
     bool success = false;
+    const Size screenSize = Engine::getInstance().getScreenSize();
+
     if (SDL_Init(SDL_INIT_VIDEO) == 0)
     {
         win = SDL_CreateWindow("Boiler", 0, 0,
-                               Engine::getInstance().getScreenWidth(),
-                               Engine::getInstance().getScreenHeight(), SDL_WINDOW_OPENGL);
+                               screenSize.getWidth(),
+                               screenSize.getHeight(), SDL_WINDOW_OPENGL);
         if (win)
         {
             // setup opengl
@@ -62,7 +64,7 @@ OpenGLRenderer::OpenGLRenderer() : Renderer(std::string(COMPONENT_NAME))
     // setup a RBO for a colour target
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, Engine::getInstance().getScreenWidth(), Engine::getInstance().getScreenHeight());
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, screenSize.getWidth(), screenSize.getHeight());
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
     // setup the FBO
@@ -130,8 +132,9 @@ void OpenGLRenderer::render() const
     const std::vector<std::shared_ptr<Entity>> &entities = Engine::getInstance().getPart()->getEntities();
 
     // prepare the matrices
-    GLfloat orthoW = Engine::getInstance().getScreenWidth() / Engine::getInstance().getRenderer().getGlobalScale().x;
-    GLfloat orthoH = Engine::getInstance().getScreenHeight() / Engine::getInstance().getRenderer().getGlobalScale().y;
+    const Size screenSize = Engine::getInstance().getScreenSize();
+    const GLfloat orthoW = screenSize.getWidth() / Engine::getInstance().getRenderer().getGlobalScale().x;
+    const GLfloat orthoH = screenSize.getHeight() / Engine::getInstance().getRenderer().getGlobalScale().y;
 
     // opengl sprite render
     glm::mat4 viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW),
