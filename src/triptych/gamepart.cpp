@@ -6,7 +6,6 @@
 #include "renderer.h"
 #include "GameDirector.h"
 #include "boardentity.h"
-
 #include "cellentity.h"
 
 GamePart::GamePart() : Part(), game(GameType::NORMAL, 7, 7),

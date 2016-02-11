@@ -15,7 +15,7 @@ Ray::Ray(const glm::vec2 &origin, const glm::vec2 &direction) : origin(origin), 
 bool Ray::intersects(const Rect &aabb) const
 {
     float tmin, tmax, tymin, tymax;
-    glm::vec2 bounds[2] = { aabb.position, glm::vec2(aabb.position.x + aabb.size.getWidth(), aabb.position.y + aabb.size.getHeight()) };
+    glm::vec3 bounds[2] = { aabb.position, glm::vec3(aabb.position.x + aabb.size.getWidth(), aabb.position.y + aabb.size.getHeight(), 0) };
 
     return true;
 }

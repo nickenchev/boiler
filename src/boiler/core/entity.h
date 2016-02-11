@@ -28,7 +28,7 @@ public:
 
     Rect frame;
     bool flipH, flipV, collides;
-    glm::vec2 scale;
+    glm::vec3 scale;
 
     std::shared_ptr<SpriteSheet> spriteSheet;
     const SpriteSheetFrame *spriteFrame;
@@ -37,6 +37,7 @@ public:
     void addChild(std::shared_ptr<Entity> child) { children.push_back(child); }
 
     unsigned int getVao() const { return meshVao; }
+    const glm::mat4 &getMatrix(const glm::vec3 &offset);
     const glm::mat4 &getMatrix();
 };
 

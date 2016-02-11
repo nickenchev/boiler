@@ -29,11 +29,16 @@ void BoardEntity::onCreate()
         {
             int x = (c - 1) * cellWidth + xOffset;
             int y = (r - 1) * cellHeight + yOffset;
-            auto cell = std::make_shared<CellEntity>(r, c, Rect(x, y, cellWidth, cellHeight));
 
+            auto cell = std::make_shared<CellEntity>(r, c, Rect(x, y, cellWidth, cellHeight));
             cell->spriteSheet = triptych;
             cell->spriteFrame = triptych->getFrame("tile_1.png");
             addChild(cell);
+
+            auto number = std::make_shared<Entity>(Rect(cellWidth / 2, cellWidth / 2, cellWidth, cellHeight));
+            number->spriteSheet = numStage;
+            number->spriteFrame = numStage->getFrame("num_1_1.png");
+            cell->addChild(number);
         }
     }
 }

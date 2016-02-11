@@ -147,42 +147,46 @@ void OpenGLRenderer::render() const
                                         glm::vec3(0, 1.0f, 0));
         viewProjection = viewProjection * view;
     }
-    for (auto &entity : entities)
-    {
-        renderEntity(entity, mvpUniform, viewProjection);
-    }
+
+    // draw the entities recursively
+    renderEntities(entities, mvpUniform, viewProjection, glm::vec3(0, 0, 0));
 
     SDL_GL_SwapWindow(win);
     glUseProgram(0);
 }
 
-void OpenGLRenderer::renderEntity(const std::shared_ptr<Entity> &entity, unsigned int mvpUniform, const glm::mat4 &viewProjection) const
+void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, unsigned int mvpUniform, const glm::mat4 &viewProjection, glm::vec3 offset) const
 {
-    // set the vao for the current sprite
-    glBindVertexArray(entity->getVao());
-
-    if (entity->spriteFrame)
+    for (auto &entity : entities)
     {
-        // binds the current frames texture VBO and ensure it is linked to the current VAO
-        glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
-        // set the current texture
-        setActiveTexture(entity->spriteSheet->getTexture());
-    }
+        glm::vec3 entityOffset = entity->frame.position + offset;
 
+        // set the vao for the current sprite
+        glBindVertexArray(entity->getVao());
 
-    const glm::mat4 &model = entity->getMatrix();
-    glm::mat4 mvpMatrix = viewProjection * model;
+        if (entity->spriteFrame)
+        {
+            // binds the current frames texture VBO and ensure it is linked to the current VAO
+            glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+            // set the current texture
+            setActiveTexture(entity->spriteSheet->getTexture());
+        }
 
-    glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
+        const glm::mat4 &model = entity->getMatrix(entityOffset);
+        glm::mat4 mvpMatrix = viewProjection * model;
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
+        glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
 
-    // render all the children
-    for (auto &entity : entity->getChildren())
-    {
-        renderEntity(entity, mvpUniform, viewProjection);
+        // draw the entity
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
+
+        // draw the child entities
+        if (entity->getChildren().size() > 0)
+        {
+            renderEntities(entity->getChildren(), mvpUniform, viewProjection, entityOffset);
+        }
     }
 }
 

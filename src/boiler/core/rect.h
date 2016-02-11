@@ -20,13 +20,13 @@ struct Size
 
 struct Rect
 {
-    glm::vec2 position;
-    glm::vec2 pivot;
+    glm::vec3 position;
     Size size;
+    glm::vec3 pivot;
 
     Rect() { }
-    Rect(int x, int y, int width, int height) : position(x, y), size(width, height), pivot(0, 0) { }
-    Rect(int x, int y, const Size &size) : position(x, y), size(size), pivot(0, 0) { }
+    Rect(int x, int y, int width, int height) : position(x, y, 0), size(width, height), pivot(0, 0, 0) { }
+    Rect(int x, int y, const Size &size) : position(x, y, 0), size(size), pivot(0, 0, 0) { }
     Rect(const Rect &rect) { *this = rect; }
 
     inline float getMin(int dimension) const

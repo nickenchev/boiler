@@ -7,7 +7,7 @@ Entity::Entity() : Entity(Rect())
 {
 }
 
-Entity::Entity(Rect frame) : scale(1.0f, 1.0f)
+Entity::Entity(Rect frame) : scale(1.0f, 1.0f, 1.0f)
 {
     flipH = false;
     flipV = false;
@@ -59,11 +59,12 @@ Entity::~Entity()
     glDeleteVertexArrays(1, &meshVao);
 }
 
-const glm::mat4 &Entity::getMatrix()
+const glm::mat4 &Entity::getMatrix(const glm::vec3 &offset)
 {
     // offset the player position based on the pivot modifier
-    glm::vec2 pivotPos(frame.position.x - frame.size.getWidth() * frame.pivot.x,
-                       frame.position.y - frame.size.getHeight() * frame.pivot.y);
+    glm::vec3 offsetPos = frame.position + offset;
+    glm::vec3 pivotPos(offsetPos.x - frame.size.getWidth() * frame.pivot.x,
+                       offsetPos.y - frame.size.getHeight() * frame.pivot.y, 0);
 
     float scaleX = scale.x;
     float scaleY = scale.y;
@@ -78,8 +79,13 @@ const glm::mat4 &Entity::getMatrix()
         scaleY *= -1;
     }
     // create the model matrix, by getting a 3D vector from the Entity's vec2 position
-    modelMatrix = glm::translate(glm::mat4(1), glm::vec3(pivotPos, 0.0f));
-
+    modelMatrix = glm::translate(glm::mat4(1), pivotPos);
     modelMatrix = glm::scale(modelMatrix, glm::vec3(scaleX, scaleY, 1.0f));
+
     return modelMatrix;
+}
+
+const glm::mat4 &Entity::getMatrix()
+{
+    return getMatrix(glm::vec3(0, 0, 0));
 }
