@@ -18,11 +18,12 @@ void BoardEntity::onCreate()
 {
     Engine::getInstance().addMouseListener(shared_from_this());
     const Board &board = game.getBoard();
+
     // create the board entities
-    int cellWidth = frame.size.getWidth() / board.getRows();
-    int cellHeight = frame.size.getHeight() / board.getColumns();
-    int xOffset = frame.position.x;
-    int yOffset = frame.position.y;
+    int cellWidth = frame.size.getWidth() / board.getColumns();
+    int cellHeight = frame.size.getHeight() / board.getRows();
+    int xOffset = 0;
+    int yOffset = 0;
     for (int r = 1; r <= game.getBoard().getRows(); ++r)
     {
         for (int c = 1; c <= game.getBoard().getColumns(); ++c)
@@ -35,7 +36,9 @@ void BoardEntity::onCreate()
             cell->spriteFrame = triptych->getFrame("tile_1.png");
             addChild(cell);
 
-            auto number = std::make_shared<Entity>(Rect(cellWidth / 2, cellWidth / 2, cellWidth, cellHeight));
+            auto number = std::make_shared<Entity>(Rect(cellWidth / 2, cellHeight / 2,
+                                                        cellWidth / 2, cellHeight / 2));
+            number->frame.pivot = glm::vec3(0.5f, 0.5f, 0.6f);
             number->spriteSheet = numStage;
             number->spriteFrame = numStage->getFrame("num_1_1.png");
             cell->addChild(number);

@@ -155,7 +155,7 @@ void OpenGLRenderer::render() const
     glUseProgram(0);
 }
 
-void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, unsigned int mvpUniform, const glm::mat4 &viewProjection, glm::vec3 offset) const
+void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, unsigned int mvpUniform, const glm::mat4 &viewProjection, const glm::vec3 offset) const
 {
     for (auto &entity : entities)
     {
@@ -173,7 +173,7 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
             setActiveTexture(entity->spriteSheet->getTexture());
         }
 
-        const glm::mat4 &model = entity->getMatrix(entityOffset);
+        const glm::mat4 &model = entity->getMatrix(offset);
         glm::mat4 mvpMatrix = viewProjection * model;
 
         glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);

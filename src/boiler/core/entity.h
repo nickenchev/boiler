@@ -41,5 +41,4 @@ public:
     const glm::mat4 &getMatrix();
 };
 
-
 #endif /* ENTITY_H */

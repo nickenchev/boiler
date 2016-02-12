@@ -23,8 +23,8 @@ GamePart::GamePart() : Part(), game(GameType::NORMAL, 7, 7),
     addEntity(topLayer);
 
     const Size boardSize(screenSize.getWidth() * 0.8f, screenSize.getWidth() * 0.8f);
-    auto board = std::make_shared<BoardEntity>(game, Rect((screenSize.getWidth() - boardSize.getWidth()) / 2,
-                                                          430, boardSize));
+    auto board = std::make_shared<BoardEntity>(game, Rect(0, 405, boardSize));
+                                                    
     board->onCreate();
     addEntity(board);
 }
