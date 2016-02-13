@@ -20,13 +20,12 @@ GamePart::GamePart() : Part(), game(GameType::NORMAL, 7, 7),
     auto topLayer = std::make_shared<Entity>(Rect(0, 0, screenSize.getWidth(), 400));
     topLayer->spriteSheet = bigLayers;
     topLayer->spriteFrame = bigLayers->getFrame("topLayer_1.png");
-    addEntity(topLayer);
+    addChild(topLayer);
 
     const Size boardSize(screenSize.getWidth() * 0.8f, screenSize.getWidth() * 0.8f);
     auto board = std::make_shared<BoardEntity>(game, Rect(0, 405, boardSize));
                                                     
-    board->onCreate();
-    addEntity(board);
+    addChild(board);
 }
 
 void GamePart::showCurrentNumbers()

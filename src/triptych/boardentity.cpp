@@ -16,6 +16,7 @@ BoardEntity::BoardEntity(TriptychGame &game, const Rect rect) : Entity(rect),
 
 void BoardEntity::onCreate()
 {
+    std::cout << "Board!";
     Engine::getInstance().addMouseListener(shared_from_this());
     const Board &board = game.getBoard();
 
@@ -34,7 +35,6 @@ void BoardEntity::onCreate()
             auto cell = std::make_shared<CellEntity>(r, c, Rect(x, y, cellWidth, cellHeight));
             cell->spriteSheet = triptych;
             cell->spriteFrame = triptych->getFrame("tile_1.png");
-            cell->onCreate();
             addChild(cell);
 
             cell->getNumberSprite()->frame.pivot = glm::vec3(0.5f, 0.5f, 0.6f);

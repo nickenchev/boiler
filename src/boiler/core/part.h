@@ -4,14 +4,12 @@
 #include <vector>
 #include <memory>
 #include "component.h"
+#include "entity.h"
 
 class Engine;
-class Entity;
 
-class Part : public Component
+class Part : public Component, public Entity
 {
-protected:
-    std::vector<std::shared_ptr<Entity>> entities;
 
 public:
     Part() : Component("Part") { }
@@ -23,9 +21,6 @@ public:
     virtual void start() = 0;
     virtual void handleInput() = 0;
     virtual void update(const float delta) = 0;
-
-    void addEntity(std::shared_ptr<Entity> entity);
-    const std::vector<std::shared_ptr<Entity>> &getEntities() const { return entities; }
 };
 
 #endif /* PART_H */

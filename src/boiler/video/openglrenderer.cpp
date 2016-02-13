@@ -129,7 +129,7 @@ void OpenGLRenderer::render() const
     glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    const std::vector<std::shared_ptr<Entity>> &entities = Engine::getInstance().getPart()->getEntities();
+    const std::vector<std::shared_ptr<Entity>> &entities = Engine::getInstance().getPart()->getChildren();
 
     // prepare the matrices
     const Size screenSize = Engine::getInstance().getScreenSize();

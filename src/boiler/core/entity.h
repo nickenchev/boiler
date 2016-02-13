@@ -24,8 +24,6 @@ public:
     Entity(Rect frame);
     ~Entity();
 
-    virtual void onCreate() { }
-
     Rect frame;
     bool flipH, flipV, collides;
     glm::vec3 scale;
@@ -34,11 +32,14 @@ public:
     const SpriteSheetFrame *spriteFrame;
 
     std::vector<std::shared_ptr<Entity>> &getChildren() { return children; }
-    void addChild(std::shared_ptr<Entity> child) { children.push_back(child); }
+    void addChild(std::shared_ptr<Entity> child);
 
     unsigned int getVao() const { return meshVao; }
     const glm::mat4 &getMatrix(const glm::vec3 &offset);
     const glm::mat4 &getMatrix();
+
+protected:
+    virtual void onCreate() { }
 };
 
 #endif /* ENTITY_H */

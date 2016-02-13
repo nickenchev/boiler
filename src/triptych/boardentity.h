@@ -20,7 +20,6 @@ public:
     BoardEntity(TriptychGame &game, const Rect rect);
 
     void onCreate() override;
-
     void onMouseMove() override;
     void onMouseButton(const MouseButtonEvent event) override;
 };

@@ -50,6 +50,12 @@ Entity::Entity(Rect frame) : scale(1.0f, 1.0f, 1.0f)
     glBindVertexArray(0);
 }
 
+void Entity::addChild(std::shared_ptr<Entity> child)
+{
+    children.push_back(child);
+    child->onCreate();
+}
+
 Entity::~Entity()
 {
     glDisableVertexAttribArray(ATTRIB_ARRAY_VERTEX);
