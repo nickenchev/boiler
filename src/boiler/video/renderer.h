@@ -32,8 +32,8 @@ public:
     const Color3 &getClearColor() const { return clearColor; }
     void setClearColor(const Color3 &color) { clearColor = color; }
 
-    virtual std::shared_ptr<Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const = 0;
-    virtual void setActiveTexture(const Texture &texture) const = 0;
+    virtual std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const = 0;
+    virtual void setActiveTexture(std::shared_ptr<const Texture> texture) const = 0;
     virtual void render() const = 0;
 };
 

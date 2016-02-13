@@ -13,7 +13,7 @@ struct Page
 {
     int id;
     std::string file;
-    std::shared_ptr<Texture> texture;
+    std::shared_ptr<const Texture> texture;
 };
 
 struct Char

@@ -18,7 +18,6 @@ GamePart::GamePart() : Part(), game(GameType::NORMAL, 7, 7),
 
     // draw the top layer
     auto topLayer = std::make_shared<Entity>(Rect(0, 0, screenSize.getWidth(), 400));
-    topLayer->spriteSheet = bigLayers;
     topLayer->spriteFrame = bigLayers->getFrame("topLayer_1.png");
     addChild(topLayer);
 

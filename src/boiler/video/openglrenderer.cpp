@@ -85,7 +85,7 @@ OpenGLRenderer::OpenGLRenderer() : Renderer(std::string(COMPONENT_NAME))
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-std::shared_ptr<Texture> OpenGLRenderer::createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const
+std::shared_ptr<const Texture> OpenGLRenderer::createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const
 {
     GLuint texId;
     // create the opengl texture and fill it with surface data
@@ -112,12 +112,12 @@ std::shared_ptr<Texture> OpenGLRenderer::createTexture(const std::string filePat
     return std::make_shared<OpenGLTexture>(filePath, texId);
 }
 
-void OpenGLRenderer::setActiveTexture(const Texture &texture) const
+void OpenGLRenderer::setActiveTexture(const std::shared_ptr<const Texture> texture) const
 {
-    const OpenGLTexture &tex = (OpenGLTexture &)texture;
+    auto tex = std::static_pointer_cast<const OpenGLTexture>(texture);
     // the sprite becomes TEXTURE0 in the shader
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex.getOpenGLTextureId());
+    glBindTexture(GL_TEXTURE_2D, tex->getOpenGLTextureId());
 }
 
 void OpenGLRenderer::render() const
@@ -169,8 +169,9 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
             // binds the current frames texture VBO and ensure it is linked to the current VAO
             glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
             glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+
             // set the current texture
-            setActiveTexture(entity->spriteSheet->getTexture());
+            setActiveTexture(entity->spriteFrame->getSourceTexture());
         }
 
         const glm::mat4 &model = entity->getMatrix(offset);

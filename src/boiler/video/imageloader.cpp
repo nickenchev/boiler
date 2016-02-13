@@ -9,7 +9,7 @@ ImageLoader::ImageLoader() : Component(COMPONENT_NAME)
 {
 }
 
-const std::shared_ptr<Texture> ImageLoader::loadImage(const std::string filePath) const
+const std::shared_ptr<const Texture> ImageLoader::loadImage(const std::string filePath) const
 {
     log("Loading image: " + filePath);
     SDL_Surface *surface = IMG_Load(filePath.c_str());

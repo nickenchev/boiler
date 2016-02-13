@@ -11,7 +11,7 @@ class Texture;
 
 class SpriteSheetFrame
 {
-    const std::shared_ptr<Texture> sourceTexture;
+    const std::shared_ptr<const Texture> sourceTexture;
     std::string filename;
     Rect sourceRect;
     bool rotated;
@@ -20,13 +20,13 @@ class SpriteSheetFrame
     unsigned int texCoordsVbo;
 
 public:
-    SpriteSheetFrame(const std::shared_ptr<Texture> sourceTexture, std::string filename, Rect sourceRect, bool rotated, bool trimmed, const glm::vec2 &pivot, unsigned int texCoordsVbo);
+    SpriteSheetFrame(const std::shared_ptr<const Texture> sourceTexture, std::string filename, Rect sourceRect, bool rotated, bool trimmed, const glm::vec2 &pivot, unsigned int texCoordsVbo);
     const std::string &getFilename() const { return filename; }
     Rect getSourceRect() const { return sourceRect; }
     unsigned int getTexCoordsVbo() const { return texCoordsVbo; }
     bool isRotated() const { return rotated; }
     bool isTrimmed() const { return trimmed; }
-    const std::shared_ptr<Texture> getSourceTexture() const { return sourceTexture; }
+    const std::shared_ptr<const Texture> getSourceTexture() const { return sourceTexture; }
 };
 
 #endif /* SPRITESHEETFRAME_H */

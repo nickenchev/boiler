@@ -19,8 +19,8 @@ public:
     ~OpenGLRenderer();
 
     SDL_Window *getWindow() const { return win; }
-    std::shared_ptr<Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const override;
-    void setActiveTexture(const Texture &texture) const override;
+    std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const override;
+    void setActiveTexture(std::shared_ptr<const Texture> texture) const override;
     void render() const override;
 };
 

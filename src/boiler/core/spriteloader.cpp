@@ -26,7 +26,6 @@ const std::shared_ptr<SpriteSheet> SpriteLoader::loadSheet(std::string filename)
         jsonFile >> json;
         jsonFile.close();
 
-        const int numFrames = json["frames"].size();
         std::string imageFile = "data/" + json["meta"]["image"].asString();
 
         //read the sprite image name and load the texture

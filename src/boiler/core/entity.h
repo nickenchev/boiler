@@ -28,7 +28,6 @@ public:
     bool flipH, flipV, collides;
     glm::vec3 scale;
 
-    std::shared_ptr<SpriteSheet> spriteSheet;
     const SpriteSheetFrame *spriteFrame;
 
     std::vector<std::shared_ptr<Entity>> &getChildren() { return children; }
