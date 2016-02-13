@@ -7,13 +7,18 @@
 class CellEntity : public Entity
 {
     int row, col;
+    std::shared_ptr<Entity> number;
+
 public:
-    CellEntity(int row, int col, const Rect rect) : Entity(rect) { this->row = row; this->col = col; }
+    CellEntity(int row, int col, const Rect rect);
+
+    void onCreate() override;
 
     int getRow() const { return row; }
     int getColumn() const { return col; }
 
     GridPosition getGridPosition() const { return GridPosition(row, col); }
+    std::shared_ptr<Entity> getNumberSprite() const { return number; }
 };
 
 

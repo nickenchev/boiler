@@ -21,7 +21,7 @@ void BoardEntity::onCreate()
 
     // create the board entities
     int cellWidth = frame.size.getWidth() / board.getColumns();
-    int cellHeight = frame.size.getHeight() / board.getRows();
+    int cellHeight = cellWidth;
     int xOffset = 0;
     int yOffset = 0;
     for (int r = 1; r <= game.getBoard().getRows(); ++r)
@@ -34,14 +34,11 @@ void BoardEntity::onCreate()
             auto cell = std::make_shared<CellEntity>(r, c, Rect(x, y, cellWidth, cellHeight));
             cell->spriteSheet = triptych;
             cell->spriteFrame = triptych->getFrame("tile_1.png");
+            cell->onCreate();
             addChild(cell);
 
-            auto number = std::make_shared<Entity>(Rect(cellWidth / 2, cellHeight / 2,
-                                                        cellWidth / 2, cellHeight / 2));
-            number->frame.pivot = glm::vec3(0.5f, 0.5f, 0.6f);
-            number->spriteSheet = numStage;
-            number->spriteFrame = numStage->getFrame("num_1_1.png");
-            cell->addChild(number);
+            cell->getNumberSprite()->frame.pivot = glm::vec3(0.5f, 0.5f, 0.6f);
+            cell->getNumberSprite()->spriteSheet = numStage;
         }
     }
 }
@@ -64,6 +61,9 @@ void BoardEntity::onMouseButton(const MouseButtonEvent event)
                 BoardCell &boardCell = game.getBoard().getCell(cellEntity->getRow(), cellEntity->getColumn());
                 if (boardCell.isEmpty())
                 {
+                    // set the require number
+                    cellEntity->getNumberSprite()->spriteFrame = numStage->getFrame("num_1_1.png");
+
                     game.turnBegin();
 
                     const bool usingBank = game.getPlayer().bankSlotSelected();

@@ -85,7 +85,8 @@ add_library(game
   src/triptych/SwapNumbersPowerUp.cpp
   src/triptych/Triptych.cpp
   src/triptych/TriptychGame.cpp
-  src/triptych/boardentity.cpp)
+  src/triptych/boardentity.cpp
+  src/triptych/cellentity.cpp)
 
 add_executable(${PROJECT_NAME} ${SHADER_FILES})
 target_link_libraries(${PROJECT_NAME} boiler game ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
