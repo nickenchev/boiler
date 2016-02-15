@@ -8,7 +8,7 @@
 
 class TriptychGame;
 
-class BoardEntity : public Entity, public MouseInputListener,public std::enable_shared_from_this<BoardEntity> 
+class BoardEntity : public Entity, public MouseInputListener 
 {
     TriptychGame &game;
     int rows, columns;

@@ -1,4 +1,4 @@
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <SDL_image.h>
 #include <iostream>
 #include "opengl.h"
@@ -37,11 +37,11 @@ void Engine::initialize(const int resWidth, const int resHeight)
     frameInterval = 1.0f / 60.0f; // 60fps
 }
 
-void Engine::start(std::shared_ptr<Part> part)
+void Engine::start(std::shared_ptr<Entity> part)
 {
     //store the incoming part and start it
     this->part = part;
-    part->start();
+    part->onCreate();
 
     //start processing events
     run();
@@ -117,7 +117,7 @@ void Engine::run()
                     {
                         for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
                         {
-                            std::shared_ptr<MouseInputListener> listener = static_cast<std::shared_ptr<MouseInputListener>>(*it);
+                            auto listener = static_cast<MouseInputListener *>(*it);
                             listener->setX(event.motion.x);
                             listener->setY(event.motion.y);
                             listener->onMouseMove();
@@ -137,7 +137,7 @@ void Engine::run()
     }
 }
 
-void Engine::addMouseListener(std::shared_ptr<MouseInputListener> listener)
+void Engine::addMouseListener(MouseInputListener *listener)
 {
     std::cout << " > Added mouse listener" << std::endl;
     mouseListeners.push_back(listener);
@@ -145,8 +145,6 @@ void Engine::addMouseListener(std::shared_ptr<MouseInputListener> listener)
 
 void Engine::update(const float delta)
 {
-    part->handleInput();
-    part->update(delta);
 }
 
 void Engine::render(const float delta)

@@ -10,14 +10,14 @@
 
 #define MAX_KEYS 256
 
+class Entity;
 class Renderer;
-class Part;
 
 class Engine
 {
     int resWidth, resHeight;
     std::unique_ptr<Renderer> renderer;
-    std::vector<std::shared_ptr<MouseInputListener>> mouseListeners;
+    std::vector<MouseInputListener *>mouseListeners;
 
     bool running = true;
 
@@ -32,7 +32,7 @@ class Engine
     void update(const float delta);
     void render(const float delta);
 
-    std::shared_ptr<Part> part;
+    std::shared_ptr<Entity> part;
 
     // singleton
     Engine();
@@ -45,11 +45,11 @@ public:
     static Engine &getInstance();
 
     void initialize(const int resWidth, const int resHeight);
-    void start(std::shared_ptr<Part> part);
+    void start(std::shared_ptr<Entity> part);
     void quit() { running = false; }
 
     Renderer &getRenderer() const { return *renderer.get(); }
-    std::shared_ptr<Part> getPart() const { return part; }
+    std::shared_ptr<Entity> getPart() const { return part; }
 
     bool keyState(int keyNum) const { return keys[keyNum]; }
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
@@ -58,7 +58,7 @@ public:
 
     const Size getScreenSize() const { return Size(resWidth, resHeight); }
 
-    void addMouseListener(std::shared_ptr<MouseInputListener> listener);
+    void addMouseListener(MouseInputListener *listener);
 };
 
 #endif // ENGINE_H
