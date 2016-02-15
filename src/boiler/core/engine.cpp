@@ -97,20 +97,13 @@ void Engine::run()
 
                         for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
                         {
-                            std::shared_ptr<MouseInputListener> listener = static_cast<std::shared_ptr<MouseInputListener>>(*it);
+                            auto listener = static_cast<MouseInputListener *>(*it);
                             listener->onMouseButton(buttonEvent);
                         }
                         break;
                     }
                     case SDL_MOUSEBUTTONDOWN:
                     {
-                        for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
-                        {
-                            std::shared_ptr<MouseInputListener> listener = static_cast<std::shared_ptr<MouseInputListener>>(*it);
-                            listener->setX(event.motion.x);
-                            listener->setY(event.motion.y);
-                            listener->onMouseMove();
-                        }
                         break;
                     }
                     case SDL_MOUSEMOTION:

@@ -1,5 +1,4 @@
 #include <glm/glm.hpp>
-#include <SDL2/SDL.h>
 
 #include "engine.h"
 #include "gamepart.h"
@@ -53,10 +52,7 @@ void GamePart::onMouseButton(const MouseButtonEvent event)
 {
     if (event.button == MouseButton::RIGHT)
     {
-        if (Engine::getInstance().keyState(SDLK_ESCAPE))
-        {
-            Engine::getInstance().quit();
-        }
+        Engine::getInstance().quit();
     }
     else
     {
