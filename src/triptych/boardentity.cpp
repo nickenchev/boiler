@@ -16,7 +16,7 @@ BoardEntity::BoardEntity(TriptychGame &game, const Rect rect) : Entity(rect),
 
 void BoardEntity::onCreate()
 {
-    Engine::getInstance().addMouseListener(shared_from_this());
+    Engine::getInstance().addMouseListener(this);
     const Board &board = game.getBoard();
 
     // create the board entities
@@ -35,7 +35,6 @@ void BoardEntity::onCreate()
             cell->spriteFrame = triptych->getFrame("tile_1.png");
             cell->getNumberSprite()->frame.pivot = glm::vec3(0.5f, 0.5f, 0.6f);
             addChild(cell);
-
         }
     }
 }

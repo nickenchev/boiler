@@ -12,8 +12,9 @@
 class SpriteSheetFrame;
 class SpriteSheet;
 
-class Entity
+class Entity : public std::enable_shared_from_this<Entity>
 {
+    std::weak_ptr<Entity> owner;
     unsigned int meshVao;
     unsigned int vertVbo;
     glm::mat4 modelMatrix;
@@ -32,6 +33,7 @@ public:
 
     std::vector<std::shared_ptr<Entity>> &getChildren() { return children; }
     void addChild(std::shared_ptr<Entity> child);
+    void removeChild(std::shared_ptr<Entity> child);
 
     unsigned int getVao() const { return meshVao; }
     const glm::mat4 &getMatrix(const glm::vec3 &offset);
@@ -39,6 +41,8 @@ public:
 
 protected:
     virtual void onCreate() { }
+    
+    friend class Engine;
 };
 
 #endif /* ENTITY_H */

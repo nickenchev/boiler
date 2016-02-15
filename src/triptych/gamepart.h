@@ -10,7 +10,7 @@
 
 class TriptychGame;
 
-class GamePart : public Part, public MouseInputListener, public std::enable_shared_from_this<GamePart>
+class GamePart : public Entity, public MouseInputListener
 {
     TriptychGame game;
     std::shared_ptr<SpriteSheet> bigLayers;
@@ -21,9 +21,7 @@ class GamePart : public Part, public MouseInputListener, public std::enable_shar
 public:
     GamePart();
 
-    void start() override;
-    void handleInput() override;
-    void update(const float delta) override;
+    void onCreate() override;
 
     void onMouseMove() override;
     void onMouseButton(const MouseButtonEvent event) override;

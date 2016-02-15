@@ -53,7 +53,13 @@ Entity::Entity(Rect frame) : scale(1.0f, 1.0f, 1.0f)
 void Entity::addChild(std::shared_ptr<Entity> child)
 {
     children.push_back(child);
+    child->owner = shared_from_this();
     child->onCreate();
+}
+
+void Entity::removeChild(std::shared_ptr<Entity> child)
+{
+    child->owner.reset();
 }
 
 Entity::~Entity()
