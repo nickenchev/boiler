@@ -9,6 +9,7 @@
 #include <iostream>
 #include <math.h>
 #include <memory>
+#include <algorithm>
 
 #include "Board.h"
 #include "Player.h"
@@ -548,7 +549,7 @@ bool Board::selectCell(GridPosition position, bool &isDoneSelecting, bool &desel
     if (deselected)
     {
         //remove the deselected position from the list
-        selections.erase(remove(selections.begin(), selections.end(), position), selections.end());
+        selections.erase(std::remove(selections.begin(), selections.end(), position), selections.end());
     }
 
     long selectionNumberIndex = selections.size();

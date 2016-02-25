@@ -10,6 +10,7 @@
 #define __triptych__PowerUp__
 
 #include <vector>
+#include <memory>
 #include <string>
 #include "Board.h"
 #include "GridPosition.h"

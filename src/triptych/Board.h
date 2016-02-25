@@ -10,6 +10,7 @@
 #define __triptych__Board__
 
 #include <random>
+#include <memory>
 #include <unordered_map>
 #include "Array2D.h"
 #include "BoardCell.h"

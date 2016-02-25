@@ -6,7 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
 set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
-set(CMAKE_MODULE_PATH cmake/)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin/)
 
 find_package(SDL2 REQUIRED)
@@ -88,4 +88,4 @@ add_library(game
   src/triptych/cellentity.cpp)
 
 add_executable(${PROJECT_NAME} ${SHADER_FILES})
-target_link_libraries(${PROJECT_NAME} boiler game ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+target_link_libraries(${PROJECT_NAME} game boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
