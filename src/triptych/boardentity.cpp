@@ -98,5 +98,10 @@ void BoardEntity::refreshBoard()
             std::cout << frameName << std::endl;
             cellEntity->getNumberSprite()->spriteFrame = numStage->getFrame(frameName);
         }
+        else
+        {
+            // clear empty numbers
+            cellEntity->getNumberSprite()->spriteFrame = nullptr;
+        }
     }
 }

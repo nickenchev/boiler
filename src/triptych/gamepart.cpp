@@ -33,7 +33,7 @@ void GamePart::onCreate()
     // setup input listeners
     Engine::getInstance().addMouseListener(this);
 
-    game.getBoard().logBoard();
+    board->refreshBoard();
     showCurrentNumbers();
 }
 
