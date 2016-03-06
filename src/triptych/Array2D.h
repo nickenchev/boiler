@@ -18,6 +18,7 @@ namespace ensoft
     {
         unsigned int rows, columns, size;
         std::vector<T> items;
+
     public:
         Array2D(unsigned int rows, unsigned int columns) : items(rows * columns)
         {
@@ -27,8 +28,15 @@ namespace ensoft
         }
         
         //used for iterating over all of the elements in a 1D format
-        T &operator[](unsigned int index) { return items[index]; }
-        T &operator()(GridPosition pos) { return (*this)(pos.row, pos.column); }
+        T &operator[](unsigned int index)
+        {
+            return items[index];
+        }
+        T &operator()(GridPosition pos)
+        {
+            return (*this)(pos.row, pos.column);
+        }
+
         //used for setting int the 2D format
         T &operator()(unsigned int row, unsigned int column)
         {

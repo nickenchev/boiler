@@ -137,30 +137,24 @@ void OpenGLRenderer::render() const
     const GLfloat orthoH = screenSize.getHeight() / Engine::getInstance().getRenderer().getGlobalScale().y;
 
     // opengl sprite render
-    glm::mat4 viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW),
-                                      static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
+    glm::mat4 viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW),static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
     if (this->camera)
     {
-        const Rect &rect = camera->frame;
-        glm::mat4 view = glm::lookAt(glm::vec3(rect.position.x, rect.position.y, 1.0f),
-                                        glm::vec3(rect.position.x, rect.position.y, -1.0f),
-                                        glm::vec3(0, 1.0f, 0));
+        glm::mat4 view = camera->getViewMatrix();
         viewProjection = viewProjection * view;
     }
 
     // draw the entities recursively
-    renderEntities(entities, mvpUniform, viewProjection, glm::vec3(0, 0, 0));
+    renderEntities(entities, mvpUniform, viewProjection);
 
     SDL_GL_SwapWindow(win);
     glUseProgram(0);
 }
 
-void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, unsigned int mvpUniform, const glm::mat4 &viewProjection, const glm::vec3 offset) const
+void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, unsigned int mvpUniform, const glm::mat4 &viewProjection) const
 {
     for (auto &entity : entities)
     {
-        glm::vec3 entityOffset = entity->frame.position + offset;
-
         // set the vao for the current sprite
         glBindVertexArray(entity->getVao());
 
@@ -174,7 +168,7 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
             setActiveTexture(entity->spriteFrame->getSourceTexture());
         }
 
-        const glm::mat4 &model = entity->getMatrix(offset);
+        const glm::mat4 &model = entity->getMatrix();
         glm::mat4 mvpMatrix = viewProjection * model;
 
         glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
@@ -186,7 +180,7 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
         // draw the child entities
         if (entity->getChildren().size() > 0)
         {
-            renderEntities(entity->getChildren(), mvpUniform, viewProjection, entityOffset);
+            renderEntities(entity->getChildren(), mvpUniform, viewProjection);
         }
     }
 }

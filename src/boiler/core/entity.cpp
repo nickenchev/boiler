@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <glm/gtc/matrix_transform.hpp>
 #include "entity.h"
 #include "opengl.h"
@@ -7,12 +8,16 @@ Entity::Entity() : Entity(Rect())
 {
 }
 
-Entity::Entity(Rect frame) : scale(1.0f, 1.0f, 1.0f)
+Entity::Entity(const Rect &frame) : scale(1.0f, 1.0f, 1.0f)
 {
+    if (frame.position.y > 0)
+    {
+        std::cout << "ASASAS" << std::endl;
+    }
     flipH = false;
     flipV = false;
     collides = false;
-    this->frame = frame;
+    this->setFrame(frame);
     this->spriteFrame = nullptr;
 
     // 2D vertex and texture coords
@@ -50,11 +55,18 @@ Entity::Entity(Rect frame) : scale(1.0f, 1.0f, 1.0f)
     glBindVertexArray(0);
 }
 
+void Entity::setOwner(std::shared_ptr<Entity> owner)
+{
+    this->owner = owner;
+    this->refreshFrame();
+}
+
 void Entity::addChild(std::shared_ptr<Entity> child)
 {
     children.push_back(child);
-    child->owner = shared_from_this();
+    child->setOwner(shared_from_this());
     child->onCreate();
+    std::cout << child->getFrame().position.x << child->getFrame().position.y << std::endl;
 }
 
 void Entity::removeChild(std::shared_ptr<Entity> child)
@@ -71,23 +83,22 @@ Entity::~Entity()
     glDeleteVertexArrays(1, &meshVao);
 }
 
-const glm::mat4 &Entity::getMatrix(const glm::vec3 &offset)
+const glm::mat4 &Entity::getMatrix()
 {
     // offset the player position based on the pivot modifier
-    glm::vec3 offsetPos = frame.position + offset;
-    glm::vec3 pivotPos(offsetPos.x - frame.size.getWidth() * frame.pivot.x,
-                       offsetPos.y - frame.size.getHeight() * frame.pivot.y, 0);
+    glm::vec3 pivotPos(getFrame().position.x - getFrame().size.getWidth() * getFrame().pivot.x,
+                       getFrame().position.y - getFrame().size.getHeight() * getFrame().pivot.y, 0);
 
     float scaleX = scale.x;
     float scaleY = scale.y;
     if (flipH)
     {
-        pivotPos.x += frame.size.getWidth();
+        pivotPos.x += getFrame().size.getWidth();
         scaleX *= -1;
     }
     if (flipV)
     {
-        pivotPos.x += frame.size.getHeight();
+        pivotPos.x += getFrame().size.getHeight();
         scaleY *= -1;
     }
     // create the model matrix, by getting a 3D vector from the Entity's vec2 position
@@ -97,7 +108,21 @@ const glm::mat4 &Entity::getMatrix(const glm::vec3 &offset)
     return modelMatrix;
 }
 
-const glm::mat4 &Entity::getMatrix()
+inline void Entity::refreshFrame()
 {
-    return getMatrix(glm::vec3(0, 0, 0));
+    if (auto spt = owner.lock())
+    {
+        this->frame.position += spt->frame.position;
+    }
+}
+
+void Entity::setFrame(const Rect &frame)
+{
+    this->frame = frame;
+    refreshFrame();
+
+    for (auto &child : children)
+    {
+        child->refreshFrame();
+    }
 }

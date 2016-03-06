@@ -24,8 +24,8 @@ void GamePart::onCreate()
     addChild(topLayer);
 
     const Size boardSize(screenSize.getWidth() * 0.8f, screenSize.getWidth() * 0.8f);
-    auto board = std::make_shared<BoardEntity>(game, Rect(0, 405, boardSize));
-
+    const Rect boardRect(0, 405, boardSize);
+    auto board = std::make_shared<BoardEntity>(game, boardRect);
     addChild(board);
 
     Engine::getInstance().getRenderer().setClearColor(Color3(0.1f, 0.1f, 0.2f));

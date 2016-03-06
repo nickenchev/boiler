@@ -12,7 +12,7 @@ class Part : public Component, public Entity
 {
 
 public:
-    Part() : Component("Part") { }
+    Part() : Component("Part"), Entity(Rect(0, 0, 0, 0)) { }
 
     // disable copying
     Part(const Part &part) = delete;

@@ -1,4 +1,7 @@
 #include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "platformercamera.h"
 #include "entity.h"
 
@@ -6,7 +9,7 @@ void PlatformerCamera::update(glm::vec2 moveAmount)
 {
     if (centralEntity)
     {
-        const Rect &player = centralEntity->frame;
+        const Rect &player = centralEntity->getFrame();
 
         // configure the cam deadzone
         float camDeadSizeHalf = 25.0f;
@@ -38,4 +41,13 @@ void PlatformerCamera::update(glm::vec2 moveAmount)
         if (frame.position.y < 0) frame.position.y = 0;
         else if (frame.getMax(DIM_Y) > mapSize.getHeight()) frame.position.y = frame.getMax(DIM_Y) - frame.size.getHeight();
     }
+}
+
+glm::mat4 PlatformerCamera::getViewMatrix() const
+{
+    glm::mat4 view = glm::lookAt(glm::vec3(frame.position.x, frame.position.y, 1.0f),
+                                    glm::vec3(frame.position.x, frame.position.y, -1.0f),
+                                    glm::vec3(0, 1.0f, 0));
+
+    return view;
 }

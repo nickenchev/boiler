@@ -38,8 +38,8 @@ struct Rect
         return position[dimension] + size.dimensions[dimension] - (size.dimensions[dimension] * pivot[dimension]);
     }
 
-    bool collides(const Rect &rect);
-    bool collides(const glm::vec2 point);
+    bool collides(const Rect &rect) const;
+    bool collides(const glm::vec2 point) const;
 };
 
 #endif // RECT

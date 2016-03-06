@@ -9,6 +9,7 @@ public:
     using Camera::Camera;
 
     void update(glm::vec2 moveAmount) override;
+    glm::mat4 getViewMatrix() const override;
 };
 
 

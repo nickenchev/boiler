@@ -86,7 +86,7 @@ void Quadtree::insert(std::shared_ptr<Entity> entity)
 {
     if (nodes[0] != nullptr)
     {
-        int index = getIndex(entity->frame);
+        int index = getIndex(entity->getFrame());
 
         if (index != -1)
         {
@@ -105,7 +105,7 @@ void Quadtree::insert(std::shared_ptr<Entity> entity)
         int i = 0;
         while (i < objects.size())
         {
-            int index = getIndex(objects[i]->frame);
+            int index = getIndex(objects[i]->getFrame());
             if (index != -1)
             {
                 nodes[index]->insert(objects[i]);

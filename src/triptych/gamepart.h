@@ -2,7 +2,7 @@
 #define GAMEPART_H
 
 #include <memory>
-#include "part.h"
+#include "entity.h"
 #include "bmfont.h"
 #include "../input/mouseinputlistener.h"
 #include "../input/mousebuttonevent.h"

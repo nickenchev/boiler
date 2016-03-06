@@ -17,7 +17,7 @@ class BoardEntity : public Entity, public MouseInputListener
     std::shared_ptr<SpriteSheet> numStage;
 
 public:
-    BoardEntity(TriptychGame &game, const Rect rect);
+    BoardEntity(TriptychGame &game, const Rect &rect);
 
     void onCreate() override;
     void onMouseMove() override;

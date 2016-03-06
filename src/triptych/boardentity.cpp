@@ -3,9 +3,9 @@
 #include "TriptychGame.h"
 #include "cellentity.h"
 
-BoardEntity::BoardEntity(TriptychGame &game, const Rect rect) : Entity(rect),
-                                                                      game(game),
-                                                                      boardCells(6, 6)
+BoardEntity::BoardEntity(TriptychGame &game, const Rect &rect) : Entity(rect),
+                                                                 game(game),
+                                                                 boardCells(6, 6)
 {
     this->rows = game.getBoard().getRows();
     this->columns = game.getBoard().getColumns();
@@ -20,7 +20,7 @@ void BoardEntity::onCreate()
     const Board &board = game.getBoard();
 
     // create the board entities
-    int cellWidth = frame.size.getWidth() / board.getColumns();
+    int cellWidth = getFrame().size.getWidth() / board.getColumns();
     int cellHeight = cellWidth;
     int xOffset = 0;
     int yOffset = 0;
@@ -33,7 +33,7 @@ void BoardEntity::onCreate()
 
             auto cell = std::make_shared<CellEntity>(r, c, Rect(x, y, cellWidth, cellHeight));
             cell->spriteFrame = triptych->getFrame("tile_1.png");
-            cell->getNumberSprite()->frame.pivot = glm::vec3(0.5f, 0.5f, 0.6f);
+            cell->getNumberSprite()->getFrame().pivot = glm::vec3(0.5f, 0.5f, 0.6f);
             addChild(cell);
         }
     }
@@ -52,7 +52,7 @@ void BoardEntity::onMouseButton(const MouseButtonEvent event)
         {
             // grab the cell entity and check if it was selected
             const auto &cellEntity = std::static_pointer_cast<CellEntity>(*itr);
-            if (cellEntity->frame.collides(glm::vec2(getX(), getY())))
+            if (cellEntity->getFrame().collides(glm::vec2(getX(), getY())))
             {
                 BoardCell &boardCell = game.getBoard().getCell(cellEntity->getRow(), cellEntity->getColumn());
                 if (boardCell.isEmpty())
