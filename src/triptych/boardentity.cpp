@@ -57,9 +57,6 @@ void BoardEntity::onMouseButton(const MouseButtonEvent event)
                 BoardCell &boardCell = game.getBoard().getCell(cellEntity->getRow(), cellEntity->getColumn());
                 if (boardCell.isEmpty())
                 {
-                    // set the require number
-                    cellEntity->getNumberSprite()->spriteFrame = numStage->getFrame("num_1_1.png");
-
                     game.turnBegin();
 
                     const bool usingBank = game.getPlayer().bankSlotSelected();
@@ -83,6 +80,23 @@ void BoardEntity::onMouseButton(const MouseButtonEvent event)
                     game.getBoard().logBoard();
                 }
             }
+        }
+        refreshBoard();
+    }
+}
+
+void BoardEntity::refreshBoard()
+{
+    for (auto itr = getChildren().begin(); itr != getChildren().end(); ++itr)
+    {
+        // grab the cell entity and check if it was selected
+        const auto &cellEntity = std::static_pointer_cast<CellEntity>(*itr);
+        BoardCell &boardCell = game.getBoard().getCell(cellEntity->getRow(), cellEntity->getColumn());
+        if (!boardCell.isEmpty())
+        {
+            std::string frameName("num_" + std::to_string(boardCell.value) + "_" + std::to_string(boardCell.stage) + ".png");
+            std::cout << frameName << std::endl;
+            cellEntity->getNumberSprite()->spriteFrame = numStage->getFrame(frameName);
         }
     }
 }

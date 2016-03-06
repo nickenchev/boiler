@@ -10,10 +10,6 @@ Entity::Entity() : Entity(Rect())
 
 Entity::Entity(const Rect &frame) : scale(1.0f, 1.0f, 1.0f)
 {
-    if (frame.position.y > 0)
-    {
-        std::cout << "ASASAS" << std::endl;
-    }
     flipH = false;
     flipV = false;
     collides = false;
@@ -66,7 +62,6 @@ void Entity::addChild(std::shared_ptr<Entity> child)
     children.push_back(child);
     child->setOwner(shared_from_this());
     child->onCreate();
-    std::cout << child->getFrame().position.x << child->getFrame().position.y << std::endl;
 }
 
 void Entity::removeChild(std::shared_ptr<Entity> child)

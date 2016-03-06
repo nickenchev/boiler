@@ -22,6 +22,8 @@ public:
     void onCreate() override;
     void onMouseMove() override;
     void onMouseButton(const MouseButtonEvent event) override;
+
+    void refreshBoard();
 };
 
 

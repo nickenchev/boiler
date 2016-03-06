@@ -15,3 +15,12 @@ SpriteSheet::~SpriteSheet()
         glDeleteBuffers(1, &vbo);
     }
 }
+
+const SpriteSheetFrame *SpriteSheet::getFrame(const std::string frameName)
+{
+    auto itr = frames.find(frameName);
+    // TODO: Add show error when frame is null
+    assert(itr != frames.end());
+
+    return &itr->second;
+}
