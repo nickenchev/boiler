@@ -14,8 +14,6 @@
 #include "openglmodel.h"
 #include "vertexdata.h"
 
-#define COMPONENT_NAME "OpenGL Renderer"
-
 OpenGLRenderer::OpenGLRenderer() : Renderer(std::string(COMPONENT_NAME))
 {
 }

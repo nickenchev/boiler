@@ -71,7 +71,6 @@ void BoardEntity::onMouseButton(const MouseButtonEvent event)
                         if (placementScore)
                         {
                             std::cout << placementScore << std::endl;
-                            game.getBoard().logBoard();
                         }
                     } while (placementScore > 0);
 

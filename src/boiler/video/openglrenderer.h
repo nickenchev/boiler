@@ -5,7 +5,8 @@
 #include <memory>
 #include "renderer.h"
 
-#define VERSION "OpenGL Renderer 1.0"
+#define COMPONENT_NAME "OpenGL Renderer"
+#define VERSION COMPONENT_NAME
 
 class Entity;
 class VertexData;
