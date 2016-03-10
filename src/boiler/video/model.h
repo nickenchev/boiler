@@ -3,6 +3,12 @@
 
 class Model
 {
+    int numVertices;
+
+public:
+    Model(int numVertices);
+
+    int getNumVertices() const { return numVertices; }
 };
 
 

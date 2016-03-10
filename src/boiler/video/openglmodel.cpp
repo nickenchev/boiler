@@ -1,10 +1,6 @@
-#include <iostream>
 #include "openglmodel.h"
 
-#define ATTRIB_ARRAY_VERTEX 0
-#define ATTRIB_ARRAY_TEXTURE 1
-
-OpenGLModel::OpenGLModel(const VertexData &data)
+OpenGLModel::OpenGLModel(const VertexData &data) : Model(data.length())
 {
     // setup a VBO for the vertices
     glGenVertexArrays(1, &meshVao);

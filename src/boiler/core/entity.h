@@ -26,7 +26,7 @@ public:
 
     bool flipH, flipV, collides;
     glm::vec3 scale;
-    std::shared_ptr<Model> model;
+    std::shared_ptr<const Model> model;
 
     const SpriteSheetFrame *spriteFrame;
 

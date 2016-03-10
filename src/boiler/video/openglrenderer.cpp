@@ -124,7 +124,7 @@ void OpenGLRenderer::setActiveTexture(const std::shared_ptr<const Texture> textu
     glBindTexture(GL_TEXTURE_2D, tex->getOpenGLTextureId());
 }
 
-std::shared_ptr<Model> OpenGLRenderer::loadModel(const VertexData &data) const
+std::shared_ptr<const Model> OpenGLRenderer::loadModel(const VertexData &data) const
 {
     return std::make_shared<OpenGLModel>(data);
 }
@@ -166,7 +166,7 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
     {
         if (entity->model)
         {
-            auto model = std::static_pointer_cast<OpenGLModel>(entity->model);
+            auto model = std::static_pointer_cast<const OpenGLModel>(entity->model);
             // set the vao for the current sprite
             glBindVertexArray(model->getVao());
 
@@ -174,7 +174,7 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
             {
                 // binds the current frames texture VBO and ensure it is linked to the current VAO
                 glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
-                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+                glVertexAttribPointer(ATTRIB_ARRAY_TEXTURE, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
                 // set the current texture
                 setActiveTexture(entity->spriteFrame->getSourceTexture());
@@ -186,7 +186,7 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
             glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
 
             // draw the entity
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, model->getNumVertices());
             glBindVertexArray(0);
         }
 

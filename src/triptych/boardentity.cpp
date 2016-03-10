@@ -95,7 +95,6 @@ void BoardEntity::refreshBoard()
         if (!boardCell.isEmpty())
         {
             std::string frameName("num_" + std::to_string(boardCell.value) + "_" + std::to_string(boardCell.stage) + ".png");
-            std::cout << frameName << std::endl;
             cellEntity->getNumberSprite()->spriteFrame = numStage->getFrame(frameName);
         }
         else

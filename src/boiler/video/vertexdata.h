@@ -14,6 +14,7 @@ public:
     virtual ~VertexData();
 
     float *begin() const { return &(vertices[0].x); }
+    int length() const { return vertices.size(); }
     int size() const { return vertices.size() * sizeof(glm::vec3); }
 };
 

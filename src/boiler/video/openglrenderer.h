@@ -29,7 +29,7 @@ public:
     std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const override;
     void setActiveTexture(std::shared_ptr<const Texture> texture) const override;
 
-    std::shared_ptr<Model> loadModel(const VertexData &data) const override;
+    std::shared_ptr<const Model> loadModel(const VertexData &data) const override;
 
     void render() const override;
 };

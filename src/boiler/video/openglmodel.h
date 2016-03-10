@@ -5,6 +5,9 @@
 #include "opengl.h"
 #include "vertexdata.h"
 
+#define ATTRIB_ARRAY_VERTEX 0
+#define ATTRIB_ARRAY_TEXTURE 1
+
 class OpenGLModel : public Model
 {
     unsigned int meshVao;

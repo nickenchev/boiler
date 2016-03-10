@@ -42,7 +42,7 @@ public:
     virtual void setActiveTexture(std::shared_ptr<const Texture> texture) const = 0;
 
     // models
-    virtual std::shared_ptr<Model> loadModel(const VertexData &data) const = 0;
+    virtual std::shared_ptr<const Model> loadModel(const VertexData &data) const = 0;
     
     virtual void render() const = 0;
 };
