@@ -1,6 +1,5 @@
 #include <string>
 #include <iostream>
-#include <SDL.h>
 #include <SDL_image.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -12,13 +11,18 @@
 #include "engine.h"
 #include "part.h"
 #include "camera.h"
+#include "openglmodel.h"
+#include "vertexdata.h"
 
 #define COMPONENT_NAME "OpenGL Renderer"
 
 OpenGLRenderer::OpenGLRenderer() : Renderer(std::string(COMPONENT_NAME))
 {
+}
+
+void OpenGLRenderer::initialize(const Size screenSize)
+{
     bool success = false;
-    const Size screenSize = Engine::getInstance().getScreenSize();
 
     if (SDL_Init(SDL_INIT_VIDEO) == 0)
     {
@@ -120,9 +124,14 @@ void OpenGLRenderer::setActiveTexture(const std::shared_ptr<const Texture> textu
     glBindTexture(GL_TEXTURE_2D, tex->getOpenGLTextureId());
 }
 
+std::shared_ptr<Model> OpenGLRenderer::loadModel(const VertexData &data) const
+{
+    return std::make_shared<OpenGLModel>(data);
+}
+
 void OpenGLRenderer::render() const
 {
-    const ShaderProgram *program = Engine::getInstance().getRenderer().getProgram();
+    const ShaderProgram *program = getProgram();
     glUseProgram(program->getShaderProgram());
     GLuint mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
 
@@ -133,8 +142,8 @@ void OpenGLRenderer::render() const
 
     // prepare the matrices
     const Size screenSize = Engine::getInstance().getScreenSize();
-    const GLfloat orthoW = screenSize.getWidth() / Engine::getInstance().getRenderer().getGlobalScale().x;
-    const GLfloat orthoH = screenSize.getHeight() / Engine::getInstance().getRenderer().getGlobalScale().y;
+    const GLfloat orthoW = screenSize.getWidth() /  getGlobalScale().x;
+    const GLfloat orthoH = screenSize.getHeight() / getGlobalScale().y;
 
     // opengl sprite render
     glm::mat4 viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW),static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
@@ -155,27 +164,31 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
 {
     for (auto &entity : entities)
     {
-        // set the vao for the current sprite
-        glBindVertexArray(entity->getVao());
-
-        if (entity->spriteFrame)
+        if (entity->model)
         {
-            // binds the current frames texture VBO and ensure it is linked to the current VAO
-            glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+            auto model = std::static_pointer_cast<OpenGLModel>(entity->model);
+            // set the vao for the current sprite
+            glBindVertexArray(model->getVao());
 
-            // set the current texture
-            setActiveTexture(entity->spriteFrame->getSourceTexture());
+            if (entity->spriteFrame)
+            {
+                // binds the current frames texture VBO and ensure it is linked to the current VAO
+                glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+
+                // set the current texture
+                setActiveTexture(entity->spriteFrame->getSourceTexture());
+            }
+
+            const glm::mat4 &modelMatrix = entity->getMatrix();
+            glm::mat4 mvpMatrix = viewProjection * modelMatrix;
+
+            glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
+
+            // draw the entity
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
+            glBindVertexArray(0);
         }
-
-        const glm::mat4 &model = entity->getMatrix();
-        glm::mat4 mvpMatrix = viewProjection * model;
-
-        glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
-
-        // draw the entity
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindVertexArray(0);
 
         // draw the child entities
         if (entity->getChildren().size() > 0)
@@ -200,3 +213,4 @@ OpenGLRenderer::~OpenGLRenderer()
     glDeleteRenderbuffers(1, &rbo);
     glDeleteFramebuffers(1, &fbo);
 }
+

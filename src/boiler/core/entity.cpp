@@ -2,7 +2,9 @@
 #include <memory>
 #include <glm/gtc/matrix_transform.hpp>
 #include "entity.h"
-#include "opengl.h"
+#include "engine.h"
+#include "renderer.h"
+#include "vertexdata.h"
 
 Entity::Entity() : Entity(Rect())
 {
@@ -17,38 +19,18 @@ Entity::Entity(const Rect &frame) : scale(1.0f, 1.0f, 1.0f)
     this->spriteFrame = nullptr;
 
     // 2D vertex and texture coords
-    GLfloat sizeW = frame.size.getWidth();
-    GLfloat sizeH = frame.size.getHeight();
+    const float sizeW = frame.size.getWidth();
+    const float sizeH = frame.size.getHeight();
 
-    GLfloat vertices[] =
+    glm::vec3 verts[] =
     {
-        0.0f, sizeH,
-        sizeW, 0.0f,
-        0.0f, 0.0f,
-
-        0.0f, sizeH,
-        sizeW, sizeH,
-        sizeW, 0.0f
+        { 0.0f, sizeH, 0.0f },
+        { sizeW, 0.0f, 0.0f },
+        { 0.0f, 0.0f, 0.0f },
+        { 0.0f, sizeH, 0.0f }
     };
-
-    // setup a VBO for the vertices
-    glGenVertexArrays(1, &meshVao);
-    glBindVertexArray(meshVao);
-
-    // enable this attrib arrays
-    glEnableVertexAttribArray(ATTRIB_ARRAY_VERTEX);
-    glEnableVertexAttribArray(ATTRIB_ARRAY_TEXTURE);
-
-    // setup the VBO for verts
-    glGenBuffers(1, &vertVbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vertVbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
-
-    // cleanup
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    VertexData vertData(verts);
+    model = Engine::getInstance().getRenderer().loadModel(vertData);
 }
 
 void Entity::setOwner(std::shared_ptr<Entity> owner)
@@ -57,25 +39,20 @@ void Entity::setOwner(std::shared_ptr<Entity> owner)
     this->refreshFrame();
 }
 
-void Entity::addChild(std::shared_ptr<Entity> child)
+void Entity::addChild(const std::shared_ptr<Entity> &child)
 {
     children.push_back(child);
     child->setOwner(shared_from_this());
     child->onCreate();
 }
 
-void Entity::removeChild(std::shared_ptr<Entity> child)
+void Entity::removeChild(const std::shared_ptr<Entity> &child)
 {
     child->owner.reset();
 }
 
 Entity::~Entity()
 {
-    glDisableVertexAttribArray(ATTRIB_ARRAY_VERTEX);
-    glDisableVertexAttribArray(ATTRIB_ARRAY_TEXTURE);
-
-    glDeleteBuffers(1, &vertVbo);
-    glDeleteVertexArrays(1, &meshVao);
 }
 
 const glm::mat4 &Entity::getMatrix()

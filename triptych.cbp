@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+   <FileVersion major="1" minor="6" />
+   <Project>
+      <Option title="triptych" />
+      <Option makefile_is_custom="1" />
+      <Option compiler="gcc" />
+      <Option virtualFolders="CMake Files\;CMake Files\cmake\;" />
+      <Build>
+      <Target title="all">
+         <Option working_dir="/Users/nenchev/Developer/projects/sdl_engine" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 all" />
+            <CompileFile command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="triptych">
+         <Option output="/Users/nenchev/Developer/projects/sdl_engine/bin/triptych" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="bin/" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include/tinyxml2" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/camera" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/util" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video" />
+            <Add directory="/usr/local/include" />
+            <Add directory="/usr/local/include/GSL" />
+            <Add directory="/usr/local/include/SDL2" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 triptych" />
+            <CompileFile command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="triptych/fast">
+         <Option output="/Users/nenchev/Developer/projects/sdl_engine/bin/triptych" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="bin/" />
+         <Option object_output="./" />
+         <Option type="1" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include/tinyxml2" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/camera" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/util" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video" />
+            <Add directory="/usr/local/include" />
+            <Add directory="/usr/local/include/GSL" />
+            <Add directory="/usr/local/include/SDL2" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 triptych/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="edit_cache">
+         <Option working_dir="/Users/nenchev/Developer/projects/sdl_engine" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 edit_cache" />
+            <CompileFile command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="rebuild_cache">
+         <Option working_dir="/Users/nenchev/Developer/projects/sdl_engine" />
+         <Option type="4" />
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 rebuild_cache" />
+            <CompileFile command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="game">
+         <Option output="/Users/nenchev/Developer/projects/sdl_engine/libgame.a" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/Users/nenchev/Developer/projects/sdl_engine" />
+         <Option object_output="./" />
+         <Option type="2" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include/tinyxml2" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/camera" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/util" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video" />
+            <Add directory="/usr/local/include" />
+            <Add directory="/usr/local/include/GSL" />
+            <Add directory="/usr/local/include/SDL2" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 game" />
+            <CompileFile command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="game/fast">
+         <Option output="/Users/nenchev/Developer/projects/sdl_engine/libgame.a" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/Users/nenchev/Developer/projects/sdl_engine" />
+         <Option object_output="./" />
+         <Option type="2" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include/tinyxml2" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/camera" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/util" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video" />
+            <Add directory="/usr/local/include" />
+            <Add directory="/usr/local/include/GSL" />
+            <Add directory="/usr/local/include/SDL2" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 game/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="boiler">
+         <Option output="/Users/nenchev/Developer/projects/sdl_engine/libboiler.a" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/Users/nenchev/Developer/projects/sdl_engine" />
+         <Option object_output="./" />
+         <Option type="2" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include/tinyxml2" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/camera" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/util" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video" />
+            <Add directory="/usr/local/include" />
+            <Add directory="/usr/local/include/GSL" />
+            <Add directory="/usr/local/include/SDL2" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 boiler" />
+            <CompileFile command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      <Target title="boiler/fast">
+         <Option output="/Users/nenchev/Developer/projects/sdl_engine/libboiler.a" prefix_auto="0" extension_auto="0" />
+         <Option working_dir="/Users/nenchev/Developer/projects/sdl_engine" />
+         <Option object_output="./" />
+         <Option type="2" />
+         <Option compiler="gcc" />
+         <Compiler>
+            <Add directory="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/include/tinyxml2" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/camera" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/util" />
+            <Add directory="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video" />
+            <Add directory="/usr/local/include" />
+            <Add directory="/usr/local/include/GSL" />
+            <Add directory="/usr/local/include/SDL2" />
+         </Compiler>
+         <MakeCommands>
+            <Build command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 boiler/fast" />
+            <CompileFile command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 &quot;$file&quot;" />
+            <Clean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+            <DistClean command="/usr/bin/make -f &quot;/Users/nenchev/Developer/projects/sdl_engine/Makefile&quot;  VERBOSE=1 clean" />
+         </MakeCommands>
+      </Target>
+      </Build>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/data/shaders/shader.frag">
+         <Option target="triptych"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/data/shaders/shader.vert">
+         <Option target="triptych"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/camera/camera.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/camera/camera.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/camera/platformercamera.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/camera/platformercamera.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/base64.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/base64.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/bmfont.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/bmfont.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/component.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/component.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/engine.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/engine.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/entity.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/entity.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/fileutils.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/fileutils.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/line.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/line.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/part.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/part.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/quadtree.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/quadtree.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/ray.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/ray.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/raycaster.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/raycaster.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/rect.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/rect.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/spriteanimation.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/spriteanimation.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/spriteloader.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/spriteloader.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/spritesheet.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/spritesheet.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/spritesheetframe.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/spritesheetframe.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/tmxloader.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/core/tmxloader.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/util/jsoncpp.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/util/tinyxml2.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/fontloader.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/fontloader.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/imageloader.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/imageloader.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/openglmodel.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/openglmodel.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/openglrenderer.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/openglrenderer.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/opengltexture.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/opengltexture.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/renderer.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/renderer.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/shaderprogram.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/shaderprogram.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/vertexdata.cpp">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/boiler/video/vertexdata.h">
+         <Option target="boiler"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/main.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/BankFromBoardPowerUp.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/BankFromBoardPowerUp.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/Board.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/Board.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/BoardCell.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/BoardCell.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/BombPowerUp.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/BombPowerUp.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/CopyNumberPowerUp.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/CopyNumberPowerUp.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/DeleteNumberPowerUp.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/DeleteNumberPowerUp.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/GameCore/GameAttribute.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/GameCore/GameAttribute.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/GameCore/Message.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/GameCore/Message.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/GameCore/MessageQueue.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/GameCore/MessageQueue.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/GameDirector.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/GameDirector.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/GridPosition.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/GridPosition.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/MoveNumberPowerUp.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/MoveNumberPowerUp.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/Player.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/Player.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/PowerUp.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/PowerUp.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/PromoteNumberPowerUp.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/PromoteNumberPowerUp.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/SaveGameHeader.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/SaveGameHeader.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/SwapNumbersPowerUp.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/SwapNumbersPowerUp.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/Triptych.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/Triptych.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/TriptychGame.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/TriptychGame.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/boardentity.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/boardentity.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/cellentity.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/cellentity.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/gamepart.cpp">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/src/triptych/gamepart.h">
+         <Option target="game"/>
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/CMakeLists.txt">
+          <Option virtualFolder="CMake Files\" />
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/cmake/FindSDL2.cmake">
+          <Option virtualFolder="CMake Files\cmake\" />
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/cmake/FindSDL2_image.cmake">
+          <Option virtualFolder="CMake Files\cmake\" />
+      </Unit>
+      <Unit filename="/Users/nenchev/Developer/projects/sdl_engine/cmake/FindGSL.cmake">
+          <Option virtualFolder="CMake Files\cmake\" />
+      </Unit>
+   </Project>
+</CodeBlocks_project_file>

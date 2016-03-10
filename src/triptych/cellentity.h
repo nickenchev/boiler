@@ -18,7 +18,7 @@ public:
     int getColumn() const { return col; }
 
     GridPosition getGridPosition() const { return GridPosition(row, col); }
-    std::shared_ptr<Entity> getNumberSprite() const { return number; }
+    std::shared_ptr<Entity> &getNumberSprite() { return number; }
 };
 
 

@@ -14,11 +14,13 @@ find_package(SDL2_image REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(GSL REQUIRED)
 
 include_directories(
   ${SDL2_INCLUDE_DIR}
   ${SDL2_IMAGE_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIR}
+  ${GSL_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIR}
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/include/tinyxml2
@@ -50,9 +52,11 @@ add_library(boiler
   src/boiler/video/renderer.cpp
   src/boiler/video/openglrenderer.cpp
   src/boiler/video/opengltexture.cpp
+  src/boiler/video/openglmodel.cpp
   src/boiler/video/shaderprogram.cpp
   src/boiler/video/imageloader.cpp
   src/boiler/video/fontloader.cpp
+  src/boiler/video/vertexdata.cpp
   src/boiler/camera/camera.cpp
   src/boiler/camera/platformercamera.cpp
   src/boiler/util/tinyxml2.cpp

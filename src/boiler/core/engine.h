@@ -24,11 +24,11 @@ class Engine
     SpriteLoader spriteLoader;
     ImageLoader imageLoader;
     FontLoader fontLoader;
-    unsigned int lastTime, currentTime;
-    float frameDelta, frameInterval;
+    double frameInterval;
     bool keys[MAX_KEYS];
 
     void run();
+    void processInput();
     void update(const float delta);
     void render(const float delta);
 
@@ -44,7 +44,7 @@ public:
 
     static Engine &getInstance();
 
-    void initialize(const int resWidth, const int resHeight);
+    void initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight);
     void start(std::shared_ptr<Entity> part);
     void quit() { running = false; }
 
