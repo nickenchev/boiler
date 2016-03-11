@@ -176,16 +176,16 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
 
                 // set the current texture
                 setActiveTexture(entity->spriteFrame->getSourceTexture());
+
+                const glm::mat4 &modelMatrix = entity->getMatrix();
+                glm::mat4 mvpMatrix = viewProjection * modelMatrix;
+
+                glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
+
+                // draw the entity
+                glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
+                glBindVertexArray(0);
             }
-
-            const glm::mat4 &modelMatrix = entity->getMatrix();
-            glm::mat4 mvpMatrix = viewProjection * modelMatrix;
-
-            glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
-
-            // draw the entity
-            glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
-            glBindVertexArray(0);
         }
 
         // draw the child entities

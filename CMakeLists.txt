@@ -30,6 +30,9 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/src/boiler/camera
   ${PROJECT_SOURCE_DIR}/src/boiler/util)
 
+# Shader files
+set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
+
 # Engine related sources
 add_library(boiler
   src/boiler/core/engine.cpp
@@ -63,12 +66,9 @@ add_library(boiler
   src/boiler/util/tinyxml2.cpp
   src/boiler/util/jsoncpp.cpp)
 
-set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
-
 # Game related sources
-add_library(game
+add_library(trip
   src/main.cpp
-  #src/gamepart.cpp
   src/triptych/gamepart.cpp
   src/triptych/GameCore/GameAttribute.cpp
   src/triptych/GameCore/Message.cpp
@@ -93,4 +93,4 @@ add_library(game
   src/triptych/cellentity.cpp)
 
 add_executable(${PROJECT_NAME} ${SHADER_FILES})
-target_link_libraries(${PROJECT_NAME} game boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+target_link_libraries(${PROJECT_NAME} trip boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})

@@ -75,8 +75,6 @@ void BoardEntity::onMouseButton(const MouseButtonEvent event)
                     } while (placementScore > 0);
 
                     TurnInfo turnInfo = game.turnEnd();
-
-                    game.getBoard().logBoard();
                 }
             }
         }

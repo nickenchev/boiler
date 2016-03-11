@@ -8,7 +8,6 @@
 Quadtree::Quadtree(int level, const Rect &bounds) : maxObjects(MAX_OBJECTS), maxSubLevels(MAX_SUB_LEVELS), bounds(bounds)
 {
     //std::cout << "(" << bounds.position.x << "," << bounds.position.y << " " << bounds.size.width << "x" << bounds.size.height << ")" << std::endl;
-
     this->level = level;
 
     for (int i = 0; i < NUM_SUBNODES; ++i)
