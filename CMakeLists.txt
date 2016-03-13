@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(triptych)
+project(engine)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
@@ -22,10 +22,12 @@ include_directories(
   ${ZLIB_INCLUDE_DIR}
   ${GSL_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIR}
+  ${GLEW_INCLUDE_DIR}
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/include/tinyxml2
-  ${GLEW_INCLUDE_DIR}
+  ${PROJECT_SOURCE_DIR}/src/boiler
   ${PROJECT_SOURCE_DIR}/src/boiler/core
+  ${PROJECT_SOURCE_DIR}/src/boiler/input
   ${PROJECT_SOURCE_DIR}/src/boiler/video
   ${PROJECT_SOURCE_DIR}/src/boiler/camera
   ${PROJECT_SOURCE_DIR}/src/boiler/util)
@@ -67,30 +69,9 @@ add_library(boiler
   src/boiler/util/jsoncpp.cpp)
 
 # Game related sources
-add_library(trip
+add_library(game
   src/main.cpp
-  src/triptych/gamepart.cpp
-  src/triptych/GameCore/GameAttribute.cpp
-  src/triptych/GameCore/Message.cpp
-  src/triptych/GameCore/MessageQueue.cpp
-  src/triptych/BankFromBoardPowerUp.cpp
-  src/triptych/Board.cpp
-  src/triptych/BoardCell.cpp
-  src/triptych/BombPowerUp.cpp
-  src/triptych/CopyNumberPowerUp.cpp
-  src/triptych/DeleteNumberPowerUp.cpp
-  src/triptych/GameDirector.cpp
-  src/triptych/GridPosition.cpp
-  src/triptych/MoveNumberPowerUp.cpp
-  src/triptych/Player.cpp
-  src/triptych/PowerUp.cpp
-  src/triptych/PromoteNumberPowerUp.cpp
-  src/triptych/SaveGameHeader.cpp
-  src/triptych/SwapNumbersPowerUp.cpp
-  src/triptych/Triptych.cpp
-  src/triptych/TriptychGame.cpp
-  src/triptych/boardentity.cpp
-  src/triptych/cellentity.cpp)
+  src/terrain/terrainpart.cpp)
 
 add_executable(${PROJECT_NAME} ${SHADER_FILES})
-target_link_libraries(${PROJECT_NAME} trip boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+target_link_libraries(${PROJECT_NAME} game boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})

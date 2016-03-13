@@ -6,18 +6,18 @@
 #include "spriteloader.h"
 #include "imageloader.h"
 #include "fontloader.h"
-#include "../input/mouseinputlistener.h"
-
-#define MAX_KEYS 256
 
 class Entity;
 class Renderer;
+class MouseInputListener;
+class KeyInputListener;
 
 class Engine
 {
     int resWidth, resHeight;
     std::unique_ptr<Renderer> renderer;
     std::vector<MouseInputListener *>mouseListeners;
+    std::vector<KeyInputListener *>keyListeners;
 
     bool running = true;
 
@@ -25,7 +25,6 @@ class Engine
     ImageLoader imageLoader;
     FontLoader fontLoader;
     double frameInterval;
-    bool keys[MAX_KEYS];
 
     void run();
     void processInput();
@@ -51,7 +50,6 @@ public:
     Renderer &getRenderer() const { return *renderer.get(); }
     std::shared_ptr<Entity> getPart() const { return part; }
 
-    bool keyState(int keyNum) const { return keys[keyNum]; }
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
     const ImageLoader &getImageLoader() const { return imageLoader; }
     const FontLoader &getFontLoader() const { return fontLoader; }
@@ -59,6 +57,7 @@ public:
     const Size getScreenSize() const { return Size(resWidth, resHeight); }
 
     void addMouseListener(MouseInputListener *listener);
+    void addKeyListener(KeyInputListener *listener);
 };
 
 #endif // ENGINE_H

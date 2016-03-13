@@ -1,7 +1,8 @@
 #include <glm/glm.hpp>
 
-#include "engine.h"
 #include "gamepart.h"
+
+#include "engine.h"
 #include "renderer.h"
 #include "GameDirector.h"
 #include "boardentity.h"

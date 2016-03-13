@@ -18,7 +18,7 @@ public:
     void setY(const int y) { this->y = y; }
 
     virtual void onMouseMove() = 0;
-    virtual void onMouseButton(const MouseButtonEvent event) = 0;
+    virtual void onMouseButton(const MouseButtonEvent &event) = 0;
 };
 
 #endif /* MOUSEINPUTLISTENER_H */
