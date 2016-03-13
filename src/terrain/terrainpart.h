@@ -3,9 +3,12 @@
 
 #include <entity.h>
 #include <keyinputlistener.h>
+#include <array2d.h>
 
 class TerrainPart : public Entity, public KeyInputListener
 {
+    Array2D<double> heightMap;
+
 public:
     TerrainPart();
 

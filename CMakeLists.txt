@@ -27,6 +27,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/include/tinyxml2
   ${PROJECT_SOURCE_DIR}/src/boiler
   ${PROJECT_SOURCE_DIR}/src/boiler/core
+  ${PROJECT_SOURCE_DIR}/src/boiler/containers
   ${PROJECT_SOURCE_DIR}/src/boiler/input
   ${PROJECT_SOURCE_DIR}/src/boiler/video
   ${PROJECT_SOURCE_DIR}/src/boiler/camera
@@ -65,6 +66,7 @@ add_library(boiler
   src/boiler/video/imageloader.cpp
   src/boiler/camera/camera.cpp
   src/boiler/camera/platformercamera.cpp
+  src/boiler/containers/gridposition.cpp
   src/boiler/util/tinyxml2.cpp
   src/boiler/util/jsoncpp.cpp)
 
