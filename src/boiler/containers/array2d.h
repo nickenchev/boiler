@@ -9,6 +9,7 @@
 #ifndef ARRAY2D_H
 #define ARRAY2D_H
 
+#include <iostream>
 #include <vector>
 #include "gridposition.h"
 
@@ -55,6 +56,17 @@ public:
     {
         int idx = y * columns + x;
         items[idx] = obj;
+    }
+
+    T &sample(int x, int y)
+    {
+        if (x < 0) x = 0;
+        else if (x >= columns) x = columns - 1;
+
+        if (y < 0) y = 0;
+        if (y >= rows) y = rows - 1;
+
+        return get(x, y);
     }
 
     unsigned int getSize() const { return this->size; }
@@ -113,6 +125,18 @@ public:
         newPosition.row = position.row + 1;
         newPosition.column = position.column + 1;
         return validPosition(newPosition);
+    }
+
+    void log()
+    {
+        for (int y = 0; y < rows; ++y)
+        {
+            for (int x = 0; x < columns; ++x)
+            {
+                std::cout << get(x, y) << " ";
+            }
+            std::cout << std::endl;
+        }
     }
 };
 
