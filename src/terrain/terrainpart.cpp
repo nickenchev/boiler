@@ -63,41 +63,45 @@ TerrainPart::TerrainPart()
 
     // diamond-square
     diamonSquare(terrainSize);
-
-    for (int x = 0; x < terrainSize; ++x)
-    {
-        for (int y = 0; y < terrainSize; ++y)
-        {
-            int height = heightMap.get(x, y);
-            if (height < 30) // deep water
-            {
-                std::cout << "~";
-            }
-            else if (height < 60) // shallow water
-            {
-                std::cout << "#";
-            }
-            else if (height < 100) // regular land
-            {
-                std::cout << "X";
-            }
-            else if (height < 150) // hills
-            {
-                std::cout << "7";
-            }
-            else // mountains
-            {
-                std::cout << "^";
-            }
-        }
-        std::cout << std::endl;
-    }
-
 }
 
 void TerrainPart::onCreate()
 {
+    terrainSheet = Engine::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
     Engine::getInstance().addKeyListener(this);
+
+    // draw terrain
+    const int tileSize = 64;
+    for (int x = 0; x < terrainSize * tileSize; x += tileSize)
+    {
+        for (int y = 0; y < terrainSize * tileSize; y += tileSize)
+        {
+            auto tile = std::make_shared<Entity>(Rect(x, y, tileSize, tileSize));
+
+            int height = heightMap.get(x, y);
+            if (height < 30) // deep water
+            {
+                tile->spriteFrame = terrainSheet->getFrame("water.png");
+            }
+            else if (height < 50) // shallow water
+            {
+                tile->spriteFrame = terrainSheet->getFrame("shallow_water.png");
+            }
+            else if (height < 70) // regular land
+            {
+                tile->spriteFrame = terrainSheet->getFrame("land.png");
+            }
+            else // mountains
+            {
+                tile->spriteFrame = terrainSheet->getFrame("mountains.png");
+            }
+
+            std::cout << x << ", " << y << std::endl;
+            addChild(tile);
+        }
+        std::cout << std::endl;
+    }
+
 }
 
 void TerrainPart::onKeyStateChanged(const KeyInputEvent &event)
