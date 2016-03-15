@@ -61,10 +61,8 @@ void TerrainPart::onCreate()
                 tile->spriteFrame = terrainSheet->getFrame("mountains.png");
             }
 
-            std::cout << x << ", " << y << std::endl;
             addChild(tile);
         }
-        std::cout << std::endl;
     }
 
     Engine &engine = Engine::getInstance();
