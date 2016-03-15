@@ -40,13 +40,13 @@ void TerrainPart::onCreate()
     const int tileSize = 64;
     int tileX = 0;
     int tileY = 0;
-    for (int x = 0; x < terrainSize * tileSize; x += tileSize)
+    for (int x = 0; x < terrainSize; ++x)
     {
-        for (int y = 0; y < terrainSize * tileSize; y += tileSize)
+        for (int y = 0; y < terrainSize; ++y)
         {
-            auto tile = std::make_shared<Entity>(Rect(x, y, tileSize, tileSize));
+            auto tile = std::make_shared<Entity>(Rect(tileX, tileY, tileSize, tileSize));
+            const int height = heightMap.get(x, y);
 
-            int height = heightMap.get(tileX, tileY);
             if (height < 30) // deep water
             {
                 tile->spriteFrame = terrainSheet->getFrame("water.png");
@@ -65,9 +65,9 @@ void TerrainPart::onCreate()
             }
 
             addChild(tile);
-            tileY++;
+            tileY += tileSize;
         }
-        tileX++;
+        tileX += tileSize;
         tileY = 0;
     }
 
