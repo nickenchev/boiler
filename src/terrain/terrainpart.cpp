@@ -16,6 +16,7 @@ int getNumber()
 
 void diamonSquare(const int size)
 {
+
 }
 
 TerrainPart::TerrainPart() : keys{0}
@@ -37,13 +38,15 @@ void TerrainPart::onCreate()
 
     // draw terrain
     const int tileSize = 64;
+    int tileX = 0;
+    int tileY = 0;
     for (int x = 0; x < terrainSize * tileSize; x += tileSize)
     {
         for (int y = 0; y < terrainSize * tileSize; y += tileSize)
         {
             auto tile = std::make_shared<Entity>(Rect(x, y, tileSize, tileSize));
 
-            int height = heightMap.get(x, y);
+            int height = heightMap.get(tileX, tileY);
             if (height < 30) // deep water
             {
                 tile->spriteFrame = terrainSheet->getFrame("water.png");
@@ -62,7 +65,10 @@ void TerrainPart::onCreate()
             }
 
             addChild(tile);
+            tileY++;
         }
+        tileX++;
+        tileY = 0;
     }
 
     Engine &engine = Engine::getInstance();
