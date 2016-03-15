@@ -42,6 +42,7 @@ public:
 
 protected:
     virtual void onCreate() { }
+    virtual void update() { }
     
     friend class Engine;
 };

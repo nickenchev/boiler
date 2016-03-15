@@ -1,9 +1,9 @@
-#ifndef PLATFORMERCAMERA_H
-#define PLATFORMERCAMERA_H
+#ifndef PANCAMERA_H
+#define PANCAMERA_H
 
 #include "camera.h"
 
-class PlatformerCamera : public Camera
+class PanCemera : public Camera
 {
 public:
     using Camera::Camera;
@@ -13,4 +13,5 @@ public:
 };
 
 
-#endif /* PLATFORMERCAMERA_H */
+
+#endif /* PANCAMERA_H */

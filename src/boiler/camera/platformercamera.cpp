@@ -5,7 +5,7 @@
 #include "platformercamera.h"
 #include "entity.h"
 
-void PlatformerCamera::update(glm::vec2 moveAmount)
+void PlatformerCamera::update(glm::vec3 moveAmount)
 {
     if (centralEntity)
     {

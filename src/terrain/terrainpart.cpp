@@ -2,6 +2,7 @@
 #include <boiler.h>
 #include <array2d.h>
 #include "terrainpart.h"
+#include "pancamera.h"
 
 const int resolution = 255;
 const int terrainSize = 33;
@@ -15,46 +16,10 @@ int getNumber()
 
 void diamonSquare(const int size)
 {
-    const int half = size / 2;
-    const int scale = roughness * size;
-
-    if (half >= 1)
-    {
-        // square pass
-        for (int y = half; y < terrainSize; y += size)
-        {
-            for (int x = half; x < terrainSize; x += size)
-            {
-                const int a = heightMap.sample(x - half, y - half); // top-left
-                const int b = heightMap.sample(x + half, y - half); // top-right
-                const int c = heightMap.sample(x + half, y + half); // bottom-right
-                const int d = heightMap.sample(x - half, y + half); // bottom-left
-                const int avg = (a + b + c + d) / 4;
-                heightMap.set(x, y, avg);
-            }
-        }
-
-        // diamond pass
-        for (int y = 0; y < terrainSize; y += half)
-        {
-            for (int x = (y + half) % size; x <= size; x += size)
-            {
-                const int a = heightMap.sample(x, y - half); // top
-                const int b = heightMap.sample(x + half, y); // right
-                const int c = heightMap.sample(x, y + half); // bottom
-                const int d = heightMap.sample(x - half, y); // left
-                const int avg = (a + b + c + d) / 4;
-                heightMap.set(x, y, avg);
-            }
-        }
-
-        diamonSquare(half);
-    }
 }
 
-TerrainPart::TerrainPart()
+TerrainPart::TerrainPart() : keys{0}
 {
-
     // initialize the four corners
     heightMap.set(0, 0, getNumber()); // top-left
     heightMap.set(terrainSize- 1, 0, getNumber()); //top-right
@@ -102,6 +67,42 @@ void TerrainPart::onCreate()
         std::cout << std::endl;
     }
 
+    Engine &engine = Engine::getInstance();
+
+    // setup the camera
+    Size screenSize = engine.getScreenSize();
+    int mapWidth = terrainSize * tileSize;
+    int mapHeight = terrainSize * tileSize;
+    int camWidth = screenSize.getWidth() / engine.getRenderer().getGlobalScale().x;
+    int camHeight = screenSize.getHeight() / engine.getRenderer().getGlobalScale().y;
+    camera = std::make_shared<PanCemera>(Rect(0, 0, camWidth, camHeight), Size(mapWidth, mapHeight));
+    engine.getRenderer().setCamera(camera);
+}
+
+void TerrainPart::update()
+{
+    const float speed = 10.0f;
+    glm::vec3 cameraMove;
+    
+    if (keys[SDLK_w])
+    {
+        cameraMove = glm::vec3(0, -speed, 0.0f);
+    }
+    else if (keys[SDLK_s])
+    {
+        cameraMove = glm::vec3(0, speed, 0.0f);
+    }
+
+    if (keys[SDLK_a])
+    {
+        cameraMove = glm::vec3(-speed, 0, 0.0f);
+    }
+    else if (keys[SDLK_d])
+    {
+        cameraMove = glm::vec3(speed, 0, 0.0f);
+    }
+
+    camera->frame.position += cameraMove;
 }
 
 void TerrainPart::onKeyStateChanged(const KeyInputEvent &event)
@@ -109,5 +110,21 @@ void TerrainPart::onKeyStateChanged(const KeyInputEvent &event)
     if (event.keyCode == SDLK_ESCAPE)
     {
         Engine::getInstance().quit();
+    }
+    else if (event.keyCode == SDLK_w)
+    {
+        keys[SDLK_w] = event.state == ButtonState::DOWN ? true : false;
+    }
+    else if (event.keyCode == SDLK_s)
+    {
+        keys[SDLK_s] = event.state == ButtonState::DOWN ? true : false;
+    }
+    else if (event.keyCode == SDLK_a)
+    {
+        keys[SDLK_a] = event.state == ButtonState::DOWN ? true : false;
+    }
+    else if (event.keyCode == SDLK_d)
+    {
+        keys[SDLK_d] = event.state == ButtonState::DOWN ? true : false;
     }
 }

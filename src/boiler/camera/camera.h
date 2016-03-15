@@ -15,7 +15,7 @@ protected:
 public:
     explicit Camera(const Rect &frame, const Size &mapSize);
 
-    virtual void update(glm::vec2 moveAmount) = 0;
+    virtual void update(glm::vec3 moveAmount) = 0;
     virtual glm::mat4 getViewMatrix() const = 0;
 
     Rect frame;

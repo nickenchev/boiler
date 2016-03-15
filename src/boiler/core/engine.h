@@ -49,6 +49,7 @@ public:
 
     Renderer &getRenderer() const { return *renderer.get(); }
     std::shared_ptr<Entity> getPart() const { return part; }
+    void updateEntities(const std::vector<std::shared_ptr<Entity>> &entities);
 
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
     const ImageLoader &getImageLoader() const { return imageLoader; }

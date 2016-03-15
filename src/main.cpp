@@ -7,7 +7,7 @@
 
 int main()
 {
-    Engine::getInstance().initialize(std::make_unique<OpenGLRenderer>(), 640, 480);
+    Engine::getInstance().initialize(std::make_unique<OpenGLRenderer>(), 1024, 768);
 
     auto part = std::make_shared<TerrainPart>();
     Engine::getInstance().start(part);

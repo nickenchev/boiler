@@ -6,14 +6,20 @@
 #include <keyinputlistener.h>
 #include <array2d.h>
 
+class Camera;
+
 class TerrainPart : public Entity, public KeyInputListener
 {
     std::shared_ptr<SpriteSheet> terrainSheet;
+    std::shared_ptr<Camera> camera;
+    bool keys[255];
+    glm::vec3 cameraMove;
 
 public:
     TerrainPart();
 
     void onCreate() override;
+    void update() override;
 
     void onKeyStateChanged(const KeyInputEvent &event) override;
 };

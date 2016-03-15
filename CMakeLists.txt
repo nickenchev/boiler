@@ -66,6 +66,7 @@ add_library(boiler
   src/boiler/video/imageloader.cpp
   src/boiler/camera/camera.cpp
   src/boiler/camera/platformercamera.cpp
+  src/boiler/camera/pancamera.cpp
   src/boiler/containers/gridposition.cpp
   src/boiler/util/tinyxml2.cpp
   src/boiler/util/jsoncpp.cpp)

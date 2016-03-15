@@ -190,8 +190,26 @@ void Engine::addKeyListener(KeyInputListener *listener)
     keyListeners.push_back(listener);
 }
 
+void Engine::updateEntities(const std::vector<std::shared_ptr<Entity>> &entities)
+{
+    for (auto &entity : entities)
+    {
+        entity->update();
+
+        // update children the child entities
+        if (entity->getChildren().size() > 0)
+        {
+            updateEntities(entity->getChildren());
+        }
+    }
+}
+
 void Engine::update(const float delta)
 {
+    part->update();
+
+    const auto &entities = part->getChildren();
+    updateEntities(entities);
 }
 
 void Engine::render(const float delta)

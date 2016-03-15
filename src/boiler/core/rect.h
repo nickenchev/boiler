@@ -43,4 +43,3 @@ struct Rect
 };
 
 #endif // RECT
-
