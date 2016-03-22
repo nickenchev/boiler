@@ -3,6 +3,7 @@
 #include <SDL_image.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "opengl.h"
 #include "openglrenderer.h"
@@ -129,6 +130,11 @@ std::shared_ptr<const Model> OpenGLRenderer::loadModel(const VertexData &data) c
 
 void OpenGLRenderer::render() const
 {
+    glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    const std::vector<std::shared_ptr<Entity>> &entities = Engine::getInstance().getPart()->getChildren();
+
     const ShaderProgram *program = getProgram();
     glUseProgram(program->getShaderProgram());
 
@@ -136,17 +142,10 @@ void OpenGLRenderer::render() const
     renderDetails.mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
     renderDetails.colorUniform = glGetUniformLocation(program->getShaderProgram(), "entityColor");
 
-    glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    const std::vector<std::shared_ptr<Entity>> &entities = Engine::getInstance().getPart()->getChildren();
-
     // prepare the matrices
     const Size screenSize = Engine::getInstance().getScreenSize();
     const GLfloat orthoW = screenSize.getWidth() /  getGlobalScale().x;
     const GLfloat orthoH = screenSize.getHeight() / getGlobalScale().y;
-
-    // opengl sprite render
     renderDetails.viewProjection = glm::ortho(0.0f,
                                           static_cast<GLfloat>(orthoW),
                                           static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
@@ -183,14 +182,22 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
                 setActiveTexture(entity->spriteFrame->getSourceTexture());
             }
 
+            glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(entity->color));
+
             const glm::mat4 &modelMatrix = entity->getMatrix();
             glm::mat4 mvpMatrix = renderDetails.viewProjection * modelMatrix;
 
-            glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
+            glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 
             // draw the entity
             glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
             glBindVertexArray(0);
+
+            GLenum glError = glGetError();
+            if (glError != GL_NO_ERROR)
+            {
+                error("GL Error returned: " + std::to_string(glError));
+            }
         }
 
         // draw the child entities
