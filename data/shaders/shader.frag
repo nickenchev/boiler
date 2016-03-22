@@ -8,6 +8,7 @@ uniform vec4 entityColor;
 
 void main()
 {
-    vec4 color = texture(tex2d, fragTexCoords.xy);
+    vec4 color = entityColor;
+    color += texture(tex2d, fragTexCoords.xy);
     fragColor = color;
 }

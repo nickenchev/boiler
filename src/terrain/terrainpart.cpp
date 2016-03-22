@@ -79,21 +79,25 @@ void TerrainPart::onCreate()
             auto tile = std::make_shared<Entity>(Rect(tileX, tileY, tileSize, tileSize));
             const int height = heightMap.get(x, y);
 
+            float normalized = height / 255.0f;
+            if (normalized > 1.0f) normalized = 1.0f;
+            tile->color = glm::vec4(normalized, normalized, normalized, 1.0f);
+
             if (height < 30) // deep water
             {
-                tile->spriteFrame = terrainSheet->getFrame("water.png");
+            tile->spriteFrame = terrainSheet->getFrame("water.png");
             }
             else if (height < 50) // shallow water
             {
-                tile->spriteFrame = terrainSheet->getFrame("shallow_water.png");
+            tile->spriteFrame = terrainSheet->getFrame("shallow_water.png");
             }
             else if (height < 120) // regular land
             {
-                tile->spriteFrame = terrainSheet->getFrame("land.png");
+            tile->spriteFrame = terrainSheet->getFrame("land.png");
             }
             else // mountains
             {
-                tile->spriteFrame = terrainSheet->getFrame("mountains.png");
+            tile->spriteFrame = terrainSheet->getFrame("mountains.png");
             }
 
             addChild(tile);
