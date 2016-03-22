@@ -131,7 +131,10 @@ void OpenGLRenderer::render() const
 {
     const ShaderProgram *program = getProgram();
     glUseProgram(program->getShaderProgram());
-    GLuint mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
+
+    RenderDetails renderDetails;
+    renderDetails.mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
+    renderDetails.colorUniform = glGetUniformLocation(program->getShaderProgram(), "entityColor");
 
     glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -144,21 +147,23 @@ void OpenGLRenderer::render() const
     const GLfloat orthoH = screenSize.getHeight() / getGlobalScale().y;
 
     // opengl sprite render
-    glm::mat4 viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW),static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
+    renderDetails.viewProjection = glm::ortho(0.0f,
+                                          static_cast<GLfloat>(orthoW),
+                                          static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
     if (this->camera)
     {
         glm::mat4 view = camera->getViewMatrix();
-        viewProjection = viewProjection * view;
+        renderDetails.viewProjection = renderDetails.viewProjection * view;
     }
 
     // draw the entities recursively
-    renderEntities(entities, mvpUniform, viewProjection);
+    renderEntities(entities, renderDetails);
 
     SDL_GL_SwapWindow(win);
     glUseProgram(0);
 }
 
-void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, unsigned int mvpUniform, const glm::mat4 &viewProjection) const
+void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, const RenderDetails &renderDetails) const
 {
     for (auto &entity : entities)
     {
@@ -176,22 +181,22 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
 
                 // set the current texture
                 setActiveTexture(entity->spriteFrame->getSourceTexture());
-
-                const glm::mat4 &modelMatrix = entity->getMatrix();
-                glm::mat4 mvpMatrix = viewProjection * modelMatrix;
-
-                glUniformMatrix4fv(mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
-
-                // draw the entity
-                glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
-                glBindVertexArray(0);
             }
+
+            const glm::mat4 &modelMatrix = entity->getMatrix();
+            glm::mat4 mvpMatrix = renderDetails.viewProjection * modelMatrix;
+
+            glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, &mvpMatrix[0][0]);
+
+            // draw the entity
+            glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
+            glBindVertexArray(0);
         }
 
         // draw the child entities
         if (entity->getChildren().size() > 0)
         {
-            renderEntities(entity->getChildren(), mvpUniform, viewProjection);
+            renderEntities(entity->getChildren(), renderDetails);
         }
     }
 }

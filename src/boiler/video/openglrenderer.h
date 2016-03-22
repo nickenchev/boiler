@@ -11,13 +11,20 @@
 class Entity;
 class VertexData;
 
+struct RenderDetails
+{
+    GLuint mvpUniform;
+    GLuint colorUniform;
+    glm::mat4 viewProjection;
+};
+
 class OpenGLRenderer : public Renderer
 {
     SDL_GLContext glContext;
     SDL_Window *win = nullptr;
     unsigned int fbo, rbo;
 
-    void renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, unsigned int mvpUniform, const glm::mat4 &viewProjection) const;
+    void renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, const RenderDetails &renderDetails) const;
 
 public:
     OpenGLRenderer();

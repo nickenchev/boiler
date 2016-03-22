@@ -16,7 +16,39 @@ int getNumber()
 
 void diamonSquare(const int size)
 {
+    const int max = size - 1;
+    const int half = max / 2;
+    for (int y = 0; y < terrainSize; y += max)
+    {
+        for (int x = 0; x < terrainSize; x += max)
+        {
+            // diamond step
+            const int maxX = x + max;
+            const int maxY = y + max;
+            int a = heightMap.get(x, y);
+            int b = heightMap.get(maxX, y);
+            int c = heightMap.get(maxX, maxY);
+            int d = heightMap.get(x, maxY);
 
+            int avg = (a + b + c + d) / 4;
+            heightMap.set(half, half, avg);
+
+            // square step
+
+            int n = ((a + b) / 2);
+            int e = ((b + c) / 2);
+            int s = ((c + d) / 2);
+            int w = ((d + a) / 2);
+            heightMap.set(half, y, n);
+            heightMap.set(maxX, half, e);
+            heightMap.set(half, maxY, s);
+            heightMap.set(x, half, w);
+        }
+    }
+    if (half > 1)
+    {
+        diamonSquare(half);
+    }
 }
 
 TerrainPart::TerrainPart() : keys{0}
@@ -37,7 +69,7 @@ void TerrainPart::onCreate()
     Engine::getInstance().addKeyListener(this);
 
     // draw terrain
-    const int tileSize = 64;
+    const int tileSize = 16;
     int tileX = 0;
     int tileY = 0;
     for (int x = 0; x < terrainSize; ++x)
@@ -55,7 +87,7 @@ void TerrainPart::onCreate()
             {
                 tile->spriteFrame = terrainSheet->getFrame("shallow_water.png");
             }
-            else if (height < 70) // regular land
+            else if (height < 120) // regular land
             {
                 tile->spriteFrame = terrainSheet->getFrame("land.png");
             }
