@@ -15,6 +15,7 @@ struct RenderDetails
 {
     GLuint mvpUniform;
     GLuint colorUniform;
+    GLboolean usingTexture;
     glm::mat4 viewProjection;
 };
 

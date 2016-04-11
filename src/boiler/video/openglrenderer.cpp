@@ -141,6 +141,7 @@ void OpenGLRenderer::render() const
     RenderDetails renderDetails;
     renderDetails.mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
     renderDetails.colorUniform = glGetUniformLocation(program->getShaderProgram(), "entityColor");
+    renderDetails.usingTexture = glGetUniformLocation(program->getShaderProgram(), "usingTexture");
 
     // prepare the matrices
     const Size screenSize = Engine::getInstance().getScreenSize();

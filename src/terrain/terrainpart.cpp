@@ -43,11 +43,12 @@ void diamonSquare(const int size)
             heightMap.set(maxX, half, e);
             heightMap.set(half, maxY, s);
             heightMap.set(x, half, w);
+
+            if (half > 1)
+            {
+                diamonSquare(half);
+            }
         }
-    }
-    if (half > 1)
-    {
-        diamonSquare(half);
     }
 }
 

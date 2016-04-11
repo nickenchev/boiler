@@ -5,10 +5,14 @@ out vec4 fragColor;
 
 uniform sampler2D tex2d; 
 uniform vec4 entityColor;
+uniform bool usingTexture;
 
 void main()
 {
     vec4 color = entityColor;
-    color += texture(tex2d, fragTexCoords.xy);
+    if (usingTexture)
+    {
+        color += texture(tex2d, fragTexCoords.xy);
+    }
     fragColor = color;
 }
