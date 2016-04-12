@@ -16,39 +16,40 @@ int getNumber()
 
 void diamonSquare(const int size)
 {
-    const int max = size - 1;
-    const int half = max / 2;
-    for (int y = 0; y < terrainSize; y += max)
+    const int half = size / 2;
+    const int max = half * 2;
+    for (int y = 0; y < terrainSize; y += size)
     {
-        for (int x = 0; x < terrainSize; x += max)
+        for (int x = 0; x < terrainSize; x += size)
         {
-            // diamond step
+            const int midX = x + half;
+            const int midY = y + half;
             const int maxX = x + max;
             const int maxY = y + max;
-            int a = heightMap.get(x, y);
-            int b = heightMap.get(maxX, y);
-            int c = heightMap.get(maxX, maxY);
-            int d = heightMap.get(x, maxY);
 
-            int avg = (a + b + c + d) / 4;
-            heightMap.set(half, half, avg);
+            // diamond step
+            const int nw = heightMap.get(x, y);
+            const int ne = heightMap.get(maxX, y);
+            const int se = heightMap.get(maxX, maxY);
+            const int sw = heightMap.get(x, maxY);
+            const int avg = (nw + ne + se + sw) / 4;
+            heightMap.set(midX, midY, avg);
 
             // square step
+            const int n = (nw + ne) / 2;
+            const int e = (ne + se) / 2;
+            const int s = (se + sw) / 2;
+            const int w = (nw + sw) / 2;
+            heightMap.set(midX, 0, n);
+            heightMap.set(maxX, midY, e);
+            heightMap.set(midX, maxY, s);
+            heightMap.set(0, midY, w);
 
-            int n = ((a + b) / 2);
-            int e = ((b + c) / 2);
-            int s = ((c + d) / 2);
-            int w = ((d + a) / 2);
-            heightMap.set(half, y, n);
-            heightMap.set(maxX, half, e);
-            heightMap.set(half, maxY, s);
-            heightMap.set(x, half, w);
-
-            if (half > 1)
-            {
-                diamonSquare(half);
-            }
-        }
+			if (half > 1)
+			{
+				diamonSquare(half);
+			}
+		}
     }
 }
 
@@ -61,7 +62,7 @@ TerrainPart::TerrainPart() : keys{0}
     heightMap.set(0, terrainSize - 1, getNumber()); //top-right
 
     // diamond-square
-    diamonSquare(terrainSize);
+	diamonSquare(terrainSize);
 }
 
 void TerrainPart::onCreate()
