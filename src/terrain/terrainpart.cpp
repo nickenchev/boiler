@@ -5,11 +5,11 @@
 #include "terrainpart.h"
 #include "pancamera.h"
 
-const int resolution = 100;
+const int resolution = 255;
 const int smallRes = 10;
 constexpr float getNormDenominator() { return resolution + smallRes; }
 
-const int terrainSize = 65;
+const int terrainSize = 129;
 const int roughness = 4;
 
 Array2D<int> heightMap(terrainSize, terrainSize);
@@ -80,7 +80,7 @@ void TerrainPart::onCreate()
     Engine::getInstance().addKeyListener(this);
 
     // draw terrain
-    const int tileSize = 16;
+    const int tileSize = 8;
     int tileX = 0;
     int tileY = 0;
     for (int x = 0; x < terrainSize; ++x)
@@ -94,22 +94,24 @@ void TerrainPart::onCreate()
             if (normalized > 1.0f) normalized = 1.0f;
             tile->color = glm::vec4(normalized, normalized, normalized, 1.0f);
 
-            if (height < 30) // deep water
+            const SpriteSheetFrame *frame = nullptr;
+            if (normalized < 0.6f) // deep water
             {
-                tile->spriteFrame = terrainSheet->getFrame("water.png");
+                frame = terrainSheet->getFrame("water.png");
             }
-            else if (height < 50) // shallow water
+            else if (normalized < 0.65f) // shallow water
             {
-                tile->spriteFrame = terrainSheet->getFrame("shallow_water.png");
+                frame = terrainSheet->getFrame("shallow_water.png");
             }
-            else if (height < 120) // regular land
+            else if (normalized < 0.7f) // regular land
             {
-                tile->spriteFrame = terrainSheet->getFrame("land.png");
+                frame = terrainSheet->getFrame("land.png");
             }
             else // mountains
             {
-                tile->spriteFrame = terrainSheet->getFrame("mountains.png");
+                frame = terrainSheet->getFrame("mountains.png");
             }
+            tile->spriteFrame = frame;
 
             addChild(tile);
             tileY += tileSize;
