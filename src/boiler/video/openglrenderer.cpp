@@ -181,6 +181,8 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
 
                 // set the current texture
                 setActiveTexture(entity->spriteFrame->getSourceTexture());
+
+                glUniform1i(renderDetails.usingTexture, 1);
             }
 
             glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(entity->color));
