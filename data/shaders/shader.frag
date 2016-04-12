@@ -12,7 +12,7 @@ void main()
     vec4 color = entityColor;
     if (usingTexture)
     {
-        color += texture(tex2d, fragTexCoords.xy);
+        color = texture(tex2d, fragTexCoords.xy);
     }
     fragColor = color;
 }
