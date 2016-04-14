@@ -5,10 +5,26 @@
 #include "terrainpart.h"
 #include "pancamera.h"
 
+struct Pixel
+{
+    Pixel() { }
+    Pixel(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+    {
+        this->r = r;
+        this->g = g;
+        this->b = b;
+        this->a = a;
+    }
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+    unsigned char a;
+};
+
 const int resolution = 1024;
 const int smallRandRange = 20;
 constexpr float getNormDenominator() { return resolution + smallRandRange; }
-glm::vec4 pixelData[resolution * resolution];
+Pixel pixelData[resolution * resolution];
 
 const int terrainSize = 129;
 const int roughness = 4;
@@ -78,36 +94,38 @@ TerrainPart::TerrainPart() : keys{0}
 
     std::cout << "Generating texture data" << std::endl;
     glm::vec4 colour;
-    for (int x = 0; x < resolution; ++x)
+    for (int y = 0; y < resolution; ++y)
     {
-        for (int y = 0; y < resolution; ++y)
+        for (int x = 0; x < resolution; ++x)
         {
             const int height = heightMap.get(x, y);
             float normalized = height / getNormDenominator();
             if (normalized > 1.0f) normalized = 1.0f;
 
+            int index = y * resolution + x;
+            Pixel color;
             if (normalized < 0.5f) // deep water
             {
-                colour = glm::vec4(0, 0, 1.0f, 1.0f);
+                color = Pixel(65, 76, 191, 255);
             }
             else if (normalized < 0.55f) // shallow water
             {
-                colour = glm::vec4(0.3f, 0, 1.0f, 1.0f);
+                color = Pixel(112, 120, 212, 255);
             }
             else if (normalized < 0.6f) // regular land
             {
-                colour = glm::vec4(0, 1.0f, 0, 1.0f);
+                color = Pixel(29, 138, 80, 255);
             }
             else if (normalized < 0.65f) // forest
             {
-                colour = glm::vec4(0, 1.0f, 1.0f, 1.0f);
+                color = Pixel(10, 82, 43, 255);
             }
             else // mountains
             {
-                colour = glm::vec4(0.6f, 0.6f, 0.6f, 1.0f);
+                color = Pixel(140, 140, 140, 255);
             }
 
-            pixelData[y * resolution + x] = colour;
+            pixelData[index] = color;
         }
     }
 }
@@ -117,8 +135,8 @@ void TerrainPart::onCreate()
     terrainSheet = Engine::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
     Engine::getInstance().addKeyListener(this);
 
-	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(resolution, resolution), &pixelData);
-    auto map = std::make_shared<Entity>(Rect(0, 0, resolution, resolution));
+	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(resolution, resolution), pixelData);
+    auto map = std::make_shared<Entity>(Rect(0, 0, 1024, 1024));
 
     procSheet = Engine::getInstance().getSpriteLoader().loadSheet(terrainTexture);
     map->spriteFrame = procSheet->getFirstFrame();
