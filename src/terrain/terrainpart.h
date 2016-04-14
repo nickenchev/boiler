@@ -10,7 +10,8 @@ class Camera;
 
 class TerrainPart : public Entity, public KeyInputListener
 {
-    std::shared_ptr<SpriteSheet> terrainSheet;
+    std::shared_ptr<const SpriteSheet> terrainSheet;
+    std::shared_ptr<const SpriteSheet> procSheet;
     std::shared_ptr<Camera> camera;
     bool keys[255];
     glm::vec3 cameraMove;

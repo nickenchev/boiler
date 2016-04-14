@@ -9,3 +9,9 @@ SpriteSheetFrame::SpriteSheetFrame(const std::shared_ptr<const Texture> sourceTe
     this->trimmed = trimmed;
     this->texCoordsVbo = texCoordsVbo;
 }
+
+SpriteSheetFrame::SpriteSheetFrame(const std::shared_ptr<const Texture> sourceTexture, unsigned int texCoordsVbo)
+    : sourceTexture(sourceTexture)
+{
+    this->texCoordsVbo = texCoordsVbo;
+}

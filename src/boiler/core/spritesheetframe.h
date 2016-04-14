@@ -21,6 +21,8 @@ class SpriteSheetFrame
 
 public:
     SpriteSheetFrame(const std::shared_ptr<const Texture> sourceTexture, std::string filename, Rect sourceRect, bool rotated, bool trimmed, const glm::vec2 &pivot, unsigned int texCoordsVbo);
+    SpriteSheetFrame(const std::shared_ptr<const Texture> sourceTexture, unsigned int texCoordsVbo);
+    
     const std::string &getFilename() const { return filename; }
     Rect getSourceRect() const { return sourceRect; }
     unsigned int getTexCoordsVbo() const { return texCoordsVbo; }

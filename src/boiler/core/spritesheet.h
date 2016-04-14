@@ -25,8 +25,9 @@ public:
     const Texture &getTexture() const { return *texture.get(); }
     std::string getImageFile() const { return imageFile; }
     const Size &getSize() const { return size; }
-    const SpriteSheetFrame *getFrame(const std::string frameName);
+    const SpriteSheetFrame *getFrame(const std::string frameName) const;
     const std::map<std::string, SpriteSheetFrame> &getAllFrames() const { return frames; }
+    const SpriteSheetFrame *getFirstFrame() const;
 };
 
 #endif // SPRITESHEET_H

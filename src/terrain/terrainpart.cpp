@@ -5,11 +5,12 @@
 #include "terrainpart.h"
 #include "pancamera.h"
 
-const int resolution = 4096;
-const int smallRandRange = 100;
+const int resolution = 1024;
+const int smallRandRange = 20;
 constexpr float getNormDenominator() { return resolution + smallRandRange; }
+glm::vec4 pixelData[resolution * resolution];
 
-const int terrainSize = 257;
+const int terrainSize = 129;
 const int roughness = 4;
 
 Array2D<int> heightMap(terrainSize, terrainSize);
@@ -43,14 +44,14 @@ void diamonSquare(const int size)
             const int ne = heightMap.get(maxX, y);
             const int se = heightMap.get(maxX, maxY);
             const int sw = heightMap.get(x, maxY);
-            const int avg = ((nw + ne + se + sw) / 4) - smallRand(randEngine);
+            const int avg = ((nw + ne + se + sw) / 4) + smallRand(randEngine);
             heightMap.set(midX, midY, avg);
 
             // square step
-            const int n = ((nw + ne) / 2) - smallRand(randEngine);
-            const int e = ((ne + se) / 2) - smallRand(randEngine);
-            const int s = ((se + sw) / 2) - smallRand(randEngine);
-            const int w = ((sw + nw) / 2) - smallRand(randEngine);
+            const int n = ((nw + ne) / 2) + smallRand(randEngine);
+            const int e = ((ne + se) / 2) + smallRand(randEngine);
+            const int s = ((se + sw) / 2) + smallRand(randEngine);
+            const int w = ((sw + nw) / 2) + smallRand(randEngine);
             heightMap.set(midX, 0, n);
             heightMap.set(maxX, midY, e);
             heightMap.set(midX, maxY, s);
@@ -72,7 +73,43 @@ TerrainPart::TerrainPart() : keys{0}
     heightMap.set(0, terrainSize - 1, getNumber()); //top-right
 
     // diamond-square
+    std::cout << "Generating height-map" << std::endl;
 	diamonSquare(terrainSize);
+
+    std::cout << "Generating texture data" << std::endl;
+    glm::vec4 colour;
+    for (int x = 0; x < resolution; ++x)
+    {
+        for (int y = 0; y < resolution; ++y)
+        {
+            const int height = heightMap.get(x, y);
+            float normalized = height / getNormDenominator();
+            if (normalized > 1.0f) normalized = 1.0f;
+
+            if (normalized < 0.5f) // deep water
+            {
+                colour = glm::vec4(0, 0, 1.0f, 1.0f);
+            }
+            else if (normalized < 0.55f) // shallow water
+            {
+                colour = glm::vec4(0.3f, 0, 1.0f, 1.0f);
+            }
+            else if (normalized < 0.6f) // regular land
+            {
+                colour = glm::vec4(0, 1.0f, 0, 1.0f);
+            }
+            else if (normalized < 0.65f) // forest
+            {
+                colour = glm::vec4(0, 1.0f, 1.0f, 1.0f);
+            }
+            else // mountains
+            {
+                colour = glm::vec4(0.6f, 0.6f, 0.6f, 1.0f);
+            }
+
+            pixelData[y * resolution + x] = colour;
+        }
+    }
 }
 
 void TerrainPart::onCreate()
@@ -80,8 +117,15 @@ void TerrainPart::onCreate()
     terrainSheet = Engine::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
     Engine::getInstance().addKeyListener(this);
 
+	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(resolution, resolution), &pixelData);
+    auto map = std::make_shared<Entity>(Rect(0, 0, resolution, resolution));
+
+    procSheet = Engine::getInstance().getSpriteLoader().loadSheet(terrainTexture);
+    map->spriteFrame = procSheet->getFirstFrame();
+    addChild(map);
     // draw terrain
-    const int tileSize = 2;
+    //const int tileSize = 4;
+    /*
     int tileX = 0;
     int tileY = 0;
     for (int x = 0; x < terrainSize; ++x)
@@ -124,17 +168,18 @@ void TerrainPart::onCreate()
         tileX += tileSize;
         tileY = 0;
     }
+    */
 
     Engine &engine = Engine::getInstance();
 
     // setup the camera
     Size screenSize = engine.getScreenSize();
-    int mapWidth = terrainSize * tileSize;
-    int mapHeight = terrainSize * tileSize;
-    int camWidth = screenSize.getWidth() / engine.getRenderer().getGlobalScale().x;
-    int camHeight = screenSize.getHeight() / engine.getRenderer().getGlobalScale().y;
-    camera = std::make_shared<PanCemera>(Rect(0, 0, camWidth, camHeight), Size(mapWidth, mapHeight));
-    engine.getRenderer().setCamera(camera);
+    //int mapWidth = terrainSize * tileSize;
+    //int mapHeight = terrainSize * tileSize;
+    //int camWidth = screenSize.getWidth() / engine.getRenderer().getGlobalScale().x;
+    //int camHeight = screenSize.getHeight() / engine.getRenderer().getGlobalScale().y;
+    //camera = std::make_shared<PanCemera>(Rect(0, 0, camWidth, camHeight), Size(mapWidth, mapHeight));
+    //engine.getRenderer().setCamera(camera);
 }
 
 void TerrainPart::update()
@@ -160,7 +205,7 @@ void TerrainPart::update()
         cameraMove = glm::vec3(speed, 0, 0.0f);
     }
 
-    camera->frame.position += cameraMove;
+    //camera->frame.position += cameraMove;
 }
 
 void TerrainPart::onKeyStateChanged(const KeyInputEvent &event)

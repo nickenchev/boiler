@@ -6,21 +6,30 @@ SpriteSheet::SpriteSheet(std::string imageFile, Size size, std::shared_ptr<const
     this->imageFile = imageFile;
 }
 
-SpriteSheet::~SpriteSheet()
-{
-    std::cout << "* Deleting frame VBOs for: " << imageFile << std::endl;
-    for (const auto &frameName : frames)
-    {
-        GLuint vbo = getFrame(frameName.first)->getTexCoordsVbo();
-        glDeleteBuffers(1, &vbo);
-    }
-}
 
-const SpriteSheetFrame *SpriteSheet::getFrame(const std::string frameName)
+const SpriteSheetFrame *SpriteSheet::getFrame(const std::string frameName) const
 {
     auto itr = frames.find(frameName);
     // TODO: Add show error when frame is null
     assert(itr != frames.end());
 
     return &itr->second;
+}
+
+const SpriteSheetFrame *SpriteSheet::getFirstFrame() const
+{
+    return &frames.begin()->second;
+}
+
+SpriteSheet::~SpriteSheet()
+{
+    // clear out the VBOs
+    for (auto itr = frames.begin(); itr != frames.end(); ++itr)
+    {
+        unsigned int texCoordsVbo = itr->second.getTexCoordsVbo();
+        if (texCoordsVbo)
+        {
+            glDeleteBuffers(1, &texCoordsVbo);
+        }
+    }
 }

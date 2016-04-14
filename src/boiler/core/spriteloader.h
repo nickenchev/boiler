@@ -19,7 +19,8 @@ public:
     ~SpriteLoader();
 
     //sprite handling methods
-    const std::shared_ptr<SpriteSheet> loadSheet(std::string filename) const;
+    const std::shared_ptr<const SpriteSheet> loadSheet(std::string filename) const;
+    const std::shared_ptr<const SpriteSheet> loadSheet(std::shared_ptr<const Texture> texture) const;
 };
 
 #endif // SPRITELOADER_H

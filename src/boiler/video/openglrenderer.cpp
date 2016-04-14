@@ -112,7 +112,7 @@ std::shared_ptr<const Texture> OpenGLRenderer::createTexture(const std::string f
         log("Created texture with ID: " + std::to_string(texId));
     }
 
-    return std::make_shared<OpenGLTexture>(filePath, texId);
+    return std::move(std::make_shared<OpenGLTexture>(filePath, texId));
 }
 
 void OpenGLRenderer::setActiveTexture(const std::shared_ptr<const Texture> texture) const
