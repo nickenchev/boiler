@@ -21,15 +21,17 @@ struct Pixel
     unsigned char a;
 };
 
-const int resolution = 1024;
-const int smallRandRange = 20;
-constexpr float getNormDenominator() { return resolution + smallRandRange; }
-Pixel pixelData[resolution * resolution];
-
+const int resolution = 255;
+const int smallRandRange = 5;
 const int terrainSize = 129;
 const int roughness = 4;
 
+Pixel pixelData[terrainSize * terrainSize];
 Array2D<int> heightMap(terrainSize, terrainSize);
+
+constexpr float getNormDenominator() { return resolution + smallRandRange; }
+constexpr float getNormalized(int height) { return height / getNormDenominator(); }
+
 std::mt19937 randEngine{std::random_device{}()};
 std::uniform_int_distribution<int> heightRand(1, resolution);
 std::uniform_int_distribution<int> smallRand(1, smallRandRange);
@@ -94,15 +96,15 @@ TerrainPart::TerrainPart() : keys{0}
 
     std::cout << "Generating texture data" << std::endl;
     glm::vec4 colour;
-    for (int y = 0; y < resolution; ++y)
+    for (int y = 0; y < terrainSize; ++y)
     {
-        for (int x = 0; x < resolution; ++x)
+        for (int x = 0; x < terrainSize; ++x)
         {
             const int height = heightMap.get(x, y);
-            float normalized = height / getNormDenominator();
+            float normalized = getNormalized(height);
             if (normalized > 1.0f) normalized = 1.0f;
 
-            int index = y * resolution + x;
+            int index = y * terrainSize + x;
             Pixel color;
             if (normalized < 0.5f) // deep water
             {
@@ -135,7 +137,7 @@ void TerrainPart::onCreate()
     terrainSheet = Engine::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
     Engine::getInstance().addKeyListener(this);
 
-	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(resolution, resolution), pixelData);
+	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(terrainSize, terrainSize), pixelData);
     auto map = std::make_shared<Entity>(Rect(0, 0, 1024, 1024));
 
     procSheet = Engine::getInstance().getSpriteLoader().loadSheet(terrainTexture);
