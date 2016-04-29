@@ -21,12 +21,18 @@ struct Pixel
     unsigned char a;
 };
 
+const float water = 0.48f;
+const float shallowWater = 0.5;
+const float land = 0.7f;
+const float mountains = 0.75f;
+
 const int mapWidth = 1024;
 const int mapHeight = 1024;
 
-const int terrainSize = 513;
-const int resolution = 1024;
-const int smallRandRange = 512;
+const int terrainSize = 1025;
+const int resolution = 128;
+const int smallRandRange = 10;
+const int smallRandDecrease = 1;
 
 Pixel pixelData[terrainSize * terrainSize];
 Array2D<int> heightMap(terrainSize, terrainSize);
@@ -43,13 +49,27 @@ int getNumber()
     return number;
 }
 
+int clampHeight(int height)
+{
+    int result = height;
+    if (result < 0)
+    {
+        result = 0;
+    }
+    else if (result > resolution)
+    {
+        result = resolution;
+    }
+
+    return result;
+}
+
 void diamondSquare(int size, int randRange)
 {
-    const float randMult = 0.8f;
     const int half = size / 2;
     const int whole = half * 2;
 
-    std::uniform_int_distribution<int> smallRand(1, randRange);
+    std::uniform_int_distribution<int> smallRand(-randRange, randRange);
 
     for (int y = 0; y < terrainSize - 1; y += size)
     {
@@ -61,7 +81,7 @@ void diamondSquare(int size, int randRange)
             int br = heightMap.get(x + whole, y + whole);
             int center = ((tl + tr + bl + br) / 4) + smallRand(randEngine);
 
-            heightMap.set(x + half, y + half, center);
+            heightMap.set(x + half, y + half, clampHeight(center));
 
             int dn = (y - half >= 0) ? heightMap.get(x + half, y - half) : 0;
             int ds = (y + half <= terrainSize - 1) ? heightMap.get(x + half, y + half) : 0;
@@ -72,16 +92,16 @@ void diamondSquare(int size, int randRange)
             int e = ((tr + br + de + center) / 4) + smallRand(randEngine);
             int s = ((br + bl + ds + center) / 4) + smallRand(randEngine);
             int w = ((tl + bl + dw + center) / 4) + smallRand(randEngine);
-            heightMap.set(x + half, y, n);
-            heightMap.set(x + whole, y + half, e);
-            heightMap.set(x + half, y + whole, s);
-            heightMap.set(x, y + half, w);
+            heightMap.set(x + half, y, clampHeight(n));
+            heightMap.set(x + whole, y + half, clampHeight(e));
+            heightMap.set(x + half, y + whole, clampHeight(s));
+            heightMap.set(x, y + half, clampHeight(w));
         }
     }
 
     if (size / 2 > 1)
     {
-        diamondSquare(size / 2, randRange * randMult);
+        diamondSquare(size / 2, randRange - smallRandDecrease);
     }
 }
 
@@ -109,28 +129,28 @@ TerrainPart::TerrainPart() : keys{0}
 
             int index = y * terrainSize + x;
             Pixel color;
-            if (normalized < 0.5f) // deep water
+            if (normalized < water) // deep water
             {
                 color = Pixel(65, 76, 191, 255);
             }
-            else if (normalized < 0.55f) // shallow water
+            else if (normalized < shallowWater) // shallow water
             {
-                color = Pixel(112, 120, 212, 255);
+                color = Pixel(80, 90, 212, 255);
             }
-            else if (normalized < 0.6f) // regular land
+            else if (normalized < land) // regular land
             {
                 color = Pixel(29, 138, 80, 255);
             }
-            else if (normalized < 0.65f) // forest
+            else if (normalized < mountains) // mountains
             {
-                color = Pixel(10, 82, 43, 255);
+                color = Pixel(100, 100, 100, 255);
             }
-            else // mountains
+            else // mountain peaks
             {
                 color = Pixel(140, 140, 140, 255);
             }
 
-            color = Pixel(255 * normalized, 255 * normalized, 255 * normalized, 255);
+            //color = Pixel(255 * normalized, 255 * normalized, 255 * normalized, 255);
 
             pixelData[index] = color;
         }
