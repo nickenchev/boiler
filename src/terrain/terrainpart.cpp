@@ -21,10 +21,12 @@ struct Pixel
     unsigned char a;
 };
 
-const int resolution = 255;
-const int smallRandRange = 5;
-const int terrainSize = 129;
-const int roughness = 4;
+const int mapWidth = 1024;
+const int mapHeight = 1024;
+
+const int terrainSize = 513;
+const int resolution = 1024;
+const int smallRandRange = 512;
 
 Pixel pixelData[terrainSize * terrainSize];
 Array2D<int> heightMap(terrainSize, terrainSize);
@@ -34,7 +36,6 @@ constexpr float getNormalized(int height) { return height / getNormDenominator()
 
 std::mt19937 randEngine{std::random_device{}()};
 std::uniform_int_distribution<int> heightRand(1, resolution);
-std::uniform_int_distribution<int> smallRand(1, smallRandRange);
 
 int getNumber()
 {
@@ -42,43 +43,45 @@ int getNumber()
     return number;
 }
 
-void diamonSquare(const int size)
+void diamondSquare(int size, int randRange)
 {
+    const float randMult = 0.8f;
     const int half = size / 2;
-    const int max = half * 2;
-    
+    const int whole = half * 2;
+
+    std::uniform_int_distribution<int> smallRand(1, randRange);
+
     for (int y = 0; y < terrainSize - 1; y += size)
     {
         for (int x = 0; x < terrainSize - 1; x += size)
         {
-            // random range for small rand
-            const int midX = x + half;
-            const int midY = y + half;
-            const int maxX = x + max;
-            const int maxY = y + max;
+            int tl = heightMap.get(x, y);
+            int tr = heightMap.get(x + whole, y);
+            int bl = heightMap.get(x, y + whole);
+            int br = heightMap.get(x + whole, y + whole);
+            int center = ((tl + tr + bl + br) / 4) + smallRand(randEngine);
 
-            // diamond step
-            const int nw = heightMap.get(x, y);
-            const int ne = heightMap.get(maxX, y);
-            const int se = heightMap.get(maxX, maxY);
-            const int sw = heightMap.get(x, maxY);
-            const int avg = ((nw + ne + se + sw) / 4) + smallRand(randEngine);
-            heightMap.set(midX, midY, avg);
+            heightMap.set(x + half, y + half, center);
 
-            // square step
-            const int n = ((nw + ne) / 2) + smallRand(randEngine);
-            const int e = ((ne + se) / 2) + smallRand(randEngine);
-            const int s = ((se + sw) / 2) + smallRand(randEngine);
-            const int w = ((sw + nw) / 2) + smallRand(randEngine);
-            heightMap.set(midX, 0, n);
-            heightMap.set(maxX, midY, e);
-            heightMap.set(midX, maxY, s);
-            heightMap.set(0, midY, w);
-		}
+            int dn = (y - half >= 0) ? heightMap.get(x + half, y - half) : 0;
+            int ds = (y + half <= terrainSize - 1) ? heightMap.get(x + half, y + half) : 0;
+            int dw = (x - half >= 0) ? heightMap.get(x, y + half) : 0;
+            int de = (x + half <= terrainSize - 1) ? heightMap.get(x + half, y + half) : 0;
+
+            int n = ((tl + tr + dn + center) / 4) + smallRand(randEngine);
+            int e = ((tr + br + de + center) / 4) + smallRand(randEngine);
+            int s = ((br + bl + ds + center) / 4) + smallRand(randEngine);
+            int w = ((tl + bl + dw + center) / 4) + smallRand(randEngine);
+            heightMap.set(x + half, y, n);
+            heightMap.set(x + whole, y + half, e);
+            heightMap.set(x + half, y + whole, s);
+            heightMap.set(x, y + half, w);
+        }
     }
-    if (half > 1)
+
+    if (size / 2 > 1)
     {
-        diamonSquare(half);
+        diamondSquare(size / 2, randRange * randMult);
     }
 }
 
@@ -92,7 +95,7 @@ TerrainPart::TerrainPart() : keys{0}
 
     // diamond-square
     std::cout << "Generating height-map" << std::endl;
-	diamonSquare(terrainSize);
+	diamondSquare(terrainSize, smallRandRange);
 
     std::cout << "Generating texture data" << std::endl;
     glm::vec4 colour;
@@ -127,6 +130,8 @@ TerrainPart::TerrainPart() : keys{0}
                 color = Pixel(140, 140, 140, 255);
             }
 
+            color = Pixel(255 * normalized, 255 * normalized, 255 * normalized, 255);
+
             pixelData[index] = color;
         }
     }
@@ -138,7 +143,7 @@ void TerrainPart::onCreate()
     Engine::getInstance().addKeyListener(this);
 
 	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(terrainSize, terrainSize), pixelData);
-    auto map = std::make_shared<Entity>(Rect(0, 0, 1024, 1024));
+    auto map = std::make_shared<Entity>(Rect(0, 0, mapWidth, mapHeight));
 
     procSheet = Engine::getInstance().getSpriteLoader().loadSheet(terrainTexture);
     map->spriteFrame = procSheet->getFirstFrame();
@@ -194,12 +199,10 @@ void TerrainPart::onCreate()
 
     // setup the camera
     Size screenSize = engine.getScreenSize();
-    //int mapWidth = terrainSize * tileSize;
-    //int mapHeight = terrainSize * tileSize;
-    //int camWidth = screenSize.getWidth() / engine.getRenderer().getGlobalScale().x;
-    //int camHeight = screenSize.getHeight() / engine.getRenderer().getGlobalScale().y;
-    //camera = std::make_shared<PanCemera>(Rect(0, 0, camWidth, camHeight), Size(mapWidth, mapHeight));
-    //engine.getRenderer().setCamera(camera);
+    int camWidth = screenSize.getWidth() / engine.getRenderer().getGlobalScale().x;
+    int camHeight = screenSize.getHeight() / engine.getRenderer().getGlobalScale().y;
+    camera = std::make_shared<PanCemera>(Rect(0, 0, camWidth, camHeight), Size(mapWidth, mapHeight));
+    engine.getRenderer().setCamera(camera);
 }
 
 void TerrainPart::update()
