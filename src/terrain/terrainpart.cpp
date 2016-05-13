@@ -21,18 +21,20 @@ struct Pixel
     unsigned char a;
 };
 
-const float water = 0.48f;
-const float shallowWater = 0.5;
-const float land = 0.7f;
+const bool grayscale = false;
+
+const float water = 0.4f;
+const float shallowWater = 0.45;
+const float land = 0.65f;
 const float mountains = 0.75f;
 
-const int mapWidth = 1024;
-const int mapHeight = 1024;
+const int mapWidth = 512;
+const int mapHeight = 512;
 
-const int terrainSize = 1025;
-const int resolution = 128;
-const int smallRandRange = 10;
-const int smallRandDecrease = 1;
+const int terrainSize = 513;
+const int resolution = 256;
+const int smallRandRange = 90;
+const int smallRandDecrease = 10;
 
 Pixel pixelData[terrainSize * terrainSize];
 Array2D<int> heightMap(terrainSize, terrainSize);
@@ -47,6 +49,16 @@ int getNumber()
 {
     int number = heightRand(randEngine);
     return number;
+}
+
+int getSmallNumber(int rangeEnd)
+{
+    if (rangeEnd < 1)
+    {
+        rangeEnd = 1;
+    }
+    std::uniform_int_distribution<int> smallRand(-rangeEnd, rangeEnd);
+    return smallRand(randEngine);
 }
 
 int clampHeight(int height)
@@ -69,29 +81,29 @@ void diamondSquare(int size, int randRange)
     const int half = size / 2;
     const int whole = half * 2;
 
-    std::uniform_int_distribution<int> smallRand(-randRange, randRange);
-
     for (int y = 0; y < terrainSize - 1; y += size)
     {
         for (int x = 0; x < terrainSize - 1; x += size)
         {
+
             int tl = heightMap.get(x, y);
             int tr = heightMap.get(x + whole, y);
             int bl = heightMap.get(x, y + whole);
             int br = heightMap.get(x + whole, y + whole);
-            int center = ((tl + tr + bl + br) / 4) + smallRand(randEngine);
+            int center = ((tl + tr + bl + br) / 4) + getSmallNumber(randRange);
 
             heightMap.set(x + half, y + half, clampHeight(center));
 
-            int dn = (y - half >= 0) ? heightMap.get(x + half, y - half) : 0;
-            int ds = (y + half <= terrainSize - 1) ? heightMap.get(x + half, y + half) : 0;
-            int dw = (x - half >= 0) ? heightMap.get(x, y + half) : 0;
-            int de = (x + half <= terrainSize - 1) ? heightMap.get(x + half, y + half) : 0;
+            int dn = (y - half >= 0) ? heightMap.get(x + half, y - half) : heightMap.get(x + half, terrainSize - half);
+            int ds = (y + half <= terrainSize - 1) ? heightMap.get(x + half, y + half) : heightMap.get(x + half, half - 1);
+            int dw = (x - half >= 0) ? heightMap.get(x, y + half) : heightMap.get(terrainSize - half, y + half);
+            int de = (x + half <= terrainSize - 1) ? heightMap.get(x + half, y + half) : heightMap.get(half - 1, y + half);
 
-            int n = ((tl + tr + dn + center) / 4) + smallRand(randEngine);
-            int e = ((tr + br + de + center) / 4) + smallRand(randEngine);
-            int s = ((br + bl + ds + center) / 4) + smallRand(randEngine);
-            int w = ((tl + bl + dw + center) / 4) + smallRand(randEngine);
+            int n = ((tl + tr + dn + center) / 4) + getSmallNumber(randRange);
+            int e = ((tr + br + de + center) / 4) + getSmallNumber(randRange);
+            int s = ((br + bl + ds + center) / 4) + getSmallNumber(randRange);
+            int w = ((tl + bl + dw + center) / 4) + getSmallNumber(randRange);
+
             heightMap.set(x + half, y, clampHeight(n));
             heightMap.set(x + whole, y + half, clampHeight(e));
             heightMap.set(x + half, y + whole, clampHeight(s));
@@ -102,6 +114,26 @@ void diamondSquare(int size, int randRange)
     if (size / 2 > 1)
     {
         diamondSquare(size / 2, randRange - smallRandDecrease);
+    }
+}
+
+void interpolate()
+{
+    const int interpolationPasses = 2;
+    for (int p = 0; p < interpolationPasses; ++p)
+    {
+        for (int y = 0; y < terrainSize; ++y)
+        {
+            for (int x = 0; x < terrainSize; ++x)
+            {
+                if (x > 0 && x < terrainSize - 1 &&
+                    y > 0 && y < terrainSize - 1)
+                {
+                    int val = (heightMap.get(x, y - 1) + heightMap.get(x, y + 1) + heightMap.get(x - 1, y) + heightMap.get(x + 1, y) + heightMap.get(x, y)) / 5;
+                    heightMap.set(x, y, val);
+                }
+            }
+        }
     }
 }
 
@@ -116,6 +148,8 @@ TerrainPart::TerrainPart() : keys{0}
     // diamond-square
     std::cout << "Generating height-map" << std::endl;
 	diamondSquare(terrainSize, smallRandRange);
+
+    interpolate();
 
     std::cout << "Generating texture data" << std::endl;
     glm::vec4 colour;
@@ -150,7 +184,10 @@ TerrainPart::TerrainPart() : keys{0}
                 color = Pixel(140, 140, 140, 255);
             }
 
-            //color = Pixel(255 * normalized, 255 * normalized, 255 * normalized, 255);
+            if (grayscale)
+            {
+                color = Pixel(255 * normalized, 255 * normalized, 255 * normalized, 255);
+            }
 
             pixelData[index] = color;
         }
