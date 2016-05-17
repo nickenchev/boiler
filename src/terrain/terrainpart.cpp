@@ -28,10 +28,13 @@ const float shallowWater = 0.45;
 const float land = 0.65f;
 const float mountains = 0.75f;
 
-const int mapWidth = 512;
-const int mapHeight = 512;
+const int mapWidth = 1024;
+const int mapHeight = 1024;
 
-const int terrainSize = 513;
+const int interpolationPasses = 2;
+const bool shouldInterpolate = true;
+
+const int terrainSize = 1025;
 const int resolution = 256;
 const int smallRandRange = 90;
 const int smallRandDecrease = 10;
@@ -119,7 +122,6 @@ void diamondSquare(int size, int randRange)
 
 void interpolate()
 {
-    const int interpolationPasses = 2;
     for (int p = 0; p < interpolationPasses; ++p)
     {
         for (int y = 0; y < terrainSize; ++y)
@@ -149,7 +151,10 @@ TerrainPart::TerrainPart() : keys{0}
     std::cout << "Generating height-map" << std::endl;
 	diamondSquare(terrainSize, smallRandRange);
 
-    interpolate();
+    if (shouldInterpolate)
+    {
+        interpolate();
+    }
 
     std::cout << "Generating texture data" << std::endl;
     glm::vec4 colour;
