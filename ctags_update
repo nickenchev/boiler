@@ -1,3 +1,0 @@
-#!/bin/bash
-echo Building TAGS
-/usr/local/bin/ctags -e -R .
