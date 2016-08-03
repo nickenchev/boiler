@@ -1,5 +1,5 @@
 #include <SDL_image.h>
-#include "../core/engine.h"
+#include "core/engine.h"
 #include "renderer.h"
 #include "imageloader.h"
 

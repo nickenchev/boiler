@@ -41,15 +41,14 @@ add_library(boiler
   Util/jsoncpp.cpp)
 
 target_include_directories(boiler PUBLIC
+  ${PROJECT_SOURCE_DIR}/src/boiler
+  ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/include/tinyxml2
   ${SDL2_INCLUDE_DIR}
   ${SDL2_IMAGE_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIR}
   ${GSL_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIR}
-  ${GLEW_INCLUDE_DIR}
-  ${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_SOURCE_DIR}/include/tinyxml2
-  ${PROJECT_SOURCE_DIR}/src/boiler)
-
+  ${GLEW_INCLUDE_DIR})
 
 target_link_libraries(boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})

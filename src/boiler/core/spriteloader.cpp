@@ -5,7 +5,7 @@
 #include "spriteloader.h"
 #include "json/json.h"
 #include "engine.h"
-#include "../video/renderer.h"
+#include "video/renderer.h"
 
 #define COMPONENT_NAME "SpriteLoader"
 

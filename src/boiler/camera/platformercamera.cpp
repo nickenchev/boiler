@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "platformercamera.h"
-#include "../core/entity.h"
+#include "core/entity.h"
 
 void PlatformerCamera::update(glm::vec3 moveAmount)
 {

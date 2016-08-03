@@ -3,8 +3,8 @@
 
 #include <memory>
 #include "shaderprogram.h"
-#include "../core/entity.h"
-#include "../core/component.h"
+#include "core/entity.h"
+#include "core/component.h"
 #include "texture.h"
 
 typedef glm::vec3 Color3;

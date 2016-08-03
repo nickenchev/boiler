@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <memory>
-#include "../core/rect.h"
+#include "core/rect.h"
 
 class Entity;
 

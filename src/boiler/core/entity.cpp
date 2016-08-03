@@ -4,8 +4,8 @@
 
 #include "entity.h"
 #include "engine.h"
-#include "../video/renderer.h"
-#include "../video/vertexdata.h"
+#include "video/renderer.h"
+#include "video/vertexdata.h"
 
 Entity::Entity() : Entity(Rect())
 {

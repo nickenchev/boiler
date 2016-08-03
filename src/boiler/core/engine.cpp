@@ -1,15 +1,15 @@
 #include <SDL2/SDL.h>
 #include <SDL_image.h>
 #include <iostream>
-#include "../video/opengl.h"
+#include "video/opengl.h"
 #include "engine.h"
-#include "../video/renderer.h"
+#include "video/renderer.h"
 #include "part.h"
 #include "entity.h"
-#include "../input/mouseinputlistener.h"
-#include "../input/mousebuttonevent.h"
-#include "../input/keyinputlistener.h"
-#include "../input/keyinputevent.h"
+#include "input/mouseinputlistener.h"
+#include "input/mousebuttonevent.h"
+#include "input/keyinputlistener.h"
+#include "input/keyinputevent.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "opengl.h"
 #include "opengltexture.h"
-#include "../core/rect.h"
+#include "core/rect.h"
 
 OpenGLTexture::OpenGLTexture(const std::string filePath, unsigned int textureId) : Texture(filePath)
 {
