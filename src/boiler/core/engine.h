@@ -4,8 +4,8 @@
 #include <memory>
 #include <vector>
 #include "spriteloader.h"
-#include "imageloader.h"
-#include "fontloader.h"
+#include "../video/imageloader.h"
+#include "../video/fontloader.h"
 
 class Entity;
 class Renderer;

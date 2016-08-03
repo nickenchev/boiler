@@ -1,7 +1,7 @@
 #ifndef FONTLOADER_H
 #define FONTLOADER_H
 
-#include "component.h"
+#include "../core/component.h"
 
 struct BMFont;
 

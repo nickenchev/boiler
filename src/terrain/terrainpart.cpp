@@ -1,9 +1,6 @@
 #include <iostream>
 #include <random>
-#include <boiler.h>
-#include <array2d.h>
 #include "terrainpart.h"
-#include "pancamera.h"
 
 struct Pixel
 {
@@ -204,6 +201,7 @@ void TerrainPart::onCreate()
     terrainSheet = Engine::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
     Engine::getInstance().addKeyListener(this);
 
+    //test
 	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(terrainSize, terrainSize), pixelData);
     auto map = std::make_shared<Entity>(Rect(0, 0, mapWidth, mapHeight));
 

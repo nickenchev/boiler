@@ -2,7 +2,7 @@
 #define IMAGELOADER_H
 
 #include <memory>
-#include "component.h"
+#include "../core/component.h"
 
 class Texture;
 

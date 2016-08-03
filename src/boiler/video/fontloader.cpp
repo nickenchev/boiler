@@ -3,12 +3,12 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "engine.h"
+#include "../core/engine.h"
 #include "fontloader.h"
-#include "bmfont.h"
+#include "../core/bmfont.h"
 #include "tinyxml2.h"
 #include "imageloader.h"
-#include "fileutils.h"
+#include "../core/fileutils.h"
 
 #define COMPONENT_NAME "FontLoader"
 

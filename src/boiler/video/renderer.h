@@ -3,9 +3,9 @@
 
 #include <memory>
 #include "shaderprogram.h"
-#include "entity.h"
+#include "../core/entity.h"
+#include "../core/component.h"
 #include "texture.h"
-#include "component.h"
 
 typedef glm::vec3 Color3;
 typedef glm::vec4 Color4;

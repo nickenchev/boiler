@@ -1,9 +1,9 @@
 #include <SDL2/SDL.h>
 #include <SDL_image.h>
 #include <iostream>
-#include "opengl.h"
+#include "../video/opengl.h"
 #include "engine.h"
-#include "renderer.h"
+#include "../video/renderer.h"
 #include "part.h"
 #include "entity.h"
 #include "../input/mouseinputlistener.h"

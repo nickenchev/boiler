@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 #include "rect.h"
-#include "opengl.h"
+#include "../video/opengl.h"
 
 class SpriteSheet;
 class Texture;

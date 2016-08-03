@@ -5,7 +5,7 @@
 #include "tmxloader.h"
 #include "tinyxml2.h"
 #include "base64.h"
-#include "string_util.h"
+#include "../util/string_util.h"
 
 using namespace tinyxml2;
 

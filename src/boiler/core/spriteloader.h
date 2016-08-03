@@ -7,7 +7,7 @@
 
 #include "component.h"
 #include "spritesheet.h"
-#include "texture.h"
+#include "../video/texture.h"
 
 class SDL_Texture;
 typedef unsigned int GLuint;

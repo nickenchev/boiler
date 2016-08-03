@@ -1,9 +1,7 @@
+#include "terrainpart.h"
 #include <iostream>
 #include <string>
-
-#include "engine.h"
-#include "openglrenderer.h"
-#include "terrain/terrainpart.h"
+#include <boiler.h>
 
 int main()
 {
