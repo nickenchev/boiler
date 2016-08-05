@@ -10,5 +10,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 # Shader files
 set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 
+# boiler sources
 add_subdirectory(src/boiler)
+
+# other sources
 add_subdirectory(src/terrain)
+
+# run executable target
+add_custom_target(run
+  COMMAND lldb -o run build/src/terrain/terrain
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
