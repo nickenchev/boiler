@@ -49,7 +49,7 @@ GLint compileShader(char *src, GLenum shaderType)
         glGetShaderInfoLog(shader, logLength, NULL, logBuffer);
 
         std::cerr << logBuffer << std::endl;
-        delete logBuffer;
+        delete [] logBuffer;
 
         throw std::runtime_error("Error compiling shader" );
     }
