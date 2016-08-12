@@ -23,7 +23,7 @@ Entity::Entity(const Rect &frame) : scale(1.0f, 1.0f, 1.0f)
     const float sizeW = frame.size.getWidth();
     const float sizeH = frame.size.getHeight();
 
-    glm::vec3 verts[] =
+    VertexData vertData(
     {
         { 0.0f, sizeH, 0.0f },
         { sizeW, 0.0f, 0.0f },
@@ -33,8 +33,7 @@ Entity::Entity(const Rect &frame) : scale(1.0f, 1.0f, 1.0f)
         { sizeW, sizeH, 0.0f },
         { sizeW, 0.0f, 0.0f }
         
-    };
-    VertexData vertData(verts);
+    });
     model = Engine::getInstance().getRenderer().loadModel(vertData);
 }
 

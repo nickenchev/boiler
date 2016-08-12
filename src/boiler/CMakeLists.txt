@@ -3,7 +3,6 @@ find_package(SDL2_image REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-find_package(GSL REQUIRED)
 
 # Engine related sources
 add_library(boiler
@@ -47,7 +46,6 @@ target_include_directories(boiler PUBLIC
   ${SDL2_INCLUDE_DIR}
   ${SDL2_IMAGE_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIR}
-  ${GSL_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIR})
 
