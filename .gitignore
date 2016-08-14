@@ -1,4 +1,9 @@
+*~
+\#*\#
 /build
+/android/ndk/libs
+/android/ndk/obj
+/android/android-studio/.idea
 /TAGS
 /GPATH
 /GRTAGS
