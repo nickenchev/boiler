@@ -19,17 +19,19 @@ OpenGLRenderer::OpenGLRenderer() : Renderer(std::string(COMPONENT_NAME))
 {
 }
 
-//void glewInit()
-//{
-    //// require "experimental" as not all OpenGL features are marked "standard"
-//glewExperimental = GL_TRUE;
-//if (glewInit() != GLEW_OK)
-//{
-//std::cerr << "Error initializing GLEW" << std::endl;
-//}
-    //// glewInit() queries extensions incorrectly, clearing errors here
-//glGetError();
-//}
+void setupGLExtensions()
+{
+#ifdef __APPLE__
+    // require "experimental" as not all OpenGL features are marked "standard"
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK)
+    {
+        std::cerr << "Error initializing GLEW" << std::endl;
+    }
+    // glewInit() queries extensions incorrectly, clearing errors here
+    glGetError();
+#endif
+}
 
 void OpenGLRenderer::initialize(const Size screenSize)
 {
@@ -52,6 +54,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
             if (glContext)
             {
                 std::cout << " - Using Context: OpenGL " << glGetString(GL_VERSION) << std::endl; 
+                setupGLExtensions();
 
                 IMG_Init(IMG_INIT_PNG);
 

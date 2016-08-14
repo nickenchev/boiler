@@ -2,7 +2,7 @@
 
 #ifdef __APPLE__
 
-//#include <GL/glew.h>
+#include <GL/glew.h>
 #include <OpenGL/gl.h>
 
 #else

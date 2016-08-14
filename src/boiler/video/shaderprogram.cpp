@@ -31,11 +31,11 @@ GLint compileShader(char *src, GLenum shaderType)
     {
         throw std::runtime_error("Error creating the shader object.");
     }
-
     //pass the shader source for compilation
     glShaderSource(shader, 1, (const char **)&src, NULL);
     //compile the shader
     glCompileShader(shader);
+
 
     //check if compilation was successful
     GLint compileStatus;
