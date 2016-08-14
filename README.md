@@ -27,3 +27,8 @@ build/bin/engine
 ```
 You need to run the engine executable from the root directory as the engine uses the data folder/
 
+## Android Setup
+### Link in the SDL2 libraries
+cd android/ndk
+ln -s [path-to-SDL2] .
+ln -s [path-to-SDL2_image] .

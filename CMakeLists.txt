@@ -14,9 +14,5 @@ set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 add_subdirectory(src/boiler)
 
 # other sources
-add_subdirectory(src/terrain)
-
-# run executable target
-add_custom_target(run
-  COMMAND lldb -o run build/src/terrain/terrain
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+#add_subdirectory(src/terrain)
+add_subdirectory(src/blank)

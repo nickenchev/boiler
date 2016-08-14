@@ -22,11 +22,21 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    externalNativeBuild {
-        ndkBuild {
-            path "../../ndk/jni/Android.mk"
-        }
-    }
+
+//    defaultConfig {
+//        externalNativeBuild {
+//            cmake {
+//                arguments "-DANDROID_TOOLCHAIN=clang"
+//                abiFilters "armeabi"
+//            }
+//        }
+//    }
+//
+//    externalNativeBuild {
+//        cmake {
+//            path "../../../CMakeLists.txt"
+//        }
+//    }
 }
 
 dependencies {
