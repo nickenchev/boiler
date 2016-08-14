@@ -1,4 +1,4 @@
-#include <SDL_image.h>
+#include <SDL2/SDL_image.h>
 #include "core/engine.h"
 #include "renderer.h"
 #include "imageloader.h"

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <glm/glm.hpp>
 #include "tmxloader.h"
-#include "tinyxml2.h"
+#include "tinyxml2/tinyxml2.h"
 #include "base64.h"
 #include "util/string_util.h"
 

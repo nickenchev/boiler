@@ -1,7 +1,7 @@
 #ifndef OPENGLRENDERER_H
 #define OPENGLRENDERER_H
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <memory>
 #include "renderer.h"
 

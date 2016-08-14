@@ -7,7 +7,7 @@
 #include "core/bmfont.h"
 #include "core/fileutils.h"
 #include "fontloader.h"
-#include "tinyxml2.h"
+#include "tinyxml2/tinyxml2.h"
 #include "imageloader.h"
 
 #define COMPONENT_NAME "FontLoader"
