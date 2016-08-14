@@ -1,4 +1,4 @@
-package com.ensoft.boiler.boilersample;
+package org.libsdl.app;
 
 import java.io.IOException;
 import java.io.InputStream;
