@@ -21,6 +21,8 @@ struct RenderDetails
 
 class OpenGLRenderer : public Renderer
 {
+    bool useGLES;
+    
     SDL_GLContext glContext;
     SDL_Window *win = nullptr;
     unsigned int fbo, rbo;
@@ -28,7 +30,7 @@ class OpenGLRenderer : public Renderer
     void renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, const RenderDetails &renderDetails) const;
 
 public:
-    OpenGLRenderer();
+    OpenGLRenderer(bool useGLES);
     ~OpenGLRenderer();
 
     void initialize(const Size size) override;

@@ -1,6 +1,4 @@
 #include "openglmodel.h"
-#include "core/engine.h"
-#include "video/renderer.h"
 
 OpenGLModel::OpenGLModel(const VertexData &data) : Model(data.length())
 {

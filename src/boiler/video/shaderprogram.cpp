@@ -73,14 +73,14 @@ GLint compileShader(char *src, GLenum shaderType)
     return shader;
 }
 
-ShaderProgram::ShaderProgram(std::string name) : name(name)
+ShaderProgram::ShaderProgram(std::string path, std::string name) : name(name)
 {
     //load the shader sources
     std::string vertSrc, fragSrc;
 
     // get the 
-    std::string vertPath = "data/shaders/es3/" + name + ".vert";
-    std::string fragPath = "data/shaders/es3/" + name + ".frag";
+    std::string vertPath = path + name + ".vert";
+    std::string fragPath = path + name + ".frag";
     loadShader(vertPath, &vertSrc);
     loadShader(fragPath, &fragSrc);
 

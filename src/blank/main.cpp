@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[])
 {
-    Engine::getInstance().initialize(std::make_unique<OpenGLRenderer>(), 1024, 768);
+    Engine::getInstance().initialize(std::make_unique<OpenGLRenderer>(true), 512, 512);
 
     auto part = std::make_shared<BlankPart>();
     Engine::getInstance().start(part);

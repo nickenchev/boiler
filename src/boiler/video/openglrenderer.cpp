@@ -15,8 +15,9 @@
 #include "openglmodel.h"
 #include "vertexdata.h"
 
-OpenGLRenderer::OpenGLRenderer() : Renderer(std::string(COMPONENT_NAME))
+OpenGLRenderer::OpenGLRenderer(bool useGLES) : Renderer(std::string(COMPONENT_NAME))
 {
+    this->useGLES = useGLES;
 }
 
 void setupGLExtensions()
@@ -66,6 +67,11 @@ void checkOpenGLErrors()
                 errorString = "GL_INVALID_FRAMEBUFFER_OPERATION";
                 break;
             }
+            default:
+            {
+                errorString = "Other";
+                break;
+            }
         }
         Engine::getInstance().getRenderer().showMessageBox("OpenGL Error", errorString);
     }
@@ -77,25 +83,28 @@ void OpenGLRenderer::initialize(const Size screenSize)
 
     if (SDL_Init(SDL_INIT_VIDEO) == 0)
     {
-        win = SDL_CreateWindow("SDL_RenderClear",
-                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                               512, 512,
-                               0);
-        /*
         win = SDL_CreateWindow("Boiler", 0, 0,
                                screenSize.getWidth(),
                                screenSize.getHeight(), SDL_WINDOW_OPENGL);
-        */
         if (win)
         {
             // setup opengl
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-            //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-            //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-            //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-            //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+            std::string shaderPath;
+            if (useGLES)
+            {
+                shaderPath = "data/shaders/es3/";
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+            }
+            else
+            {
+                shaderPath = "data/shaders/";
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+                SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+            }
 
             glContext = SDL_GL_CreateContext(win);
             if (glContext)
@@ -106,7 +115,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
                 IMG_Init(IMG_INIT_PNG);
 
                 // compile the default shader program
-                program = std::make_unique<ShaderProgram>("shader");
+                program = std::make_unique<ShaderProgram>(shaderPath, "shader");
                 success = true;
             }
         }
@@ -246,8 +255,8 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
 
             glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 
-            /*
             // draw the entity
+            /*
             glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
             glBindVertexArray(0);
 
