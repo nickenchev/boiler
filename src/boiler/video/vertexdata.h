@@ -11,7 +11,6 @@ class VertexData
 
 public:
     VertexData(std::vector<glm::vec3> vertices);
-    virtual ~VertexData();
 
     const float *begin() const { return &(vertices[0].x); }
     int length() const { return vertices.size(); }

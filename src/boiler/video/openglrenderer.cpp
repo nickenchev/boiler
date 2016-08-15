@@ -200,10 +200,11 @@ void OpenGLRenderer::render() const
     const ShaderProgram *program = getProgram();
     if (program)
     {
+        // grab the uniform locations
         glUseProgram(program->getShaderProgram());
         renderDetails.mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
         renderDetails.colorUniform = glGetUniformLocation(program->getShaderProgram(), "entityColor");
-        renderDetails.usingTexture = glGetUniformLocation(program->getShaderProgram(), "usingTexture");
+        renderDetails.usingTexUniform = glGetUniformLocation(program->getShaderProgram(), "usingTexture");
     }
 
     // prepare the matrices
@@ -244,11 +245,13 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
 
                 // set the current texture
                 setActiveTexture(entity->spriteFrame->getSourceTexture());
-
-                glUniform1i(renderDetails.usingTexture, 1);
+                glUniform1i(renderDetails.usingTexUniform, 1);
             }
-
-            glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(entity->color));
+            else
+            {
+                glUniform1i(renderDetails.usingTexUniform, 0);
+                glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(entity->color));
+            }
 
             const glm::mat4 &modelMatrix = entity->getMatrix();
             glm::mat4 mvpMatrix = renderDetails.viewProjection * modelMatrix;
@@ -256,7 +259,6 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
             glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 
             // draw the entity
-            /*
             glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
             glBindVertexArray(0);
 
@@ -265,7 +267,6 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
             {
                 error("GL Error returned: " + std::to_string(glError));
             }
-            */
         }
 
         // draw the child entities

@@ -1,5 +1,8 @@
 #include "blankpart.h"
 
+const int mapWidth = 1024;
+const int mapHeight = 1024;
+
 BlankPart::BlankPart()
 {
 }
@@ -8,8 +11,9 @@ void BlankPart::onCreate()
 {
     Engine::getInstance().getRenderer().setClearColor(Color3(0.8f, 0.8f, 1.0f));
     Engine::getInstance().addKeyListener(this);
-    auto test = std::make_shared<Entity>(Rect(10, 10, 50, 50));
-    addChild(test);
+
+    auto map = std::make_shared<Entity>(Rect(0, 0, mapWidth, mapHeight));
+    addChild(map);
 }
 
 void BlankPart::update()

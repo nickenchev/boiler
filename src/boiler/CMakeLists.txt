@@ -36,8 +36,9 @@ add_library(boiler
   camera/platformercamera.cpp
   camera/pancamera.cpp
   containers/gridposition.cpp
+  util/filemanager.cpp
   util/tinyxml2.cpp
-  Util/jsoncpp.cpp)
+  util/jsoncpp.cpp)
 
 target_include_directories(boiler PUBLIC
   ${PROJECT_SOURCE_DIR}/src/boiler

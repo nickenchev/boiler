@@ -6,34 +6,7 @@
 #include "video/renderer.h"
 #include "shaderprogram.h"
 #include "opengl.h"
-
-void loadShader(const std::string filename, std::string *output)
-{
-    SDL_RWops *file = SDL_RWFromFile(filename.c_str(), "r");
-    std::string test;
-    //SDL_RWops *file = SDL_RWFromFile(filename.c_str(), "r");
-    if (file != NULL)
-    {
-        const int size = SDL_RWsize(file);
-
-        char buffer[size + 1];
-        char *buffOffset = buffer;
-        int totalRead = 0, charsRead = 1;
-        while (totalRead < size && charsRead != 0)
-        {
-            charsRead = SDL_RWread(file, buffer, (size - totalRead), 1);
-            totalRead += charsRead;
-            buffOffset += charsRead;
-        }
-        SDL_RWclose(file);
-        buffer[size] = '\0';
-        *output = buffer;
-    }
-    else
-    {
-        Engine::getInstance().getRenderer().showMessageBox("Error", "Error loading shader program");
-    }
-}
+#include "util/filemanager.h"
 
 GLint compileShader(char *src, GLenum shaderType)
 {
@@ -46,12 +19,10 @@ GLint compileShader(char *src, GLenum shaderType)
     {
         throw std::runtime_error("Error creating the shader object.");
     }
-    //pass the shader source for compilation
-    glShaderSource(shader, 1, (const char **)&src, NULL);
-    //compile the shader
-    glCompileShader(shader);
 
-    //check if compilation was successful
+    //compile the shader, and make sure all is good
+    glShaderSource(shader, 1, (const char **)&src, NULL);
+    glCompileShader(shader);
     GLint compileStatus;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
 
@@ -75,14 +46,13 @@ GLint compileShader(char *src, GLenum shaderType)
 
 ShaderProgram::ShaderProgram(std::string path, std::string name) : name(name)
 {
-    //load the shader sources
-    std::string vertSrc, fragSrc;
-
-    // get the 
     std::string vertPath = path + name + ".vert";
     std::string fragPath = path + name + ".frag";
-    loadShader(vertPath, &vertSrc);
-    loadShader(fragPath, &fragSrc);
+    std::string vertSrc = FileManager::readTextFile(vertPath);
+    std::string fragSrc = FileManager::readTextFile(fragPath);
+
+    std::cout << " - Vertex Shader: " << vertPath << std::endl;
+    std::cout << " - Fragment Shader: " << fragPath << std::endl;
 
     try
     {

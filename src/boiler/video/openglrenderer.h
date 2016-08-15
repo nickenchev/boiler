@@ -15,8 +15,15 @@ struct RenderDetails
 {
     GLuint mvpUniform;
     GLuint colorUniform;
-    GLboolean usingTexture;
+    GLboolean usingTexUniform;
     glm::mat4 viewProjection;
+
+    RenderDetails()
+    {
+        mvpUniform = -1;
+        colorUniform = -1;
+        usingTexUniform = -1;
+    }
 };
 
 class OpenGLRenderer : public Renderer

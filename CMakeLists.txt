@@ -14,5 +14,5 @@ set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 add_subdirectory(src/boiler)
 
 # other sources
-#add_subdirectory(src/terrain)
-add_subdirectory(src/blank)
+add_subdirectory(src/terrain)
+#add_subdirectory(src/blank)
