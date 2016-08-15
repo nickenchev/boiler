@@ -1,0 +1,93 @@
+{"frames": [
+
+{
+	"filename": "num_1_1.png",
+	"frame": {"x":2,"y":2,"w":65,"h":59},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":72,"y":65,"w":65,"h":59},
+	"sourceSize": {"w":195,"h":182},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "num_2_1.png",
+	"frame": {"x":69,"y":2,"w":117,"h":111},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":46,"y":39,"w":117,"h":111},
+	"sourceSize": {"w":195,"h":182},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "num_3_1.png",
+	"frame": {"x":188,"y":2,"w":143,"h":123},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":33,"y":33,"w":143,"h":123},
+	"sourceSize": {"w":195,"h":182},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "num_4_1.png",
+	"frame": {"x":333,"y":2,"w":156,"h":143},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":20,"y":20,"w":156,"h":143},
+	"sourceSize": {"w":195,"h":182},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "num_5_1.png",
+	"frame": {"x":491,"y":2,"w":156,"h":143},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":20,"y":20,"w":156,"h":143},
+	"sourceSize": {"w":195,"h":182},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "num_6_1.png",
+	"frame": {"x":649,"y":2,"w":156,"h":162},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":20,"y":20,"w":156,"h":162},
+	"sourceSize": {"w":195,"h":182},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "num_7_1.png",
+	"frame": {"x":807,"y":2,"w":156,"h":182},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":20,"y":0,"w":156,"h":182},
+	"sourceSize": {"w":195,"h":182},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "num_8_1.png",
+	"frame": {"x":965,"y":2,"w":176,"h":182},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":0,"w":176,"h":182},
+	"sourceSize": {"w":195,"h":182},
+	"pivot": {"x":0.5,"y":0.5}
+},
+{
+	"filename": "num_9_1.png",
+	"frame": {"x":1143,"y":2,"w":195,"h":182},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":195,"h":182},
+	"sourceSize": {"w":195,"h":182},
+	"pivot": {"x":0.5,"y":0.5}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "num_stage_1.png",
+	"format": "RGBA8888",
+	"size": {"w":1340,"h":186},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:3230b0b243b8a9730cd394bb71ec602f:7964ca16c520d57eda749a9e740c7389:7f074af7be001d3d12f33605778ea186$"
+}
+}

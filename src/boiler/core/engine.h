@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 #include "spriteloader.h"
 #include "video/imageloader.h"
 #include "video/fontloader.h"
@@ -15,6 +16,7 @@ class KeyInputListener;
 class Engine
 {
     int resWidth, resHeight;
+    std::string baseDataPath;
     std::unique_ptr<Renderer> renderer;
     std::vector<MouseInputListener *>mouseListeners;
     std::vector<KeyInputListener *>keyListeners;
@@ -50,6 +52,8 @@ public:
     Renderer &getRenderer() const { return *renderer.get(); }
     std::shared_ptr<Entity> getPart() const { return part; }
     void updateEntities(const std::vector<std::shared_ptr<Entity>> &entities);
+
+    const std::string getMappedPath(std::string path) const;
 
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
     const ImageLoader &getImageLoader() const { return imageLoader; }

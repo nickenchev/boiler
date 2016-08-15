@@ -18,7 +18,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadSheet(std::string fil
     log("Loading " + filename);
 
     //read the spritesheet manifest
-    std::ifstream jsonFile(filename);
+    std::ifstream jsonFile(Engine::getInstance().getMappedPath(filename));
     std::shared_ptr<SpriteSheet> sheet;
     if (jsonFile.is_open())
     {

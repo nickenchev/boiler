@@ -39,16 +39,25 @@ void OpenGLRenderer::initialize(const Size screenSize)
 
     if (SDL_Init(SDL_INIT_VIDEO) == 0)
     {
+        win = SDL_CreateWindow("SDL_RenderClear",
+                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                               512, 512,
+                               0);
+        /*
         win = SDL_CreateWindow("Boiler", 0, 0,
                                screenSize.getWidth(),
                                screenSize.getHeight(), SDL_WINDOW_OPENGL);
+        */
         if (win)
         {
             // setup opengl
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+            //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+            //SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+            //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+            //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
             glContext = SDL_GL_CreateContext(win);
             if (glContext)
@@ -69,7 +78,6 @@ void OpenGLRenderer::initialize(const Size screenSize)
     {
         std::cout << "Error Initializing SDL: " << SDL_GetError() << std::endl;
     }
-
     // setup a RBO for a colour target
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
@@ -141,14 +149,17 @@ void OpenGLRenderer::render() const
 
     const std::vector<std::shared_ptr<Entity>> &entities = Engine::getInstance().getPart()->getChildren();
 
-    const ShaderProgram *program = getProgram();
-    glUseProgram(program->getShaderProgram());
-
     RenderDetails renderDetails;
-    renderDetails.mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
-    renderDetails.colorUniform = glGetUniformLocation(program->getShaderProgram(), "entityColor");
-    renderDetails.usingTexture = glGetUniformLocation(program->getShaderProgram(), "usingTexture");
+    const ShaderProgram *program = getProgram();
+    if (program)
+    {
+        glUseProgram(program->getShaderProgram());
+        renderDetails.mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
+        renderDetails.colorUniform = glGetUniformLocation(program->getShaderProgram(), "entityColor");
+        renderDetails.usingTexture = glGetUniformLocation(program->getShaderProgram(), "usingTexture");
+    }
 
+    /*
     // prepare the matrices
     const Size screenSize = Engine::getInstance().getScreenSize();
     const GLfloat orthoW = screenSize.getWidth() /  getGlobalScale().x;
@@ -161,6 +172,7 @@ void OpenGLRenderer::render() const
         glm::mat4 view = camera->getViewMatrix();
         renderDetails.viewProjection = renderDetails.viewProjection * view;
     }
+    */
 
     // draw the entities recursively
     renderEntities(entities, renderDetails);
@@ -215,6 +227,11 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
             renderEntities(entity->getChildren(), renderDetails);
         }
     }
+}
+
+void OpenGLRenderer::showMessageBox(const std::string &title, const std::string &message)
+{
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, title.c_str(), message.c_str(), win);
 }
 
 OpenGLRenderer::~OpenGLRenderer()

@@ -5,6 +5,7 @@
 /android/ndk/libs
 /android/ndk/obj
 /android/android-studio/.idea
+/android/android-studio/app/src/main/jniLibs
 /TAGS
 /GPATH
 /GRTAGS

@@ -41,6 +41,7 @@ public:
     std::shared_ptr<const Model> loadModel(const VertexData &data) const override;
 
     void render() const override;
+    void showMessageBox(const std::string &title, const std::string &message) override;
 };
 
 

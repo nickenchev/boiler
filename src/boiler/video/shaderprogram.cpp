@@ -1,22 +1,37 @@
 #include <iostream>
 #include <fstream>
+#include <SDL2/SDL.h>
+
+#include "core/engine.h"
+#include "video/renderer.h"
 #include "shaderprogram.h"
 #include "opengl.h"
 
 void loadShader(const std::string filename, std::string *output)
 {
-    //open the file
-    std::ifstream file(filename);
-
-    if (!file.is_open())
+    SDL_RWops *file = SDL_RWFromFile(filename.c_str(), "r");
+    std::string test;
+    //SDL_RWops *file = SDL_RWFromFile(filename.c_str(), "r");
+    if (file != NULL)
     {
-        throw std::runtime_error("Error openning the file.");
+        const int size = SDL_RWsize(file);
+
+        char buffer[size + 1];
+        char *buffOffset = buffer;
+        int totalRead = 0, charsRead = 1;
+        while (totalRead < size && charsRead != 0)
+        {
+            charsRead = SDL_RWread(file, buffer, (size - totalRead), 1);
+            totalRead += charsRead;
+            buffOffset += charsRead;
+        }
+        SDL_RWclose(file);
+        buffer[size] = '\0';
+        *output = buffer;
     }
-
-    std::string line;
-    while (getline(file, line))
+    else
     {
-        output->append(line + "\n");
+        Engine::getInstance().getRenderer().showMessageBox("Error", "Error loading shader program");
     }
 }
 
@@ -36,18 +51,19 @@ GLint compileShader(char *src, GLenum shaderType)
     //compile the shader
     glCompileShader(shader);
 
-
     //check if compilation was successful
     GLint compileStatus;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
+
     if (!compileStatus)
     {
         GLint logLength;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
-
         char *logBuffer = new char[logLength];
         glGetShaderInfoLog(shader, logLength, NULL, logBuffer);
 
+        std::string compileError(logBuffer);
+        Engine::getInstance().getRenderer().showMessageBox("Error", compileError);
         std::cerr << logBuffer << std::endl;
         delete [] logBuffer;
 
@@ -61,8 +77,12 @@ ShaderProgram::ShaderProgram(std::string name) : name(name)
 {
     //load the shader sources
     std::string vertSrc, fragSrc;
-    loadShader("data/shaders/" + name + ".vert", &vertSrc);
-    loadShader("data/shaders/" + name + ".frag", &fragSrc);
+
+    // get the 
+    std::string vertPath = "data/shaders/es3/" + name + ".vert";
+    std::string fragPath = "data/shaders/es3/" + name + ".frag";
+    loadShader(vertPath, &vertSrc);
+    loadShader(fragPath, &fragSrc);
 
     try
     {

@@ -13,7 +13,7 @@
 
 #define RENDERER_CLASS OpenGLRenderer
 
-Engine::Engine() : spriteLoader(), imageLoader(), fontLoader()
+Engine::Engine() : spriteLoader(), imageLoader(), fontLoader(), baseDataPath("")
 {
 }
 
@@ -28,13 +28,15 @@ void Engine::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
     std::cout << "* Initializing..." << std::endl;
     assert(renderer != nullptr); // No renderer provided
 
+
     this->resWidth = resWidth;
     this->resHeight = resHeight;
 
     // initialization was successful
     std::cout << " - Using Renderer: " << renderer->getVersion() << std::endl;
-    std::cout << " - Preferred Path: " << SDL_GetPrefPath("ensoft", "sdl_engine") << std::endl;
-    std::cout << " - Base Path: " << SDL_GetBasePath() << std::endl;
+    //std::cout << " - Preferred Path: " << SDL_GetPrefPath("ensoft", "sdl_engine") << std::endl;
+    //std::cout << " - Base Path: " << SDL_GetBasePath() << std::endl;
+    //baseDataPath = std::string(SDL_GetBasePath());
 
     // initialize basic engine stuff
     frameInterval = 1.0f / 60.0f; // 60fps
@@ -42,6 +44,11 @@ void Engine::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
     // initialize the provided renderer
     this->renderer = std::move(renderer);
     getRenderer().initialize(getScreenSize());
+}
+
+const std::string Engine::getMappedPath(std::string path) const
+{
+    return this->baseDataPath + path;
 }
 
 void Engine::start(std::shared_ptr<Entity> part)

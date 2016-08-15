@@ -1,7 +1,7 @@
 #include <iostream>
 #include <SDL.h>
 
-#include "engine.h"
+#include "core/engine.h"
 #include "renderer.h"
 #include "gamepart.h"
 #include "spritesheet.h"
