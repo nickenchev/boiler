@@ -198,7 +198,7 @@ TerrainPart::TerrainPart() : keys{0}
 
 void TerrainPart::onCreate()
 {
-    terrainSheet = Engine::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
+    //terrainSheet = Engine::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
     Engine::getInstance().addKeyListener(this);
 
 	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(terrainSize, terrainSize), pixelData);

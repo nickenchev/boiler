@@ -41,6 +41,7 @@ LOCAL_SRC_FILES := core/engine.cpp \
 	camera/platformercamera.cpp \
 	camera/pancamera.cpp \
 	containers/gridposition.cpp \
+	util/filemanager.cpp \
 	util/tinyxml2.cpp \
 	util/jsoncpp.cpp
 

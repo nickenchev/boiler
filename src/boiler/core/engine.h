@@ -53,8 +53,6 @@ public:
     std::shared_ptr<Entity> getPart() const { return part; }
     void updateEntities(const std::vector<std::shared_ptr<Entity>> &entities);
 
-    const std::string getMappedPath(std::string path) const;
-
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
     const ImageLoader &getImageLoader() const { return imageLoader; }
     const FontLoader &getFontLoader() const { return fontLoader; }

@@ -41,11 +41,6 @@ void Engine::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
     getRenderer().initialize(getScreenSize());
 }
 
-const std::string Engine::getMappedPath(std::string path) const
-{
-    return this->baseDataPath + path;
-}
-
 void Engine::start(std::shared_ptr<Entity> part)
 {
     //store the incoming part and start it

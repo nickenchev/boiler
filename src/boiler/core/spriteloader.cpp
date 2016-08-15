@@ -1,4 +1,3 @@
-#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -6,6 +5,7 @@
 #include "json/json.h"
 #include "engine.h"
 #include "video/renderer.h"
+#include "util/filemanager.h"
 
 #define COMPONENT_NAME "SpriteLoader"
 
@@ -18,14 +18,14 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadSheet(std::string fil
     log("Loading " + filename);
 
     //read the spritesheet manifest
-    std::ifstream jsonFile(Engine::getInstance().getMappedPath(filename));
-    std::shared_ptr<SpriteSheet> sheet;
-    if (jsonFile.is_open())
-    {
-        Json::Value json;
-        jsonFile >> json;
-        jsonFile.close();
+    std::string jsonContent = FileManager::readTextFile(filename);
 
+    std::shared_ptr<SpriteSheet> sheet;
+    Json::Reader jsonReader;
+    Json::Value json;
+    bool isParsed = jsonReader.parse(jsonContent, json, false);
+    if (isParsed)
+    {
         std::string imageFile = "data/" + json["meta"]["image"].asString();
 
         //read the sprite image name and load the texture
