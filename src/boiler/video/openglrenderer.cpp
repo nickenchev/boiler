@@ -33,6 +33,44 @@ void setupGLExtensions()
 #endif
 }
 
+void checkOpenGLErrors()
+{
+    GLenum err = GL_NO_ERROR;
+    while((err = glGetError()) != GL_NO_ERROR)
+    {
+        std::string errorString;
+        switch (err)
+        {
+            case GL_INVALID_ENUM:
+            {
+                errorString = "GL_INVALID_ENUM";
+                break;
+            }
+            case GL_INVALID_VALUE:
+            {
+                errorString = "GL_INVALID_VALUE";
+                break;
+            }
+            case GL_INVALID_OPERATION:
+            {
+                errorString = "GL_INVALID_OPERATION";
+                break;
+            }
+            case GL_OUT_OF_MEMORY:
+            {
+                errorString = "GL_OUT_OF_MEMORY";
+                break;
+            }
+            case GL_INVALID_FRAMEBUFFER_OPERATION:
+            {
+                errorString = "GL_INVALID_FRAMEBUFFER_OPERATION";
+                break;
+            }
+        }
+        Engine::getInstance().getRenderer().showMessageBox("OpenGL Error", errorString);
+    }
+}
+
 void OpenGLRenderer::initialize(const Size screenSize)
 {
     bool success = false;
@@ -81,7 +119,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
     // setup a RBO for a colour target
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, screenSize.getWidth(), screenSize.getHeight());
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, screenSize.getWidth(), screenSize.getHeight());
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
     // setup the FBO
@@ -159,7 +197,6 @@ void OpenGLRenderer::render() const
         renderDetails.usingTexture = glGetUniformLocation(program->getShaderProgram(), "usingTexture");
     }
 
-    /*
     // prepare the matrices
     const Size screenSize = Engine::getInstance().getScreenSize();
     const GLfloat orthoW = screenSize.getWidth() /  getGlobalScale().x;
@@ -172,7 +209,6 @@ void OpenGLRenderer::render() const
         glm::mat4 view = camera->getViewMatrix();
         renderDetails.viewProjection = renderDetails.viewProjection * view;
     }
-    */
 
     // draw the entities recursively
     renderEntities(entities, renderDetails);
@@ -210,6 +246,7 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
 
             glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 
+            /*
             // draw the entity
             glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
             glBindVertexArray(0);
@@ -219,6 +256,7 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
             {
                 error("GL Error returned: " + std::to_string(glError));
             }
+            */
         }
 
         // draw the child entities

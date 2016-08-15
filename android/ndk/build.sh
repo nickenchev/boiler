@@ -1,4 +1,4 @@
-ndk-build
+ndk-build NDK_DEBUG=1
 echo
 echo "* Boiler and game code built"
 echo "* Copying shared objects into android-project"
