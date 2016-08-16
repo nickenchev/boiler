@@ -36,3 +36,5 @@ ln -s [path-to-SDL2_image] .
 cd ..
 ndk-build
 ```
+### Create your Android app project
+We'll use Android Studio (as you should be) for this example.
