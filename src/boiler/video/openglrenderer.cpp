@@ -216,8 +216,7 @@ void OpenGLRenderer::render() const
                                           static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
     if (this->camera)
     {
-        glm::mat4 view = camera->getViewMatrix();
-        renderDetails.viewProjection = renderDetails.viewProjection * view;
+        renderDetails.camViewProjection = renderDetails.viewProjection * camera->getViewMatrix();
     }
 
     // draw the entities recursively
@@ -254,7 +253,17 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
             }
 
             const glm::mat4 &modelMatrix = entity->getMatrix();
-            glm::mat4 mvpMatrix = renderDetails.viewProjection * modelMatrix;
+            glm::mat4 mvpMatrix;
+
+            // absolute entities aren't affected by the camera
+            if (entity->absolute)
+            {
+                mvpMatrix = renderDetails.viewProjection * modelMatrix;
+            }
+            else
+            {
+                mvpMatrix = renderDetails.camViewProjection * modelMatrix;
+            }
 
             glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 

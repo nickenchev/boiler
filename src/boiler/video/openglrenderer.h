@@ -17,6 +17,7 @@ struct RenderDetails
     GLuint colorUniform;
     GLboolean usingTexUniform;
     glm::mat4 viewProjection;
+    glm::mat4 camViewProjection;
 
     RenderDetails()
     {

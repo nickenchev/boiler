@@ -16,6 +16,8 @@ Entity::Entity(const Rect &frame) : scale(1.0f, 1.0f, 1.0f)
     flipH = false;
     flipV = false;
     collides = false;
+    absolute = false;
+
     this->setFrame(frame);
     this->spriteFrame = nullptr;
 

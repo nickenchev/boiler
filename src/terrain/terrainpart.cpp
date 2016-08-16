@@ -26,8 +26,8 @@ const float shallowWater = 0.45;
 const float land = 0.65f;
 const float mountains = 0.75f;
 
-const int mapWidth = 1024 * 5;
-const int mapHeight = 1024 * 5;
+const int mapWidth = 1024 * 20;
+const int mapHeight = 1024 * 20;
 
 const int interpolationPasses = 2;
 const bool shouldInterpolate = true;
@@ -203,11 +203,16 @@ void TerrainPart::onCreate()
     Engine::getInstance().addKeyListener(this);
 
 	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(terrainSize, terrainSize), pixelData);
-    auto map = std::make_shared<Entity>(Rect(0, 0, mapWidth, mapHeight));
-
     procSheet = Engine::getInstance().getSpriteLoader().loadSheet(terrainTexture);
+
+    auto map = std::make_shared<Entity>(Rect(0, 0, mapWidth, mapHeight));
     map->spriteFrame = procSheet->getFirstFrame();
     addChild(map);
+
+    auto miniMap = std::make_shared<Entity>(Rect(10, 10, 500, 500));
+    miniMap->spriteFrame = procSheet->getFirstFrame();
+    miniMap->absolute = true;
+    addChild(miniMap);
 
     // draw terrain
     //const int tileSize = 4;
@@ -267,7 +272,7 @@ void TerrainPart::onCreate()
 
     Engine::getInstance().addTouchMotionListener([this](const TouchMotionEvent &event)
     {
-        const float panSpeed = 1000.0f;
+        const float panSpeed = 1800.0f;
         cameraMove = glm::vec3(-event.xDistance * panSpeed , -event.yDistance * panSpeed, 0.0f);
         this->camera->frame.position += cameraMove;
     });
