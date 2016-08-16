@@ -2,7 +2,6 @@
     package="org.libsdl">
 
     <application android:allowBackup="true"
-        android:debuggable="true"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:supportsRtl="true"

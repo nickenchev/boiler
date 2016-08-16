@@ -4,22 +4,31 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <functional>
 #include "spriteloader.h"
 #include "video/imageloader.h"
 #include "video/fontloader.h"
+#include "input/touchmotionevent.h"
+#include "input/touchevent.h"
 
 class Entity;
 class Renderer;
 class MouseInputListener;
 class KeyInputListener;
 
+typedef std::function<void(const TouchMotionEvent &event)> TouchMotionListener;
+typedef std::function<void(const TouchEvent &event)> TouchEventListener;
+
 class Engine
 {
     int resWidth, resHeight;
     std::string baseDataPath;
     std::unique_ptr<Renderer> renderer;
+
     std::vector<MouseInputListener *>mouseListeners;
     std::vector<KeyInputListener *>keyListeners;
+    std::vector<TouchMotionListener> touchMotionListeners;
+    std::vector<TouchEventListener> touchEventListeners;
 
     bool running = true;
 
@@ -61,6 +70,8 @@ public:
 
     void addMouseListener(MouseInputListener *listener);
     void addKeyListener(KeyInputListener *listener);
+    void addTouchMotionListener(TouchMotionListener listener) { touchMotionListeners.push_back(listener); }
+    void addTouchEventListener(TouchEventListener listener) { touchEventListeners.push_back(listener); }
 };
 
 #endif // ENGINE_H

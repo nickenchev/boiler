@@ -86,6 +86,34 @@ void Engine::processInput()
     {
         switch(event.type)
         {
+            case SDL_FINGERUP:
+            {
+                TouchEvent event(TouchState::UP);
+                for (const TouchEventListener &listener : touchEventListeners)
+                {
+                    listener(event);
+                }
+                break;
+            }
+            case SDL_FINGERDOWN:
+            {
+                TouchEvent event(TouchState::DOWN);
+                for (const TouchEventListener &listener : touchEventListeners)
+                {
+                    listener(event);
+                }
+                break;
+            }
+            case SDL_FINGERMOTION:
+            {
+                TouchMotionEvent motionEvent(event.tfinger.x, event.tfinger.y,
+                                             event.tfinger.dx, event.tfinger.dy);
+                for (const TouchMotionListener &listener : touchMotionListeners)
+                {
+                    listener(motionEvent);
+                }
+                break;
+            }
             case SDL_KEYDOWN:
             {
                 SDL_Keycode keyCode = event.key.keysym.sym;

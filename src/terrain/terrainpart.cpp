@@ -1,6 +1,7 @@
 #include <iostream>
 #include <random>
 #include "terrainpart.h"
+#include "core/engine.h"
 
 struct Pixel
 {
@@ -25,8 +26,8 @@ const float shallowWater = 0.45;
 const float land = 0.65f;
 const float mountains = 0.75f;
 
-const int mapWidth = 1024;
-const int mapHeight = 1024;
+const int mapWidth = 1024 * 5;
+const int mapHeight = 1024 * 5;
 
 const int interpolationPasses = 2;
 const bool shouldInterpolate = true;
@@ -207,6 +208,7 @@ void TerrainPart::onCreate()
     procSheet = Engine::getInstance().getSpriteLoader().loadSheet(terrainTexture);
     map->spriteFrame = procSheet->getFirstFrame();
     addChild(map);
+
     // draw terrain
     //const int tileSize = 4;
     /*
@@ -262,6 +264,17 @@ void TerrainPart::onCreate()
     int camHeight = screenSize.getHeight() / engine.getRenderer().getGlobalScale().y;
     camera = std::make_shared<PanCemera>(Rect(0, 0, camWidth, camHeight), Size(mapWidth, mapHeight));
     engine.getRenderer().setCamera(camera);
+
+    Engine::getInstance().addTouchMotionListener([this](const TouchMotionEvent &event)
+    {
+        const float panSpeed = 1000.0f;
+        cameraMove = glm::vec3(-event.xDistance * panSpeed , -event.yDistance * panSpeed, 0.0f);
+        this->camera->frame.position += cameraMove;
+    });
+
+    Engine::getInstance().addTouchEventListener([this](const TouchEvent &event)
+    {
+    });
 }
 
 void TerrainPart::update()
@@ -271,7 +284,6 @@ void TerrainPart::update()
     
     if (keys[SDLK_w])
     {
-        cameraMove = glm::vec3(0, -speed, 0.0f);
     }
     else if (keys[SDLK_s])
     {
@@ -286,8 +298,6 @@ void TerrainPart::update()
     {
         cameraMove = glm::vec3(speed, 0, 0.0f);
     }
-
-    //camera->frame.position += cameraMove;
 }
 
 void TerrainPart::onKeyStateChanged(const KeyInputEvent &event)
