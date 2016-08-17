@@ -6,9 +6,7 @@
 #include "video/renderer.h"
 #include "part.h"
 #include "entity.h"
-#include "input/mouseinputlistener.h"
 #include "input/mousebuttonevent.h"
-#include "input/keyinputlistener.h"
 #include "input/keyinputevent.h"
 
 #define RENDERER_CLASS OpenGLRenderer
@@ -88,8 +86,8 @@ void Engine::processInput()
         {
             case SDL_FINGERUP:
             {
-                TouchEvent event(TouchState::UP);
-                for (const TouchEventListener &listener : touchEventListeners)
+                TouchTapEvent event(TapState::UP);
+                for (const TouchTapEventListener &listener : touchTapEventListeners)
                 {
                     listener(event);
                 }
@@ -97,8 +95,8 @@ void Engine::processInput()
             }
             case SDL_FINGERDOWN:
             {
-                TouchEvent event(TouchState::DOWN);
-                for (const TouchEventListener &listener : touchEventListeners)
+                TouchTapEvent event(TapState::DOWN);
+                for (const TouchTapEventListener &listener : touchTapEventListeners)
                 {
                     listener(event);
                 }
@@ -114,15 +112,24 @@ void Engine::processInput()
                 }
                 break;
             }
+            case SDL_MOUSEMOTION:
+            {
+                MouseMotionEvent motionEvent(event.motion.x, event.motion.y,
+                                       event.motion.xrel, event.motion.yrel);
+                for (const MouseMotionListener &listener : mouseMotionListeners)
+                {
+                    listener(motionEvent);
+                }
+                break;
+            }
             case SDL_KEYDOWN:
             {
                 SDL_Keycode keyCode = event.key.keysym.sym;
                 KeyInputEvent event(keyCode, ButtonState::DOWN);
 
-                for (auto it = keyListeners.begin(); it != keyListeners.end(); ++it)
+                for (const KeyInputListener &listener : keyInputListeners)
                 {
-                    auto listener = static_cast<KeyInputListener *>(*it);
-                    listener->onKeyStateChanged(event);
+                    listener(event);
                 }
                 break;
             }
@@ -131,88 +138,64 @@ void Engine::processInput()
                 SDL_Keycode keyCode = event.key.keysym.sym;
                 KeyInputEvent event(keyCode, ButtonState::UP);
 
-                for (auto it = keyListeners.begin(); it != keyListeners.end(); ++it)
+                for (const KeyInputListener &listener : keyInputListeners)
                 {
-                    auto listener = static_cast<KeyInputListener *>(*it);
-                    listener->onKeyStateChanged(event);
+                    listener(event);
                 }
                 break;
             }
-            case SDL_MOUSEBUTTONUP:
-            {
-                ButtonState state = ButtonState::UP;
-                MouseButton button;
-                if (event.button.button == SDL_BUTTON_LEFT)
-                {
-                    button = MouseButton::LEFT;
-                }
-                else if (event.button.button == SDL_BUTTON_MIDDLE)
-                {
-                    button = MouseButton::MIDDLE;
-                }
-                else if (event.button.button == SDL_BUTTON_RIGHT)
-                {
-                    button = MouseButton::RIGHT;
-                }
-                MouseButtonEvent buttonEvent(button, state);
+            //case SDL_MOUSEBUTTONUP:
+            //{
+            //    ButtonState state = ButtonState::UP;
+            //    MouseButton button;
+            //    if (event.button.button == SDL_BUTTON_LEFT)
+            //    {
+            //        button = MouseButton::LEFT;
+            //    }
+            //    else if (event.button.button == SDL_BUTTON_MIDDLE)
+            //    {
+            //        button = MouseButton::MIDDLE;
+            //    }
+            //    else if (event.button.button == SDL_BUTTON_RIGHT)
+            //    {
+            //        button = MouseButton::RIGHT;
+            //    }
+            //    MouseButtonEvent buttonEvent(button, state);
 
-                for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
-                {
-                    auto listener = static_cast<MouseInputListener *>(*it);
-                    listener->onMouseButton(buttonEvent);
-                }
-                break;
-            }
-            case SDL_MOUSEBUTTONDOWN:
-            {
-                ButtonState state = ButtonState::DOWN;
-                MouseButton button;
-                if (event.button.button == SDL_BUTTON_LEFT)
-                {
-                    button = MouseButton::LEFT;
-                }
-                else if (event.button.button == SDL_BUTTON_MIDDLE)
-                {
-                    button = MouseButton::MIDDLE;
-                }
-                else if (event.button.button == SDL_BUTTON_RIGHT)
-                {
-                    button = MouseButton::RIGHT;
-                }
-                MouseButtonEvent buttonEvent(button, state);
+            //    for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
+            //    {
+            //        auto listener = static_cast<MouseInputListener *>(*it);
+            //        listener->onMouseButton(buttonEvent);
+            //    }
+            //    break;
+            //}
+            //case SDL_MOUSEBUTTONDOWN:
+            //{
+            //    ButtonState state = ButtonState::DOWN;
+            //    MouseButton button;
+            //    if (event.button.button == SDL_BUTTON_LEFT)
+            //    {
+            //        button = MouseButton::LEFT;
+            //    }
+            //    else if (event.button.button == SDL_BUTTON_MIDDLE)
+            //    {
+            //        button = MouseButton::MIDDLE;
+            //    }
+            //    else if (event.button.button == SDL_BUTTON_RIGHT)
+            //    {
+            //        button = MouseButton::RIGHT;
+            //    }
+            //    MouseButtonEvent buttonEvent(button, state);
 
-                for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
-                {
-                    auto listener = static_cast<MouseInputListener *>(*it);
-                    listener->onMouseButton(buttonEvent);
-                }
-                break;
-            }
-            case SDL_MOUSEMOTION:
-            {
-                for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
-                {
-                    auto listener = static_cast<MouseInputListener *>(*it);
-                    listener->setX(event.motion.x);
-                    listener->setY(event.motion.y);
-                    listener->onMouseMove();
-                }
-                break;
-            }
+            //    for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
+            //    {
+            //        auto listener = static_cast<MouseInputListener *>(*it);
+            //        listener->onMouseButton(buttonEvent);
+            //    }
+            //    break;
+            //}
         }
     }
-}
-
-void Engine::addMouseListener(MouseInputListener *listener)
-{
-    std::cout << " > Added mouse listener" << std::endl;
-    mouseListeners.push_back(listener);
-}
-
-void Engine::addKeyListener(KeyInputListener *listener)
-{
-    std::cout << " > Added key listener" << std::endl;
-    keyListeners.push_back(listener);
 }
 
 void Engine::updateEntities(const std::vector<std::shared_ptr<Entity>> &entities)
@@ -244,7 +227,5 @@ void Engine::render(const float delta)
 
 Engine::~Engine()
 {
-    mouseListeners.clear();
-    keyListeners.clear();
     SDL_Quit();
 }

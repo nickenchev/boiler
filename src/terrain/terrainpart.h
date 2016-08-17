@@ -6,7 +6,7 @@
 
 class Camera;
 
-class TerrainPart : public Entity, public KeyInputListener
+class TerrainPart : public Entity
 {
     std::shared_ptr<const SpriteSheet> terrainSheet;
     std::shared_ptr<const SpriteSheet> procSheet;
@@ -20,7 +20,9 @@ public:
     void onCreate() override;
     void update() override;
 
-    void onKeyStateChanged(const KeyInputEvent &event) override;
+    void touchMotion(const TouchMotionEvent &event);
+    void mouseMotion(const MouseMotionEvent &event);
+    void keyInput(const KeyInputEvent &event);
 };
 
 

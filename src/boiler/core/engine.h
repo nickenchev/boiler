@@ -9,15 +9,17 @@
 #include "video/imageloader.h"
 #include "video/fontloader.h"
 #include "input/touchmotionevent.h"
-#include "input/touchevent.h"
+#include "input/touchtapevent.h"
+#include "input/mousemotionevent.h"
+#include "input/keyinputevent.h"
 
 class Entity;
 class Renderer;
-class MouseInputListener;
-class KeyInputListener;
 
 typedef std::function<void(const TouchMotionEvent &event)> TouchMotionListener;
-typedef std::function<void(const TouchEvent &event)> TouchEventListener;
+typedef std::function<void(const TouchTapEvent &event)> TouchTapEventListener;
+typedef std::function<void(const MouseMotionEvent &event)> MouseMotionListener;
+typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 
 class Engine
 {
@@ -25,10 +27,10 @@ class Engine
     std::string baseDataPath;
     std::unique_ptr<Renderer> renderer;
 
-    std::vector<MouseInputListener *>mouseListeners;
-    std::vector<KeyInputListener *>keyListeners;
     std::vector<TouchMotionListener> touchMotionListeners;
-    std::vector<TouchEventListener> touchEventListeners;
+    std::vector<TouchTapEventListener> touchTapEventListeners;
+    std::vector<MouseMotionListener> mouseMotionListeners;
+    std::vector<KeyInputListener> keyInputListeners;
 
     bool running = true;
 
@@ -68,10 +70,10 @@ public:
 
     const Size getScreenSize() const { return Size(resWidth, resHeight); }
 
-    void addMouseListener(MouseInputListener *listener);
-    void addKeyListener(KeyInputListener *listener);
-    void addTouchMotionListener(TouchMotionListener listener) { touchMotionListeners.push_back(listener); }
-    void addTouchEventListener(TouchEventListener listener) { touchEventListeners.push_back(listener); }
+    void addTouchMotionListener(const TouchMotionListener &listener) { touchMotionListeners.push_back(listener); }
+    void addTouchTapEventListener(const TouchTapEventListener &listener) { touchTapEventListeners.push_back(listener); }
+    void addMouseMotionListener(const MouseMotionListener &listener) { mouseMotionListeners.push_back(listener); }
+    void addKeyInputListener(const KeyInputListener &listener) { keyInputListeners.push_back(listener); }
 };
 
 #endif // ENGINE_H

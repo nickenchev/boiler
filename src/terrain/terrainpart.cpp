@@ -1,5 +1,7 @@
 #include <iostream>
 #include <random>
+#include <functional>
+
 #include "terrainpart.h"
 #include "core/engine.h"
 
@@ -32,7 +34,7 @@ const int mapHeight = 1024 * 20;
 const int interpolationPasses = 2;
 const bool shouldInterpolate = true;
 
-const int terrainSize = 1025;
+const int terrainSize = 2049;
 const int resolution = 256;
 const int smallRandRange = 90;
 const int smallRandDecrease = 10;
@@ -200,7 +202,6 @@ TerrainPart::TerrainPart() : keys{0}
 void TerrainPart::onCreate()
 {
     //terrainSheet = Engine::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
-    Engine::getInstance().addKeyListener(this);
 
 	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(terrainSize, terrainSize), pixelData);
     procSheet = Engine::getInstance().getSpriteLoader().loadSheet(terrainTexture);
@@ -270,16 +271,38 @@ void TerrainPart::onCreate()
     camera = std::make_shared<PanCemera>(Rect(0, 0, camWidth, camHeight), Size(mapWidth, mapHeight));
     engine.getRenderer().setCamera(camera);
 
-    Engine::getInstance().addTouchMotionListener([this](const TouchMotionEvent &event)
-    {
-        const float panSpeed = 1800.0f;
-        cameraMove = glm::vec3(-event.xDistance * panSpeed , -event.yDistance * panSpeed, 0.0f);
-        this->camera->frame.position += cameraMove;
-    });
+    Engine::getInstance().addTouchMotionListener(std::bind(&TerrainPart::touchMotion, this, std::placeholders::_1));
+    Engine::getInstance().addMouseMotionListener(std::bind(&TerrainPart::mouseMotion, this, std::placeholders::_1));
+    Engine::getInstance().addKeyInputListener(std::bind(&TerrainPart::keyInput, this, std::placeholders::_1));
+}
 
-    Engine::getInstance().addTouchEventListener([this](const TouchEvent &event)
+void TerrainPart::touchMotion(const TouchMotionEvent &event)
+{
+    const float panSpeed = 1800.0f;
+    cameraMove = glm::vec3(-event.xDistance * panSpeed , -event.yDistance * panSpeed, 0.0f);
+    this->camera->frame.position += cameraMove;
+}
+
+void TerrainPart::mouseMotion(const MouseMotionEvent &event)
+{
+    SDL_Log("asdad");
+    const float panSpeed = 1800.0f;
+    cameraMove = glm::vec3(-event.xDistance * panSpeed , -event.yDistance * panSpeed, 0.0f);
+    this->camera->frame.position += cameraMove;
+}
+
+void TerrainPart::keyInput( const KeyInputEvent &event )
+{
+    switch (event.keyCode)
     {
-    });
+        case SDLK_ESCAPE:
+        {
+            if (event.state == ButtonState::UP)
+            {
+                Engine::getInstance().quit();
+            }
+        }
+    }
 }
 
 void TerrainPart::update()
@@ -302,29 +325,5 @@ void TerrainPart::update()
     else if (keys[SDLK_d])
     {
         cameraMove = glm::vec3(speed, 0, 0.0f);
-    }
-}
-
-void TerrainPart::onKeyStateChanged(const KeyInputEvent &event)
-{
-    if (event.keyCode == SDLK_ESCAPE)
-    {
-        Engine::getInstance().quit();
-    }
-    else if (event.keyCode == SDLK_w)
-    {
-        keys[SDLK_w] = event.state == ButtonState::DOWN ? true : false;
-    }
-    else if (event.keyCode == SDLK_s)
-    {
-        keys[SDLK_s] = event.state == ButtonState::DOWN ? true : false;
-    }
-    else if (event.keyCode == SDLK_a)
-    {
-        keys[SDLK_a] = event.state == ButtonState::DOWN ? true : false;
-    }
-    else if (event.keyCode == SDLK_d)
-    {
-        keys[SDLK_d] = event.state == ButtonState::DOWN ? true : false;
     }
 }
