@@ -29,6 +29,12 @@ You need to run the engine executable from the root directory as the engine uses
 
 ## Android Setup
 ### Link in the SDL2 libraries
+```
 cd android/ndk
 ln -s [path-to-SDL2] .
 ln -s [path-to-SDL2_image] .
+cd ..
+ndk-build
+```
+### Create your Android app project
+We'll use Android Studio (as you should be) for this example.
