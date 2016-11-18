@@ -291,7 +291,7 @@ void TerrainPart::mouseMotion(const MouseMotionEvent &event)
     this->camera->frame.position += cameraMove;
 }
 
-void TerrainPart::keyInput( const KeyInputEvent &event )
+void TerrainPart::keyInput(const KeyInputEvent &event)
 {
     switch (event.keyCode)
     {
