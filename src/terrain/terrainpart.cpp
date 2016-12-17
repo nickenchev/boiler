@@ -197,15 +197,14 @@ TerrainPart::TerrainPart() : keys{0}
             pixelData[index] = color;
         }
     }
+
+    terrainSheet = Engine::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
+	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(terrainSize, terrainSize), pixelData);
+    procSheet = Engine::getInstance().getSpriteLoader().loadSheet(terrainTexture);
 }
 
 void TerrainPart::onCreate()
 {
-    //terrainSheet = Engine::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
-
-	auto terrainTexture = Engine::getInstance().getRenderer().createTexture("", Size(terrainSize, terrainSize), pixelData);
-    procSheet = Engine::getInstance().getSpriteLoader().loadSheet(terrainTexture);
-
     auto map = std::make_shared<Entity>(Rect(0, 0, mapWidth, mapHeight));
     map->spriteFrame = procSheet->getFirstFrame();
     addChild(map);
@@ -285,45 +284,55 @@ void TerrainPart::touchMotion(const TouchMotionEvent &event)
 
 void TerrainPart::mouseMotion(const MouseMotionEvent &event)
 {
-    SDL_Log("asdad");
-    const float panSpeed = 1800.0f;
-    cameraMove = glm::vec3(-event.xDistance * panSpeed , -event.yDistance * panSpeed, 0.0f);
-    this->camera->frame.position += cameraMove;
+    //const float panSpeed = 100;
+    //cameraMove = glm::vec3(-event.xDistance * panSpeed , -event.yDistance * panSpeed, 0.0f);
+    //this->camera->frame.position += cameraMove;
 }
 
 void TerrainPart::keyInput(const KeyInputEvent &event)
 {
-    switch (event.keyCode)
-    {
-        case SDLK_ESCAPE:
-        {
-            if (event.state == ButtonState::UP)
-            {
-                Engine::getInstance().quit();
-            }
-        }
+    const float speed = 10.0f;
+	if (event.state == ButtonState::DOWN)
+	{
+		switch (event.keyCode)
+		{
+			case SDLK_w:
+			{
+				cameraMove = glm::vec3(0, -speed, 0.0f);
+				break;
+			}
+			case SDLK_s:
+			{
+				cameraMove = glm::vec3(0, speed, 0.0f);
+				break;
+			}
+			case SDLK_a:
+			{
+				cameraMove = glm::vec3(-speed, 0, 0.0f);
+				break;
+			}
+			case SDLK_d:
+			{
+				cameraMove = glm::vec3(speed, 0, 0.0f);
+				break;
+			}
+		}
+	}
+	else if (event.state == ButtonState::UP)
+	{
+		cameraMove = glm::vec3(0, 0 ,0);
+		switch (event.keyCode)
+		{
+			case SDLK_ESCAPE:
+			{
+				Engine::getInstance().quit();
+			}
+		}
     }
+	this->camera->frame.position += cameraMove;
 }
 
 void TerrainPart::update()
 {
-    const float speed = 10.0f;
-    glm::vec3 cameraMove;
-    
-    if (keys[SDLK_w])
-    {
-    }
-    else if (keys[SDLK_s])
-    {
-        cameraMove = glm::vec3(0, speed, 0.0f);
-    }
-
-    if (keys[SDLK_a])
-    {
-        cameraMove = glm::vec3(-speed, 0, 0.0f);
-    }
-    else if (keys[SDLK_d])
-    {
-        cameraMove = glm::vec3(speed, 0, 0.0f);
-    }
+	this->camera->frame.position += cameraMove;
 }
