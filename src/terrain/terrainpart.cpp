@@ -88,7 +88,6 @@ void diamondSquare(int size, int randRange)
     {
         for (int x = 0; x < terrainSize - 1; x += size)
         {
-
             int tl = heightMap.get(x, y);
             int tr = heightMap.get(x + whole, y);
             int bl = heightMap.get(x, y + whole);

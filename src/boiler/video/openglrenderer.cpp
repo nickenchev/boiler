@@ -21,6 +21,7 @@ OpenGLRenderer::OpenGLRenderer(bool useGLES) : Renderer(std::string(COMPONENT_NA
 }
 
 void setupGLExtensions()
+
 {
 #ifdef __APPLE__
     // require "experimental" as not all OpenGL features are marked "standard"
@@ -101,7 +102,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
             {
                 shaderPath = "data/shaders/";
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
                 SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
             }
