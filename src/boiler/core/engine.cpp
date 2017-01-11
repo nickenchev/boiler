@@ -144,56 +144,6 @@ void Engine::processInput()
                 }
                 break;
             }
-            //case SDL_MOUSEBUTTONUP:
-            //{
-            //    ButtonState state = ButtonState::UP;
-            //    MouseButton button;
-            //    if (event.button.button == SDL_BUTTON_LEFT)
-            //    {
-            //        button = MouseButton::LEFT;
-            //    }
-            //    else if (event.button.button == SDL_BUTTON_MIDDLE)
-            //    {
-            //        button = MouseButton::MIDDLE;
-            //    }
-            //    else if (event.button.button == SDL_BUTTON_RIGHT)
-            //    {
-            //        button = MouseButton::RIGHT;
-            //    }
-            //    MouseButtonEvent buttonEvent(button, state);
-
-            //    for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
-            //    {
-            //        auto listener = static_cast<MouseInputListener *>(*it);
-            //        listener->onMouseButton(buttonEvent);
-            //    }
-            //    break;
-            //}
-            //case SDL_MOUSEBUTTONDOWN:
-            //{
-            //    ButtonState state = ButtonState::DOWN;
-            //    MouseButton button;
-            //    if (event.button.button == SDL_BUTTON_LEFT)
-            //    {
-            //        button = MouseButton::LEFT;
-            //    }
-            //    else if (event.button.button == SDL_BUTTON_MIDDLE)
-            //    {
-            //        button = MouseButton::MIDDLE;
-            //    }
-            //    else if (event.button.button == SDL_BUTTON_RIGHT)
-            //    {
-            //        button = MouseButton::RIGHT;
-            //    }
-            //    MouseButtonEvent buttonEvent(button, state);
-
-            //    for (auto it = mouseListeners.begin(); it != mouseListeners.end(); ++it)
-            //    {
-            //        auto listener = static_cast<MouseInputListener *>(*it);
-            //        listener->onMouseButton(buttonEvent);
-            //    }
-            //    break;
-            //}
         }
     }
 }
