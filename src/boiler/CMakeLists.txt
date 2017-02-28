@@ -8,6 +8,7 @@ find_package(GLEW REQUIRED)
 add_library(boiler
   core/engine.cpp
   core/entity.cpp
+  core/entityworld.cpp
   core/part.cpp
   core/component.cpp
   core/tmxloader.cpp

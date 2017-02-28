@@ -6,12 +6,15 @@
 #include <memory>
 #include "rect.h"
 
+typedef unsigned long EntityId;
+
 class SpriteSheetFrame;
 class SpriteSheet;
 class Model;
 
 class Entity : public std::enable_shared_from_this<Entity>
 {
+	EntityId id;
     Rect frame;
     std::weak_ptr<Entity> owner;
     glm::mat4 modelMatrix;
@@ -21,6 +24,7 @@ class Entity : public std::enable_shared_from_this<Entity>
     
 public:
     Entity();
+	Entity(EntityId id) : id{id} { }
     Entity(const Rect &frame);
     ~Entity();
 

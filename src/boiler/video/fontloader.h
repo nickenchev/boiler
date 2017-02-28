@@ -1,12 +1,11 @@
 #ifndef FONTLOADER_H
 #define FONTLOADER_H
 
-#include "core/component.h"
 #include "core/logger.h"
 
 struct BMFont;
 
-class FontLoader : public Component
+class FontLoader
 {
 	Logger logger;
 	

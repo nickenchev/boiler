@@ -6,14 +6,13 @@
 #include <vector>
 
 #include "logger.h"
-#include "component.h"
 #include "spritesheet.h"
 #include "video/texture.h"
 
 class SDL_Texture;
 typedef unsigned int GLuint;
 
-class SpriteLoader : Component
+class SpriteLoader
 {
 	Logger logger;
 
