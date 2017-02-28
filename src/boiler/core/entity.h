@@ -31,6 +31,7 @@ public:
 	bool operator==(const Entity &entity) const { return entity.getId() == this->getId(); }
 
 	EntityId getId() const { return id; }
+
     bool flipH, flipV, collides;
     glm::vec3 scale;
     glm::vec4 color;
