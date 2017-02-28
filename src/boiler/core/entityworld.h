@@ -5,9 +5,11 @@
 #include <memory>
 #include "entity.h"
 #include "component.h"
+#include "logger.h"
 
 class EntityWorld
 {
+	Logger logger;
 	unsigned long entityCount;
 	std::vector<Entity> entities;
 
@@ -15,6 +17,7 @@ public:
     EntityWorld();
 
 	Entity createEntity();
+	void removeEntity(const Entity &entity);
 	void attachComponent(const Component &component);
 };
 
