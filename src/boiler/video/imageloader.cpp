@@ -5,13 +5,13 @@
 
 #define COMPONENT_NAME "SpriteLoader"
 
-ImageLoader::ImageLoader() : Component(COMPONENT_NAME)
+ImageLoader::ImageLoader() : logger(COMPONENT_NAME)
 {
 }
 
 const std::shared_ptr<const Texture> ImageLoader::loadImage(const std::string filePath) const
 {
-    log("Loading image: " + filePath);
+    logger.log("Loading image: " + filePath);
     SDL_Surface *surface = IMG_Load(filePath.c_str());
 
     assert(surface != nullptr);

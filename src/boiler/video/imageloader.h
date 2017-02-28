@@ -2,12 +2,15 @@
 #define IMAGELOADER_H
 
 #include <memory>
+#include "core/logger.h"
 #include "core/component.h"
 
 class Texture;
 
 class ImageLoader : public Component
 {
+	Logger logger;
+	
 public:
     ImageLoader();
 

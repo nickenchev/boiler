@@ -142,7 +142,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
     GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
     {
-        error("Error initializing FBO / RBO target.");
+        logger.error("Error initializing FBO / RBO target.");
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -168,11 +168,11 @@ std::shared_ptr<const Texture> OpenGLRenderer::createTexture(const std::string f
 
     if (glGetError() != GL_NO_ERROR)
     {
-        error("Unable to create GL texId.");
+        logger.error("Unable to create GL texId.");
     }
     else
     {
-        log("Created texture with ID: " + std::to_string(texId));
+        logger.log("Created texture with ID: " + std::to_string(texId));
     }
 
     return std::move(std::make_shared<OpenGLTexture>(filePath, texId));
@@ -276,7 +276,7 @@ void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &
             GLenum glError = glGetError();
             if (glError != GL_NO_ERROR)
             {
-                error("GL Error returned: " + std::to_string(glError));
+                logger.error("GL Error returned: " + std::to_string(glError));
             }
         }
 

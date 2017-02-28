@@ -9,13 +9,13 @@
 
 #define COMPONENT_NAME "SpriteLoader"
 
-SpriteLoader::SpriteLoader() : Component(std::string(COMPONENT_NAME))
+SpriteLoader::SpriteLoader() : logger(std::string(COMPONENT_NAME))
 {
 }
 
 const std::shared_ptr<const SpriteSheet> SpriteLoader::loadSheet(std::string filename) const
 {
-    log("Loading " + filename);
+    logger.log("Loading " + filename);
 
     //read the spritesheet manifest
     std::string jsonContent = FileManager::readTextFile(filename);
@@ -69,7 +69,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadSheet(std::string fil
 
             if (glGetError() != GL_NO_ERROR)
             {
-                error("Unable to create the texture coordinate VBO.");
+                logger.error("Unable to create the texture coordinate VBO.");
             }
 
             Rect sourceRect(x, y, w, h);
@@ -80,15 +80,16 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadSheet(std::string fil
             int pivotY = sprite["pivot"]["y"].asInt();
             glm::vec2 pivot(pivotX, pivotY);
             frames.insert(std::pair<std::string, SpriteSheetFrame>(frameFilename, SpriteSheetFrame(texture, frameFilename, sourceRect, rotated, trimmed, pivot, texCoordVbo)));
-            log("Loaded frame: " + frameFilename);
+            logger.log("Loaded frame: " + frameFilename);
         }
         sheet = std::make_shared<SpriteSheet>(imageFile, Size(width, height), texture, frames);
         const Size &size = sheet->getSize();
-        log("Loaded " + filename + "(" + std::to_string(size.getWidth()) + ", " + std::to_string(size.getHeight()) + ")");
+        logger.log("Loaded " + filename + "(" + std::to_string(size.getWidth()) + ", " + std::to_string(size.getHeight()) + ")");
+		
     }
     else
     {
-        error("Coudn't find sprite sheet: " + filename);
+        logger.error("Coudn't find sprite sheet: " + filename);
     }
     return sheet;
 }
@@ -119,7 +120,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadSheet(std::shared_ptr
 
     if (glGetError() != GL_NO_ERROR)
     {
-        error("Unable to create the texture coordinate VBO.");
+        logger.error("Unable to create the texture coordinate VBO.");
     }
     std::map<std::string, SpriteSheetFrame> frames;
     frames.insert(std::pair<std::string, SpriteSheetFrame>("default", SpriteSheetFrame(texture, texCoordVbo)));

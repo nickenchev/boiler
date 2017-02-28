@@ -14,7 +14,7 @@
 
 using namespace tinyxml2;
 
-FontLoader::FontLoader() : Component(COMPONENT_NAME)
+FontLoader::FontLoader() : logger(COMPONENT_NAME)
 {
 }
 
@@ -30,9 +30,9 @@ const BMFont FontLoader::loadBMFont(const std::string fontPath) const
     }
     else
     {
-        log("Loading font file: " + fontPath);
+        logger.log("Loading font file: " + fontPath);
         std::string imagePath = FileUtils::getDirectory(fontPath);
-        log("Using: \"" + imagePath + "\" directory for page images.");
+        logger.log("Using: \"" + imagePath + "\" directory for page images.");
 
         XMLElement *fontElem = doc.FirstChildElement("font");
         if (fontElem)

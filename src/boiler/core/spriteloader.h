@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include "logger.h"
 #include "component.h"
 #include "spritesheet.h"
 #include "video/texture.h"
@@ -14,6 +15,8 @@ typedef unsigned int GLuint;
 
 class SpriteLoader : Component
 {
+	Logger logger;
+
 public:
     SpriteLoader();
     ~SpriteLoader();

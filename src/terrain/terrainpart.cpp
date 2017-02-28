@@ -140,6 +140,8 @@ void interpolate()
 
 TerrainPart::TerrainPart() : keys{0}
 {
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+
     // initialize the four corners
     heightMap.set(0, 0, getNumber()); // top-left
     heightMap.set(terrainSize- 1, 0, getNumber()); //top-right
@@ -209,7 +211,7 @@ void TerrainPart::onCreate()
     map->spriteFrame = procSheet->getFirstFrame();
     addChild(map);
 
-    auto miniMap = std::make_shared<Entity>(Rect(10, 10, 500, 500));
+    auto miniMap = std::make_shared<Entity>(Rect(10, 10, 150, 150));
     miniMap->spriteFrame = procSheet->getFirstFrame();
     miniMap->absolute = true;
     addChild(miniMap);
@@ -277,16 +279,12 @@ void TerrainPart::onCreate()
 
 void TerrainPart::touchMotion(const TouchMotionEvent &event)
 {
-    const float panSpeed = 1800.0f;
-    cameraMove = glm::vec3(-event.xDistance * panSpeed , -event.yDistance * panSpeed, 0.0f);
-    this->camera->frame.position += cameraMove;
 }
 
 void TerrainPart::mouseMotion(const MouseMotionEvent &event)
 {
-    SDL_Log("asdad");
-    const float panSpeed = 1800.0f;
-    cameraMove = glm::vec3(-event.xDistance * panSpeed , -event.yDistance * panSpeed, 0.0f);
+    const float panSpeed = 0.5f;
+    cameraMove = glm::vec3(event.xDistance * panSpeed , event.yDistance * panSpeed, 0.0f);
     this->camera->frame.position += cameraMove;
 }
 

@@ -5,13 +5,16 @@
 #include <memory>
 #include "component.h"
 #include "entity.h"
+#include "logger.h"
 
 class Engine;
 
-class Part : public Component, public Entity
+class Part : public Entity
 {
+	Logger logger;
+
 public:
-    Part() : Component("Part"), Entity(Rect(0, 0, 0, 0)) { }
+    Part() : logger("Part"), Entity(Rect(0, 0, 0, 0)) { }
 
     // disable copying
     Part(const Part &part) = delete;

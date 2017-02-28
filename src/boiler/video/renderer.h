@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "shaderprogram.h"
+#include "core/logger.h"
 #include "core/entity.h"
 #include "core/component.h"
 #include "texture.h"
@@ -14,12 +15,13 @@ class Camera;
 class Model;
 class VertexData;
 
-class Renderer : public Component
+class Renderer
 {
     glm::vec2 globalScale;
     Color3 clearColor;
 
 protected:
+	Logger logger;
     std::unique_ptr<ShaderProgram> program;
     std::shared_ptr<Camera> camera;
 

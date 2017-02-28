@@ -70,9 +70,8 @@ void Engine::run()
             update(frameInterval);
             frameLag -= frameInterval;
         } 
-
-        // pass normalized 0.0 - 1.0 so renderer knows how far between frames we are
-        render(frameLag / frameInterval);
+		// pass normalized 0.0 - 1.0 so renderer knows how far between frames we are
+		render(frameLag / frameInterval);
     }
 }
 
