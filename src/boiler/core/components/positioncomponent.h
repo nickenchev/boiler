@@ -6,7 +6,9 @@
 class PositionComponent : public Component
 {
 public:
-    PositionComponent() : Component(COMPONENT_POSITION) { }
+	static int componentId;
+
+    PositionComponent() : Component() { }
 };
 
 

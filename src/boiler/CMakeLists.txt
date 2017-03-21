@@ -24,6 +24,7 @@ add_library(boiler
   core/spriteanimation.cpp
   core/line.cpp
   core/fileutils.cpp
+  core/components/positioncomponent.cpp
   video/renderer.cpp
   video/model.cpp
   video/fontloader.cpp

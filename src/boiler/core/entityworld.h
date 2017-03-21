@@ -15,6 +15,8 @@ class EntityWorld
 
 public:
     EntityWorld();
+	EntityWorld(const EntityWorld &) = delete;
+	void operator=(const EntityWorld &) = delete;
 
 	Entity createEntity();
 	void removeEntity(const Entity &entity);

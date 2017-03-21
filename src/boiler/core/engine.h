@@ -13,6 +13,7 @@
 #include "input/mousemotionevent.h"
 #include "input/keyinputevent.h"
 #include "core/entityworld.h"
+#include "core/componentmapper.h"
 
 class Entity;
 class Renderer;
@@ -28,6 +29,7 @@ class Engine
     std::string baseDataPath;
     std::unique_ptr<Renderer> renderer;
 	EntityWorld entityWorld;
+	ComponentMapper componentMapper;
 
     std::vector<TouchMotionListener> touchMotionListeners;
     std::vector<TouchTapEventListener> touchTapEventListeners;
@@ -67,6 +69,8 @@ public:
     void updateEntities(const std::vector<std::shared_ptr<Entity>> &entities);
 
 	EntityWorld &getEntityWorld() { return entityWorld; }
+	ComponentMapper &getComponentMapper() { return componentMapper; }
+
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
     const ImageLoader &getImageLoader() const { return imageLoader; }
     const FontLoader &getFontLoader() const { return fontLoader; }
