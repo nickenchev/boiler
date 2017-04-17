@@ -13,7 +13,8 @@
 #include <vector>
 #include "gridposition.h"
 
-template <class T> class Array2D
+template <class T>
+class Array2D
 {
     unsigned int rows, columns, size;
     std::vector<T> items;
