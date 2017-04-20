@@ -1,6 +1,7 @@
 #include <iostream>
 #include "blankpart.h"
-#include "core/components/positioncomponent.h"
+#include "core/rect.h"
+#include "core/component.h"
 
 BlankPart::BlankPart() : logger("Playground Part")
 {
@@ -18,17 +19,10 @@ void BlankPart::onCreate()
 	});
 
 	EntityWorld &world = Engine::getInstance().getEntityWorld();
-	Entity testEntity1 = world.createEntity();
-	Entity testEntity2 = world.createEntity();
-	Entity testEntity3 = world.createEntity();
-	Entity testEntity4 = world.createEntity();
-	world.removeEntity(testEntity2);
-	world.removeEntity(testEntity3);
-	testEntity2 = world.createEntity();
-	testEntity3 = world.createEntity();
+	Entity entity = world.createEntity();
 
-	auto &mapper = Engine::getInstance().getComponentMapper();
-	mapper.registerComponent<PositionComponent>();
+	ComponentMapper &mapper = Engine::getInstance().getComponentMapper();
+	Component<Rect> positionComponent;
 }
 
 void BlankPart::update()

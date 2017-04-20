@@ -20,7 +20,6 @@ public:
 
 	Entity createEntity();
 	void removeEntity(const Entity &entity);
-	void attachComponent(const Component &component);
 };
 
 

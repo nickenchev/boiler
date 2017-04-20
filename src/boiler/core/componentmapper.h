@@ -16,8 +16,7 @@ public:
 	ComponentMapper(const ComponentMapper &) = delete;
 	void operator=(const ComponentMapper &) = delete;
 
-	template <typename T>
-	void registerComponent() { T::componentId = 1; }
+	constexpr int maxComponents() const { return MAX_COMPONENTS; }
 };
 
 
