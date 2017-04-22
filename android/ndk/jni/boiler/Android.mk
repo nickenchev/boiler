@@ -12,7 +12,7 @@ LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH) ../../include
 LOCAL_C_INCLUDES := /usr/local/include \
 	../../include
 
-LOCAL_SRC_FILES := core/engine.cpp \
+LOCAL_SRC_FILES := core/boiler.cpp \
 	core/entity.cpp \
 	core/part.cpp \
 	core/component.cpp \

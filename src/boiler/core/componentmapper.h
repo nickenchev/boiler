@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <bitset>
+#include <iostream>
 #include "entity.h"
 
 #define MAX_COMPONENTS 64
@@ -15,9 +16,6 @@ public:
 	ComponentMapper() { }
 	ComponentMapper(const ComponentMapper &) = delete;
 	void operator=(const ComponentMapper &) = delete;
-
-	constexpr int maxComponents() const { return MAX_COMPONENTS; }
 };
-
 
 #endif /* COMPONENTMAPPER_H */

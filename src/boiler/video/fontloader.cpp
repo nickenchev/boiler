@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "core/engine.h"
+#include "core/boiler.h"
 #include "core/bmfont.h"
 #include "core/fileutils.h"
 #include "fontloader.h"
@@ -68,7 +68,7 @@ const BMFont FontLoader::loadBMFont(const std::string fontPath) const
                 Page pageObj;
                 pageObj.id = page->IntAttribute("id");
                 pageObj.file = page->Attribute("file");
-                pageObj.texture = Engine::getInstance().getImageLoader().loadImage(FileUtils::buildPath(imagePath, pageObj.file));
+                pageObj.texture = Boiler::getInstance().getImageLoader().loadImage(FileUtils::buildPath(imagePath, pageObj.file));
                 font.pageList.push_back(std::move(pageObj));
 
                 page = page->NextSiblingElement();

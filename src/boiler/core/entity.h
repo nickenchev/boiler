@@ -54,7 +54,7 @@ protected:
     virtual void onCreate() { }
     virtual void update() { }
     
-    friend class Engine;
+    friend class Boiler;
 };
 
 #endif /* ENTITY_H */

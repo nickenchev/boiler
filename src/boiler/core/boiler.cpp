@@ -2,7 +2,7 @@
 #include <SDL2/SDL_image.h>
 #include <iostream>
 #include "video/opengl.h"
-#include "engine.h"
+#include "boiler.h"
 #include "video/renderer.h"
 #include "part.h"
 #include "entity.h"
@@ -11,17 +11,17 @@
 
 #define RENDERER_CLASS OpenGLRenderer
 
-Engine::Engine() : spriteLoader(), imageLoader(), fontLoader(), baseDataPath("")
+Boiler::Boiler() : spriteLoader(), imageLoader(), fontLoader(), baseDataPath("")
 {
 }
 
-Engine &Engine::getInstance()
+Boiler &Boiler::getInstance()
 {
-	static Engine instance;
+	static Boiler instance;
 	return instance;
 }
 
-void Engine::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight)
+void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight)
 {
 	std::cout << "* Initializing..." << std::endl;
 	assert(renderer != nullptr); // No renderer provided
@@ -39,7 +39,7 @@ void Engine::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
 	getRenderer().initialize(getScreenSize());
 }
 
-void Engine::start(std::shared_ptr<Entity> part)
+void Boiler::start(std::shared_ptr<Entity> part)
 {
 	//store the incoming part and start it
 	this->part = part;
@@ -49,7 +49,7 @@ void Engine::start(std::shared_ptr<Entity> part)
 	run();
 }
 
-void Engine::run()
+void Boiler::run()
 {
 	double prevTime = SDL_GetTicks();
 	double frameLag = 0.0f;
@@ -75,7 +75,7 @@ void Engine::run()
 	}
 }
 
-void Engine::processInput()
+void Boiler::processInput()
 {
 	// poll input events
 	SDL_Event event;
@@ -147,7 +147,7 @@ void Engine::processInput()
 	}
 }
 
-void Engine::updateEntities(const std::vector<std::shared_ptr<Entity>> &entities)
+void Boiler::updateEntities(const std::vector<std::shared_ptr<Entity>> &entities)
 {
 	for (auto &entity : entities)
 	{
@@ -161,7 +161,7 @@ void Engine::updateEntities(const std::vector<std::shared_ptr<Entity>> &entities
 	}
 }
 
-void Engine::update(const float delta)
+void Boiler::update(const float delta)
 {
 	part->update();
 
@@ -169,12 +169,12 @@ void Engine::update(const float delta)
 	updateEntities(entities);
 }
 
-void Engine::render(const float delta)
+void Boiler::render(const float delta)
 {
 	renderer->render();
 }
 
-Engine::~Engine()
+Boiler::~Boiler()
 {
 	SDL_Quit();
 }

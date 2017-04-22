@@ -3,7 +3,7 @@
 
 #include "spriteloader.h"
 #include "json/json.h"
-#include "engine.h"
+#include "boiler.h"
 #include "video/renderer.h"
 #include "util/filemanager.h"
 
@@ -29,7 +29,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadSheet(std::string fil
         std::string imageFile = "data/" + json["meta"]["image"].asString();
 
         //read the sprite image name and load the texture
-        auto texture = Engine::getInstance().getImageLoader().loadImage(imageFile);
+        auto texture = Boiler::getInstance().getImageLoader().loadImage(imageFile);
 
         int width = json["meta"]["size"]["w"].asInt();
         int height = json["meta"]["size"]["h"].asInt();

@@ -2,7 +2,7 @@
 #include <fstream>
 #include <SDL2/SDL.h>
 
-#include "core/engine.h"
+#include "core/boiler.h"
 #include "video/renderer.h"
 #include "shaderprogram.h"
 #include "opengl.h"
@@ -34,7 +34,7 @@ GLint compileShader(char *src, GLenum shaderType)
         glGetShaderInfoLog(shader, logLength, NULL, logBuffer);
 
         std::string compileError(logBuffer);
-        Engine::getInstance().getRenderer().showMessageBox("Error", compileError);
+        Boiler::getInstance().getRenderer().showMessageBox("Error", compileError);
         std::cerr << logBuffer << std::endl;
         delete [] logBuffer;
 

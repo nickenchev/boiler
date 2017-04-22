@@ -6,7 +6,7 @@ find_package(GLEW REQUIRED)
 
 # Engine related sources
 add_library(boiler
-  core/engine.cpp
+  core/boiler.cpp
   core/entity.cpp
   core/entityworld.cpp
   core/part.cpp

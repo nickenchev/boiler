@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "entity.h"
-#include "engine.h"
+#include "boiler.h"
 #include "video/renderer.h"
 #include "video/vertexdata.h"
 
@@ -36,7 +36,7 @@ Entity::Entity(const Rect &frame) : scale(1.0f, 1.0f, 1.0f)
         { sizeW, 0.0f, 0.0f }
         
     });
-    model = Engine::getInstance().getRenderer().loadModel(vertData);
+    model = Boiler::getInstance().getRenderer().loadModel(vertData);
 }
 
 void Entity::setOwner(std::shared_ptr<Entity> owner)

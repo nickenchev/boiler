@@ -23,7 +23,7 @@ typedef std::function<void(const TouchTapEvent &event)> TouchTapEventListener;
 typedef std::function<void(const MouseMotionEvent &event)> MouseMotionListener;
 typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 
-class Engine
+class Boiler
 {
     int resWidth, resHeight;
     std::string baseDataPath;
@@ -51,14 +51,14 @@ class Engine
     std::shared_ptr<Entity> part;
 
     // singleton
-    Engine();
-    ~Engine();
+    Boiler();
+    ~Boiler();
 
 public:
-    Engine(const Engine &) = delete;
-    void operator=(const Engine &s) = delete;
+    Boiler(const Boiler &) = delete;
+    void operator=(const Boiler &s) = delete;
 
-    static Engine &getInstance();
+    static Boiler &getInstance();
 
     void initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight);
     void start(std::shared_ptr<Entity> part);

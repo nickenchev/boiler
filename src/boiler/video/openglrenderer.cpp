@@ -9,7 +9,7 @@
 #include "openglrenderer.h"
 #include "opengltexture.h"
 #include "core/spritesheetframe.h"
-#include "core/engine.h"
+#include "core/boiler.h"
 #include "core/part.h"
 #include "camera/camera.h"
 #include "openglmodel.h"
@@ -74,7 +74,7 @@ void checkOpenGLErrors()
                 break;
             }
         }
-        Engine::getInstance().getRenderer().showMessageBox("OpenGL Error", errorString);
+        Boiler::getInstance().getRenderer().showMessageBox("OpenGL Error", errorString);
     }
 }
 
@@ -196,7 +196,7 @@ void OpenGLRenderer::render() const
     glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    const std::vector<std::shared_ptr<Entity>> &entities = Engine::getInstance().getPart()->getChildren();
+    const std::vector<std::shared_ptr<Entity>> &entities = Boiler::getInstance().getPart()->getChildren();
 
     RenderDetails renderDetails;
     const ShaderProgram *program = getProgram();
@@ -210,7 +210,7 @@ void OpenGLRenderer::render() const
     }
 
     // prepare the matrices
-    const Size screenSize = Engine::getInstance().getScreenSize();
+    const Size screenSize = Boiler::getInstance().getScreenSize();
     const GLfloat orthoW = screenSize.getWidth() /  getGlobalScale().x;
     const GLfloat orthoH = screenSize.getHeight() / getGlobalScale().y;
     renderDetails.viewProjection = glm::ortho(0.0f,
