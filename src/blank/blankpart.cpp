@@ -1,6 +1,7 @@
 #include <iostream>
 #include "blankpart.h"
-#include "core/rect.h"
+#include "core/components/positioncomponent.h"
+#include "core/components/spritecomponent.h"
 
 BlankPart::BlankPart() : logger("Playground Part")
 {
@@ -21,6 +22,11 @@ void BlankPart::onCreate()
 	Entity entity = world.createEntity();
 
 	ComponentMapper &mapper = Boiler::getInstance().getComponentMapper();
+	mapper.registerComponent<PositionComponent>();
+	mapper.registerComponent<SpriteComponent>();
+
+	mapper.addComponent<PositionComponent>(entity);
+	mapper.addComponent<SpriteComponent>(entity);
 }
 
 void BlankPart::update()
