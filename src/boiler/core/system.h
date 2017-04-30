@@ -1,13 +1,20 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+#include "core/ecstypes.h"
+
 class System
 {
-public:
-    System();
-    virtual ~System();
+	ComponentMask systemMask;
 
-	virtual void execute() = 0;
+public:
+	virtual void update(const double delta) const = 0;
+
+	System &expects(const ComponentMask &mask)
+	{
+		systemMask = systemMask & mask;
+		return *this;
+	}
 };
 
 #endif /* SYSTEM_H */

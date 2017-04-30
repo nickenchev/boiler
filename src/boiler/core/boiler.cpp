@@ -161,7 +161,7 @@ void Boiler::updateEntities(const std::vector<std::shared_ptr<Entity>> &entities
 	}
 }
 
-void Boiler::update(const float delta)
+void Boiler::update(const double delta)
 {
 	part->update();
 
@@ -169,7 +169,7 @@ void Boiler::update(const float delta)
 	updateEntities(entities);
 }
 
-void Boiler::render(const float delta)
+void Boiler::render(const double delta)
 {
 	renderer->render();
 }

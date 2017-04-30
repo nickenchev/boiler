@@ -7,15 +7,14 @@
 #include <iostream>
 #include "logger.h"
 #include "entity.h"
-
-#define MAX_COMPONENTS 64
+#include "core/ecstypes.h"
 
 class ComponentMapper
 {
 	Logger logger;
 	unsigned int maskId;
-	std::unordered_map<EntityId, std::bitset<MAX_COMPONENTS>> componentMap;
-	std::unordered_map<std::type_index, std::bitset<MAX_COMPONENTS>> componentMasks;
+	std::unordered_map<EntityId, ComponentMask> componentMap;
+	std::unordered_map<std::type_index, ComponentMask> componentMasks;
 
 public:
 	ComponentMapper() : logger{"Component Mapper"}, maskId{1} { }
@@ -25,7 +24,7 @@ public:
 	template<typename T>
 	void registerComponent()
 	{
-		const std::bitset<MAX_COMPONENTS> mask = std::bitset<MAX_COMPONENTS>{maskId};
+		const ComponentMask mask = ComponentMask{maskId};
 		componentMasks[std::type_index(typeid(T))] = mask;
 		logger.log("Registered component with mask: " + mask.to_string());
 		maskId *= 2;
@@ -34,11 +33,17 @@ public:
 	template<typename T>
 	void addComponent(const Entity &entity)
 	{
-		const std::bitset<MAX_COMPONENTS> &mask = componentMasks[std::type_index(typeid(T))];
-		std::bitset<MAX_COMPONENTS> &entMask = componentMap[entity.getId()];
+		const ComponentMask &mask = componentMasks[std::type_index(typeid(T))];
+		ComponentMask &entMask = componentMap[entity.getId()];
 		entMask = entMask | mask;
 
 		logger.log("Entity Mask: " + entMask.to_string());
+	}
+
+	template<typename T>
+	const ComponentMask &mask()
+	{
+		return componentMasks[std::type_index(typeid(T))];
 	}
 };
 

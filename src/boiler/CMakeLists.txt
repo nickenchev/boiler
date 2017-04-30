@@ -33,6 +33,7 @@ add_library(boiler
   video/openglmodel.cpp
   video/shaderprogram.cpp
   video/imageloader.cpp
+  video/systems/rendersystem.cpp
   camera/camera.cpp
   camera/platformercamera.cpp
   camera/pancamera.cpp

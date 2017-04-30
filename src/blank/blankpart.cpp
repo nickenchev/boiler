@@ -1,5 +1,6 @@
 #include <iostream>
 #include "blankpart.h"
+#include "video/systems/rendersystem.h"
 #include "core/components/positioncomponent.h"
 #include "core/components/spritecomponent.h"
 
@@ -18,12 +19,15 @@ void BlankPart::onCreate()
 		}
 	});
 
-	EntityWorld &world = Boiler::getInstance().getEntityWorld();
-	Entity entity = world.createEntity();
+	Entity entity = Boiler::getInstance().getEcs().entityWorld.createEntity();
 
-	ComponentMapper &mapper = Boiler::getInstance().getComponentMapper();
+	auto &mapper = Boiler::getInstance().getEcs().mapper;
 	mapper.registerComponent<PositionComponent>();
 	mapper.registerComponent<SpriteComponent>();
+
+	Boiler::getInstance().getEcs().systems.createSystem<RenderSystem>()
+		.expects(mapper.mask<SpriteComponent>())
+		.expects(mapper.mask<PositionComponent>());
 
 	mapper.addComponent<PositionComponent>(entity);
 	mapper.addComponent<SpriteComponent>(entity);
