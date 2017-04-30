@@ -9,6 +9,7 @@
 class ComponentSystems
 {
 	std::vector<std::unique_ptr<System>> systems;
+
 public:
     ComponentSystems() { }
     virtual ~ComponentSystems() { }
@@ -22,9 +23,9 @@ public:
 	}
 
 	template<class T>
-	System &createSystem()
+	System &createSystem(const ComponentMapper &mapper)
 	{
-		auto system = std::make_unique<T>();
+		auto system = std::make_unique<T>(mapper);
 		systems.push_back(std::move(system));
 
 		return *system;

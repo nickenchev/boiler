@@ -1,5 +1,5 @@
 #include <iostream>
-#include "vertexdata.h"
+#include "video/vertexdata.h"
 
 VertexData::VertexData(std::vector<glm::vec3> vertices) : vertices(vertices)
 {

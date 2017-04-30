@@ -1,6 +1,6 @@
 #include <glm/glm.hpp>
-#include "ray.h"
-#include "rect.h"
+#include "core/ray.h"
+#include "core/rect.h"
 
 Ray::Ray(const glm::vec2 &origin, const glm::vec2 &direction) : origin(origin), direction(direction)
 {

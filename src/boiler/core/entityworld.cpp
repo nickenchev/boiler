@@ -1,4 +1,4 @@
-#include "entityworld.h"
+#include "core/entityworld.h"
 
 EntityWorld::EntityWorld() : logger("Entity World")
 {

@@ -1,6 +1,6 @@
 #include <iostream>
-#include "opengl.h"
-#include "opengltexture.h"
+#include "video/opengl.h"
+#include "video/opengltexture.h"
 #include "core/rect.h"
 
 OpenGLTexture::OpenGLTexture(const std::string filePath, unsigned int textureId) : Texture(filePath)

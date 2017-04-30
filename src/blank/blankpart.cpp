@@ -19,18 +19,20 @@ void BlankPart::onCreate()
 		}
 	});
 
-	Entity entity = Boiler::getInstance().getEcs().entityWorld.createEntity();
+	EntityComponentSystem &ecs = Boiler::getInstance().getEcs();
+	Entity entity = ecs.newEntity();
 
-	auto &mapper = Boiler::getInstance().getEcs().mapper;
-	mapper.registerComponent<PositionComponent>();
-	mapper.registerComponent<SpriteComponent>();
+	ecs.getComponentMapper().addComponent<PositionComponent>(entity);
+	ecs.getComponentMapper().addComponent<SpriteComponent>(entity);
 
-	Boiler::getInstance().getEcs().systems.createSystem<RenderSystem>()
-		.expects(mapper.mask<SpriteComponent>())
-		.expects(mapper.mask<PositionComponent>());
+	// ecs.getComponentSystems().createSystem<RenderSystem>(ecs.getComponentMapper());
 
-	mapper.addComponent<PositionComponent>(entity);
-	mapper.addComponent<SpriteComponent>(entity);
+// 	Boiler::getInstance().getEcs().createSystem<RenderSystem>()
+// 		.expects()
+// 		.expects();
+
+// 	Boiler::getInstance().getEcs().addComponent<PositionComponent>(entity);
+// 	Boiler::getInstance().getEcs().addComponent<SpriteComponent>(entity);
 }
 
 void BlankPart::update()

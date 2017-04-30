@@ -4,8 +4,8 @@
 #include "video/opengl.h"
 #include "boiler.h"
 #include "video/renderer.h"
-#include "part.h"
-#include "entity.h"
+#include "core/part.h"
+#include "core/entity.h"
 #include "input/mousebuttonevent.h"
 #include "input/keyinputevent.h"
 

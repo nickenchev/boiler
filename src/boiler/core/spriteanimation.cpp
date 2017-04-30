@@ -1,5 +1,5 @@
 #include <iostream>
-#include "spriteanimation.h"
+#include "core/spriteanimation.h"
 
 SpriteAnimation::SpriteAnimation(float duration)
 {

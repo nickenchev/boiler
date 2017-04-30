@@ -2,19 +2,22 @@
 #define SYSTEM_H
 
 #include "core/ecstypes.h"
+#include "core/componentmapper.h"
 
 class System
 {
+	const ComponentMapper &mapper;
 	ComponentMask systemMask;
 
 public:
-	virtual void update(const double delta) const = 0;
-
+	System(const ComponentMapper &mapper) : mapper(mapper) { }
 	System &expects(const ComponentMask &mask)
 	{
 		systemMask = systemMask & mask;
 		return *this;
 	}
+
+	virtual void update(const double delta) const = 0;
 };
 
 #endif /* SYSTEM_H */

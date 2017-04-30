@@ -5,15 +5,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "opengl.h"
-#include "openglrenderer.h"
-#include "opengltexture.h"
+#include "video/opengl.h"
+#include "video/openglrenderer.h"
+#include "video/opengltexture.h"
+#include "video/openglmodel.h"
+#include "video/vertexdata.h"
 #include "core/spritesheetframe.h"
 #include "core/boiler.h"
 #include "core/part.h"
 #include "camera/camera.h"
-#include "openglmodel.h"
-#include "vertexdata.h"
 
 OpenGLRenderer::OpenGLRenderer(bool useGLES) : Renderer(std::string(COMPONENT_NAME))
 {

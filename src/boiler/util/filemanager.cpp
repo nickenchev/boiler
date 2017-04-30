@@ -1,5 +1,5 @@
 #include <SDL2/SDL.h>
-#include "filemanager.h"
+#include "util/filemanager.h"
 
 std::string FileManager::readTextFile(const std::string &filePath)
 {

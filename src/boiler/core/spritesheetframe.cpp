@@ -1,4 +1,4 @@
-#include "spritesheetframe.h"
+#include "core/spritesheetframe.h"
 #include "video/opengltexture.h"
 
 

@@ -2,8 +2,8 @@
 #include <memory>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "entity.h"
-#include "boiler.h"
+#include "core/entity.h"
+#include "core/boiler.h"
 #include "video/renderer.h"
 #include "video/vertexdata.h"
 

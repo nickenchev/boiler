@@ -1,6 +1,6 @@
 #include <iostream>
-#include "quadtree.h"
-#include "entity.h"
+#include "core/quadtree.h"
+#include "core/entity.h"
 
 #define MAX_OBJECTS 10
 #define MAX_SUB_LEVELS 5 

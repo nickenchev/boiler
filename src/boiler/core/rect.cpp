@@ -1,4 +1,4 @@
-#include "rect.h"
+#include "core/rect.h"
 
 bool Rect::collides(const Rect &rect) const
 {

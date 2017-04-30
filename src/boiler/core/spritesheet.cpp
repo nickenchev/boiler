@@ -1,5 +1,5 @@
 #include <iostream>
-#include "spritesheet.h"
+#include "core/spritesheet.h"
 
 SpriteSheet::SpriteSheet(std::string imageFile, Size size, std::shared_ptr<const Texture> texture, std::map<std::string, SpriteSheetFrame> &frames) : size(size), frames(frames), texture(texture)
 {

@@ -31,13 +31,14 @@ public:
 	}
 
 	template<typename T>
-	void addComponent(const Entity &entity)
+	std::pair<const Entity &, const ComponentMask &> addComponent(const Entity &entity)
 	{
 		const ComponentMask &mask = componentMasks[std::type_index(typeid(T))];
 		ComponentMask &entMask = componentMap[entity.getId()];
 		entMask = entMask | mask;
 
 		logger.log("Entity Mask: " + entMask.to_string());
+		return std::make_pair(entity, entMask);
 	}
 
 	template<typename T>

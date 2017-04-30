@@ -1,4 +1,4 @@
-#include "model.h"
+#include "video/model.h"
 
 Model::Model(int numVertices)
 {

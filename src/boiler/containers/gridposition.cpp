@@ -6,7 +6,7 @@
 //
 //
 
-#include "gridposition.h"
+#include "containers/gridposition.h"
 
 GridPosition::GridPosition() : GridPosition(1, 1)
 {

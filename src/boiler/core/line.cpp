@@ -1,4 +1,4 @@
-#include "line.h"
+#include "core/line.h"
 
 StandardForm::StandardForm(glm::vec2 p0, glm::vec2 p1)
 {

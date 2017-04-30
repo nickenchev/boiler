@@ -1,7 +1,7 @@
 #include <iostream>
 #include <algorithm>
-#include "raycaster.h"
-#include "boiler.h"
+#include "core/raycaster.h"
+#include "core/boiler.h"
 
 bool RayCaster::clipLine(int d, const Rect &box, const glm::vec2 &v0, const glm::vec2 &v1, float &fLow, float &fHigh)
 {

@@ -6,8 +6,7 @@
 class RenderSystem : public System
 {
 public:
-    RenderSystem();
-    virtual ~RenderSystem();
+	using System::System;
 };
 
 

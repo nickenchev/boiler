@@ -1,7 +1,7 @@
 #include <SDL2/SDL_image.h>
 #include "core/boiler.h"
-#include "renderer.h"
-#include "imageloader.h"
+#include "video/renderer.h"
+#include "video/imageloader.h"
 
 #define COMPONENT_NAME "SpriteLoader"
 

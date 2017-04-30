@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
 
-#include "spriteloader.h"
+#include "core/spriteloader.h"
 #include "json/json.h"
-#include "boiler.h"
+#include "core/boiler.h"
 #include "video/renderer.h"
 #include "util/filemanager.h"
 

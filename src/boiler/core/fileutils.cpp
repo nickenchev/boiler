@@ -1,4 +1,4 @@
-#include "fileutils.h"
+#include "core/fileutils.h"
 
 std::string FileUtils::getDirectory(const std::string fullPath)
 {

@@ -4,8 +4,8 @@
 
 #include "core/boiler.h"
 #include "video/renderer.h"
-#include "shaderprogram.h"
-#include "opengl.h"
+#include "video/shaderprogram.h"
+#include "video/opengl.h"
 #include "util/filemanager.h"
 
 GLint compileShader(char *src, GLenum shaderType)

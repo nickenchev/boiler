@@ -1,4 +1,4 @@
-#include "bmfont.h"
+#include "core/bmfont.h"
 
 BMFont::BMFont()
 {}

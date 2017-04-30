@@ -6,9 +6,9 @@
 #include "core/boiler.h"
 #include "core/bmfont.h"
 #include "core/fileutils.h"
-#include "fontloader.h"
+#include "video/fontloader.h"
+#include "video/imageloader.h"
 #include "tinyxml2/tinyxml2.h"
-#include "imageloader.h"
 
 #define COMPONENT_NAME "FontLoader"
 
