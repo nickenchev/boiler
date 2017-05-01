@@ -5,13 +5,15 @@
 #include <memory>
 #include "core/ecstypes.h"
 #include "core/system.h"
+#include "core/logger.h"
 
 class ComponentSystems
 {
+	Logger logger;
 	std::vector<std::unique_ptr<System>> systems;
 
 public:
-    ComponentSystems() { }
+    ComponentSystems() : logger{"ComponentSystems"} { }
     virtual ~ComponentSystems() { }
 
 	void update(const double delta)
@@ -26,9 +28,12 @@ public:
 	System &createSystem()
 	{
 		auto system = std::make_unique<T>();
+		System &sys = *system;
 		systems.push_back(std::move(system));
 
-		return *system;
+		logger.log("Created system");
+
+		return sys;
 	}
 };
 
