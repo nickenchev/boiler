@@ -6,13 +6,13 @@
 
 class System
 {
-	const ComponentMapper &mapper;
 	ComponentMask systemMask;
 
 public:
-	System(const ComponentMapper &mapper) : mapper(mapper) { }
-	System &expects(const ComponentMask &mask)
+	template<typename T>
+	System &expects(ComponentMapper &mapper)
 	{
+		const ComponentMask &mask = mapper.mask<T>();
 		systemMask = systemMask & mask;
 		return *this;
 	}

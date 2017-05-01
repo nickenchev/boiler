@@ -23,9 +23,9 @@ public:
 	}
 
 	template<class T>
-	System &createSystem(const ComponentMapper &mapper)
+	System &createSystem()
 	{
-		auto system = std::make_unique<T>(mapper);
+		auto system = std::make_unique<T>();
 		systems.push_back(std::move(system));
 
 		return *system;

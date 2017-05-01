@@ -25,14 +25,9 @@ void BlankPart::onCreate()
 	ecs.getComponentMapper().addComponent<PositionComponent>(entity);
 	ecs.getComponentMapper().addComponent<SpriteComponent>(entity);
 
-	// ecs.getComponentSystems().createSystem<RenderSystem>(ecs.getComponentMapper());
-
-// 	Boiler::getInstance().getEcs().createSystem<RenderSystem>()
-// 		.expects()
-// 		.expects();
-
-// 	Boiler::getInstance().getEcs().addComponent<PositionComponent>(entity);
-// 	Boiler::getInstance().getEcs().addComponent<SpriteComponent>(entity);
+	ecs.getComponentSystems().createSystem<RenderSystem>()
+		.expects<PositionComponent>(ecs.getComponentMapper())
+		.expects<SpriteComponent>(ecs.getComponentMapper());
 }
 
 void BlankPart::update()

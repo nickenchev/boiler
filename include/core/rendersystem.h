@@ -5,8 +5,6 @@
 
 class RenderSystem : public System
 {
-public:
-	using System::System;
 };
 
 

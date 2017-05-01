@@ -42,7 +42,7 @@ public:
 	}
 
 	template<typename T>
-	const ComponentMask &mask()
+	ComponentMask mask()
 	{
 		return componentMasks[std::type_index(typeid(T))];
 	}
