@@ -25,7 +25,7 @@ public:
 	}
 
 	template<class T>
-	System &createSystem()
+	System &registerSystem()
 	{
 		auto system = std::make_unique<T>();
 		System &sys = *system;

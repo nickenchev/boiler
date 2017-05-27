@@ -20,16 +20,22 @@ void BlankPart::onCreate()
 	});
 
 	EntityComponentSystem &ecs = Boiler::getInstance().getEcs();
+
+	// setup the required components
 	ecs.getComponentMapper().registerComponent<PositionComponent>();
 	ecs.getComponentMapper().registerComponent<SpriteComponent>();
 
-	ecs.getComponentSystems().createSystem<RenderSystem>()
+	// add the rendering system
+	ecs.getComponentSystems().registerSystem<RenderSystem>()
 		.expects<PositionComponent>(ecs.getComponentMapper())
 		.expects<SpriteComponent>(ecs.getComponentMapper());
 
+	// create our entity and setup its components
 	Entity entity = ecs.newEntity();
 	ecs.addComponent<PositionComponent>(entity);
 	ecs.addComponent<SpriteComponent>(entity);
+
+	ecs.getComponentMapper().getComponent<PositionComponent>(entity);
 }
 
 void BlankPart::update()
