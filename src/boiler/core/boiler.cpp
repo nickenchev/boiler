@@ -163,6 +163,7 @@ void Boiler::updateEntities(const std::vector<std::shared_ptr<Entity>> &entities
 
 void Boiler::update(const double delta)
 {
+	ecs.update(delta);
 	part->update();
 
 	const auto &entities = part->getChildren();

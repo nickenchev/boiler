@@ -28,6 +28,7 @@ public:
 	void addComponent(const Entity &entity)
 	{
 		auto entMaskPair = mapper.addComponent<T>(entity);
+		systems.checkEntity(entMaskPair.first, entMaskPair.second);
 	}
 
 	ComponentMapper &getComponentMapper() { return mapper; }

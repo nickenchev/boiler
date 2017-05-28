@@ -53,7 +53,7 @@ public:
 	template<typename T>
 	std::shared_ptr<T> getComponent(const Entity &entity)
 	{
-		return entityComponents[entity.getId()][std::type_index(typeid(T))];
+		return std::static_pointer_cast<T>(entityComponents[entity.getId()][std::type_index(typeid(T))]);
 	}
 
 	template<typename T>
