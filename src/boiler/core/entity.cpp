@@ -9,6 +9,7 @@
 
 Entity::Entity() : Entity(Rect())
 {
+	std::cout << "Constructor" << std::endl;
 }
 
 Entity::Entity(const Rect &frame) : scale(1.0f, 1.0f, 1.0f)
@@ -55,10 +56,6 @@ void Entity::addChild(const std::shared_ptr<Entity> &child)
 void Entity::removeChild(const std::shared_ptr<Entity> &child)
 {
     child->owner.reset();
-}
-
-Entity::~Entity()
-{
 }
 
 const glm::mat4 &Entity::getMatrix()

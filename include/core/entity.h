@@ -26,7 +26,6 @@ public:
     Entity();
 	Entity(EntityId id) : id{id} { }
     Entity(const Rect &frame);
-    ~Entity();
 
 	bool operator==(const Entity &entity) const { return entity.getId() == this->getId(); }
 

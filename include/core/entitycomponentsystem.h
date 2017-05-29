@@ -4,6 +4,7 @@
 #include "core/entityworld.h"
 #include "core/componentmapper.h"
 #include "core/componentsystems.h"
+#include "core/componentstore.h"
 
 class Entity;
 
@@ -12,6 +13,7 @@ class EntityComponentSystem
 	EntityWorld entityWorld;
 	ComponentMapper mapper;
 	ComponentSystems systems;
+	ComponentStore componentStore;
 
 public:
 	void update(const double delta)
@@ -27,8 +29,9 @@ public:
 	template<typename T>
 	void addComponent(const Entity &entity)
 	{
-		auto entMaskPair = mapper.addComponent<T>(entity);
-		systems.checkEntity(entMaskPair.first, entMaskPair.second);
+		auto entMask = mapper.addComponent<T>(entity);
+		componentStore.store<T>(entity);
+		systems.checkEntity(entity, entMask);
 	}
 
 	ComponentMapper &getComponentMapper() { return mapper; }

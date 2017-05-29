@@ -10,13 +10,10 @@
 #include "core/ecstypes.h"
 #include "core/component.h"
 
-typedef std::unordered_map<std::type_index, std::shared_ptr<Component>> ComponentMap;
-
 class ComponentMapper
 {
 	Logger logger;
 	unsigned int maskId;
-	std::unordered_map<EntityId, ComponentMap> entityComponents;
 	std::unordered_map<EntityId, ComponentMask> componentMap;
 	std::unordered_map<std::type_index, ComponentMask> componentMasks;
 
@@ -36,28 +33,19 @@ public:
 	}
 
 	template<typename T>
-	std::pair<const Entity &, const ComponentMask &> addComponent(const Entity &entity)
+	const ComponentMask & addComponent(const Entity &entity)
 	{
-		// update the component mask
+		// update the entity mask
 		const ComponentMask &mask = componentMasks[std::type_index(typeid(T))];
 		ComponentMask &entMask = componentMap[entity.getId()];
 		entMask = entMask | mask;
+
 		logger.log("Entity Mask: " + entMask.to_string());
-
-		// add the component objcet for this entity
-		entityComponents[entity.getId()][std::type_index(typeid(T))] = std::make_shared<T>();
-
-		return std::make_pair(entity, entMask);
+		return entMask;
 	}
 
 	template<typename T>
-	std::shared_ptr<T> getComponent(const Entity &entity)
-	{
-		return std::static_pointer_cast<T>(entityComponents[entity.getId()][std::type_index(typeid(T))]);
-	}
-
-	template<typename T>
-	ComponentMask mask()
+	const ComponentMask &mask()
 	{
 		return componentMasks[std::type_index(typeid(T))];
 	}

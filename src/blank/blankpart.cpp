@@ -33,9 +33,7 @@ void BlankPart::onCreate()
 	// create our entity and setup its components
 	Entity entity = ecs.newEntity();
 	ecs.addComponent<PositionComponent>(entity);
-	ecs.addComponent<SpriteComponent>(entity);
-
-	ecs.getComponentMapper().getComponent<PositionComponent>(entity);
+ 	ecs.addComponent<SpriteComponent>(entity);
 }
 
 void BlankPart::update()

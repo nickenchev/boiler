@@ -9,13 +9,9 @@
 
 class Engine;
 
-class Part : public Entity
+class Part
 {
-	Logger logger;
-
 public:
-    Part() : logger("Part"), Entity(Rect(0, 0, 0, 0)) { }
-
     // disable copying
     Part(const Part &part) = delete;
     Part &operator=(const Part &part) = delete;

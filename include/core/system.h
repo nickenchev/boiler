@@ -15,7 +15,7 @@ public:
 	System &expects(ComponentMapper &mapper)
 	{
 		const ComponentMask &mask = mapper.mask<T>();
-		systemMask = systemMask & mask;
+		systemMask = systemMask | mask;
 		return *this;
 	}
 
