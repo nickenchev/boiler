@@ -28,6 +28,8 @@ public:
 		}
 	}
 
+	const std::vector<Entity> &getEntities() const { return entities; }
+
 	virtual void update(const double delta) const = 0;
 };
 
