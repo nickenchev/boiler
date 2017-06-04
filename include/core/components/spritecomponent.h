@@ -1,8 +1,11 @@
 #ifndef SPRITECOMPONENT_H
 #define SPRITECOMPONENT_H
 
+#include "core/boiler.h"
 #include "core/component.h"
+#include "video/renderer.h"
 #include "video/vertexdata.h"
+#include "video/model.h"
 
 class SpriteSheetFrame;
 
@@ -12,7 +15,7 @@ struct SpriteComponent : public Component
     glm::vec4 color;
     std::shared_ptr<const Model> model;
 
-	SpriteComponent(Rect frame)
+	SpriteComponent(const Rect &frame)
 	{
 		// 2D vertex and texture coords
 		const float sizeW = frame.size.getWidth();

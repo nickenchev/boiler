@@ -45,7 +45,6 @@ class Boiler
     void run();
     void processInput();
     void update(const double delta);
-    void render(const double delta);
 
     std::shared_ptr<Part> part;
 

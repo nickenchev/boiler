@@ -32,6 +32,6 @@ void BlankPart::onStart()
 
 	// create our entity and setup its components
 	Entity entity = ecs.newEntity();
-    ecs.addComponent<PositionComponent>(entity);
-	ecs.addComponent<SpriteComponent>(entity, Rect(10, 10, 100, 100));
+    auto pos = ecs.addComponent<PositionComponent>(entity, Rect(10, 10, 100, 100));
+	ecs.addComponent<SpriteComponent>(entity, pos->frame);
 }

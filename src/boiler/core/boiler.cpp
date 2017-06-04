@@ -71,7 +71,7 @@ void Boiler::run()
 			frameLag -= frameInterval;
 		} 
 		// pass normalized 0.0 - 1.0 so renderer knows how far between frames we are
-		render(frameLag / frameInterval);
+		const double normalized = frameLag / frameInterval;
 	}
 }
 
@@ -150,13 +150,6 @@ void Boiler::processInput()
 void Boiler::update(const double delta)
 {
 	ecs.update(delta);
-}
-
-void Boiler::render(const double delta)
-{
-	renderer->beginRender();
-	renderer->render();
-	renderer->endRender();
 }
 
 Boiler::~Boiler()

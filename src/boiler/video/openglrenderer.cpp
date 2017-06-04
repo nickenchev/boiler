@@ -13,6 +13,8 @@
 #include "core/spritesheetframe.h"
 #include "core/boiler.h"
 #include "core/part.h"
+#include "core/components/positioncomponent.h"
+#include "core/components/spritecomponent.h"
 #include "camera/camera.h"
 
 OpenGLRenderer::OpenGLRenderer(bool useGLES) : Renderer(std::string(COMPONENT_NAME))
@@ -191,19 +193,19 @@ std::shared_ptr<const Model> OpenGLRenderer::loadModel(const VertexData &data) c
     return std::make_shared<OpenGLModel>(data);
 }
 
-void OpenGLRenderer::beginRender()
+void OpenGLRenderer::beginRender() const
 {
     glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void OpenGLRenderer::endRender()
+void OpenGLRenderer::endRender() const
 {
     SDL_GL_SwapWindow(win);
     glUseProgram(0);
 }
 
-void OpenGLRenderer::render() const
+void OpenGLRenderer::render(const PositionComponent &position, const SpriteComponent &sprite) const
 {
     RenderDetails renderDetails;
     const ShaderProgram *program = getProgram();
@@ -229,53 +231,52 @@ void OpenGLRenderer::render() const
     }
 
 	// render the entity
-	// if (entity->model)
-	// {
-	// // 	auto model = std::static_pointer_cast<const OpenGLModel>(entity->model);
-	// 	// set the vao for the current sprite
-	// 	glBindVertexArray(model->getVao());
+	if (sprite.model)
+    {
+        auto model = std::static_pointer_cast<const OpenGLModel>(sprite.model);
+        // set the vao for the current sprite
+        glBindVertexArray(model->getVao());
 
-	// 	if (entity->spriteFrame)
-	// 	{
-	// 		// binds the current frames texture VBO and ensure it is linked to the current VAO
-	// 		glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
-	// 		glVertexAttribPointer(ATTRIB_ARRAY_TEXTURE, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		if (sprite.spriteFrame)
+		{
+			// binds the current frames texture VBO and ensure it is linked to the current VAO
+			glBindBuffer(GL_ARRAY_BUFFER, sprite.spriteFrame->getTexCoordsVbo());
+			glVertexAttribPointer(ATTRIB_ARRAY_TEXTURE, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-	// 		// set the current texture
-	// 		setActiveTexture(entity->spriteFrame->getSourceTexture());
-	// 		glUniform1i(renderDetails.usingTexUniform, 1);
-	// 	}
-	// 	else
-	// 	{
-	// 		glUniform1i(renderDetails.usingTexUniform, 0);
-	// 		glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(entity->color));
-	// 	}
+			// set the current texture
+			setActiveTexture(sprite.spriteFrame->getSourceTexture());
+			glUniform1i(renderDetails.usingTexUniform, 1);
+		}
+		else
+		{
+			glUniform1i(renderDetails.usingTexUniform, 0);
+			glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(sprite.color));
+		}
 
-	// 	const glm::mat4 &modelMatrix = entity->getMatrix();
-	// 	glm::mat4 mvpMatrix;
+		const glm::mat4 &modelMatrix = position.getMatrix();
+		glm::mat4 mvpMatrix;
 
-	// 	// absolute entities aren't affected by the camera
-	// 	if (entity->absolute)
-	// 	{
-	// 		mvpMatrix = renderDetails.viewProjection * modelMatrix;
-	// 	}
-	// 	else
-	// 	{
-	// 		mvpMatrix = renderDetails.camViewProjection * modelMatrix;
-	// 	}
+		// absolute entities aren't affected by the camera
+		if (position.absolute)
+		{
+			mvpMatrix = renderDetails.viewProjection * modelMatrix;
+		}
+		else
+		{
+			mvpMatrix = renderDetails.camViewProjection * modelMatrix;
+		}
+		glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 
-	// 	glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
+		// draw the entity
+		glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
+		glBindVertexArray(0);
 
-	// 	// draw the entity
-	// 	glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
-	// 	glBindVertexArray(0);
-
-	// 	GLenum glError = glGetError();
-	// 	if (glError != GL_NO_ERROR)
-	// 	{
-	// 		logger.error("GL Error returned: " + std::to_string(glError));
-	// 	}
-	// }
+		GLenum glError = glGetError();
+		if (glError != GL_NO_ERROR)
+		{
+			logger.error("GL Error returned: " + std::to_string(glError));
+		}
+	}
 }
 
 void OpenGLRenderer::showMessageBox(const std::string &title, const std::string &message)
