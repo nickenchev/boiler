@@ -31,7 +31,7 @@ void BlankPart::onStart()
 		.expects<SpriteComponent>(ecs.getComponentMapper());
 
 	// create our entity and setup its components
-// 	Entity entity = ecs.newEntity();
-// 	ecs.addComponent<PositionComponent>(entity);
-//  	ecs.addComponent<SpriteComponent>(entity);
+	Entity entity = ecs.newEntity();
+    ecs.addComponent<PositionComponent>(entity);
+	ecs.addComponent<SpriteComponent>(entity, Rect(10, 10, 100, 100));
 }

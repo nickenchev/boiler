@@ -10,10 +10,12 @@ class ComponentStore
 	std::unordered_map<EntityId, ComponentMap> entityComponents;
 
 public:
-	template<typename T>
-	void store(const Entity &entity)
+	template<typename T, typename... Args>
+	std::shared_ptr<T> store(const Entity &entity, Args&&... args)
 	{
-		entityComponents[entity.getId()][std::type_index(typeid(T))] = std::make_shared<T>();
+		auto component = std::make_shared<T>(std::forward<Args>(args)...);
+		entityComponents[entity.getId()][std::type_index(typeid(T))] = component;
+		return component;
 	}
 
 	template<typename T>
