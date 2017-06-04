@@ -18,7 +18,7 @@ class EntityComponentSystem
 public:
 	void update(const double delta)
 	{
-		systems.update(delta);
+		systems.update(componentStore, delta);
 	}
 
 	Entity newEntity()

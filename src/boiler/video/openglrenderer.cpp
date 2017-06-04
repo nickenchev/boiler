@@ -191,13 +191,20 @@ std::shared_ptr<const Model> OpenGLRenderer::loadModel(const VertexData &data) c
     return std::make_shared<OpenGLModel>(data);
 }
 
-void OpenGLRenderer::render() const
+void OpenGLRenderer::beginRender()
 {
     glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+}
 
-    const std::vector<std::shared_ptr<Entity>> &entities = Boiler::getInstance().getPart()->getChildren();
+void OpenGLRenderer::endRender()
+{
+    SDL_GL_SwapWindow(win);
+    glUseProgram(0);
+}
 
+void OpenGLRenderer::render() const
+{
     RenderDetails renderDetails;
     const ShaderProgram *program = getProgram();
     if (program)
@@ -221,71 +228,54 @@ void OpenGLRenderer::render() const
         renderDetails.camViewProjection = renderDetails.viewProjection * camera->getViewMatrix();
     }
 
-    // draw the entities recursively
-    renderEntities(entities, renderDetails);
+	// render the entity
+	// if (entity->model)
+	// {
+	// // 	auto model = std::static_pointer_cast<const OpenGLModel>(entity->model);
+	// 	// set the vao for the current sprite
+	// 	glBindVertexArray(model->getVao());
 
-    SDL_GL_SwapWindow(win);
-    glUseProgram(0);
-}
+	// 	if (entity->spriteFrame)
+	// 	{
+	// 		// binds the current frames texture VBO and ensure it is linked to the current VAO
+	// 		glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
+	// 		glVertexAttribPointer(ATTRIB_ARRAY_TEXTURE, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-void OpenGLRenderer::renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, const RenderDetails &renderDetails) const
-{
-    for (auto &entity : entities)
-    {
-        if (entity->model)
-        {
-            auto model = std::static_pointer_cast<const OpenGLModel>(entity->model);
-            // set the vao for the current sprite
-            glBindVertexArray(model->getVao());
+	// 		// set the current texture
+	// 		setActiveTexture(entity->spriteFrame->getSourceTexture());
+	// 		glUniform1i(renderDetails.usingTexUniform, 1);
+	// 	}
+	// 	else
+	// 	{
+	// 		glUniform1i(renderDetails.usingTexUniform, 0);
+	// 		glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(entity->color));
+	// 	}
 
-            if (entity->spriteFrame)
-            {
-                // binds the current frames texture VBO and ensure it is linked to the current VAO
-                glBindBuffer(GL_ARRAY_BUFFER, entity->spriteFrame->getTexCoordsVbo());
-                glVertexAttribPointer(ATTRIB_ARRAY_TEXTURE, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	// 	const glm::mat4 &modelMatrix = entity->getMatrix();
+	// 	glm::mat4 mvpMatrix;
 
-                // set the current texture
-                setActiveTexture(entity->spriteFrame->getSourceTexture());
-                glUniform1i(renderDetails.usingTexUniform, 1);
-            }
-            else
-            {
-                glUniform1i(renderDetails.usingTexUniform, 0);
-                glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(entity->color));
-            }
+	// 	// absolute entities aren't affected by the camera
+	// 	if (entity->absolute)
+	// 	{
+	// 		mvpMatrix = renderDetails.viewProjection * modelMatrix;
+	// 	}
+	// 	else
+	// 	{
+	// 		mvpMatrix = renderDetails.camViewProjection * modelMatrix;
+	// 	}
 
-            const glm::mat4 &modelMatrix = entity->getMatrix();
-            glm::mat4 mvpMatrix;
+	// 	glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 
-            // absolute entities aren't affected by the camera
-            if (entity->absolute)
-            {
-                mvpMatrix = renderDetails.viewProjection * modelMatrix;
-            }
-            else
-            {
-                mvpMatrix = renderDetails.camViewProjection * modelMatrix;
-            }
+	// 	// draw the entity
+	// 	glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
+	// 	glBindVertexArray(0);
 
-            glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
-
-            // draw the entity
-            glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
-            glBindVertexArray(0);
-
-            GLenum glError = glGetError();
-            if (glError != GL_NO_ERROR)
-            {
-                logger.error("GL Error returned: " + std::to_string(glError));
-            }
-        }
-
-        // draw the child entities
-        if (entity->getChildren().size() > 0)
-        {
-            renderEntities(entity->getChildren(), renderDetails);
-        }
-    }
+	// 	GLenum glError = glGetError();
+	// 	if (glError != GL_NO_ERROR)
+	// 	{
+	// 		logger.error("GL Error returned: " + std::to_string(glError));
+	// 	}
+	// }
 }
 
 void OpenGLRenderer::showMessageBox(const std::string &title, const std::string &message)

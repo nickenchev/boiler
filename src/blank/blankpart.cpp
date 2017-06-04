@@ -8,7 +8,7 @@ BlankPart::BlankPart() : logger("Playground Part")
 {
 }
 
-void BlankPart::onCreate()
+void BlankPart::onStart()
 {
     Boiler::getInstance().getRenderer().setClearColor(Color3(0.8f, 0.8f, 1.0f));
     Boiler::getInstance().addKeyInputListener([](const KeyInputEvent &event)
@@ -31,11 +31,7 @@ void BlankPart::onCreate()
 		.expects<SpriteComponent>(ecs.getComponentMapper());
 
 	// create our entity and setup its components
-	Entity entity = ecs.newEntity();
-	ecs.addComponent<PositionComponent>(entity);
- 	ecs.addComponent<SpriteComponent>(entity);
-}
-
-void BlankPart::update()
-{
+// 	Entity entity = ecs.newEntity();
+// 	ecs.addComponent<PositionComponent>(entity);
+//  	ecs.addComponent<SpriteComponent>(entity);
 }

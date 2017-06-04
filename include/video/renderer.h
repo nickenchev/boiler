@@ -2,10 +2,12 @@
 #define RENDERER_H
 
 #include <memory>
+#include <glm/glm.hpp>
 #include "shaderprogram.h"
 #include "core/logger.h"
 #include "core/entity.h"
 #include "core/component.h"
+#include "core/rect.h"
 #include "texture.h"
 
 typedef glm::vec3 Color3;
@@ -42,7 +44,11 @@ public:
     virtual std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const = 0;
     virtual void setActiveTexture(std::shared_ptr<const Texture> texture) const = 0;
     virtual std::shared_ptr<const Model> loadModel(const VertexData &data) const = 0;
+
+	virtual void beginRender() = 0;
+	virtual void endRender() = 0;
     virtual void render() const = 0;
+
     virtual void showMessageBox(const std::string &title, const std::string &message) = 0;
 };
 

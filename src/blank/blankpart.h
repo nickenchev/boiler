@@ -2,17 +2,17 @@
 #define BLANKPART_H
 
 #include <boiler.h>
+#include "core/part.h"
 #include "core/logger.h"
 
-class BlankPart : public Entity
+class BlankPart : public Part
 {
 	Logger logger;
 	
 public:
     BlankPart();
 
-    void onCreate() override;
-    void update() override;
+	void onStart() override;
 };
 
 #endif /* BLANKPART_H */

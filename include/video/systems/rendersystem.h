@@ -6,7 +6,7 @@
 class RenderSystem : public System
 {
 public:
-	void update(const double delta) const override;
+	void update(ComponentStore &store, const double delta) const override;
 };
 
 

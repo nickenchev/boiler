@@ -36,7 +36,7 @@ set(BOILER_SOURCES
   src/boiler/core/spritesheet.cpp
   src/boiler/core/spritesheetframe.cpp
   src/boiler/core/base64.cpp
-  src/boiler/core/quadtree.cpp
+  # src/boiler/core/quadtree.cpp
   src/boiler/core/rect.cpp
   src/boiler/core/raycaster.cpp
   src/boiler/core/ray.cpp
@@ -55,7 +55,7 @@ set(BOILER_SOURCES
   src/boiler/video/imageloader.cpp
   src/boiler/video/systems/rendersystem.cpp
   src/boiler/camera/camera.cpp
-  src/boiler/camera/platformercamera.cpp
+  # src/boiler/camera/platformercamera.cpp
   src/boiler/camera/pancamera.cpp
   src/boiler/containers/gridposition.cpp
   src/boiler/util/filemanager.cpp

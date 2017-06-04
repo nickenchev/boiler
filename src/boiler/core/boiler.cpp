@@ -39,11 +39,11 @@ void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
 	getRenderer().initialize(getScreenSize());
 }
 
-void Boiler::start(std::shared_ptr<Entity> part)
+void Boiler::start(std::shared_ptr<Part> part)
 {
 	//store the incoming part and start it
 	this->part = part;
-	part->onCreate();
+	this->part->onStart();
 
 	//start processing events
 	run();
@@ -147,32 +147,16 @@ void Boiler::processInput()
 	}
 }
 
-void Boiler::updateEntities(const std::vector<std::shared_ptr<Entity>> &entities)
-{
-	for (auto &entity : entities)
-	{
-		entity->update();
-
-		// update children the child entities
-		if (entity->getChildren().size() > 0)
-		{
-			updateEntities(entity->getChildren());
-		}
-	}
-}
-
 void Boiler::update(const double delta)
 {
 	ecs.update(delta);
-	part->update();
-
-	const auto &entities = part->getChildren();
-	updateEntities(entities);
 }
 
 void Boiler::render(const double delta)
 {
+	renderer->beginRender();
 	renderer->render();
+	renderer->endRender();
 }
 
 Boiler::~Boiler()

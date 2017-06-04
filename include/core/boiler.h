@@ -16,6 +16,7 @@
 
 class Entity;
 class Renderer;
+class Part;
 
 typedef std::function<void(const TouchMotionEvent &event)> TouchMotionListener;
 typedef std::function<void(const TouchTapEvent &event)> TouchTapEventListener;
@@ -46,7 +47,7 @@ class Boiler
     void update(const double delta);
     void render(const double delta);
 
-    std::shared_ptr<Entity> part;
+    std::shared_ptr<Part> part;
 
     // singleton
     Boiler();
@@ -59,13 +60,12 @@ public:
     static Boiler &getInstance();
 
     void initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight);
-    void start(std::shared_ptr<Entity> part);
+    void start(std::shared_ptr<Part> part);
     void quit() { running = false; }
 
 	EntityComponentSystem &getEcs() { return ecs; }
     Renderer &getRenderer() const { return *renderer.get(); }
-    std::shared_ptr<Entity> getPart() const { return part; }
-    void updateEntities(const std::vector<std::shared_ptr<Entity>> &entities);
+    std::shared_ptr<Part> getPart() const { return part; }
 
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
     const ImageLoader &getImageLoader() const { return imageLoader; }

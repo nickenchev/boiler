@@ -1,24 +1,15 @@
 #ifndef PART_H
 #define PART_H
 
-#include <vector>
-#include <memory>
-#include "component.h"
-#include "entity.h"
-#include "logger.h"
-
-class Engine;
-
 class Part
 {
 public:
+	Part() { }
     // disable copying
     Part(const Part &part) = delete;
     Part &operator=(const Part &part) = delete;
 
-    virtual void start() = 0;
-    virtual void handleInput() = 0;
-    virtual void update(const float delta) = 0;
+    virtual void onStart() = 0;
 };
 
 #endif /* PART_H */

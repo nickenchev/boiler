@@ -5,6 +5,8 @@
 #include "core/ecstypes.h"
 #include "core/componentmapper.h"
 
+class ComponentStore;
+
 class System
 {
 	ComponentMask systemMask;
@@ -30,7 +32,7 @@ public:
 
 	const std::vector<Entity> &getEntities() const { return entities; }
 
-	virtual void update(const double delta) const = 0;
+	virtual void update(ComponentStore &store, const double delta) const = 0;
 };
 
 #endif /* SYSTEM_H */

@@ -35,8 +35,6 @@ class OpenGLRenderer : public Renderer
     SDL_Window *win = nullptr;
     unsigned int fbo, rbo;
 
-    void renderEntities(const std::vector<std::shared_ptr<Entity>> &entities, const RenderDetails &renderDetails) const;
-
 public:
     OpenGLRenderer(bool useGLES);
     ~OpenGLRenderer();
@@ -50,6 +48,8 @@ public:
 
     std::shared_ptr<const Model> loadModel(const VertexData &data) const override;
 
+	void beginRender() override;
+	void endRender() override;
     void render() const override;
     void showMessageBox(const std::string &title, const std::string &message) override;
 };

@@ -7,6 +7,7 @@
 #include "core/system.h"
 #include "core/logger.h"
 #include "core/componentmapper.h"
+#include "core/componentstore.h"
 
 class ComponentSystems
 {
@@ -17,11 +18,11 @@ public:
     ComponentSystems() : logger{"ComponentSystems"}  { }
     virtual ~ComponentSystems() { }
 
-	void update(const double delta)
+	void update(ComponentStore &store, const double delta)
 	{
 		for (auto &system : systems)
 		{
-			system->update(delta);
+			system->update(store, delta);
 		}
 	}
 
