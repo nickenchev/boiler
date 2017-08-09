@@ -3,7 +3,7 @@
 
 #include "core/component.h"
 
-typedef std::unordered_map<std::type_index, std::shared_ptr<Component>> ComponentMap;
+typedef std::unordered_map<ComponentMask, std::shared_ptr<Component>> ComponentMap;
 
 class ComponentStore
 {
@@ -13,15 +13,17 @@ public:
 	template<typename T, typename... Args>
 	std::shared_ptr<T> store(const Entity &entity, Args&&... args)
 	{
+		// construct and store the new compnent for this entity
 		auto component = std::make_shared<T>(std::forward<Args>(args)...);
-		entityComponents[entity.getId()][std::type_index(typeid(T))] = component;
+		entityComponents[entity.getId()][T::mask] = component;
+
 		return component;
 	}
 
 	template<typename T>
 	std::shared_ptr<T> retrieve(const Entity &entity)
 	{
-		return std::static_pointer_cast<T>(entityComponents[entity.getId()][std::type_index(typeid(T))]);
+		return std::static_pointer_cast<T>(entityComponents[entity.getId()][T::mask]);
 	}
 };
 

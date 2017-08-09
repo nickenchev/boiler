@@ -2,14 +2,14 @@
 #define SPRITECOMPONENT_H
 
 #include "core/boiler.h"
-#include "core/component.h"
+#include "core/componenttype.h"
 #include "video/renderer.h"
 #include "video/vertexdata.h"
 #include "video/model.h"
 
 class SpriteSheetFrame;
 
-struct SpriteComponent : public Component
+struct SpriteComponent : public ComponentType<SpriteComponent>
 {
     const SpriteSheetFrame *spriteFrame;
     glm::vec4 color;

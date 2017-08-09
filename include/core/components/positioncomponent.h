@@ -3,10 +3,10 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "core/component.h"
+#include "core/componenttype.h"
 #include "core/rect.h"
 
-struct PositionComponent : public Component
+struct PositionComponent : public ComponentType<PositionComponent>
 {
     Rect frame;
     bool flipH, flipV, collides;

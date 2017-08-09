@@ -23,7 +23,6 @@ OpenGLRenderer::OpenGLRenderer(bool useGLES) : Renderer(std::string(COMPONENT_NA
 }
 
 void setupGLExtensions()
-
 {
 #ifdef __APPLE__
     // require "experimental" as not all OpenGL features are marked "standard"
@@ -222,9 +221,8 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
     const Size screenSize = Boiler::getInstance().getScreenSize();
     const GLfloat orthoW = screenSize.getWidth() /  getGlobalScale().x;
     const GLfloat orthoH = screenSize.getHeight() / getGlobalScale().y;
-    renderDetails.viewProjection = glm::ortho(0.0f,
-                                          static_cast<GLfloat>(orthoW),
-                                          static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
+    renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
+
     if (this->camera)
     {
         renderDetails.camViewProjection = renderDetails.viewProjection * camera->getViewMatrix();

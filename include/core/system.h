@@ -16,8 +16,7 @@ public:
 	template<typename T>
 	System &expects(ComponentMapper &mapper)
 	{
-		const ComponentMask &mask = mapper.mask<T>();
-		systemMask = systemMask | mask;
+		systemMask = systemMask | T::mask;
 		return *this;
 	}
 

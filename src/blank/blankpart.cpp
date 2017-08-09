@@ -21,10 +21,6 @@ void BlankPart::onStart()
 
 	EntityComponentSystem &ecs = Boiler::getInstance().getEcs();
 
-	// setup the required components
-	ecs.getComponentMapper().registerComponent<PositionComponent>();
-	ecs.getComponentMapper().registerComponent<SpriteComponent>();
-
 	// add the rendering system
 	ecs.getComponentSystems().registerSystem<RenderSystem>()
 		.expects<PositionComponent>(ecs.getComponentMapper())
@@ -33,5 +29,5 @@ void BlankPart::onStart()
 	// create our entity and setup its components
 	Entity entity = ecs.newEntity();
     auto pos = ecs.addComponent<PositionComponent>(entity, Rect(10, 10, 100, 100));
-	ecs.addComponent<SpriteComponent>(entity, pos->frame);
+	auto sprite = ecs.addComponent<SpriteComponent>(entity, pos->frame);
 }
