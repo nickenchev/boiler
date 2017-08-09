@@ -6,13 +6,13 @@
 
 void RenderSystem::update(ComponentStore &store, const double delta) const
 {
+	Boiler::getInstance().getRenderer().beginRender();
 	for (auto &entity : getEntities())
 	{
 		std::shared_ptr<PositionComponent> pos = store.retrieve<PositionComponent>(entity);
 		std::shared_ptr<SpriteComponent> sprite = store.retrieve<SpriteComponent>(entity);
 
-		Boiler::getInstance().getRenderer().beginRender();
 		Boiler::getInstance().getRenderer().render(*pos, *sprite);
-		Boiler::getInstance().getRenderer().endRender();
 	}
+	Boiler::getInstance().getRenderer().endRender();
 }
