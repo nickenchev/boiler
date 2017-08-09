@@ -1,7 +1,6 @@
 #ifndef COMPONENTMAPPER_H
 #define COMPONENTMAPPER_H
 
-#include <typeindex>
 #include <unordered_map>
 #include <bitset>
 #include <iostream>
@@ -13,11 +12,10 @@
 class ComponentMapper
 {
 	Logger logger;
-	unsigned int maskId;
 	std::unordered_map<EntityId, ComponentMask> componentMap;
 
 public:
-	ComponentMapper() : logger{"Component Mapper"}, maskId{1} { }
+	ComponentMapper() : logger{"Component Mapper"} { }
 	ComponentMapper(const ComponentMapper &) = delete;
 	void operator=(const ComponentMapper &) = delete;
 
