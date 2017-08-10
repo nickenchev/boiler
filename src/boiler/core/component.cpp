@@ -1,1 +1,0 @@
-#include "core/component.h"

@@ -24,12 +24,13 @@ BlankPart::BlankPart() : logger("Playground Part")
 		.expects<SpriteComponent>(ecs.getComponentMapper());
 
 	// create our entity and setup its components
-	for (int r = 0; r < 50; ++r)
+	int tileSize = 75;
+	for (int r = 0; r < 10; ++r)
 	{
-		for (int c = 0; c < 50; ++c)
+		for (int c = 0; c < 10; ++c)
 		{
 			Entity entity = ecs.newEntity();
-			auto pos = ecs.addComponent<PositionComponent>(entity, Rect(100 * r, 100 * c, 100, 100));
+			auto pos = ecs.addComponent<PositionComponent>(entity, Rect(tileSize * r, tileSize * c, tileSize, tileSize));
 			pos->absolute = true;
 			auto sprite = ecs.addComponent<SpriteComponent>(entity, pos->frame);
 			sprite->spriteFrame = spriteSheet->getFrame("forest.png");

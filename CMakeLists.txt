@@ -27,10 +27,7 @@ set(BOILER_HEADERS
 # Engine related sources
 set(BOILER_SOURCES
   src/boiler/core/boiler.cpp
-  src/boiler/core/entity.cpp
   src/boiler/core/entityworld.cpp
-  src/boiler/core/part.cpp
-  src/boiler/core/component.cpp
   src/boiler/core/tmxloader.cpp
   src/boiler/core/spriteloader.cpp
   src/boiler/core/spritesheet.cpp
