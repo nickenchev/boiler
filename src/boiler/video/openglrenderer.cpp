@@ -192,21 +192,8 @@ std::shared_ptr<const Model> OpenGLRenderer::loadModel(const VertexData &data) c
     return std::make_shared<OpenGLModel>(data);
 }
 
-void OpenGLRenderer::beginRender() const
+void OpenGLRenderer::beginRender()
 {
-    glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void OpenGLRenderer::endRender() const
-{
-    SDL_GL_SwapWindow(win);
-    glUseProgram(0);
-}
-
-void OpenGLRenderer::render(const PositionComponent &position, const SpriteComponent &sprite) const
-{
-    RenderDetails renderDetails;
     const ShaderProgram *program = getProgram();
     if (program)
     {
@@ -228,6 +215,18 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
         renderDetails.camViewProjection = renderDetails.viewProjection * camera->getViewMatrix();
     }
 
+    glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void OpenGLRenderer::endRender()
+{
+    SDL_GL_SwapWindow(win);
+    glUseProgram(0);
+}
+
+void OpenGLRenderer::render(const PositionComponent &position, const SpriteComponent &sprite) const
+{
 	// render the entity
 	if (sprite.model)
     {

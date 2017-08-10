@@ -47,8 +47,8 @@ public:
     virtual void setActiveTexture(std::shared_ptr<const Texture> texture) const = 0;
     virtual std::shared_ptr<const Model> loadModel(const VertexData &data) const = 0;
 
-	virtual void beginRender() const = 0;
-	virtual void endRender() const = 0;
+	virtual void beginRender() = 0;
+	virtual void endRender() = 0;
     virtual void render(const PositionComponent &position, const SpriteComponent &sprite) const = 0;
 
     virtual void showMessageBox(const std::string &title, const std::string &message) = 0;

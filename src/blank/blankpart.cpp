@@ -6,12 +6,7 @@
 
 BlankPart::BlankPart() : logger("Playground Part")
 {
-}
-
-void BlankPart::onStart()
-{
-    spriteSheet = Boiler::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
-
+	spriteSheet = Boiler::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
     Boiler::getInstance().getRenderer().setClearColor(Color3(0, 0, 0));
     Boiler::getInstance().addKeyInputListener([](const KeyInputEvent &event)
 	{
@@ -29,9 +24,9 @@ void BlankPart::onStart()
 		.expects<SpriteComponent>(ecs.getComponentMapper());
 
 	// create our entity and setup its components
-	for (int r = 0; r < 10; ++r)
+	for (int r = 0; r < 50; ++r)
 	{
-		for (int c = 0; c < 10; ++c)
+		for (int c = 0; c < 50; ++c)
 		{
 			Entity entity = ecs.newEntity();
 			auto pos = ecs.addComponent<PositionComponent>(entity, Rect(100 * r, 100 * c, 100, 100));
@@ -40,4 +35,8 @@ void BlankPart::onStart()
 			sprite->spriteFrame = spriteSheet->getFrame("forest.png");
 		}
 	}
+}
+
+void BlankPart::onStart()
+{
 }
