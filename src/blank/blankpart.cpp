@@ -7,7 +7,7 @@
 BlankPart::BlankPart() : logger("Playground Part")
 {
 	spriteSheet = Boiler::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
-    Boiler::getInstance().getRenderer().setClearColor(Color3(0, 0, 0));
+    Boiler::getInstance().getRenderer().setClearColor(Color3(30, 60, 190));
     Boiler::getInstance().addKeyInputListener([](const KeyInputEvent &event)
 	{
 		if (event.keyCode == SDLK_ESCAPE)

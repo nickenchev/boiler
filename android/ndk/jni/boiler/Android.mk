@@ -13,15 +13,12 @@ LOCAL_C_INCLUDES := /usr/local/include \
 	../../include
 
 LOCAL_SRC_FILES := core/boiler.cpp \
-	core/entity.cpp \
-	core/part.cpp \
-	core/component.cpp \
+	core/entityworld.cpp \
 	core/tmxloader.cpp \
 	core/spriteloader.cpp \
 	core/spritesheet.cpp \
 	core/spritesheetframe.cpp \
 	core/base64.cpp \
-	core/quadtree.cpp \
 	core/rect.cpp \
 	core/raycaster.cpp \
 	core/ray.cpp \
@@ -37,8 +34,9 @@ LOCAL_SRC_FILES := core/boiler.cpp \
 	video/opengltexture.cpp \
 	video/openglmodel.cpp \
 	video/shaderprogram.cpp \
-	video/imageloader.cpp camera/camera.cpp \
-	camera/platformercamera.cpp \
+	video/imageloader.cpp \
+	video/systems/rendersystem.cpp \
+	camera/camera.cpp \
 	camera/pancamera.cpp \
 	containers/gridposition.cpp \
 	util/filemanager.cpp \
