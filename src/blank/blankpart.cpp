@@ -4,6 +4,7 @@
 #include "core/components/positioncomponent.h"
 #include "core/components/spritecomponent.h"
 #include "gravitysystem.h"
+#include "velocitycomponent.h"
 
 BlankPart::BlankPart() : logger("Playground Part")
 {
@@ -25,27 +26,17 @@ BlankPart::BlankPart() : logger("Playground Part")
 		.expects<SpriteComponent>(ecs.getComponentMapper());
 
 	ecs.getComponentSystems().registerSystem<GravitySystem>()
-		.expects<PositionComponent>(ecs.getComponentMapper());
+		.expects<PositionComponent>(ecs.getComponentMapper())
+		.expects<VelocityComponent>(ecs.getComponentMapper());
 
 	// create our entity and setup its components
-	int tileSize = 75;
-// 	for (int r = 0; r < 10; ++r)
-// 	{
-// 		for (int c = 0; c < 10; ++c)
-// 		{
-// 			Entity entity = ecs.newEntity();
-// 			auto pos = ecs.addComponent<PositionComponent>(entity, Rect(tileSize * r, tileSize * c, tileSize, tileSize));
-// 			pos->absolute = true;
-// 			auto sprite = ecs.addComponent<SpriteComponent>(entity, pos->frame);
-// 			sprite->spriteFrame = spriteSheet->getFrame("forest.png");
-// 		}
-// 	}
-
+	int tileSize = 150;
 	Entity entity = ecs.newEntity();
 	auto pos = ecs.addComponent<PositionComponent>(entity, Rect(40, 20, tileSize, tileSize));
 	pos->absolute = true;
 	auto sprite = ecs.addComponent<SpriteComponent>(entity, pos->frame);
 	sprite->spriteFrame = spriteSheet->getFrame("forest.png");
+	ecs.addComponent<VelocityComponent>(entity);
 }
 
 void BlankPart::onStart()
