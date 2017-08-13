@@ -20,7 +20,7 @@ public:
 			std::shared_ptr<PositionComponent> pos = store.retrieve<PositionComponent>(entity);
 			std::shared_ptr<VelocityComponent> vel = store.retrieve<VelocityComponent>(entity);
 
-			vel->velocity.y += delta * 10.0;
+			vel->velocity.y += delta * 20.0;
 			if (pos->frame.position.y + vel->velocity.y >= screenSize.getHeight() - pos->frame.size.getHeight())
 			{
 				vel->velocity.y = -(vel->velocity.y * 0.8f);
