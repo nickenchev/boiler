@@ -16,8 +16,8 @@ typedef glm::vec4 Color4;
 class Camera;
 class Model;
 class VertexData;
-class PositionComponent;
-class SpriteComponent;
+struct PositionComponent;
+struct SpriteComponent;
 
 class Renderer
 {
