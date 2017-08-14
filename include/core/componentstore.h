@@ -21,9 +21,9 @@ public:
 	}
 
 	template<typename T>
-	std::shared_ptr<T> retrieve(const Entity &entity)
+	T &retrieve(const Entity &entity)
 	{
-		return std::static_pointer_cast<T>(entityComponents[entity.getId()][T::mask]);
+		return *std::static_pointer_cast<T>(entityComponents[entity.getId()][T::mask]);
 	}
 };
 
