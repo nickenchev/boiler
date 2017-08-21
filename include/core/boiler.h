@@ -26,7 +26,6 @@ typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 class Boiler
 {
 	EntityComponentSystem ecs;
-    int resWidth, resHeight;
     std::string baseDataPath;
     std::unique_ptr<Renderer> renderer;
 
@@ -69,8 +68,6 @@ public:
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
     const ImageLoader &getImageLoader() const { return imageLoader; }
     const FontLoader &getFontLoader() const { return fontLoader; }
-
-    const Size getScreenSize() const { return Size(resWidth, resHeight); }
 
     void addTouchMotionListener(const TouchMotionListener &listener) { touchMotionListeners.push_back(listener); }
     void addTouchTapEventListener(const TouchTapEventListener &listener) { touchTapEventListeners.push_back(listener); }

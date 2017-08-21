@@ -26,9 +26,6 @@ void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
 	std::cout << "* Initializing..." << std::endl;
 	assert(renderer != nullptr); // No renderer provided
 
-	this->resWidth = resWidth;
-	this->resHeight = resHeight;
-
 	// initialization was successful
 	std::cout << " - Using Renderer: " << renderer->getVersion() << std::endl;
 	//baseDataPath = std::string(SDL_GetBasePath());
@@ -36,7 +33,7 @@ void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
 	// initialize basic engine stuff
 	frameInterval = 1.0f / 60.0f; // 60fps
 	this->renderer = std::move(renderer);
-	getRenderer().initialize(getScreenSize());
+	getRenderer().initialize(Size(resWidth, resHeight));
 }
 
 void Boiler::start(std::shared_ptr<Part> part)

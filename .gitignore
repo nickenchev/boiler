@@ -11,3 +11,6 @@
 /GRTAGS
 /GTAGS
 doxygen/
+android/android-studio/app/src/main/jniLibs/
+.idea/
+cmake-build-debug/

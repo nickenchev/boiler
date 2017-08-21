@@ -85,9 +85,21 @@ void OpenGLRenderer::initialize(const Size screenSize)
 
     if (SDL_Init(SDL_INIT_VIDEO) == 0)
     {
-        win = SDL_CreateWindow("Boiler", 0, 0,
-                               screenSize.getWidth(),
-                               screenSize.getHeight(), SDL_WINDOW_OPENGL);
+		if (useGLES)
+		{
+			SDL_DisplayMode displayMode;
+			SDL_GetCurrentDisplayMode(0, &displayMode);
+			
+			win = SDL_CreateWindow("Boiler", 0, 0, displayMode.w, displayMode.h, SDL_WINDOW_OPENGL);
+			setScreenSize(Size(displayMode.w, displayMode.h));
+		}
+		else
+		{
+			win = SDL_CreateWindow("Boiler", 0, 0,
+								screenSize.getWidth(),
+								screenSize.getHeight(), SDL_WINDOW_OPENGL);
+			setScreenSize(screenSize);
+		}
 
         if (win)
         {
@@ -131,7 +143,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
     // setup a RBO for a colour target
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, screenSize.getWidth(), screenSize.getHeight());
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, getScreenSize().getWidth(), getScreenSize().getHeight());
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
     // setup the FBO
@@ -205,7 +217,7 @@ void OpenGLRenderer::beginRender()
     }
 
     // prepare the matrices
-    const Size screenSize = Boiler::getInstance().getScreenSize();
+    const Size screenSize = getScreenSize();
     const GLfloat orthoW = screenSize.getWidth() /  getGlobalScale().x;
     const GLfloat orthoH = screenSize.getHeight() / getGlobalScale().y;
     renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
