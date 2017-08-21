@@ -27,6 +27,20 @@ BlankPart::BlankPart() : logger("Playground Part"), player(Boiler::getInstance()
 	auto sprite = ecs.addComponent<SpriteComponent>(player, pos->frame);
 	sprite->spriteFrame = spriteSheet->getFrame("forest.png");
 	ecs.addComponent<VelocityComponent>(player);
+
+	for (int i = 0; i < 2000; ++i)
+	{
+		int x = rand() % Boiler::getInstance().getRenderer().getScreenSize().getWidth();
+		int y = rand() % Boiler::getInstance().getRenderer().getScreenSize().getHeight();
+		Entity enemy = ecs.newEntity();
+		enemies.push_back(enemy);
+
+		auto pos = ecs.addComponent<PositionComponent>(enemy, Rect(x, y, 20, 20));
+		pos->absolute = true;
+		auto sprite = ecs.addComponent<SpriteComponent>(enemy, pos->frame);
+		sprite->spriteFrame = spriteSheet->getFrame("forest.png");
+		ecs.addComponent<VelocityComponent>(enemy);
+	}
 }
 
 void BlankPart::onStart()
