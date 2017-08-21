@@ -20,10 +20,10 @@ public:
 			PositionComponent &pos = store.retrieve<PositionComponent>(entity);
 			VelocityComponent &vel = store.retrieve<VelocityComponent>(entity);
 
-			vel.velocity.y += delta * 20.0;
+			vel.velocity.y += delta * 40.0;
 			if (pos.frame.position.y + vel.velocity.y >= screenSize.getHeight() - pos.frame.size.getHeight())
 			{
-				vel.velocity.y = -(vel.velocity.y * 0.8f);
+				vel.velocity.y = -(vel.velocity.y * 0.6f);
 			}
 			else
 			{

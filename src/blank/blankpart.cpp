@@ -6,7 +6,7 @@
 #include "gravitysystem.h"
 #include "velocitycomponent.h"
 
-BlankPart::BlankPart() : logger("Playground Part")
+BlankPart::BlankPart() : logger("Playground Part"), player(Boiler::getInstance().getEcs().newEntity())
 {
 	spriteSheet = Boiler::getInstance().getSpriteLoader().loadSheet("data/terrain.json");
 	EntityComponentSystem &ecs = Boiler::getInstance().getEcs();
@@ -22,7 +22,6 @@ BlankPart::BlankPart() : logger("Playground Part")
 
 	// create our entity and setup its components
 	int tileSize = 150;
-	player = ecs.newEntity();
 	auto pos = ecs.addComponent<PositionComponent>(player, Rect(40, 20, tileSize, tileSize));
 	pos->absolute = true;
 	auto sprite = ecs.addComponent<SpriteComponent>(player, pos->frame);

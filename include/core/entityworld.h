@@ -22,5 +22,4 @@ public:
 	void removeEntity(const Entity &entity);
 };
 
-
 #endif /* ENTITYWORLD_H */
