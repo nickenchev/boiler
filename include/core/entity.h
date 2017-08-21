@@ -8,7 +8,7 @@ class Entity
 	EntityId id;
     
 public:
-    Entity();
+    Entity() { id = 0; }
 	Entity(EntityId id) : id{id} { }
 
 	bool operator==(const Entity &entity) const { return entity.getId() == this->getId(); }
