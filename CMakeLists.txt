@@ -22,6 +22,11 @@ include_directories(${PROJECT_SOURCE_DIR/include})
 
 # Engine related headers
 set(BOILER_HEADERS
+  ${PROJECT_SOURCE_DIR}/include/camera/camera.h
+  ${PROJECT_SOURCE_DIR}/include/camera/pancamera.h
+  ${PROJECT_SOURCE_DIR}/include/camera/platformercamera.h
+  ${PROJECT_SOURCE_DIR}/include/containers/array2d.h
+  ${PROJECT_SOURCE_DIR}/include/containers/gridposition.h
   ${PROJECT_SOURCE_DIR}/include/video/renderer.h)
 
 # Engine related sources
@@ -59,7 +64,7 @@ set(BOILER_SOURCES
   src/boiler/util/tinyxml2.cpp
   src/boiler/util/jsoncpp.cpp)
 
-add_library(boiler ${BOILER_SOURCES})
+add_library(boiler ${BOILER_SOURCES} ${BOILER_HEADERS})
 
 target_include_directories(boiler PUBLIC
   ${PROJECT_SOURCE_DIR}/src/boiler
