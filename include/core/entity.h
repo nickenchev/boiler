@@ -8,6 +8,7 @@ class Entity
 	EntityId id;
     
 public:
+	Entity() { id = 0; }
 	Entity(EntityId id) : id{id} { }
 	Entity(const Entity &entity) : Entity(entity.getId()) { }
 
