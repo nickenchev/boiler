@@ -77,5 +77,3 @@ target_include_directories(boiler PUBLIC
   ${GLEW_INCLUDE_DIR})
 
 target_link_libraries(boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
-
-add_subdirectory(src/blank)
