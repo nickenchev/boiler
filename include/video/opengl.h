@@ -5,10 +5,13 @@
 #include <GL/glew.h>
 #include <OpenGL/gl.h>
 
+#elif __linux__
+
+#include <GL/glew.h>
+#include <GL/gl.h>
+
 #else
 
-//#include <GL/glew.h>
-//#include <GL/gl.h>
 #include <GLES3/gl3.h>
 
 #endif
