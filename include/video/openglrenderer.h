@@ -1,7 +1,7 @@
 #ifndef OPENGLRENDERER_H
 #define OPENGLRENDERER_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <memory>
 #include "renderer.h"
 
@@ -13,9 +13,9 @@ class VertexData;
 
 struct RenderDetails
 {
-    GLuint mvpUniform;
-    GLuint colorUniform;
-    GLboolean usingTexUniform;
+    unsigned int mvpUniform;
+    unsigned int colorUniform;
+    bool usingTexUniform;
     glm::mat4 viewProjection;
     glm::mat4 camViewProjection;
 
