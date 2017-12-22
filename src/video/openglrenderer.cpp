@@ -27,13 +27,14 @@ void setupGLExtensions()
 #ifdef __APPLE__
     // require "experimental" as not all OpenGL features are marked "standard"
     glewExperimental = GL_TRUE;
+#endif
+
     if (glewInit() != GLEW_OK)
     {
         std::cerr << "Error initializing GLEW" << std::endl;
     }
     // glewInit() queries extensions incorrectly, clearing errors here
     glGetError();
-#endif
 }
 
 void checkOpenGLErrors()
@@ -116,7 +117,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
             {
                 shaderPath = "data/shaders/";
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
                 SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
             }

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 
+#include "video/opengl.h"
 #include "core/spriteloader.h"
 #include "json/json.h"
 #include "core/boiler.h"

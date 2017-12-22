@@ -80,6 +80,7 @@ ShaderProgram::ShaderProgram(std::string path, std::string name) : name(name)
         glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linkStatus);
         if (!linkStatus)
         {
+			std::cout << SDL_GetError();
             throw std::runtime_error("Error linking the shader program.");
         }
 

@@ -18,58 +18,58 @@ find_package(ZLIB REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
-include_directories(${PROJECT_SOURCE_DIR/include})
+include_directories(${PROJECT_LIST_DIR/include})
 
 # Engine related headers
 set(BOILER_HEADERS
-  ${PROJECT_SOURCE_DIR}/include/camera/camera.h
-  ${PROJECT_SOURCE_DIR}/include/camera/pancamera.h
-  ${PROJECT_SOURCE_DIR}/include/camera/platformercamera.h
-  ${PROJECT_SOURCE_DIR}/include/containers/array2d.h
-  ${PROJECT_SOURCE_DIR}/include/containers/gridposition.h
-  ${PROJECT_SOURCE_DIR}/include/video/renderer.h)
+  ${CMAKE_CURRENT_LIST_DIR}/include/camera/camera.h
+  ${CMAKE_CURRENT_LIST_DIR}/include/camera/pancamera.h
+  ${CMAKE_CURRENT_LIST_DIR}/include/camera/platformercamera.h
+  ${CMAKE_CURRENT_LIST_DIR}/include/containers/array2d.h
+  ${CMAKE_CURRENT_LIST_DIR}/include/containers/gridposition.h
+  ${CMAKE_CURRENT_LIST_DIR}/include/video/renderer.h)
 
 # Engine related sources
 set(BOILER_SOURCES
-  src/boiler/core/boiler.cpp
-  src/boiler/core/entityworld.cpp
-  src/boiler/core/tmxloader.cpp
-  src/boiler/core/spriteloader.cpp
-  src/boiler/core/spritesheet.cpp
-  src/boiler/core/spritesheetframe.cpp
-  src/boiler/core/base64.cpp
-  # src/boiler/core/quadtree.cpp
-  src/boiler/core/rect.cpp
-  src/boiler/core/raycaster.cpp
-  src/boiler/core/ray.cpp
-  src/boiler/core/bmfont.cpp
-  src/boiler/core/spriteanimation.cpp
-  src/boiler/core/line.cpp
-  src/boiler/core/fileutils.cpp
-  src/boiler/video/renderer.cpp
-  src/boiler/video/model.cpp
-  src/boiler/video/fontloader.cpp
-  src/boiler/video/vertexdata.cpp
-  src/boiler/video/openglrenderer.cpp
-  src/boiler/video/opengltexture.cpp
-  src/boiler/video/openglmodel.cpp
-  src/boiler/video/shaderprogram.cpp
-  src/boiler/video/imageloader.cpp
-  src/boiler/video/systems/rendersystem.cpp
-  src/boiler/camera/camera.cpp
-  # src/boiler/camera/platformercamera.cpp
-  src/boiler/camera/pancamera.cpp
-  src/boiler/containers/gridposition.cpp
-  src/boiler/util/filemanager.cpp
-  src/boiler/util/tinyxml2.cpp
-  src/boiler/util/jsoncpp.cpp)
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/boiler.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/entityworld.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/tmxloader.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/spriteloader.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/spritesheet.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/spritesheetframe.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/base64.cpp
+  # src/core/quadtree.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/rect.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/raycaster.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/ray.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/bmfont.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/spriteanimation.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/line.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/fileutils.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/renderer.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/model.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/fontloader.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/vertexdata.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/openglrenderer.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/opengltexture.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/openglmodel.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/shaderprogram.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/imageloader.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/rendersystem.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/camera/camera.cpp
+  # src/camera/platformercamera.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/camera/pancamera.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/containers/gridposition.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/util/filemanager.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/util/tinyxml2.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/util/jsoncpp.cpp)
 
 add_library(boiler ${BOILER_SOURCES} ${BOILER_HEADERS})
 
 target_include_directories(boiler PUBLIC
-  ${PROJECT_SOURCE_DIR}/src/boiler
-  ${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_SOURCE_DIR}/include/tinyxml2
+  ${CMAKE_CURRENT_LIST_DIR}/include/boiler
+  ${CMAKE_CURRENT_LIST_DIR}/include
+  ${CMAKE_CURRENT_LIST_DIR}/include/tinyxml2
   ${SDL2_INCLUDE_DIR}
   ${SDL2_IMAGE_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIR}
