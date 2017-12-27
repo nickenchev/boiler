@@ -267,7 +267,7 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 		glm::mat4 mvpMatrix;
 
 		// absolute entities aren't affected by the camera
-		if (position.absolute)
+		if (position.absolute || !this->camera)
 		{
 			mvpMatrix = renderDetails.viewProjection * modelMatrix;
 		}
