@@ -11,8 +11,9 @@
 
 #define RENDERER_CLASS OpenGLRenderer
 
-Boiler::Boiler() : spriteLoader(), imageLoader(), fontLoader(), baseDataPath("")
+Boiler::Boiler() : spriteLoader(), imageLoader(), fontLoader(), baseDataPath(""), logger("Boiler")
 {
+	logger.log("Boiler instance created");
 }
 
 Boiler &Boiler::getInstance()
@@ -23,7 +24,7 @@ Boiler &Boiler::getInstance()
 
 void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight)
 {
-	std::cout << "* Initializing..." << std::endl;
+	logger.log("Initializing...");
 	assert(renderer != nullptr); // No renderer provided
 
 	// initialization was successful
@@ -42,6 +43,8 @@ void Boiler::start(std::shared_ptr<Part> part)
 	this->part = part;
 	this->part->onStart();
 
+	logger.log("Starting main loop");
+	
 	//start processing events
 	run();
 }
@@ -151,5 +154,6 @@ void Boiler::update(const double delta)
 
 Boiler::~Boiler()
 {
+	logger.log("Exiting");
 	SDL_Quit();
 }

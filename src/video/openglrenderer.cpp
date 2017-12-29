@@ -125,7 +125,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
             glContext = SDL_GL_CreateContext(win);
             if (glContext)
             {
-                std::cout << " - Using Context: OpenGL " << glGetString(GL_VERSION) << std::endl; 
+                logger.log("Using Context: OpenGL " + std::string((const char *)glGetString(GL_VERSION)));
                 setupGLExtensions();
 
                 IMG_Init(IMG_INIT_PNG);
@@ -210,19 +210,21 @@ void OpenGLRenderer::beginRender()
     const ShaderProgram *program = getProgram();
     if (program)
     {
+		renderDetails.shaderProgram = program;
         // grab the uniform locations
         glUseProgram(program->getShaderProgram());
         renderDetails.mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
         renderDetails.colorUniform = glGetUniformLocation(program->getShaderProgram(), "entityColor");
         renderDetails.usingTexUniform = glGetUniformLocation(program->getShaderProgram(), "usingTexture");
+
+		// prepare the matrices
+		const Size screenSize = getScreenSize();
+		const GLfloat orthoW = screenSize.getWidth() /  getGlobalScale().x;
+		const GLfloat orthoH = screenSize.getHeight() / getGlobalScale().y;
+		renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
     }
 
-    // prepare the matrices
-    const Size screenSize = getScreenSize();
-    const GLfloat orthoW = screenSize.getWidth() /  getGlobalScale().x;
-    const GLfloat orthoH = screenSize.getHeight() / getGlobalScale().y;
-    renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
-
+	// if camera has been set, recalc the projection matrix
     if (this->camera)
     {
         renderDetails.camViewProjection = renderDetails.viewProjection * camera->getViewMatrix();
@@ -298,12 +300,12 @@ OpenGLRenderer::~OpenGLRenderer()
 {
     if (glContext)
     {
-        std::cout << "* Destroying GL Context" << std::endl;
+		logger.log("Destroying GL Context");
         SDL_GL_DeleteContext(glContext);
     }
     if (win)
     {
-        std::cout << "* Destroying Window" << std::endl;
+		logger.log("Destroing Window");
         SDL_DestroyWindow(win);
     }
     glDeleteRenderbuffers(1, &rbo);

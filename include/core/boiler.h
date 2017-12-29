@@ -13,6 +13,7 @@
 #include "input/mousemotionevent.h"
 #include "input/keyinputevent.h"
 #include "core/entitycomponentsystem.h"
+#include "logger.h"
 
 class Entity;
 class Renderer;
@@ -25,6 +26,7 @@ typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 
 class Boiler
 {
+	Logger logger;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
     std::unique_ptr<Renderer> renderer;
