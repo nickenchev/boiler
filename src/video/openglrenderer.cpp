@@ -311,4 +311,3 @@ OpenGLRenderer::~OpenGLRenderer()
     glDeleteRenderbuffers(1, &rbo);
     glDeleteFramebuffers(1, &fbo);
 }
-

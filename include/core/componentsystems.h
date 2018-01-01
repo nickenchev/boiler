@@ -8,6 +8,7 @@
 #include "core/logger.h"
 #include "core/componentmapper.h"
 #include "core/componentstore.h"
+#include "core/messagedispatch.h"
 
 class ComponentSystems
 {
