@@ -8,7 +8,7 @@
 class TmxLoader
 {
 public:
-    static std::unique_ptr<ensoft::Map> loadMap(std::string filename);
+    static std::unique_ptr<ensoft::tmx::Map> loadMap(std::string filename);
 };
 
 
