@@ -73,7 +73,7 @@ ensoft::tmx::Properties loadProperties(XMLElement *sourceElement)
     return ensoft::tmx::Properties(props);
 }
 
-std::unique_ptr<ensoft::tmx::Map> TmxLoader::loadMap(std::string filename)
+std::unique_ptr<ensoft::tmx::Map> ensoft::tmx::TmxLoader::loadMap(std::string filename)
 {
     XMLDocument doc;
     XMLError error = doc.LoadFile(filename.c_str());
@@ -105,7 +105,7 @@ std::unique_ptr<ensoft::tmx::Map> TmxLoader::loadMap(std::string filename)
             auto tileSet = std::make_unique<ensoft::tmx::TileSet>(loadProperties(xtileset));
             tileSet->firstgid = xtileset->IntAttribute("firstgid");
             tileSet->source = getAttributeString(xtileset, "source");
-            tileSet->name = xtileset->Attribute("name");
+            tileSet->name = getAttributeString(xtileset, "name");
             tileSet->tilewidth = xtileset->IntAttribute("tilewidth");
             tileSet->tileheight = xtileset->IntAttribute("tileheight");
             tileSet->spacing = xtileset->IntAttribute("spacing");
