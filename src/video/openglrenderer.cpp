@@ -130,9 +130,16 @@ void OpenGLRenderer::initialize(const Size screenSize)
 
                 IMG_Init(IMG_INIT_PNG);
 
-                // compile the default shader program
-                program = std::make_unique<ShaderProgram>(shaderPath, "shader");
-                success = true;
+				try
+				{
+					// compile the default shader program
+					program = std::make_unique<ShaderProgram>(shaderPath, "shader");
+					success = true;
+				}
+				catch (int exception)
+				{
+					showMessageBox("Error", "Error initializing Boiler");
+				}
             }
         }
     }
