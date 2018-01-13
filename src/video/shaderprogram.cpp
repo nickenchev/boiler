@@ -34,7 +34,7 @@ GLint compileShader(char *src, GLenum shaderType)
         glGetShaderInfoLog(shader, logLength, NULL, logBuffer);
 
         std::string compileError(logBuffer);
-        Boiler::getInstance().getRenderer().showMessageBox("Error", compileError);
+		std::cerr << "Compilation Error: " << compileError << std::endl;
         std::cerr << logBuffer << std::endl;
         delete [] logBuffer;
 
