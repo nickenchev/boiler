@@ -13,6 +13,9 @@ public:
     ~ShaderProgram();
 
     unsigned int getShaderProgram() const { return shaderProgram; }
+
+	bool operator==(const ShaderProgram &rhs) { return getShaderProgram() == rhs.getShaderProgram(); }
+	bool operator!=(const ShaderProgram &rhs) { return !(getShaderProgram() == rhs.getShaderProgram()); }
 };
 
 

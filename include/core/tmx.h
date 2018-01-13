@@ -10,121 +10,124 @@ using namespace std;
 
 namespace ensoft
 {
-    struct TmxTileSet;
-    struct TmxTile;
-    struct Layer;
-    struct ImageLayer;
-    struct ObjectGroup;
-    struct Object;
+	namespace tmx
+	{
+		struct TileSet;
+		struct Tile;
+		struct Layer;
+		struct ImageLayer;
+		struct ObjectGroup;
+		struct Object;
 
-    struct Property
-    {
-        string name, value;
-    };
-    struct Properties
-    {
-        map<string, Property> properties;
+		struct Property
+		{
+			string name, value;
+		};
+		struct Properties
+		{
+			map<string, Property> properties;
 
-        Properties(const map<string, Property> &properties) : properties(properties) { }
+			Properties(const map<string, Property> &properties) : properties(properties) { }
 
-        string getValue(string key) const { return properties.find(key)->second.value; }
-    };
+			string getValue(string key) const { return properties.find(key)->second.value; }
+		};
 
-    struct TmxComponent
-    {
-        Properties properties;
-        explicit TmxComponent(const Properties &properties) : properties(properties) { }
-    };
+		struct Component
+		{
+			Properties properties;
+			explicit Component(const Properties &properties) : properties(properties) { }
+		};
 
-    struct Map : TmxComponent
-    {
-        string version, orientation;
-        int width, height, tilewidth, tileheight;
-        string renderorder;
+		struct Map : Component
+		{
+			string version, orientation;
+			int width, height, tilewidth, tileheight;
+			string renderorder;
 
-        map<int, TmxTile *> allTiles;
-        vector<unique_ptr<TmxTileSet>> tilesets;
-        vector<shared_ptr<Layer>> layers;
-        vector<unique_ptr<ImageLayer>> imageLayers;
-        vector<unique_ptr<ObjectGroup>> objectGroups;
+			map<int, Tile *> allTiles;
+			vector<unique_ptr<TileSet>> tilesets;
+			vector<shared_ptr<Layer>> layers;
+			vector<unique_ptr<ImageLayer>> imageLayers;
+			vector<unique_ptr<ObjectGroup>> objectGroups;
 
-        using TmxComponent::TmxComponent;
-    };
+			using Component::Component;
+		};
 
-    struct TmxTileSet : TmxComponent
-    {
-        int firstgid;
-        string source, name;
-        int tilewidth, tileheight, spacing, margin;
-        vector<unique_ptr<TmxTile>> tiles;
+		struct TileSet : Component
+		{
+			int firstgid;
+			string source, name;
+			int tilewidth, tileheight, spacing, margin;
+			vector<unique_ptr<Tile>> tiles;
 
-        using TmxComponent::TmxComponent;
-    };
+			using Component::Component;
+		};
 
-    struct Image
-    {
-        string format, source, trans;
-        int width, height;
-    };
+		struct Image
+		{
+			string format, source, trans;
+			int width, height;
+		};
 
-    struct TmxTile : TmxComponent
-    {
-        int id;
-        string terrain;
-        float probability;
-        Image image;
+		struct Tile : Component
+		{
+			int id;
+			string terrain;
+			float probability;
+			Image image;
 
-        using TmxComponent::TmxComponent;
-    };
+			using Component::Component;
+		};
 
-    struct TileOffset
-    {
-        int x, y;
-    };
+		struct TileOffset
+		{
+			int x, y;
+		};
 
-    struct Layer : TmxComponent
-    {
-        string name;
-        int x, y, width, height;
-        float opacity;
-        bool visible;
-        vector<int> tiles;
+		struct Layer : Component
+		{
+			string name;
+			int x, y, width, height;
+			float opacity;
+			bool visible;
+			vector<int> tiles;
 
-        using TmxComponent::TmxComponent;
-    };
+			using Component::Component;
+		};
 
-    struct ImageLayer : TmxComponent
-    {
-        string name;
-        int x, y, width, height;
-        float opacity;
-        bool visible;
-        Image image;
+		struct ImageLayer : Component
+		{
+			string name;
+			int x, y, width, height;
+			float opacity;
+			bool visible;
+			Image image;
 
-        using TmxComponent::TmxComponent;
-    };
+			using Component::Component;
+		};
 
-    struct ObjectGroup : TmxComponent
-    {
-        string name, color;
-        int x, y, width, height;
-        float opacity;
-        bool visible;
-        vector<unique_ptr<Object>> objects;
+		struct ObjectGroup : Component
+		{
+			string name, color;
+			int x, y, width, height;
+			float opacity;
+			bool visible;
+			vector<unique_ptr<Object>> objects;
 
-        using TmxComponent::TmxComponent;
-    };
+			using Component::Component;
+		};
 
-    struct Object : TmxComponent
-    {
-        string id, name, type;
-        int x, y, width, height;
-        float rotation;
-        int gid;
-        bool visible;
+		struct Object : Component
+		{
+			string id, name, type;
+			int x, y, width, height;
+			float rotation;
+			int gid;
+			bool visible;
 
-        using TmxComponent::TmxComponent;
-    };
+			using Component::Component;
+		};
+	}
 }
 
 #endif /* TMX_H */

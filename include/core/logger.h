@@ -16,7 +16,7 @@ public:
 	}
     void error(std::string message) const
 	{
-		std::cerr << "[" << name << " ERROR] " << message << std::endl;
+		std::cerr << "[ERROR -> " << name << "] " << message << std::endl;
 	}
 };
 

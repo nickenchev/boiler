@@ -4,28 +4,13 @@
 #include <SDL.h>
 #include <memory>
 #include "renderer.h"
+#include "renderdetails.h"
 
 #define COMPONENT_NAME "OpenGL Renderer"
 #define VERSION COMPONENT_NAME
 
 class Entity;
 class VertexData;
-
-struct RenderDetails
-{
-    unsigned int mvpUniform;
-    unsigned int colorUniform;
-    bool usingTexUniform;
-    glm::mat4 viewProjection;
-    glm::mat4 camViewProjection;
-
-    RenderDetails()
-    {
-        mvpUniform = -1;
-        colorUniform = -1;
-        usingTexUniform = -1;
-    }
-};
 
 class OpenGLRenderer : public Renderer
 {

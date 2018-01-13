@@ -15,7 +15,7 @@ string getAttributeString(XMLElement *elem, const char *key)
     return (str) ? string(str) : string("");
 }
 
-ensoft::Image loadImage(XMLElement *element)
+ensoft::tmx::Image loadImage(XMLElement *element)
 {
     XMLElement *ximage = element->FirstChildElement("image");
     std::string format = getAttributeString(ximage, "format");
@@ -24,10 +24,10 @@ ensoft::Image loadImage(XMLElement *element)
     int width = ximage->IntAttribute("width");
     int height = ximage->IntAttribute("height");
 
-    return ensoft::Image{format, source, trans, width, height};
+    return ensoft::tmx::Image{format, source, trans, width, height};
 }
 
-void loadData(ensoft::Layer &layer, ensoft::Map *map, std::string data)
+void loadData(ensoft::tmx::Layer &layer, ensoft::tmx::Map *map, std::string data)
 {
     vector<BYTE> decoded = base64_decode(data);
 
@@ -57,27 +57,27 @@ void loadData(ensoft::Layer &layer, ensoft::Map *map, std::string data)
     }
 }
 
-ensoft::Properties loadProperties(XMLElement *sourceElement)
+ensoft::tmx::Properties loadProperties(XMLElement *sourceElement)
 {
     XMLElement *xprops = sourceElement->FirstChildElement("properties");
-    std::map<string, ensoft::Property> props;
+    std::map<string, ensoft::tmx::Property> props;
     if (xprops)
     {
         XMLElement *xprop = xprops->FirstChildElement("property");
-        ensoft::Property prop;
+        ensoft::tmx::Property prop;
         prop.name = getAttributeString(xprop, "name");
         prop.value = getAttributeString(xprop, "value");
 
-        props.insert(std::pair<string, ensoft::Property>(prop.name, prop));
+        props.insert(std::pair<string, ensoft::tmx::Property>(prop.name, prop));
     }
-    return ensoft::Properties(props);
+    return ensoft::tmx::Properties(props);
 }
 
-std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
+std::unique_ptr<ensoft::tmx::Map> TmxLoader::loadMap(std::string filename)
 {
     XMLDocument doc;
     XMLError error = doc.LoadFile(filename.c_str());
-    std::unique_ptr<ensoft::Map> map;
+    std::unique_ptr<ensoft::tmx::Map> map;
 
     if (error != XMLError::XML_NO_ERROR)
     {
@@ -88,7 +88,7 @@ std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
         // start parsing the TMX map
         XMLElement *xmap = doc.FirstChildElement("map");
         
-        map = std::make_unique<ensoft::Map>(loadProperties(xmap));
+        map = std::make_unique<ensoft::tmx::Map>(loadProperties(xmap));
         map->version = xmap->Attribute("version");
         map->orientation = xmap->Attribute("orientation");
         map->width = xmap->IntAttribute("width");
@@ -102,7 +102,7 @@ std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
         XMLElement *xtileset = xmap->FirstChildElement("tileset");
         while (xtileset)
         {
-            auto tileSet = std::make_unique<ensoft::TmxTileSet>(loadProperties(xtileset));
+            auto tileSet = std::make_unique<ensoft::tmx::TileSet>(loadProperties(xtileset));
             tileSet->firstgid = xtileset->IntAttribute("firstgid");
             tileSet->source = getAttributeString(xtileset, "source");
             tileSet->name = xtileset->Attribute("name");
@@ -115,7 +115,7 @@ std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
             XMLElement *xtile = xtileset->FirstChildElement("tile");
             while (xtile)
             {
-                auto tile = make_unique<ensoft::TmxTile>(loadProperties(xtile));
+                auto tile = make_unique<ensoft::tmx::Tile>(loadProperties(xtile));
                 tile->id = xtile->IntAttribute("id");
                 tile->terrain = getAttributeString(xtile, "terrain");
                 tile->probability = xtile->FloatAttribute("probability");
@@ -138,7 +138,7 @@ std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
         XMLElement *xlayer = xmap->FirstChildElement("layer");
         while (xlayer)
         {
-            auto layer = std::make_shared<ensoft::Layer>(loadProperties(xlayer));
+            auto layer = std::make_shared<ensoft::tmx::Layer>(loadProperties(xlayer));
             layer->name = xlayer->Attribute("name");
             layer->x = xlayer->IntAttribute("x");
             layer->y = xlayer->IntAttribute("y");
@@ -162,7 +162,7 @@ std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
         XMLElement *ximagelayer = xmap->FirstChildElement("imagelayer");
         while (ximagelayer)
         {
-            auto imageLayer = std::make_unique<ensoft::ImageLayer>(loadProperties(ximagelayer));
+            auto imageLayer = std::make_unique<ensoft::tmx::ImageLayer>(loadProperties(ximagelayer));
             imageLayer->name = ximagelayer->Attribute("name");
             imageLayer->x = ximagelayer->IntAttribute("x");
             imageLayer->y = ximagelayer->IntAttribute("y");
@@ -180,7 +180,7 @@ std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
         XMLElement *xobjectgroup = xmap->FirstChildElement("objectgroup");
         while (xobjectgroup)
         {
-            auto objectGroup = std::make_unique<ensoft::ObjectGroup>(loadProperties(xobjectgroup));
+            auto objectGroup = std::make_unique<ensoft::tmx::ObjectGroup>(loadProperties(xobjectgroup));
             objectGroup->name = xobjectgroup->Attribute("name");
             objectGroup->x = xobjectgroup->IntAttribute("x");
             objectGroup->y = xobjectgroup->IntAttribute("y");
@@ -193,7 +193,7 @@ std::unique_ptr<ensoft::Map> TmxLoader::loadMap(std::string filename)
             XMLElement *xobject = xobjectgroup->FirstChildElement("object");
             while (xobject)
             {
-                auto object = std::make_unique<ensoft::Object>(loadProperties(xobject));
+                auto object = std::make_unique<ensoft::tmx::Object>(loadProperties(xobject));
                 object->id = xobject->Attribute("id");
                 object->name = getAttributeString(xobject, "name");
                 object->type = getAttributeString(xobject, "type");
