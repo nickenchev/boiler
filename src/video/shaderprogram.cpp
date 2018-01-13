@@ -54,46 +54,39 @@ ShaderProgram::ShaderProgram(std::string path, std::string name) : name(name)
     std::cout << " - Vertex Shader: " << vertPath << std::endl;
     std::cout << " - Fragment Shader: " << fragPath << std::endl;
 
-    try
-    {
-        //create the vertex shader
-        GLint vertShader = compileShader((char *)vertSrc.c_str(), GL_VERTEX_SHADER);
-        GLint fragShader = compileShader((char *)fragSrc.c_str(), GL_FRAGMENT_SHADER);
+	//create the vertex shader
+	GLint vertShader = compileShader((char *)vertSrc.c_str(), GL_VERTEX_SHADER);
+	GLint fragShader = compileShader((char *)fragSrc.c_str(), GL_FRAGMENT_SHADER);
 
-        shaderProgram = glCreateProgram();
-        if (!shaderProgram)
-        {
-            throw std::runtime_error("Error creating shader program");
-        }
+	shaderProgram = glCreateProgram();
+	if (!shaderProgram)
+	{
+		throw std::runtime_error("Error creating shader program");
+	}
 
-        //attach the loaded shaders to the program
-        glAttachShader(shaderProgram, vertShader);
-        glAttachShader(shaderProgram, fragShader);
+	//attach the loaded shaders to the program
+	glAttachShader(shaderProgram, vertShader);
+	glAttachShader(shaderProgram, fragShader);
 
-        //bind the named parameters to their vertex attrib indices
-        glBindAttribLocation(shaderProgram, 0, "vertCoords");
-        glBindAttribLocation(shaderProgram, 1, "texCoords");
+	//bind the named parameters to their vertex attrib indices
+	glBindAttribLocation(shaderProgram, 0, "vertCoords");
+	glBindAttribLocation(shaderProgram, 1, "texCoords");
 
-        //link the shader program
-        glLinkProgram(shaderProgram);
-        GLint linkStatus;
-        glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linkStatus);
-        if (!linkStatus)
-        {
-			std::cout << SDL_GetError();
-            throw std::runtime_error("Error linking the shader program.");
-        }
+	//link the shader program
+	glLinkProgram(shaderProgram);
+	GLint linkStatus;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linkStatus);
+	if (!linkStatus)
+	{
+		std::cout << SDL_GetError();
+		throw std::runtime_error("Error linking the shader program.");
+	}
 
-        // detach shaders after a successful link, program keeps them linked
-        glDetachShader(shaderProgram, vertShader);
-        glDetachShader(shaderProgram, fragShader);
-        glDeleteShader(vertShader);
-        glDeleteShader(fragShader);
-    }
-    catch (int exception)
-    {
-        std::cerr << exception;
-    }
+	// detach shaders after a successful link, program keeps them linked
+	glDetachShader(shaderProgram, vertShader);
+	glDetachShader(shaderProgram, fragShader);
+	glDeleteShader(vertShader);
+	glDeleteShader(fragShader);
 }
 
 ShaderProgram::~ShaderProgram()
