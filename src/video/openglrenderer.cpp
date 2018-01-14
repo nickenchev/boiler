@@ -30,9 +30,11 @@ void setupGLExtensions()
     glewExperimental = GL_TRUE;
 #endif
 
-    if (glewInit() != GLEW_OK)
+	GLenum initStatus = glewInit();
+    if (initStatus != GLEW_OK)
     {
-        std::cerr << "Error initializing GLEW" << std::endl;
+		const GLubyte *errString = glewGetErrorString(initStatus);
+        std::cerr << "GLEW Init Error: " << errString << std::endl;
     }
     // glewInit() queries extensions incorrectly, clearing errors here
     glGetError();
@@ -118,7 +120,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
             {
                 shaderPath = "data/shaders/";
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
                 SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
             }
@@ -134,7 +136,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
 				try
 				{
 					// compile the default shader program
-					program = std::make_unique<ShaderProgram>(shaderPath, "shader");
+					program = std::make_unique<ShaderProgram>(shaderPath, "basic");
 					success = true;
 				}
 				catch (int exception)
@@ -197,7 +199,7 @@ std::shared_ptr<const Texture> OpenGLRenderer::createTexture(const std::string f
         logger.log("Created texture with ID: " + std::to_string(texId));
     }
 
-    return std::move(std::make_shared<OpenGLTexture>(filePath, texId));
+    return std::make_shared<OpenGLTexture>(filePath, texId);
 }
 
 void OpenGLRenderer::setActiveTexture(const std::shared_ptr<const Texture> texture) const

@@ -28,7 +28,7 @@ void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
 	assert(renderer != nullptr); // No renderer provided
 
 	// initialization was successful
-	std::cout << " - Using Renderer: " << renderer->getVersion() << std::endl;
+	logger.log("Using renderer: " + renderer->getVersion());
 	//baseDataPath = std::string(SDL_GetBasePath());
 
 	// initialize basic engine stuff

@@ -2,9 +2,11 @@
 #define SHADER_H
 
 #include <string>
+#include "core/logger.h"
 
 class ShaderProgram
 {
+	Logger logger;
     std::string name;
     unsigned int shaderProgram;
 
