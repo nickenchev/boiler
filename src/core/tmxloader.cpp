@@ -6,6 +6,7 @@
 #include "tinyxml2/tinyxml2.h"
 #include "core/base64.h"
 #include "util/string_util.h"
+#include "core/logger.h"
 
 using namespace tinyxml2;
 
@@ -75,13 +76,15 @@ ensoft::tmx::Properties loadProperties(XMLElement *sourceElement)
 
 std::unique_ptr<ensoft::tmx::Map> ensoft::tmx::TmxLoader::loadMap(std::string filename)
 {
+	Logger logger("TMX Loader");
+	logger.log("Loading " + filename);
     XMLDocument doc;
     XMLError error = doc.LoadFile(filename.c_str());
     std::unique_ptr<ensoft::tmx::Map> map;
 
     if (error != XMLError::XML_NO_ERROR)
     {
-        std::cout << "Error code: " << error << std::endl;
+		logger.error("Error code: " + std::to_string(error));
     }
     else
     {

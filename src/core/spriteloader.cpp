@@ -8,13 +8,13 @@
 #include "video/renderer.h"
 #include "util/filemanager.h"
 
-#define COMPONENT_NAME "SpriteLoader"
+#define COMPONENT_NAME "Sprite Loader"
 
 SpriteLoader::SpriteLoader() : logger(std::string(COMPONENT_NAME))
 {
 }
 
-const std::shared_ptr<const SpriteSheet> SpriteLoader::loadSheet(std::string filename) const
+const std::shared_ptr<const SpriteSheet> SpriteLoader::loadJsonArray(std::string filename) const
 {
     logger.log("Loading " + filename);
 
@@ -96,7 +96,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadSheet(std::string fil
     return sheet;
 }
 
-const std::shared_ptr<const SpriteSheet> SpriteLoader::loadSheet(std::shared_ptr<const Texture> texture) const
+const std::shared_ptr<const SpriteSheet> SpriteLoader::loadTexture(std::shared_ptr<const Texture> texture) const
 {
     // calculate the opengl texture coords
     const float texX = 0;

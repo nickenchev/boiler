@@ -23,6 +23,7 @@ namespace ensoft
 		{
 			string name, value;
 		};
+
 		struct Properties
 		{
 			map<string, Property> properties;

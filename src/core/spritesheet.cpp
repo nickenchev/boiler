@@ -7,7 +7,6 @@ SpriteSheet::SpriteSheet(std::string imageFile, Size size, std::shared_ptr<const
     this->imageFile = imageFile;
 }
 
-
 const SpriteSheetFrame *SpriteSheet::getFrame(const std::string frameName) const
 {
     auto itr = frames.find(frameName);
