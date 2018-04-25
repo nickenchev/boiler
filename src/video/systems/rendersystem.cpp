@@ -7,6 +7,7 @@
 void RenderSystem::update(ComponentStore &store, const double delta) const
 {
 	Boiler::getInstance().getRenderer().beginRender();
+
 	for (auto &entity : getEntities())
 	{
 		PositionComponent &pos = store.retrieve<PositionComponent>(entity);

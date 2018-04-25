@@ -13,6 +13,8 @@ class System
 	std::vector<Entity> entities;
 
 public:
+	virtual ~System() { }
+
 	template<typename T>
 	System &expects(ComponentMapper &mapper)
 	{
