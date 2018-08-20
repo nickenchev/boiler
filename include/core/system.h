@@ -16,7 +16,7 @@ public:
 	virtual ~System() { }
 
 	template<typename T>
-	System &expects(ComponentMapper &mapper)
+	System &expects()
 	{
 		systemMask = systemMask | T::mask;
 		return *this;
@@ -31,9 +31,8 @@ public:
 		}
 	}
 
-	const std::vector<Entity> &getEntities() const { return entities; }
-
 	virtual void update(ComponentStore &store, const double delta) const = 0;
+	const std::vector<Entity> &getEntities() const { return entities; }
 };
 
 #endif /* SYSTEM_H */
