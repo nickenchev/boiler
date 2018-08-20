@@ -67,11 +67,11 @@ void Boiler::run()
 
 		while (frameLag >= frameInterval)
 		{
+			// TODO: Render system needs to not kick in when frame is lagging, only physics etc systems should be updated during frame lag catchup.
+			// Need a clean way to essentially move the render() to outside the while loop here (after).
 			update(frameInterval);
 			frameLag -= frameInterval;
 		} 
-		// pass normalized 0.0 - 1.0 so renderer knows how far between frames we are
-		const double normalized = frameLag / frameInterval;
 	}
 }
 
