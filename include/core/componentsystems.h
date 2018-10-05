@@ -33,7 +33,7 @@ public:
 		auto system = std::make_unique<T>();
 		System &sys = *system;
 		systems.push_back(std::move(system));
-		logger.log("System Created");
+		logger.log("System Registered");
 
 		return sys;
 	}
