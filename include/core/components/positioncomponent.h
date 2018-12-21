@@ -13,9 +13,8 @@ struct PositionComponent : public ComponentType<PositionComponent>
     glm::vec3 scale;
     bool absolute;
 
-	PositionComponent(Rect frame) : scale(1.0f, 1.0f, 1.0f)
+	PositionComponent(Rect frame) : frame(frame), scale(1.0f, 1.0f, 1.0f)
 	{
-		this->frame = frame;
 		flipH = false;
 		flipV = false;
 		collides = false;
@@ -25,19 +24,19 @@ struct PositionComponent : public ComponentType<PositionComponent>
 	const glm::mat4 getMatrix() const
 	{
 		// offset the player position based on the pivot modifier
-		glm::vec3 pivotPos(frame.position.x - frame.size.getWidth() * frame.pivot.x,
-						frame.position.y - frame.size.getHeight() * frame.pivot.y, 0);
+		glm::vec3 pivotPos(frame.position.x - frame.size.width * frame.pivot.x,
+						frame.position.y - frame.size.height * frame.pivot.y, 0);
 
 		float scaleX = scale.x;
 		float scaleY = scale.y;
 		if (flipH)
 		{
-			pivotPos.x += frame.size.getWidth();
+			pivotPos.x += frame.size.width;
 			scaleX *= -1;
 		}
 		if (flipV)
 		{
-			pivotPos.x += frame.size.getHeight();
+			pivotPos.x += frame.size.height;
 			scaleY *= -1;
 		}
 		// create the model matrix, by getting a 3D vector from the Entity's vec2 position

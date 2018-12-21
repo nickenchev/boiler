@@ -7,11 +7,22 @@ void PanCemera::update(glm::vec3 moveAmount)
     frame.position += moveAmount;
 
     // ensure camera isn't outside of map bounds
-    if (frame.position.x < 0) frame.position.x = 0;
-    else if (frame.getMax(DIM_X) > mapSize.getWidth()) frame.position.x = frame.getMax(DIM_X) - frame.size.getWidth();
+    if (frame.position.x < 0)
+	{
+		frame.position.x = 0;
+    } else if (frame.getMaxX() > mapSize.width)
+	{
+		frame.position.x = frame.getMaxX() - frame.size.width;
+    }
 
-    if (frame.position.y < 0) frame.position.y = 0;
-    else if (frame.getMax(DIM_Y) > mapSize.getHeight()) frame.position.y = frame.getMax(DIM_Y) - frame.size.getHeight();
+    if (frame.position.y < 0)
+	{
+		frame.position.y = 0;
+	}
+    else if (frame.getMaxY() > mapSize.height)
+	{
+		frame.position.y = frame.getMaxY() - frame.size.height;
+	}
 }
 
 glm::mat4 PanCemera::getViewMatrix() const

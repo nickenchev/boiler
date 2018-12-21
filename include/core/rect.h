@@ -3,19 +3,14 @@
 
 #include <glm/glm.hpp>
 
-#define DIM_X 0
-#define DIM_Y 1
+using cgfloat = float;
 
 struct Size
 {
-    int dimensions[2];
-    Size() { dimensions[0] = 0; dimensions[1] = 0; }
-    Size(int width, int height) : dimensions {width, height} { }
+	cgfloat width, height;
 
-    int getWidth() const { return dimensions[DIM_X]; }
-    int getHeight() const { return dimensions[DIM_Y]; }
-    void setWidth(int width) { dimensions[DIM_X] = width; }
-    void setHeight(int height) { dimensions[DIM_Y] = height; }
+	Size() { width = 0; height = 0; }
+	Size(cgfloat width, cgfloat height) : width(width), height(height) { }
 };
 
 struct Rect
@@ -25,17 +20,25 @@ struct Rect
     glm::vec3 pivot;
 
     Rect() { }
-    Rect(int x, int y, int width, int height) : position(x, y, 0), size(width, height), pivot(0, 0, 0) { }
-    Rect(int x, int y, const Size &size) : position(x, y, 0), size(size), pivot(0, 0, 0) { }
+    Rect(cgfloat x, cgfloat y, cgfloat width, cgfloat height) : position(x, y, 0), size(width, height), pivot(0, 0, 0) { }
+    Rect(cgfloat x, cgfloat y, const Size &size) : position(x, y, 0), size(size), pivot(0, 0, 0) { }
     Rect(const Rect &rect) { *this = rect; }
 
-    inline float getMin(int dimension) const
+    inline cgfloat getMinX() const
     {
-        return position[dimension] - (size.dimensions[dimension] * pivot[dimension]);
+		return position.x - size.width * pivot.x;
     } 
-    inline float getMax(int dimension) const
+    inline cgfloat getMinY() const
     {
-        return position[dimension] + size.dimensions[dimension] - (size.dimensions[dimension] * pivot[dimension]);
+		return position.y - size.height * pivot.y;
+    } 
+    inline cgfloat getMaxX() const
+    {
+		return position.x + size.width - size.width * pivot.x;
+    }
+    inline cgfloat getMaxY() const
+    {
+		return position.y + size.height - size.height * pivot.y;
     }
 
     bool collides(const Rect &rect) const;

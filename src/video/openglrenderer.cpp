@@ -100,8 +100,8 @@ void OpenGLRenderer::initialize(const Size screenSize)
 		else
 		{
 			win = SDL_CreateWindow("Boiler", 0, 0,
-								screenSize.getWidth(),
-								screenSize.getHeight(), SDL_WINDOW_OPENGL);
+								screenSize.width,
+								screenSize.height, SDL_WINDOW_OPENGL);
 			setScreenSize(screenSize);
 		}
 
@@ -154,7 +154,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
     // setup a RBO for a colour target
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, getScreenSize().getWidth(), getScreenSize().getHeight());
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, getScreenSize().width, getScreenSize().height);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
     // setup the FBO
@@ -175,6 +175,11 @@ void OpenGLRenderer::initialize(const Size screenSize)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+void OpenGLRenderer::shutdown()
+{
+	SDL_VideoQuit();
+}
+
 std::shared_ptr<const Texture> OpenGLRenderer::createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const
 {
     GLuint texId;
@@ -182,7 +187,7 @@ std::shared_ptr<const Texture> OpenGLRenderer::createTexture(const std::string f
     glGenTextures(1, &texId);
 
     glBindTexture(GL_TEXTURE_2D, texId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSize.getWidth(), textureSize.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSize.width, textureSize.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
 
     // set nearest neighbour filtering
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -229,8 +234,8 @@ void OpenGLRenderer::beginRender()
 
 		// prepare the matrices
 		const Size screenSize = getScreenSize();
-		const GLfloat orthoW = screenSize.getWidth() /  getGlobalScale().x;
-		const GLfloat orthoH = screenSize.getHeight() / getGlobalScale().y;
+		const GLfloat orthoW = screenSize.width /  getGlobalScale().x;
+		const GLfloat orthoH = screenSize.height / getGlobalScale().y;
 		renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
     }
 

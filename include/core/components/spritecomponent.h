@@ -18,8 +18,8 @@ struct SpriteComponent : public ComponentType<SpriteComponent>
 	SpriteComponent(const Rect &frame)
 	{
 		// 2D vertex and texture coords
-		const float sizeW = frame.size.getWidth();
-		const float sizeH = frame.size.getHeight();
+		const float sizeW = frame.size.width;
+		const float sizeH = frame.size.height;
 
 		VertexData vertData(
 		{

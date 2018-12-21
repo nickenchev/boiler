@@ -8,6 +8,8 @@
 #include "core/entity.h"
 #include "input/mousebuttonevent.h"
 #include "input/keyinputevent.h"
+#include "core/components/positioncomponent.h"
+#include "core/components/spritecomponent.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
@@ -24,6 +26,11 @@ Boiler &Boiler::getInstance()
 
 void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight)
 {
+	if (this->renderer != nullptr)
+	{
+		this->renderer->shutdown();
+	}
+
 	logger.log("Initializing...");
 	assert(renderer != nullptr); // No renderer provided
 
@@ -35,6 +42,10 @@ void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
 	frameInterval = 1.0f / 60.0f; // 60fps
 	this->renderer = std::move(renderer);
 	getRenderer().initialize(Size(resWidth, resHeight));
+
+	ecs.getComponentSystems().registerSystem<RenderSystem>()
+		.expects<PositionComponent>()
+		.expects<SpriteComponent>();
 }
 
 void Boiler::start(std::shared_ptr<Part> part)
@@ -155,5 +166,9 @@ void Boiler::update(const double delta)
 Boiler::~Boiler()
 {
 	logger.log("Exiting");
+	if (renderer)
+	{
+		renderer->shutdown();
+	}
 	SDL_Quit();
 }

@@ -13,6 +13,7 @@
 #include "input/mousemotionevent.h"
 #include "input/keyinputevent.h"
 #include "core/entitycomponentsystem.h"
+#include "video/systems/rendersystem.h"
 #include "logger.h"
 
 class Entity;
@@ -30,6 +31,7 @@ class Boiler
 	EntityComponentSystem ecs;
     std::string baseDataPath;
     std::unique_ptr<Renderer> renderer;
+	RenderSystem renderSystem;
 
     std::vector<TouchMotionListener> touchMotionListeners;
     std::vector<TouchTapEventListener> touchTapEventListeners;

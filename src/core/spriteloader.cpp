@@ -86,7 +86,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadJsonArray(std::string
         }
         sheet = std::make_shared<SpriteSheet>(imageFile, Size(width, height), texture, frames);
         const Size &size = sheet->getSize();
-        logger.log("Loaded " + filename + "(" + std::to_string(size.getWidth()) + ", " + std::to_string(size.getHeight()) + ")");
+        logger.log("Loaded " + filename + "(" + std::to_string(size.width) + ", " + std::to_string(size.height) + ")");
 		
     }
     else

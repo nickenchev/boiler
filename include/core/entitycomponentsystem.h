@@ -27,7 +27,7 @@ public:
 	}
 
 	template<typename T, typename... Args>
-	std::shared_ptr<T> addComponent(const Entity &entity, Args&&... args)
+	std::shared_ptr<T> createComponent(const Entity &entity, Args&&... args)
 	{
 		auto entMask = mapper.addComponent<T>(entity);
 		auto component = componentStore.store<T>(entity, std::forward<Args>(args)...);
