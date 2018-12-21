@@ -12,13 +12,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 
 # boiler sources
+find_package(GLM REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-
-include_directories(${PROJECT_LIST_DIR/include})
 
 # Engine related headers
 set(BOILER_HEADERS
@@ -40,7 +39,7 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/core/base64.cpp
   # src/core/quadtree.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/rect.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/raycaster.cpp
+  #${CMAKE_CURRENT_LIST_DIR}/src/core/raycaster.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/ray.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/bmfont.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/spriteanimation.cpp
@@ -70,6 +69,7 @@ target_include_directories(boiler PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/include/boiler
   ${CMAKE_CURRENT_LIST_DIR}/include
   ${CMAKE_CURRENT_LIST_DIR}/include/tinyxml2
+  ${GLM_INCLUDE_DIR}
   ${SDL2_INCLUDE_DIR}
   ${SDL2_IMAGE_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIR}
