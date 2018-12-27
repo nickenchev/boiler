@@ -18,6 +18,7 @@ find_package(SDL2_image REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(FreeType REQUIRED)
 
 # Engine related headers
 set(BOILER_HEADERS
@@ -74,6 +75,7 @@ target_include_directories(boiler PUBLIC
   ${SDL2_IMAGE_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIR}
-  ${GLEW_INCLUDE_DIR})
+  ${GLEW_INCLUDE_DIR}
+  ${FREETYPE_INCLUDE_DIRS})
 
-target_link_libraries(boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+target_link_libraries(boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY} ${FREETYPE_LIBRARIES})
