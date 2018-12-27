@@ -10,6 +10,7 @@ public:
     Part &operator=(const Part &part) = delete;
 
     virtual void onStart() = 0;
+    virtual void update(double deltaTime) { }
 };
 
 #endif /* PART_H */

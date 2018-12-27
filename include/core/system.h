@@ -22,13 +22,16 @@ public:
 		return *this;
 	}
 
-	void checkEntity(const Entity &entity, const ComponentMask &entityMask)
+	virtual bool checkEntity(const Entity &entity, const ComponentMask &entityMask)
 	{
+		bool matchingMask = false;
 		if ((entityMask & systemMask) == systemMask)
 		{
+			matchingMask = true;
 			// entity is compatible with this system, track it
 			entities.push_back(entity);
 		}
+		return matchingMask;
 	}
 
 	virtual void update(ComponentStore &store, const double delta) const = 0;
