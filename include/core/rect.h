@@ -26,19 +26,19 @@ struct Rect
 
     inline cgfloat getMinX() const
     {
-		return position.x - size.width * pivot.x;
+		return position.x;
     } 
     inline cgfloat getMinY() const
     {
-		return position.y - size.height * pivot.y;
+		return position.y;
     } 
     inline cgfloat getMaxX() const
     {
-		return position.x + size.width - size.width * pivot.x;
+		return position.x + size.width;
     }
     inline cgfloat getMaxY() const
     {
-		return position.y + size.height - size.height * pivot.y;
+		return position.y + size.height;
     }
 
     bool collides(const Rect &rect) const;

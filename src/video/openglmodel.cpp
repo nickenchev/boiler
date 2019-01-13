@@ -25,8 +25,10 @@ OpenGLModel::OpenGLModel(const VertexData &data) : Model(data.length())
 
 OpenGLModel::~OpenGLModel()
 {
+    glBindVertexArray(meshVao);
     glDisableVertexAttribArray(ATTRIB_ARRAY_VERTEX);
     glDisableVertexAttribArray(ATTRIB_ARRAY_TEXTURE);
+    glBindVertexArray(0);
 
     glDeleteBuffers(1, &vertVbo);
     glDeleteVertexArrays(1, &meshVao);

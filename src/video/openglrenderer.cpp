@@ -228,12 +228,6 @@ void OpenGLRenderer::initialize(const Size screenSize)
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);   
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
-
-	std::string test = "Hello World";
-	for (char c : test)
-	{
-		Character glyph = characters[c];
-	}
 }
 
 void OpenGLRenderer::shutdown()
@@ -297,7 +291,8 @@ void OpenGLRenderer::beginRender()
 		const Size screenSize = getScreenSize();
 		const GLfloat orthoW = screenSize.width /  getGlobalScale().x;
 		const GLfloat orthoH = screenSize.height / getGlobalScale().y;
-		renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
+		//renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
+		renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), 0.0f, static_cast<GLfloat>(orthoH));
     }
 
 	// if camera has been set, recalc the projection matrix
@@ -364,6 +359,12 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 		{
 			logger.error("GL Error returned: " + std::to_string(glError));
 		}
+	}
+
+	std::string test = "Hello World";
+	for (char c : test)
+	{
+		Character glyph = characters[c];
 	}
 }
 
