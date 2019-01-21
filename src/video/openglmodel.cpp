@@ -16,7 +16,7 @@ OpenGLModel::OpenGLModel(const VertexData &data) : Model(data.length())
 
     // TODO: Handle GL_STATIC_DRAW properly, might be dynamic
     glBufferData(GL_ARRAY_BUFFER, data.size(), data.begin(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
+    glVertexAttribPointer(ATTRIB_ARRAY_VERTEX, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
     // cleanup
     glBindBuffer(GL_ARRAY_BUFFER, 0);

@@ -3,6 +3,7 @@
 
 #include <SDL.h>
 #include <memory>
+#include "video/opengl.h"
 #include "renderer.h"
 #include "renderdetails.h"
 
@@ -12,6 +13,15 @@
 class Entity;
 class VertexData;
 
+struct Glyph
+
+{
+    GLuint textureID;  // ID handle of the glyph texture
+    glm::ivec2 size;       // Size of glyph
+    glm::ivec2 bearing;    // Offset from baseline to left/top of glyph
+    long int advance;    // Offset to advance to next glyph
+};
+
 class OpenGLRenderer : public Renderer
 {
     bool useGLES;
@@ -20,6 +30,7 @@ class OpenGLRenderer : public Renderer
     SDL_Window *win = nullptr;
     unsigned int fbo, rbo;
 	RenderDetails renderDetails;
+	std::map<GLchar, Glyph> glyphs;
 
 public:
     OpenGLRenderer(bool useGLES);

@@ -15,7 +15,7 @@ struct SpriteComponent : public ComponentType<SpriteComponent>
     glm::vec4 color;
     std::shared_ptr<const Model> model;
 
-	SpriteComponent(const Rect &frame)
+	SpriteComponent(const Rect &frame) : color(1.0f, 1.0f, 1.0f, 1.0f)
 	{
 		// 2D vertex and texture coords
 		const float sizeW = frame.size.width;

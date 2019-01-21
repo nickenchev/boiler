@@ -8,7 +8,6 @@
 #include FT_FREETYPE_H
 
 #include "core/boiler.h"
-#include "video/opengl.h"
 #include "video/openglrenderer.h"
 #include "video/opengltexture.h"
 #include "video/openglmodel.h"
@@ -19,16 +18,6 @@
 #include "core/components/positioncomponent.h"
 #include "core/components/spritecomponent.h"
 #include "camera/camera.h"
-
-struct Character
-{
-    GLuint textureID;  // ID handle of the glyph texture
-    glm::ivec2 size;       // Size of glyph
-    glm::ivec2 bearing;    // Offset from baseline to left/top of glyph
-    long int advance;    // Offset to advance to next glyph
-};
-
-std::map<GLchar, Character> characters;
 
 OpenGLRenderer::OpenGLRenderer(bool useGLES) : Renderer(std::string(COMPONENT_NAME))
 {
@@ -148,7 +137,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
 				try
 				{
 					// compile the default shader program
-					program = std::make_unique<ShaderProgram>(shaderPath, "basic");
+					program = std::make_unique<ShaderProgram>(shaderPath, "basic.vert", "basic.frag");
 					success = true;
 				}
 				catch (int exception)
@@ -194,38 +183,43 @@ void OpenGLRenderer::initialize(const Size screenSize)
 		std::cout << "Could not initialize FreeType" << std::endl;
 	}
 	FT_Face face;
-	if (FT_New_Face(ft, "data/fonts/acknowtt.ttf", 0, &face))
+	if (FT_New_Face(ft, "data/fonts/8-Bit-Madness.ttf", 0, &face))
 	{
 		std::cout << "Could not load font" << std::endl;
 	}
 	FT_Set_Pixel_Sizes(face, 0, 48);
 
+	// let opengl store textures that are not multiple of 4
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);   
 	for (GLubyte c = 0; c < 128; ++c)
 	{
 		if (FT_Load_Char(face, c, FT_LOAD_RENDER))
 		{
 			std::cout << "Failed to load glyph" << std::endl;
 		}
+		else
+		{
+			GLuint texture = 0;
+			glGenTextures(1, &texture);
+			glBindTexture(GL_TEXTURE_2D, texture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, face->glyph->bitmap.width, face->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
+			GLint swizzleMask[] = { GL_ONE, GL_ONE, GL_ONE, GL_RED };
+			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
 
-		GLuint texture = 0;
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, face->glyph->bitmap.width, face->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		Character character = {
-			texture,
-			glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-			face->glyph->advance.x
-		};
-		characters.insert(std::pair<GLchar, Character>(c, character));
+			Glyph glyph = {
+				texture,
+				glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+				glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+				face->glyph->advance.x
+			};
+			glyphs.insert(std::pair<GLchar, Glyph>(c, glyph));
+		}
 	}
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);   
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 }
@@ -285,8 +279,7 @@ void OpenGLRenderer::beginRender()
         glUseProgram(program->getShaderProgram());
         renderDetails.mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
         renderDetails.colorUniform = glGetUniformLocation(program->getShaderProgram(), "entityColor");
-        renderDetails.usingTexUniform = glGetUniformLocation(program->getShaderProgram(), "usingTexture");
-
+		
 		// prepare the matrices
 		const Size screenSize = getScreenSize();
 		const GLfloat orthoW = screenSize.width /  getGlobalScale().x;
@@ -313,6 +306,7 @@ void OpenGLRenderer::endRender()
 
 void OpenGLRenderer::render(const PositionComponent &position, const SpriteComponent &sprite) const
 {
+	glUseProgram(getProgram()->getShaderProgram());
 	// render the entity
 	if (sprite.model)
     {
@@ -328,13 +322,8 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 
 			// set the current texture
 			setActiveTexture(sprite.spriteFrame->getSourceTexture());
-			glUniform1i(renderDetails.usingTexUniform, 1);
 		}
-		else
-		{
-			glUniform1i(renderDetails.usingTexUniform, 0);
-			glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(sprite.color));
-		}
+		glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(sprite.color));
 
 		const glm::mat4 &modelMatrix = position.getMatrix();
 		glm::mat4 mvpMatrix;
@@ -361,11 +350,66 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 		}
 	}
 
-	std::string test = "Hello World";
+	std::string test = "Amazing!?";
+	GLuint vao = 0;
+	GLuint vbo = 0;
+
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vbo);
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+
+	// draw some text
+	//glUseProgram(textProgram->getShaderProgram());
+	//glUniform3f(glGetUniformLocation(textProgram->getShaderProgram(), "entityColor"), 0, 0, 1.0f);
+	glActiveTexture(GL_TEXTURE0);
+	glBindVertexArray(vao);
+
+	GLfloat x = 0;
+	GLfloat y = 100;
+	GLfloat scale = 1.0f;
+	
 	for (char c : test)
 	{
-		Character glyph = characters[c];
+		const Glyph &glyph = glyphs.at(c);
+		GLfloat xpos = x + glyph.bearing.x * scale;
+		GLfloat ypos = y - (glyph.size.y - glyph.bearing.y) * scale;
+
+		GLfloat w = glyph.size.x * scale;
+		GLfloat h = glyph.size.y * scale;
+		GLfloat vertices[6][4] = {
+			{ xpos,     ypos + h,   0.0, 0.0 },
+			{ xpos,     ypos,       0.0, 1.0 },
+			{ xpos + w, ypos,       1.0, 1.0 },
+
+			{ xpos,     ypos + h,   0.0, 0.0 },
+			{ xpos + w, ypos,       1.0, 1.0 },
+			{ xpos + w, ypos + h,   1.0, 0.0 }           
+        };
+
+		glBindTexture(GL_TEXTURE_2D, glyph.textureID);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		x += (glyph.advance >> 6) * scale;
+
+		GLenum glError = glGetError();
+		if (glError != GL_NO_ERROR)
+		{
+			logger.error("GL Error returned: " + std::to_string(glError));
+		}
 	}
+
+	glDeleteBuffers(1, &vbo);
+	glDeleteVertexArrays(1, &vao);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void OpenGLRenderer::showMessageBox(const std::string &title, const std::string &message)

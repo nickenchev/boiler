@@ -10,7 +10,7 @@ uniform bool usingTexture;
 
 void main()
 {
-    fragTexCoords = texCoords;
+    fragTexCoords = vertCoords.zw;
     
     vec4 vert = vec4(vertCoords.xy, 0.0f, 1.0);
     gl_Position = MVP * vert;

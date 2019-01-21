@@ -7,11 +7,10 @@
 class ShaderProgram
 {
 	Logger logger;
-    std::string name;
     unsigned int shaderProgram;
 
 public:
-    ShaderProgram(std::string path, std::string name);
+	ShaderProgram(std::string path, std::string vertexShader, std::string fragmentShader);
     ~ShaderProgram();
 
     unsigned int getShaderProgram() const { return shaderProgram; }

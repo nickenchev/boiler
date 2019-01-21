@@ -41,10 +41,10 @@ GLint compileShader(const char *src, GLenum shaderType)
     return shader;
 }
 
-ShaderProgram::ShaderProgram(std::string path, std::string name) : name(name), logger("Shader Program " + name)
+ShaderProgram::ShaderProgram(std::string path, std::string vertexShader, std::string fragmentShader) : logger("Shader Program " + vertexShader + ", " + fragmentShader)
 {
-    std::string vertPath = path + name + ".vert";
-    std::string fragPath = path + name + ".frag";
+    std::string vertPath = path + vertexShader;
+    std::string fragPath = path + fragmentShader;
     std::string vertSrc = FileManager::readTextFile(vertPath);
     std::string fragSrc = FileManager::readTextFile(fragPath);
 
