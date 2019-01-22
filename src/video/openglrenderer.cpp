@@ -352,21 +352,25 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 
 	std::string test = "Amazing!?";
 	GLuint vao = 0;
-	GLuint vbo = 0;
+	GLuint vertsVbo = 0;
+	GLuint texCoordsVbo = 0;
 
 	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
+	glGenBuffers(1, &vertsVbo);
+	glGenBuffers(1, &texCoordsVbo);
+
 	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+	glBindBuffer(GL_ARRAY_BUFFER, vertsVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 2, nullptr, GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(ATTRIB_ARRAY_VERTEX);
+	glVertexAttribPointer(ATTRIB_ARRAY_VERTEX, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, texCoordsVbo);
+	glEnableVertexAttribArray(ATTRIB_ARRAY_TEXTURE);
+	glVertexAttribPointer(ATTRIB_ARRAY_TEXTURE, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
 
 	// draw some text
-	//glUseProgram(textProgram->getShaderProgram());
-	//glUniform3f(glGetUniformLocation(textProgram->getShaderProgram(), "entityColor"), 0, 0, 1.0f);
 	glActiveTexture(GL_TEXTURE0);
-	glBindVertexArray(vao);
 
 	GLfloat x = 0;
 	GLfloat y = 100;
@@ -380,19 +384,32 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 
 		GLfloat w = glyph.size.x * scale;
 		GLfloat h = glyph.size.y * scale;
-		GLfloat vertices[6][4] = {
-			{ xpos,     ypos + h,   0.0, 0.0 },
-			{ xpos,     ypos,       0.0, 1.0 },
-			{ xpos + w, ypos,       1.0, 1.0 },
 
-			{ xpos,     ypos + h,   0.0, 0.0 },
-			{ xpos + w, ypos,       1.0, 1.0 },
-			{ xpos + w, ypos + h,   1.0, 0.0 }           
+		GLfloat vertices[6][2] = {
+			{ xpos,     ypos + h },
+			{ xpos,     ypos },
+			{ xpos + w, ypos },
+
+			{ xpos,     ypos + h },
+			{ xpos + w, ypos },
+			{ xpos + w, ypos + h }           
         };
+		glBindBuffer(GL_ARRAY_BUFFER, vertsVbo);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+		GLfloat texCoords[6][2] = {
+			{ 0.0, 0.0 },
+			{ 0.0, 1.0 },
+			{ 1.0, 1.0 },
+
+			{ 0.0, 0.0 },
+			{ 1.0, 1.0 },
+			{ 1.0, 0.0 }           
+        };
+		glBindBuffer(GL_ARRAY_BUFFER, texCoordsVbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_DYNAMIC_DRAW);
 
 		glBindTexture(GL_TEXTURE_2D, glyph.textureID);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		x += (glyph.advance >> 6) * scale;
@@ -404,7 +421,8 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 		}
 	}
 
-	glDeleteBuffers(1, &vbo);
+	glDeleteBuffers(1, &vertsVbo);
+	glDeleteBuffers(1, &texCoordsVbo);
 	glDeleteVertexArrays(1, &vao);
 
 	glBindTexture(GL_TEXTURE_2D, 0);

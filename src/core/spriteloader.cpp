@@ -63,7 +63,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadJsonArray(std::string
             };
 
             // create a VBO to hold each frame's texture coords
-            GLuint texCoordVbo;
+            GLuint texCoordVbo = 0;
             glGenBuffers(1, &texCoordVbo);
             glBindBuffer(GL_ARRAY_BUFFER, texCoordVbo);
             glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_DYNAMIC_DRAW);
