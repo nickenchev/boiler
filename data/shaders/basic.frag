@@ -8,7 +8,5 @@ uniform vec4 entityColor;
 
 void main()
 {
-	//fragColor = texture(tex2d, fragTexCoords.xy) * entityColor;
 	fragColor = texture(tex2d, fragTexCoords) * entityColor;
-	//fragColor = vec4(1, 1, 1, 1);
 }
