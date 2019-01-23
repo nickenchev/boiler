@@ -361,12 +361,13 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vertsVbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 2, nullptr, GL_DYNAMIC_DRAW);
+	constexpr int bufferSize = sizeof(GLfloat) * 6 * 2;
+	glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr, GL_DYNAMIC_DRAW);
 	glEnableVertexAttribArray(ATTRIB_ARRAY_VERTEX);
 	glVertexAttribPointer(ATTRIB_ARRAY_VERTEX, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, texCoordsVbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 2, nullptr, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr, GL_DYNAMIC_DRAW);
 	glEnableVertexAttribArray(ATTRIB_ARRAY_TEXTURE);
 	glVertexAttribPointer(ATTRIB_ARRAY_TEXTURE, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
 
