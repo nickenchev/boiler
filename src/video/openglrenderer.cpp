@@ -4,8 +4,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <ft2build.h>
-#include FT_FREETYPE_H
 
 #include "core/boiler.h"
 #include "video/openglrenderer.h"
@@ -174,54 +172,6 @@ void OpenGLRenderer::initialize(const Size screenSize)
     // enable blending on all buffers
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-
-
-	FT_Library ft;
-	if (FT_Init_FreeType(&ft))
-	{
-		std::cout << "Could not initialize FreeType" << std::endl;
-	}
-	FT_Face face;
-	if (FT_New_Face(ft, "data/fonts/8-Bit-Madness.ttf", 0, &face))
-	{
-		std::cout << "Could not load font" << std::endl;
-	}
-	FT_Set_Pixel_Sizes(face, 0, 48);
-
-	// let opengl store textures that are not multiple of 4
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);   
-	for (GLubyte c = 0; c < 128; ++c)
-	{
-		if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-		{
-			std::cout << "Failed to load glyph" << std::endl;
-		}
-		else
-		{
-			GLuint texture = 0;
-			glGenTextures(1, &texture);
-			glBindTexture(GL_TEXTURE_2D, texture);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, face->glyph->bitmap.width, face->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
-			GLint swizzleMask[] = { GL_ONE, GL_ONE, GL_ONE, GL_RED };
-			glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			Glyph glyph = {
-				texture,
-				glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-				glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-				face->glyph->advance.x
-			};
-			glyphs.insert(std::pair<GLchar, Glyph>(c, glyph));
-		}
-	}
-	FT_Done_Face(face);
-	FT_Done_FreeType(ft);
 }
 
 void OpenGLRenderer::shutdown()
@@ -294,8 +244,8 @@ void OpenGLRenderer::beginRender()
         renderDetails.camViewProjection = renderDetails.viewProjection * camera->getViewMatrix();
     }
 
-    glClearColor(getClearColor().x, getClearColor().y, getClearColor().z, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+	static const GLfloat color[] = { getClearColor().r, getClearColor().g, getClearColor().b, 1.0f};
+	glClearBufferfv(GL_COLOR, 0, color);
 }
 
 void OpenGLRenderer::endRender()
@@ -350,6 +300,7 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 		}
 	}
 
+	/*
 	std::string test = "Amazing!?";
 	GLuint vao = 0;
 	GLuint vertsVbo = 0;
@@ -430,6 +381,7 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	*/
 }
 
 void OpenGLRenderer::showMessageBox(const std::string &title, const std::string &message)
