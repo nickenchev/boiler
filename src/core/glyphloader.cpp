@@ -1,4 +1,5 @@
 #include <boiler.h>
+#include <algorithm>
 #include "core/glyphloader.h"
 
 GlyphLoader::GlyphLoader() : logger("Glyph Loader")
