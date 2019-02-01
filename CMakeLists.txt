@@ -5,20 +5,20 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
-
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
+set(OpenGL_GL_PREFERENCE "GLVND")
 
 # Shader files
 set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
 
 # boiler sources
-find_package(GLM REQUIRED)
+find_package(glm REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-find_package(FreeType REQUIRED)
+find_package(Freetype REQUIRED)
 
 # Engine related headers
 set(BOILER_HEADERS
