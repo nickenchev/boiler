@@ -38,6 +38,7 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/core/spritesheet.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/spritesheetframe.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/base64.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/glyphloader.cpp
   # src/core/quadtree.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/rect.cpp
   #${CMAKE_CURRENT_LIST_DIR}/src/core/raycaster.cpp
