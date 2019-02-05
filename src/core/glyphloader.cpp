@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <boiler.h>
 #include <video/opengl.h>
 #include "core/glyphloader.h"
