@@ -3,7 +3,7 @@
 #include "video/renderer.h"
 #include "video/imageloader.h"
 
-#define COMPONENT_NAME "SpriteLoader"
+#define COMPONENT_NAME "Image Loader"
 
 ImageLoader::ImageLoader() : logger(COMPONENT_NAME)
 {

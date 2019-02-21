@@ -9,6 +9,8 @@
 #include "core/logger.h"
 #include "video/glyph.h"
 
+class GlyphMap;
+
 class GlyphLoader
 {
 	FT_Library ft;
@@ -18,7 +20,7 @@ public:
     GlyphLoader();
 	virtual ~GlyphLoader();
 
-	void loadFace(std::string fontPath);
+	const GlyphMap loadFace(std::string fontPath);
 };
 
 
