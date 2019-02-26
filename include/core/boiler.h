@@ -14,6 +14,7 @@
 #include "input/keyinputevent.h"
 #include "core/entitycomponentsystem.h"
 #include "video/systems/rendersystem.h"
+#include "video/systems/glyphsystem.h"
 #include "logger.h"
 
 class Entity;
