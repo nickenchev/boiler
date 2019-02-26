@@ -1,6 +1,8 @@
 #ifndef COMPONENTSTORE_H
 #define COMPONENTSTORE_H
 
+#include <unordered_map>
+#include <memory>
 #include "core/component.h"
 
 typedef std::unordered_map<ComponentMask, std::shared_ptr<Component>> ComponentMap;

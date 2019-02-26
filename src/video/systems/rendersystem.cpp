@@ -2,7 +2,6 @@
 #include "core/components/spritecomponent.h"
 #include "core/componentstore.h"
 #include "video/systems/rendersystem.h"
-#include "core/boiler.h"
 
 void RenderSystem::update(ComponentStore &store, const double delta) const
 {

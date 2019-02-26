@@ -27,20 +27,31 @@ public:
 		}
 	}
 
-	template<class T>
-	System &registerSystem(bool explicitUpdate = false)
+	template<typename T, typename... Args>
+	System &registerSystem(Args&&... args)
 	{
 		// TODO: Check if any of the existing entities fit into the newly registered system
-		auto system = std::make_unique<T>();
+		auto system = std::make_unique<T>(std::forward<Args>(args)...);
 		System &sys = *system;
 		systems.push_back(std::move(system));
-		if (!explicitUpdate)
-		{
-			updateSystems.push_back(&sys);
-		}
+		updateSystems.push_back(&sys);
 		logger.log("System Registered: " + sys.name);
 
 		return sys;
+	}
+
+	void removeUpdate(const System *system)
+	{
+		auto itr = std::find(updateSystems.begin(), updateSystems.end(), system);
+		if (itr != updateSystems.end())
+		{
+			updateSystems.erase(itr);
+			logger.log("Removed " + system->name + " from update list.");
+		}
+		else
+		{
+			logger.error("Error finding system in update list.");
+		}
 	}
 
 	void checkEntity(const Entity &entity, const ComponentMask &mask)
