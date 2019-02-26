@@ -31,7 +31,7 @@ class Boiler
 	EntityComponentSystem ecs;
     std::string baseDataPath;
     std::unique_ptr<Renderer> renderer;
-	RenderSystem renderSystem;
+	System *renderSystem, *glyphSystem;
 
     std::vector<TouchMotionListener> touchMotionListeners;
     std::vector<TouchTapEventListener> touchTapEventListeners;

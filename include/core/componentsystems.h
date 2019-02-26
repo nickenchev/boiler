@@ -13,27 +13,32 @@ class ComponentSystems
 {
 	Logger logger;
 	std::vector<std::unique_ptr<System>> systems;
+	std::vector<System *> updateSystems;
 
 public:
-    ComponentSystems() : logger{"ComponentSystems"}  { }
+    ComponentSystems() : logger{"ComponentSystems"} { }
     virtual ~ComponentSystems() { }
 
 	void update(ComponentStore &store, const double delta)
 	{
-		for (auto &system : systems)
+		for (auto &system : updateSystems)
 		{
 			system->update(store, delta);
 		}
 	}
 
 	template<class T>
-	System &registerSystem()
+	System &registerSystem(bool explicitUpdate = false)
 	{
 		// TODO: Check if any of the existing entities fit into the newly registered system
 		auto system = std::make_unique<T>();
 		System &sys = *system;
 		systems.push_back(std::move(system));
-		logger.log("System Registered");
+		if (!explicitUpdate)
+		{
+			updateSystems.push_back(&sys);
+		}
+		logger.log("System Registered: " + sys.name);
 
 		return sys;
 	}

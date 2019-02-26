@@ -2,8 +2,10 @@
 #define SYSTEM_H
 
 #include <vector>
+#include <string>
 #include "core/ecstypes.h"
 #include "core/componentmapper.h"
+#include "core/logger.h"
 
 class ComponentStore;
 
@@ -12,8 +14,14 @@ class System
 	ComponentMask systemMask;
 	std::vector<Entity> entities;
 
+protected:
+	const Logger logger;
+
 public:
+	System(std::string name) : name(name), logger(name) { }
 	virtual ~System() { }
+
+	const std::string name;
 
 	template<typename T>
 	System &expects()

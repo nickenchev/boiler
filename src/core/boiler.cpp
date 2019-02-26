@@ -10,6 +10,7 @@
 #include "input/keyinputevent.h"
 #include "core/components/positioncomponent.h"
 #include "core/components/spritecomponent.h"
+#include "core/components/textcomponent.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
@@ -43,9 +44,15 @@ void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
 	this->renderer = std::move(renderer);
 	getRenderer().initialize(Size(resWidth, resHeight));
 
-	ecs.getComponentSystems().registerSystem<RenderSystem>()
+	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(true)
 		.expects<PositionComponent>()
 		.expects<SpriteComponent>();
+	this->renderSystem = &renderSys;
+
+	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(true)
+		.expects<PositionComponent>()
+		.expects<TextComponent>();
+	this->glyphSystem = &glyphSys;
 }
 
 void Boiler::start(std::shared_ptr<Part> part)
@@ -83,6 +90,8 @@ void Boiler::run()
 			update(frameInterval);
 			frameLag -= frameInterval;
 		} 
+		renderSystem->update(getEcs().getComponentStore(), frameDelta);
+		//glyphSystem->update(getEcs().getComponentStore(), frameDelta);
 	}
 }
 
