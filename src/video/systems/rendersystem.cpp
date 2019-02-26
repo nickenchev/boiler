@@ -6,8 +6,6 @@
 
 void RenderSystem::update(ComponentStore &store, const double delta) const
 {
-	Boiler::getInstance().getRenderer().beginRender();
-
 	for (auto &entity : getEntities())
 	{
 		PositionComponent &pos = store.retrieve<PositionComponent>(entity);
@@ -15,5 +13,4 @@ void RenderSystem::update(ComponentStore &store, const double delta) const
 
 		Boiler::getInstance().getRenderer().render(pos, sprite);
 	}
-	Boiler::getInstance().getRenderer().endRender();
 }

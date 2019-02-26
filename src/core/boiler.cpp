@@ -90,8 +90,11 @@ void Boiler::run()
 			update(frameInterval);
 			frameLag -= frameInterval;
 		} 
+		
+		renderer->beginRender();
 		renderSystem->update(getEcs().getComponentStore(), frameDelta);
-		//glyphSystem->update(getEcs().getComponentStore(), frameDelta);
+		glyphSystem->update(getEcs().getComponentStore(), frameDelta);
+		renderer->endRender();
 	}
 }
 
