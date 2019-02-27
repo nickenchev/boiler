@@ -7,6 +7,7 @@
 #include "core/boiler.h"
 #include "video/renderer.h"
 #include "util/filemanager.h"
+#include "util/texutil.h"
 
 #define COMPONENT_NAME "Sprite Loader"
 
@@ -32,8 +33,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadJsonArray(std::string
         //read the sprite image name and load the texture
         auto texture = Boiler::getInstance().getImageLoader().loadImage(imageFile);
 
-        int width = json["meta"]["size"]["w"].asInt();
-        int height = json["meta"]["size"]["h"].asInt();
+		const Size texSize(json["meta"]["size"]["w"].asFloat(), json["meta"]["size"]["h"].asFloat());
 
         std::map<std::string, SpriteSheetFrame> frames;
         //setup the individual frames
@@ -41,39 +41,22 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadJsonArray(std::string
         {
             Json::Value sprite = *it;
             std::string frameFilename = sprite["filename"].asString();
-            int x = sprite["frame"]["x"].asInt();
-            int y = sprite["frame"]["y"].asInt();
-            int w = sprite["frame"]["w"].asInt();
-            int h = sprite["frame"]["h"].asInt();
+			Rect sourceRect(sprite["frame"]["x"].asFloat(), sprite["frame"]["y"].asFloat(),
+							sprite["frame"]["w"].asFloat(), sprite["frame"]["h"].asFloat());
 
-            // calculate the opengl texture coords
-            const float texX = x / static_cast<float>(width);
-            const float texY = y / static_cast<float>(height);
-            const float texW = (x + w) / static_cast<float>(width);
-            const float texH = (y + h) / static_cast<float>(height);
-            const GLfloat texCoords[] =
-            {
-                texX, texH,
-                texW, texY,
-                texX, texY,
-
-                texX, texH,
-                texW, texH,
-                texW, texY
-            };
+			const std::vector<GLfloat> texCoords = TextureUtil::getTextureCoords(texSize, sourceRect);
 
             // create a VBO to hold each frame's texture coords
             GLuint texCoordVbo = 0;
             glGenBuffers(1, &texCoordVbo);
             glBindBuffer(GL_ARRAY_BUFFER, texCoordVbo);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_DYNAMIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(float) * texCoords.size(), &texCoords[0], GL_DYNAMIC_DRAW);
 
             if (glGetError() != GL_NO_ERROR)
             {
                 logger.error("Unable to create the texture coordinate VBO.");
             }
 
-            Rect sourceRect(x, y, w, h);
             bool rotated = sprite["rotated"].asBool();
             bool trimmed = sprite["trimmed"].asBool();
 
@@ -84,7 +67,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadJsonArray(std::string
 																   SpriteSheetFrame(texture, frameFilename, sourceRect, rotated, trimmed, pivot, texCoordVbo)));
             logger.log("Loaded frame: " + frameFilename);
         }
-        sheet = std::make_shared<SpriteSheet>(imageFile, Size(width, height), texture, frames);
+        sheet = std::make_shared<SpriteSheet>(imageFile, texSize, texture, frames);
         const Size &size = sheet->getSize();
         logger.log("Loaded " + filename + "(" + std::to_string(size.width) + ", " + std::to_string(size.height) + ")");
 		
