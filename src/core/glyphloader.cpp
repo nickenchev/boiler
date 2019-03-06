@@ -4,6 +4,9 @@
 #include <video/opengltexture.h>
 #include "core/glyphloader.h"
 #include "video/glyphmap.h"
+#include "video/glyph.h"
+#include "video/vertexdata.h"
+#include "video/model.h"
 
 GlyphLoader::GlyphLoader() : logger("Glyph Loader")
 {
@@ -84,18 +87,42 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 
 	std::unordered_map<unsigned long, const Glyph> glyphMap(glyphCount);
 
-	// write bitmap data to atlas
 	GLfloat xOffset = 0;
 	GLfloat yOffset = 0;
+	float x = 0;
+	float y = 0;
 	for (auto tgl : glyphs)
 	{
 		unsigned long code = std::get<0>(tgl);
 		FT_Glyph ftGlyph = std::get<1>(tgl);
 		FT_BitmapGlyph bmg = (FT_BitmapGlyph)ftGlyph;
-		glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, bmg->bitmap.width, bmg->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, bmg->bitmap.buffer);
-		xOffset += bmg->bitmap.width;
+		Size size(face->glyph->bitmap.width, face->glyph->bitmap.rows);
+		glm::vec2 bearing(face->glyph->bitmap_left, face->glyph->bitmap_top);
 
-		Glyph glyph(glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+		// write glyph to texture atlas
+		glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, bmg->bitmap.width, bmg->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, bmg->bitmap.buffer);
+		xOffset += size.width;
+
+		// create model data
+		const float scale = 1.0f;
+		GLfloat xpos = x + bearing.x * scale;
+		GLfloat ypos = y - (size.height - bearing.y) * scale;
+
+		GLfloat w = size.width * scale;
+		GLfloat h = size.height * scale;
+
+		VertexData vertData(
+		{
+			{ xpos, ypos + h, 0.0f },
+			{ xpos, ypos, 0.0f },
+			{ xpos + w, ypos, 0.0f },
+			{ xpos, ypos + h, 0.0f },
+			{ xpos + w, ypos, 0.0f },
+			{ xpos + w, ypos + h, 0.0f }           
+        });
+		x += (face->glyph->advance.x >> 6) * scale;
+
+		Glyph glyph(Boiler::getInstance().getRenderer().loadModel(vertData), size,
 					glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
 					face->glyph->advance.x);
 
@@ -108,7 +135,6 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 	logger.log("Generated font atlas with dimensions " + std::to_string(atlasWidth) + "x" + std::to_string(atlasHeight));
 
 	return GlyphMap(std::make_shared<OpenGLTexture>(fontPath, texture), glyphMap);
-
 			/*
 			glyph texture = 0;
 			glGenTextures(1, &texture);

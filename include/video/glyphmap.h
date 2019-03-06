@@ -2,8 +2,8 @@
 #define GLYPHMAP_H
 
 #include <unordered_map>
+#include "video/glyph.h"
 
-class Glyph;
 class Texture;
 
 class GlyphMap
@@ -13,6 +13,7 @@ class GlyphMap
 public:
     GlyphMap(const std::shared_ptr<const Texture> &sourceTexture,
 			 const std::unordered_map<unsigned long, const Glyph> &map) : sourceTexture(sourceTexture), map(map) { }
+
 };
 
 

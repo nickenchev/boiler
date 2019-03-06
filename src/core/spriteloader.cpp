@@ -63,8 +63,8 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadJsonArray(std::string
             int pivotX = sprite["pivot"]["x"].asInt();
             int pivotY = sprite["pivot"]["y"].asInt();
             glm::vec2 pivot(pivotX, pivotY);
-            frames.insert(std::pair<std::string, SpriteSheetFrame>(frameFilename,
-																   SpriteSheetFrame(texture, frameFilename, sourceRect, rotated, trimmed, pivot, texCoordVbo)));
+            frames.insert(std::pair<std::string, SpriteSheetFrame>(frameFilename, SpriteSheetFrame(texture, frameFilename, sourceRect,
+																								   rotated, trimmed, pivot, texCoordVbo)));
             logger.log("Loaded frame: " + frameFilename);
         }
         sheet = std::make_shared<SpriteSheet>(imageFile, texSize, texture, frames);
