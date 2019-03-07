@@ -3,10 +3,13 @@
 
 #include "core/system.h"
 
+class Renderer;
+
 class GlyphSystem : public System
 {
+	const Renderer &renderer;
 public:
-	GlyphSystem() : System("Glyph System") { }
+	GlyphSystem(const Renderer &renderer) : System("Glyph System"), renderer(renderer) { }
 
 	void update(ComponentStore &store, const double delta) const override;
 };

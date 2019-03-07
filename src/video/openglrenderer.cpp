@@ -384,6 +384,10 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 	*/
 }
 
+void OpenGLRenderer::render(const PositionComponent &position, const TextComponent &text) const
+{
+}
+
 void OpenGLRenderer::showMessageBox(const std::string &title, const std::string &message)
 {
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, title.c_str(), message.c_str(), win);

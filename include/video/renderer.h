@@ -18,6 +18,7 @@ class Model;
 class VertexData;
 struct PositionComponent;
 struct SpriteComponent;
+struct TextComponent;
 
 class Renderer
 {
@@ -55,6 +56,7 @@ public:
 	virtual void beginRender() = 0;
 	virtual void endRender() = 0;
     virtual void render(const PositionComponent &position, const SpriteComponent &sprite) const = 0;
+	virtual void render(const PositionComponent &position, const TextComponent &text) const = 0;
 
     virtual void showMessageBox(const std::string &title, const std::string &message) = 0;
 };

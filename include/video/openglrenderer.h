@@ -39,6 +39,7 @@ public:
 	void beginRender() override;
 	void endRender() override;
 	void render(const PositionComponent &position, const SpriteComponent &sprite) const override;
+	void render(const PositionComponent &position, const TextComponent &text) const override;
     void showMessageBox(const std::string &title, const std::string &message) override;
 };
 
