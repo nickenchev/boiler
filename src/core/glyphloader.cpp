@@ -120,7 +120,6 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 			{ xpos + w, ypos, 0.0f },
 			{ xpos + w, ypos + h, 0.0f }           
         });
-		x += (face->glyph->advance.x >> 6) * scale;
 
 		Glyph glyph(Boiler::getInstance().getRenderer().loadModel(vertData), size,
 					glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
