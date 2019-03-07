@@ -4,9 +4,6 @@
 #include <string>
 #include <glm/glm.hpp>
 #include "core/componenttype.h"
-#include "core/components/positioncomponent.h"
-#include "video/vertexdata.h"
-#include "video/model.h"
 #include "video/glyphmap.h"
 #include "video/glyph.h"
 
@@ -16,14 +13,13 @@ struct TextComponent : public ComponentType<TextComponent>
 {
 	std::string text;
 	glm::vec4 colour;
-	const GlyphMap &glyphMap;
-	const PositionComponent &position;
+	const GlyphMap *glyphMap;
 
-	TextComponent(std::string text, glm::vec4 colour, const PositionComponent &position, GlyphMap *glyphMap) : glyphMap(*glyphMap), position(position)
+	TextComponent(const std::string &text, const glm::vec4 &colour, const GlyphMap *glyphMap)
 	{
 		this->text = text;
 		this->colour = colour;
-
+		this->glyphMap = glyphMap;
 		/*
 		const float scale = 1;
 		for (char c : text)
