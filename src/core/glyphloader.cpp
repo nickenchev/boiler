@@ -7,6 +7,7 @@
 #include "video/glyph.h"
 #include "video/vertexdata.h"
 #include "video/model.h"
+#include "util/texutil.h"
 
 GlyphLoader::GlyphLoader() : logger("Glyph Loader")
 {
@@ -62,12 +63,11 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 
 	// figure out atlas size
 	FT_BitmapGlyph tallestGlyph = (FT_BitmapGlyph)std::get<1>(glyphs[0]);
-	GLfloat atlasHeight = tallestGlyph->bitmap.rows;
-	GLfloat atlasWidth = 0;
+	Size atlasSize(tallestGlyph->bitmap.rows, 0);
 	for (auto gtuple : glyphs)
 	{
 		FT_BitmapGlyph bmg = (FT_BitmapGlyph)std::get<1>(gtuple);
-		atlasWidth += bmg->bitmap.width;
+		atlasSize.width += bmg->bitmap.width;
 	}
 
 	// let opengl store textures that are not multiple of 4
@@ -76,7 +76,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 	GLuint texture = 0;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, atlasWidth, atlasHeight, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, atlasSize.width, atlasSize.height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
 	GLint swizzleMask[] = { GL_ONE, GL_ONE, GL_ONE, GL_RED };
 	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
 
@@ -96,20 +96,20 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 		unsigned long code = std::get<0>(tgl);
 		FT_Glyph ftGlyph = std::get<1>(tgl);
 		FT_BitmapGlyph bmg = (FT_BitmapGlyph)ftGlyph;
-		Size size(face->glyph->bitmap.width, face->glyph->bitmap.rows);
+		Rect sourceRect(xOffset, yOffset, face->glyph->bitmap.width, face->glyph->bitmap.rows);
 		glm::vec2 bearing(face->glyph->bitmap_left, face->glyph->bitmap_top);
 
 		// write glyph to texture atlas
-		glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, bmg->bitmap.width, bmg->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, bmg->bitmap.buffer);
-		xOffset += size.width;
+		glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, sourceRect.size.width, sourceRect.size.height, GL_RED, GL_UNSIGNED_BYTE, bmg->bitmap.buffer);
+		xOffset += sourceRect.size.width;
 
 		// create model data
 		const float scale = 1.0f;
 		GLfloat xpos = x + bearing.x * scale;
-		GLfloat ypos = y - (size.height - bearing.y) * scale;
+		GLfloat ypos = y - (sourceRect.size.height - bearing.y) * scale;
 
-		GLfloat w = size.width * scale;
-		GLfloat h = size.height * scale;
+		GLfloat w = sourceRect.size.width * scale;
+		GLfloat h = sourceRect.size.height * scale;
 
 		VertexData vertData(
 		{
@@ -120,9 +120,22 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 			{ xpos + w, ypos, 0.0f },
 			{ xpos + w, ypos + h, 0.0f }           
         });
-		x += (face->glyph->advance.x >> 6) * scale;
 
-		Glyph glyph(Boiler::getInstance().getRenderer().loadModel(vertData), size,
+		const auto texCoords = TextureUtil::getTextureCoords(atlasSize, sourceRect);
+
+		// create a VBO to hold each frame's texture coords
+		GLuint texCoordVbo = 0;
+		glGenBuffers(1, &texCoordVbo);
+		glBindBuffer(GL_ARRAY_BUFFER, texCoordVbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * texCoords.size(), &texCoords[0], GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		if (glGetError() != GL_NO_ERROR)
+		{
+			logger.error("Unable to create the texture coordinate VBO.");
+		}
+
+		Glyph glyph(Boiler::getInstance().getRenderer().loadModel(vertData), sourceRect,
 					glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
 					face->glyph->advance.x);
 
@@ -132,7 +145,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 	}
 	FT_Done_Face(face);
 
-	logger.log("Generated font atlas with dimensions " + std::to_string(atlasWidth) + "x" + std::to_string(atlasHeight));
+	logger.log("Generated font atlas with dimensions " + std::to_string(atlasSize.width) + "x" + std::to_string(atlasSize.height));
 
 	return GlyphMap(std::make_shared<OpenGLTexture>(fontPath, texture), glyphMap);
 			/*
