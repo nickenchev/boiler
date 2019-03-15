@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <algorithm>
 #include "core/ecstypes.h"
 #include "core/system.h"
 #include "core/logger.h"

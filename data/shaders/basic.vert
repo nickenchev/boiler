@@ -5,7 +5,7 @@ in vec2 texCoords;
 out vec2 fragTexCoords;
 
 uniform mat4 MVP;
-uniform mat4 entityColor;
+uniform vec4 entityColor;
 uniform bool usingTexture;
 
 void main()
