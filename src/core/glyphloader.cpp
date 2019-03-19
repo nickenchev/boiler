@@ -63,7 +63,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 
 	// figure out atlas size
 	FT_BitmapGlyph tallestGlyph = (FT_BitmapGlyph)std::get<1>(glyphs[0]);
-	Size atlasSize(tallestGlyph->bitmap.rows, 0);
+	Size atlasSize(0, tallestGlyph->bitmap.rows);
 	for (auto gtuple : glyphs)
 	{
 		FT_BitmapGlyph bmg = (FT_BitmapGlyph)std::get<1>(gtuple);
@@ -77,9 +77,13 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, atlasSize.width, atlasSize.height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+	if (glGetError() != GL_NO_ERROR)
+	{
+		logger.error("Unable to allocate glyph atlas texture.");
+	}
+
 	GLint swizzleMask[] = { GL_ONE, GL_ONE, GL_ONE, GL_RED };
 	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -96,20 +100,24 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 		unsigned long code = std::get<0>(tgl);
 		FT_Glyph ftGlyph = std::get<1>(tgl);
 		FT_BitmapGlyph bmg = (FT_BitmapGlyph)ftGlyph;
-		Rect sourceRect(xOffset, yOffset, face->glyph->bitmap.width, face->glyph->bitmap.rows);
+		Rect destRect(xOffset, yOffset, bmg->bitmap.width, bmg->bitmap.rows);
 		glm::vec2 bearing(face->glyph->bitmap_left, face->glyph->bitmap_top);
 
 		// write glyph to texture atlas
-		glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, sourceRect.size.width, sourceRect.size.height, GL_RED, GL_UNSIGNED_BYTE, bmg->bitmap.buffer);
-		xOffset += sourceRect.size.width;
+		glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, destRect.size.width, destRect.size.height, GL_RED, GL_UNSIGNED_BYTE, bmg->bitmap.buffer);
+		if (glGetError() != GL_NO_ERROR)
+		{
+			logger.error("Unable to write sub texture for glyph atlas.");
+		}
+		xOffset += destRect.size.width;
 
 		// create model data
 		const float scale = 1.0f;
 		GLfloat xpos = x + bearing.x * scale;
-		GLfloat ypos = y - (sourceRect.size.height - bearing.y) * scale;
+		GLfloat ypos = y - (destRect.size.height - bearing.y) * scale;
 
-		GLfloat w = sourceRect.size.width * scale;
-		GLfloat h = sourceRect.size.height * scale;
+		GLfloat w = destRect.size.width * scale;
+		GLfloat h = destRect.size.height * scale;
 
 		VertexData vertData(
 		{
@@ -121,7 +129,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 			{ xpos + w, ypos + h, 0.0f }           
         });
 
-		const auto texCoords = TextureUtil::getTextureCoords(atlasSize, sourceRect);
+		const auto texCoords = TextureUtil::getTextureCoords(atlasSize, destRect);
 
 		// create a VBO to hold each frame's texture coords
 		GLuint texCoordVbo = 0;
@@ -135,7 +143,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 			logger.error("Unable to create the texture coordinate VBO.");
 		}
 
-		Glyph glyph(Boiler::getInstance().getRenderer().loadModel(vertData), sourceRect,
+		Glyph glyph(Boiler::getInstance().getRenderer().loadModel(vertData), destRect,
 					glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
 					face->glyph->advance.x);
 

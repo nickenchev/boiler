@@ -10,3 +10,4 @@ void main()
 {
 	fragColor = texture(tex2d, fragTexCoords) * entityColor;
 }
+
