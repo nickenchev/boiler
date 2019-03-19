@@ -30,9 +30,9 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
     const unsigned long glyphCount = characters.length();
 	std::vector<std::tuple<unsigned long, FT_Glyph>> glyphs;
 
-    for (unsigned long c = 0; c < glyphCount; ++c)
+	for (char c : characters)
 	{
-        if (FT_Load_Glyph(face, characters[c], FT_LOAD_DEFAULT))
+        if (FT_Load_Glyph(face, c, FT_LOAD_DEFAULT))
 		{
 			logger.error("Failed to load glyph");
 		}
@@ -107,7 +107,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 		FT_Glyph ftGlyph = std::get<1>(tgl);
 		FT_BitmapGlyph bmg = (FT_BitmapGlyph)ftGlyph;
 		Rect destRect(xOffset, yOffset, bmg->bitmap.width, bmg->bitmap.rows);
-		glm::vec2 bearing(face->glyph->bitmap_left, face->glyph->bitmap_top);
+		glm::vec2 bearing(bmg->left, bmg->top);
 
 		// write glyph to texture atlas
 		glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, yOffset, destRect.size.width, destRect.size.height, GL_RED, GL_UNSIGNED_BYTE, bmg->bitmap.buffer);
@@ -149,8 +149,9 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 		}
 
 		Glyph glyph(Boiler::getInstance().getRenderer().loadModel(vertData), destRect,
-					glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-					face->glyph->advance.x);
+					glm::ivec2(bearing.x, bearing.y), ftGlyph->advance.x);
+
+		logger.log("Glyph: " + std::to_string(code) + " added.");
 
 		glyphMap.insert({code, glyph});
 

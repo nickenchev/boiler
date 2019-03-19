@@ -395,9 +395,9 @@ void OpenGLRenderer::render(const PositionComponent &position, const TextCompone
 	if (text.glyphMap)
 	{
 		const GlyphMap &glyphMap = *text.glyphMap;
-		for (auto character : text.text)
+		for (unsigned long character : text.text)
 		{
-			Glyph glyph = glyphMap[static_cast<unsigned long>(character)];
+			Glyph glyph = glyphMap[character];
 			render(position, glyph.getModel(), glyphMap.getSourceTexture(), glyph.getTexCoordsVbo(), text.colour);
 		}
 	}
