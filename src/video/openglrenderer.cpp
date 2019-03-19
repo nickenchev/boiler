@@ -15,6 +15,7 @@
 #include "core/part.h"
 #include "core/components/positioncomponent.h"
 #include "core/components/spritecomponent.h"
+#include "core/components/textcomponent.h"
 #include "camera/camera.h"
 
 OpenGLRenderer::OpenGLRenderer(bool useGLES) : Renderer(std::string(COMPONENT_NAME))
@@ -254,26 +255,26 @@ void OpenGLRenderer::endRender()
     glUseProgram(0);
 }
 
-void OpenGLRenderer::render(const PositionComponent &position, const SpriteComponent &sprite) const
+void OpenGLRenderer::render(const PositionComponent &position, const std::shared_ptr<const Model> model,
+							const std::shared_ptr<const Texture> sourceTexture, GLuint texCoordsVbo, const glm::vec4 &colour) const
 {
 	glUseProgram(getProgram()->getShaderProgram());
-	// render the entity
-	if (sprite.model)
+	if (model)
     {
-        auto model = std::static_pointer_cast<const OpenGLModel>(sprite.model);
+        auto oglModel = std::static_pointer_cast<const OpenGLModel>(model);
         // set the vao for the current sprite
-        glBindVertexArray(model->getVao());
+        glBindVertexArray(oglModel->getVao());
 
-		if (sprite.spriteFrame)
+		if (texCoordsVbo)
 		{
 			// binds the current frames texture VBO and ensure it is linked to the current VAO
-			glBindBuffer(GL_ARRAY_BUFFER, sprite.spriteFrame->getTexCoordsVbo());
+			glBindBuffer(GL_ARRAY_BUFFER, texCoordsVbo);
 			glVertexAttribPointer(ATTRIB_ARRAY_TEXTURE, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 			// set the current texture
-			setActiveTexture(sprite.spriteFrame->getSourceTexture());
+			setActiveTexture(sourceTexture);
 		}
-		glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(sprite.color));
+		glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(colour));
 
 		const glm::mat4 &modelMatrix = position.getMatrix();
 		glm::mat4 mvpMatrix;
@@ -299,7 +300,12 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 			logger.error("GL Error returned: " + std::to_string(glError));
 		}
 	}
+}
 
+void OpenGLRenderer::render(const PositionComponent &position, const SpriteComponent &sprite) const
+{
+	render(position, sprite.model, sprite.spriteFrame->getSourceTexture(),
+		   sprite.spriteFrame->getTexCoordsVbo(), sprite.colour);
 	/*
 	std::string test = "Amazing!?";
 	GLuint vao = 0;
@@ -386,6 +392,15 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 
 void OpenGLRenderer::render(const PositionComponent &position, const TextComponent &text) const
 {
+	if (text.glyphMap)
+	{
+		const GlyphMap &glyphMap = *text.glyphMap;
+		for (auto character : text.text)
+		{
+			Glyph glyph = glyphMap[static_cast<unsigned long>(character)];
+			render(position, glyph.getModel(), glyphMap.getSourceTexture(), glyph.getTexCoordsVbo(), text.colour);
+		}
+	}
 }
 
 void OpenGLRenderer::showMessageBox(const std::string &title, const std::string &message)
