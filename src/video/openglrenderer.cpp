@@ -235,8 +235,8 @@ void OpenGLRenderer::beginRender()
 		const Size screenSize = getScreenSize();
 		const GLfloat orthoW = screenSize.width /  getGlobalScale().x;
 		const GLfloat orthoH = screenSize.height / getGlobalScale().y;
+		renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f);
 		//renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
-		renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), 0.0f, static_cast<GLfloat>(orthoH));
     }
 
 	// if camera has been set, recalc the projection matrix
@@ -392,14 +392,11 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 
 void OpenGLRenderer::render(const PositionComponent &position, const TextComponent &text) const
 {
-	if (text.glyphMap)
+	const GlyphMap &glyphMap = *text.glyphMap;
+	for (unsigned long character : text.text)
 	{
-		const GlyphMap &glyphMap = *text.glyphMap;
-		for (unsigned long character : text.text)
-		{
-			Glyph glyph = glyphMap[character];
-			render(position, glyph.getModel(), glyphMap.getSourceTexture(), glyph.getTexCoordsVbo(), text.colour);
-		}
+		Glyph glyph = glyphMap[character];
+		render(position, glyph.getModel(), glyphMap.getSourceTexture(), glyph.getTexCoordsVbo(), text.colour);
 	}
 }
 
