@@ -48,8 +48,6 @@ void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
 		.expects<PositionComponent>()
 		.expects<SpriteComponent>();
 	ecs.getComponentSystems().removeUpdate(&renderSys);
-	ecs.getComponentSystems().removeUpdate(&renderSys);
-	ecs.getComponentSystems().removeUpdate(&renderSys);
 	this->renderSystem = &renderSys;
 
 	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*renderer)

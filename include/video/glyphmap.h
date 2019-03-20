@@ -14,6 +14,13 @@ public:
     GlyphMap(const std::shared_ptr<const Texture> &sourceTexture,
 			 const std::unordered_map<unsigned long, const Glyph> &map) : sourceTexture(sourceTexture), map(map) { }
 
+	~GlyphMap();
+
+	const Glyph &operator[](unsigned long code) const
+	{
+		return map.at(code);
+	}
+	auto getSourceTexture() const { return sourceTexture; }
 };
 
 

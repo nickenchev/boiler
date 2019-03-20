@@ -12,10 +12,10 @@ class SpriteSheetFrame;
 struct SpriteComponent : public ComponentType<SpriteComponent>
 {
     const SpriteSheetFrame *spriteFrame;
-    glm::vec4 color;
+    glm::vec4 colour;
     std::shared_ptr<const Model> model;
 
-	SpriteComponent(const Rect &frame) : color(1.0f, 1.0f, 1.0f, 1.0f)
+	SpriteComponent(const Rect &frame) : colour(1.0f, 1.0f, 1.0f, 1.0f)
 	{
 		// 2D vertex and texture coords
 		const float sizeW = frame.size.width;
