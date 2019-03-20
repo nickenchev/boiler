@@ -397,15 +397,12 @@ void OpenGLRenderer::render(const PositionComponent &position, const TextCompone
 
 	for (unsigned long character : text.text)
 	{
-		logger.log("Glyph at: " + std::to_string(glyphPos.frame.position.x) + ", " + std::to_string(glyphPos.frame.position.y));
+		//logger.log("Glyph at: " + std::to_string(glyphPos.frame.position.x) + ", " + std::to_string(glyphPos.frame.position.y));
 		const Glyph &glyph = glyphMap[character];
 		glyphPos.frame.position.x += glyph.getBearing().x;
 		glyphPos.frame.position.y += glyph.getBearing().y;
-
 		render(glyphPos, glyph.getModel(), glyphMap.getSourceTexture(), glyph.getTexCoordsVbo(), text.colour);
-
-		//glyphPos.frame.position.x += (glyph.getAdvance() >> 6);
-		glyphPos.frame.position.x += 40;
+		glyphPos.frame.position.x += (glyph.getAdvance() >> 6);
 	}
 }
 

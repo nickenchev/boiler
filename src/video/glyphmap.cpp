@@ -1,8 +1,6 @@
 #include "video/glyphmap.h"
 #include "video/opengl.h"
 
-#include <iostream>
-
 GlyphMap::~GlyphMap()
 {
 	for (auto itr : map)
