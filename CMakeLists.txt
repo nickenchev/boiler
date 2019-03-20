@@ -9,7 +9,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 set(OpenGL_GL_PREFERENCE "GLVND")
 
 # Shader files
-set(SHADER_FILES data/shaders/shader.vert data/shaders/shader.frag)
+set(SHADER_FILES data/shaders/basic.vert data/shaders/basic.frag)
 
 # boiler sources
 find_package(glm REQUIRED)
@@ -22,11 +22,13 @@ find_package(Freetype REQUIRED)
 
 # Engine related headers
 set(BOILER_HEADERS
+  ${CMAKE_CURRENT_LIST_DIR}/include/boiler.h
   ${CMAKE_CURRENT_LIST_DIR}/include/camera/camera.h
   ${CMAKE_CURRENT_LIST_DIR}/include/camera/pancamera.h
   ${CMAKE_CURRENT_LIST_DIR}/include/camera/platformercamera.h
   ${CMAKE_CURRENT_LIST_DIR}/include/containers/array2d.h
   ${CMAKE_CURRENT_LIST_DIR}/include/containers/gridposition.h
+  ${CMAKE_CURRENT_LIST_DIR}/include/core/glyphloader.h
   ${CMAKE_CURRENT_LIST_DIR}/include/video/renderer.h)
 
 # Engine related sources
