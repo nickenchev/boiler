@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 
 #include "core/boiler.h"
+#include "core/boiler.h"
 #include "video/renderer.h"
 #include "video/shaderprogram.h"
 #include "video/opengl.h"
@@ -79,14 +80,19 @@ ShaderProgram::ShaderProgram(std::string path, std::string vertexShader, std::st
 
 	//link the shader program
 	glLinkProgram(shaderProgram);
-	GLint linkStatus;
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linkStatus);
-	if (!linkStatus)
+	GLint isLinked = 0;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &isLinked);
+	if (isLinked == GL_FALSE)
 	{
-		GLint logLength;
-		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
+		GLint maxLength = 0;
+		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
+
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, &infoLog[0]);
+		logger.error(std::string(&infoLog[0]));
+
+		glDeleteProgram(shaderProgram);
 		
-		logger.error(SDL_GetError());
 		throw std::runtime_error("Error linking the shader program.");
 	}
 
