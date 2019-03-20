@@ -10,7 +10,6 @@ void GlyphSystem::update(ComponentStore &store, const double delta) const
 	{
 		PositionComponent &pos = store.retrieve<PositionComponent>(entity);
 		TextComponent &text = store.retrieve<TextComponent>(entity);
-
-		//Boiler::getInstance().getRenderer().render(pos, sprite);
+		Boiler::getInstance().getRenderer().render(pos, text);
 	}
 }
