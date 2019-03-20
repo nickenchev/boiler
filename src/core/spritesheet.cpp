@@ -18,6 +18,7 @@ const SpriteSheetFrame *SpriteSheet::getFrame(const std::string frameName) const
 
 const SpriteSheetFrame *SpriteSheet::getFirstFrame() const
 {
+	assert(frames.size() > 0);
     return &frames.begin()->second;
 }
 

@@ -26,6 +26,8 @@ public:
 
 	auto getModel() const { return model; }
     unsigned int getTexCoordsVbo() const { return texCoordsVbo; }
+	auto &getBearing() const { return bearing; }
+	auto &getAdvance() const { return advance; }
 };
 
 #endif /* GLYPH_H */
