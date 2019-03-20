@@ -10,6 +10,8 @@ void GlyphSystem::update(ComponentStore &store, const double delta) const
 	{
 		PositionComponent &pos = store.retrieve<PositionComponent>(entity);
 		TextComponent &text = store.retrieve<TextComponent>(entity);
+
+		assert(text.glyphMap != nullptr);
 		Boiler::getInstance().getRenderer().render(pos, text);
 	}
 }
