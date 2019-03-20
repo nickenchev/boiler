@@ -393,10 +393,19 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 void OpenGLRenderer::render(const PositionComponent &position, const TextComponent &text) const
 {
 	const GlyphMap &glyphMap = *text.glyphMap;
+	PositionComponent glyphPos = position;
+
 	for (unsigned long character : text.text)
 	{
-		Glyph glyph = glyphMap[character];
-		render(position, glyph.getModel(), glyphMap.getSourceTexture(), glyph.getTexCoordsVbo(), text.colour);
+		logger.log("Glyph at: " + std::to_string(glyphPos.frame.position.x) + ", " + std::to_string(glyphPos.frame.position.y));
+		const Glyph &glyph = glyphMap[character];
+		glyphPos.frame.position.x += glyph.getBearing().x;
+		glyphPos.frame.position.y += glyph.getBearing().y;
+
+		render(glyphPos, glyph.getModel(), glyphMap.getSourceTexture(), glyph.getTexCoordsVbo(), text.colour);
+
+		//glyphPos.frame.position.x += (glyph.getAdvance() >> 6);
+		glyphPos.frame.position.x += 40;
 	}
 }
 
