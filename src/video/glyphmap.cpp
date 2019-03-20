@@ -1,13 +1,16 @@
 #include "video/glyphmap.h"
 #include "video/opengl.h"
 
+#include <iostream>
+
 GlyphMap::~GlyphMap()
 {
 	for (auto itr : map)
 	{
-		if (itr.second.getTexCoordsVbo())
+		const Glyph &glyph = itr.second;
+		if (glyph.getTexCoordsVbo())
 		{
-			auto vbo = itr.second.getTexCoordsVbo();
+			GLuint vbo = glyph.getTexCoordsVbo();
 			glDeleteBuffers(1, &vbo);
 		}
 	}

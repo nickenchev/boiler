@@ -148,10 +148,8 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 			logger.error("Unable to create the texture coordinate VBO.");
 		}
 
-		Glyph glyph(Boiler::getInstance().getRenderer().loadModel(vertData), destRect,
+		Glyph glyph(Boiler::getInstance().getRenderer().loadModel(vertData), texCoordVbo, destRect,
 					glm::ivec2(bearing.x, bearing.y), ftGlyph->advance.x);
-
-		logger.log("Glyph: " + std::to_string(code) + " added.");
 
 		glyphMap.insert({code, glyph});
 
