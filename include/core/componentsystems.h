@@ -29,16 +29,16 @@ public:
 	}
 
 	template<typename T, typename... Args>
-	System &registerSystem(Args&&... args)
+	T &registerSystem(Args&&... args)
 	{
 		// TODO: Check if any of the existing entities fit into the newly registered system
 		auto system = std::make_unique<T>(std::forward<Args>(args)...);
-		System &sys = *system;
+		T &sysRef = *system;
 		systems.push_back(std::move(system));
-		updateSystems.push_back(&sys);
-		logger.log("System Registered: " + sys.name);
+		updateSystems.push_back(&sysRef);
+		logger.log("System Registered: " + sysRef.name);
 
-		return sys;
+		return sysRef;
 	}
 
 	void removeUpdate(const System *system)
