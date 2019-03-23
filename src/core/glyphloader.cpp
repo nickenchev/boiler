@@ -47,6 +47,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 			{
                 if (FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, nullptr, true) == 0)
                 {
+					glyph->advance = face->glyph->advance;
                     glyphs.push_back(std::make_tuple(c, glyph));
                 }
                 else
@@ -148,10 +149,8 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 			logger.error("Unable to create the texture coordinate VBO.");
 		}
 
-		Glyph glyph(Boiler::getInstance().getRenderer().loadModel(vertData), texCoordVbo, destRect,
-					glm::ivec2(bearing.x, bearing.y), ftGlyph->advance.x);
-
-		glyphMap.insert({code, glyph});
+		glyphMap.insert({code, Glyph(Boiler::getInstance().getRenderer().loadModel(vertData), texCoordVbo, destRect,
+									 glm::ivec2(bearing.x, bearing.y), ftGlyph->advance.x)});
 
 		FT_Done_Glyph(ftGlyph);
 	}
