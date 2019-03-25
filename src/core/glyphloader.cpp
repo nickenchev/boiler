@@ -28,11 +28,11 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 
     const std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`1234567890-=~!@#$%^&*()_+[]{}\\|;:'\",<.>/? ";
     const unsigned long glyphCount = characters.length();
-	std::vector<std::tuple<unsigned long, FT_Glyph>> glyphs;
+	std::vector<std::pair<unsigned long, FT_Glyph>> glyphs;
 
 	for (char c : characters)
 	{
-        if (FT_Load_Glyph(face, c, FT_LOAD_DEFAULT))
+        if (FT_Load_Glyph(face, FT_Get_Char_Index(face, c), FT_LOAD_DEFAULT))
 		{
 			logger.error("Failed to load glyph");
 		}
@@ -53,15 +53,15 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
                 else
                 {
                     logger.error("Error converting glyph to bitmap");
-                }
+				}
 			}
 		}
 	}
 
 	//sort by pixel area
-	auto cmprs = [](std::tuple<unsigned long, FT_Glyph> t1, std::tuple<unsigned long, FT_Glyph> t2) {
-        FT_BitmapGlyph bmg1 = (FT_BitmapGlyph)std::get<1>(t1);
-		FT_BitmapGlyph bmg2 = (FT_BitmapGlyph)std::get<1>(t2);
+	auto cmprs = [](std::pair<unsigned long, FT_Glyph> t1, std::pair<unsigned long, FT_Glyph> t2) {
+		FT_BitmapGlyph bmg1 = (FT_BitmapGlyph)t1.second;
+		FT_BitmapGlyph bmg2 = (FT_BitmapGlyph)t2.second;
 		return bmg1->bitmap.rows < bmg2->bitmap.rows;
 	};
 	logger.log("Building glyph atlas for " + fontPath);
@@ -104,9 +104,10 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 	float y = 0;
 	for (auto tgl : glyphs)
 	{
-		unsigned long code = std::get<0>(tgl);
-		FT_Glyph ftGlyph = std::get<1>(tgl);
+		unsigned long code = tgl.first;
+		FT_Glyph ftGlyph = tgl.second;
 		FT_BitmapGlyph bmg = (FT_BitmapGlyph)ftGlyph;
+		std::cout << "'" << (char)code << "', " << bmg->bitmap.rows << std::endl;
 		Rect destRect(xOffset, yOffset, bmg->bitmap.width, bmg->bitmap.rows);
 		glm::vec2 bearing(bmg->left, bmg->top);
 
@@ -121,8 +122,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 		// create model data
 		const float scale = 1.0f;
 		GLfloat xpos = x + bearing.x * scale;
-		GLfloat ypos = y - (destRect.size.height - bearing.y) * scale;
-
+		GLfloat ypos = y + bearing.y * scale;
 		GLfloat sizeW = destRect.size.width * scale;
 		GLfloat sizeH = destRect.size.height * scale;
 
@@ -151,7 +151,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 			logger.error("Unable to create the texture coordinate VBO.");
 		}
 
-		glyphMap.insert({code, Glyph(Boiler::getInstance().getRenderer().loadModel(vertData), texCoordVbo, destRect,
+		glyphMap.insert({code, Glyph(code, Boiler::getInstance().getRenderer().loadModel(vertData), texCoordVbo, destRect,
 									 glm::ivec2(bearing.x, bearing.y), ftGlyph->advance.x)});
 
 		FT_Done_Glyph(ftGlyph);

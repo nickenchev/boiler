@@ -401,7 +401,7 @@ void OpenGLRenderer::render(const PositionComponent &position, const TextCompone
 
 		PositionComponent glyphPos = position;
 		glyphPos.frame.position.x += xOffset + glyph.getBearing().x;
-		glyphPos.frame.position.y += glyph.getBearing().y;
+		glyphPos.frame.position.y += -glyph.getBearing().y;
 
 		render(glyphPos, glyph.getModel(), glyphMap.getSourceTexture(), glyph.getTexCoordsVbo(), text.colour);
 
