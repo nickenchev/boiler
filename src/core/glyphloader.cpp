@@ -123,18 +123,20 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 		GLfloat xpos = x + bearing.x * scale;
 		GLfloat ypos = y - (destRect.size.height - bearing.y) * scale;
 
-		GLfloat w = destRect.size.width * scale;
-		GLfloat h = destRect.size.height * scale;
+		GLfloat sizeW = destRect.size.width * scale;
+		GLfloat sizeH = destRect.size.height * scale;
 
 		VertexData vertData(
 		{
-			{ xpos, ypos + h, 0.0f },
-			{ xpos, ypos, 0.0f },
-			{ xpos + w, ypos, 0.0f },
-			{ xpos, ypos + h, 0.0f },
-			{ xpos + w, ypos, 0.0f },
-			{ xpos + w, ypos + h, 0.0f }           
-        });
+			{ 0.0f, sizeH, 0.0f },
+			{ sizeW, 0.0f, 0.0f },
+			{ 0.0f, 0.0f, 0.0f },
+
+			{ 0.0f, sizeH, 0.0f },
+			{ sizeW, sizeH, 0.0f },
+			{ sizeW, 0.0f, 0.0f }
+
+		});
 
 		const auto texCoords = TextureUtil::getTextureCoords(atlasSize, destRect);
 

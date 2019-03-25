@@ -12,10 +12,10 @@ public:
 	static auto getTextureCoords(const Size &sheetSize, const Rect &portion)
 	{
 		// calculate the opengl texture coords
-		const float texX = portion.position.x / static_cast<float>(sheetSize.width);
-		const float texY = portion.position.y / static_cast<float>(sheetSize.height);
-		const float texW = (portion.position.x + portion.size.width) / static_cast<float>(sheetSize.width);
-		const float texH = (portion.position.y + portion.size.height) / static_cast<float>(sheetSize.height);
+		const float texX = portion.position.x / sheetSize.width;
+		const float texY = portion.position.y / sheetSize.height;
+		const float texW = (portion.position.x + portion.size.width) / sheetSize.width;
+		const float texH = (portion.position.y + portion.size.height) / sheetSize.height;
 
 		std::vector<float> texCoords(
 		{
