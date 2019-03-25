@@ -90,6 +90,7 @@ void Boiler::run()
 			// TODO: Render system needs to not kick in when frame is lagging, only physics etc systems should be updated during frame lag catchup.
 			// Need a clean way to essentially move the render() to outside the while loop here (after).
 			update(frameInterval);
+			part->update(frameInterval);
 			frameLag -= frameInterval;
 		} 
 		
