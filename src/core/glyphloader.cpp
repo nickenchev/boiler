@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <tuple>
+#include <vector>
 #include <boiler.h>
 #include <video/opengl.h>
 #include <video/opengltexture.h>
@@ -48,7 +50,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
                 if (FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, nullptr, true) == 0)
                 {
 					glyph->advance = face->glyph->advance;
-                    glyphs.push_back(std::make_tuple(c, glyph));
+					glyphs.push_back(std::pair<unsigned long, FT_Glyph>(c, glyph));
                 }
                 else
                 {
