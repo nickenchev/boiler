@@ -1,7 +1,7 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-typedef unsigned long EntityId;
+using EntityId = unsigned long;
 
 class Entity
 {
