@@ -109,6 +109,23 @@ void Boiler::processInput()
 	{
 		switch(event.type)
 		{
+			case SDL_QUIT:
+			{
+				quit();
+				break;
+			}
+			case SDL_WINDOWEVENT:
+			{
+				switch (event.window.event)
+				{
+					case SDL_WINDOWEVENT_CLOSE:
+					{
+						quit();
+						break;
+					}
+				}
+				break;
+			}
 			case SDL_FINGERUP:
 			{
 				TouchTapEvent event(TapState::UP);
