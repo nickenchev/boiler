@@ -15,6 +15,7 @@
 #include "core/entitycomponentsystem.h"
 #include "video/systems/rendersystem.h"
 #include "video/systems/glyphsystem.h"
+#include "video/systems/guisystem.h"
 #include "video/guihandler.h"
 #include "logger.h"
 
@@ -33,7 +34,7 @@ class Boiler
 	EntityComponentSystem ecs;
     std::string baseDataPath;
     std::unique_ptr<Renderer> renderer;
-	System *renderSystem, *glyphSystem;
+	System *renderSystem, *glyphSystem, *guiSystem;
 
     std::vector<TouchMotionListener> touchMotionListeners;
     std::vector<TouchTapEventListener> touchTapEventListeners;
@@ -52,7 +53,6 @@ class Boiler
     void update(const double delta);
 
     std::shared_ptr<Part> part;
-	std::unique_ptr<GUIHandler> guiHandler;
 
     // singleton
     Boiler();

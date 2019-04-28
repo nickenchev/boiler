@@ -11,6 +11,7 @@
 #include "core/components/positioncomponent.h"
 #include "core/components/spritecomponent.h"
 #include "core/components/textcomponent.h"
+#include "core/components/guicomponent.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
@@ -44,27 +45,22 @@ void Boiler::initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIH
 	this->renderer = std::move(renderer);
 	getRenderer().initialize(Size(resWidth, resHeight));
 
-	if (guiHandler)
-	{
-		this->guiHandler = std::move(guiHandler);
-		this->guiHandler->initialize(*this->renderer);
-	}
-	else
-	{
-		this->guiHandler = nullptr;
-	}
-
-	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*renderer)
+	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*this->renderer)
 		.expects<PositionComponent>()
 		.expects<SpriteComponent>();
 	ecs.getComponentSystems().removeUpdate(&renderSys);
 	this->renderSystem = &renderSys;
 
-	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*renderer)
+	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*this->renderer)
 		.expects<PositionComponent>()
 		.expects<TextComponent>();
 	ecs.getComponentSystems().removeUpdate(&glyphSys);
 	this->glyphSystem = &glyphSys;
+
+	System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*this->renderer, std::move(guiHandler))
+		.expects<GUIComponent>();
+	ecs.getComponentSystems().removeUpdate(&guiSys);
+	this->guiSystem = &guiSys;
 }
 
 void Boiler::start(std::shared_ptr<Part> part)
@@ -107,6 +103,7 @@ void Boiler::run()
 		renderer->beginRender();
 		renderSystem->update(getEcs().getComponentStore(), frameDelta);
 		glyphSystem->update(getEcs().getComponentStore(), frameDelta);
+		guiSystem->update(getEcs().getComponentStore(), frameDelta);
 		renderer->endRender();
 	}
 }
@@ -198,10 +195,10 @@ void Boiler::processInput()
 			}
 		}
 
-		if (guiHandler)
+		/*if (guiHandler)
 		{
 			guiHandler->processEvents(event);
-		}
+			}*/
 	}
 }
 

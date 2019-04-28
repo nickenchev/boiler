@@ -59,6 +59,7 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/video/imageloader.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/rendersystem.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/glyphsystem.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/guisystem.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/glyphmap.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/camera/camera.cpp
   # src/camera/platformercamera.cpp
