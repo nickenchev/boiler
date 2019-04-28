@@ -8,6 +8,7 @@
 
 struct PositionComponent : public ComponentType<PositionComponent>
 {
+	PositionComponent *parent;
     Rect frame;
     bool flipH, flipV, collides;
     glm::vec3 scale;
@@ -19,6 +20,7 @@ struct PositionComponent : public ComponentType<PositionComponent>
 		flipV = false;
 		collides = false;
 		absolute = false;
+		parent = nullptr;
 	}
 
 	const glm::mat4 getMatrix() const
