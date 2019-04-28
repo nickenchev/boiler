@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <memory>
 #include "core/component.h"
+#include "core/entity.h"
 
 typedef std::unordered_map<ComponentMask, std::shared_ptr<Component>> ComponentMap;
 

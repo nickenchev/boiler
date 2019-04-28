@@ -3,6 +3,7 @@
 
 #include "core/boiler.h"
 #include "core/entity.h"
+#include "core/part.h"
 #include "camera/pancamera.h"
 #include "containers/array2d.h"
 #include "video/renderer.h"

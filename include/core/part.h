@@ -15,6 +15,8 @@ public:
     Part(const Part &part) = delete;
     Part &operator=(const Part &part) = delete;
 
+    virtual ~Part() { }
+
     virtual void onStart() = 0;
     virtual void update(double deltaTime) { }
 };
