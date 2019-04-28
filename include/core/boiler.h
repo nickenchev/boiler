@@ -15,6 +15,7 @@
 #include "core/entitycomponentsystem.h"
 #include "video/systems/rendersystem.h"
 #include "video/systems/glyphsystem.h"
+#include "video/guihandler.h"
 #include "logger.h"
 
 class Entity;
@@ -51,6 +52,7 @@ class Boiler
     void update(const double delta);
 
     std::shared_ptr<Part> part;
+	std::unique_ptr<GUIHandler> guiHandler;
 
     // singleton
     Boiler();
@@ -62,7 +64,7 @@ public:
 
     static Boiler &getInstance();
 
-    void initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight);
+    void initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight);
     void start(std::shared_ptr<Part> part);
     void quit() { running = false; }
 

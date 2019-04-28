@@ -25,7 +25,7 @@ Boiler &Boiler::getInstance()
 	return instance;
 }
 
-void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight)
+void Boiler::initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight)
 {
 	if (this->renderer != nullptr)
 	{
@@ -43,6 +43,16 @@ void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
 	frameInterval = 1.0f / 60.0f; // 60fps
 	this->renderer = std::move(renderer);
 	getRenderer().initialize(Size(resWidth, resHeight));
+
+	if (guiHandler)
+	{
+		this->guiHandler = std::move(guiHandler);
+		this->guiHandler->initialize(*this->renderer);
+	}
+	else
+	{
+		this->guiHandler = nullptr;
+	}
 
 	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*renderer)
 		.expects<PositionComponent>()
@@ -186,6 +196,11 @@ void Boiler::processInput()
 				}
 				break;
 			}
+		}
+
+		if (guiHandler)
+		{
+			guiHandler->processEvents(event);
 		}
 	}
 }

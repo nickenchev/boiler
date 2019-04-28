@@ -31,6 +31,8 @@ public:
     std::string getVersion() const override { return std::string(VERSION); }
 
     SDL_Window *getWindow() const { return win; }
+	SDL_GLContext getGLContext() const { return glContext; }
+
     std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const override;
     void setActiveTexture(std::shared_ptr<const Texture> texture) const override;
 
