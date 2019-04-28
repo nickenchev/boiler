@@ -49,7 +49,7 @@ class Boiler
     double frameInterval;
 
     void run();
-    void processInput();
+    void processEvents();
     void update(const double delta);
 
     std::shared_ptr<Part> part;
