@@ -99,9 +99,8 @@ void OpenGLRenderer::initialize(const Size screenSize)
 		}
 		else
 		{
-			win = SDL_CreateWindow("Boiler", 0, 0,
-								screenSize.width,
-								screenSize.height, SDL_WINDOW_OPENGL);
+			SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+			win = SDL_CreateWindow("Boiler", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenSize.width, screenSize.height, winFlags);
 			setScreenSize(screenSize);
 		}
 
