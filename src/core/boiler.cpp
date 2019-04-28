@@ -89,7 +89,7 @@ void Boiler::run()
 		prevTime = currentTime;
 		frameLag += frameDelta;
 
-		procesEvents();
+		processEvents();
 
 		while (frameLag >= frameInterval)
 		{
@@ -108,7 +108,7 @@ void Boiler::run()
 	}
 }
 
-void Boiler::procesEvents()
+void Boiler::processEvents()
 {
 	// poll input events
 	SDL_Event event;
