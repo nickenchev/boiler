@@ -4,8 +4,8 @@
 struct RenderDetails
 {
 	const ShaderProgram *shaderProgram;
-    unsigned int mvpUniform;
-    unsigned int colorUniform;
+	int mvpUniform;
+	int colorUniform;
     glm::mat4 viewProjection;
     glm::mat4 camViewProjection;
 
