@@ -109,7 +109,6 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		unsigned long code = tgl.first;
 		FT_Glyph ftGlyph = tgl.second;
 		FT_BitmapGlyph bmg = (FT_BitmapGlyph)ftGlyph;
-		std::cout << "'" << (char)code << "', " << bmg->bitmap.rows << std::endl;
 		Rect destRect(xOffset, yOffset, bmg->bitmap.width, bmg->bitmap.rows);
 		glm::vec2 bearing(bmg->left, bmg->top);
 
@@ -123,8 +122,6 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 
 		// create model data
 		const float scale = 1.0f;
-		GLfloat xpos = x + bearing.x * scale;
-		GLfloat ypos = y + bearing.y * scale;
 		GLfloat sizeW = destRect.size.width * scale;
 		GLfloat sizeH = destRect.size.height * scale;
 
