@@ -12,7 +12,7 @@ public:
 	const ComponentMask &getMask() const { return T::mask; }
 };
 
-static ComponentMask componentMask()
+inline ComponentMask componentMask()
 {
 	static ComponentMask mask{1};
 	ComponentMask newMask = mask;

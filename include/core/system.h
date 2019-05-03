@@ -28,6 +28,7 @@ public:
 	System &expects()
 	{
 		systemMask = systemMask | T::mask;
+		logger.log("System mask: " + systemMask.to_string());
 		return *this;
 	}
 
