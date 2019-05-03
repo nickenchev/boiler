@@ -4,11 +4,16 @@
 
 void GUISystem::update(ComponentStore &store, const double delta) const
 {
-	guiHandler->preRender();
-	for (auto &entity : getEntities())
+	if (getEntities().size())
 	{
-		GUIComponent &guiComp = store.retrieve<GUIComponent>(entity);
-		guiComp.guiRender();
+		guiHandler->preRender();
+		for (auto &entity : getEntities())
+		{
+			GUIComponent &guiComp = store.retrieve<GUIComponent>(entity);
+			if (guiComp.guiRender) {
+				guiComp.guiRender();
+			}
+		}
+		guiHandler->render();
 	}
-	guiHandler->render();
 }
