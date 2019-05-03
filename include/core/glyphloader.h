@@ -18,7 +18,7 @@ public:
     GlyphLoader();
 	virtual ~GlyphLoader();
 
-	const GlyphMap loadFace(std::string fontPath);
+	const GlyphMap loadFace(std::string fontPath, int fontSize);
 };
 
 

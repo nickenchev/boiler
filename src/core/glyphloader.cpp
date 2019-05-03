@@ -19,14 +19,14 @@ GlyphLoader::GlyphLoader() : logger("Glyph Loader")
 	}
 }
 
-const GlyphMap GlyphLoader::loadFace(std::string fontPath)
+const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 {
 	FT_Face face;
 	if (FT_New_Face(ft, fontPath.c_str(), 0, &face))
 	{
 		logger.error("Could not load font");
 	}
-	FT_Set_Pixel_Sizes(face, 0, 48);
+	FT_Set_Pixel_Sizes(face, 0, fontSize);
 
     const std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`1234567890-=~!@#$%^&*()_+[]{}\\|;:'\",<.>/? ";
     const unsigned long glyphCount = characters.length();
