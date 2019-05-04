@@ -15,18 +15,20 @@
 
 #define RENDERER_CLASS OpenGLRenderer
 
-Boiler::Boiler() : spriteLoader(), imageLoader(), fontLoader(), baseDataPath(""), logger("Boiler")
+using namespace Boiler;
+
+Engine::Engine() : spriteLoader(), imageLoader(), fontLoader(), baseDataPath(""), logger("Engine")
 {
-	logger.log("Boiler instance created");
+	logger.log("Engine instance created");
 }
 
-Boiler &Boiler::getInstance()
+Engine &Engine::getInstance()
 {
-	static Boiler instance;
+	static Engine instance;
 	return instance;
 }
 
-void Boiler::initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight)
+void Engine::initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight)
 {
 	if (this->renderer != nullptr)
 	{
@@ -63,7 +65,7 @@ void Boiler::initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIH
 	this->guiSystem = &guiSys;
 }
 
-void Boiler::start(std::shared_ptr<Part> part)
+void Engine::start(std::shared_ptr<Part> part)
 {
 	//store the incoming part and start it
 	this->part = part;
@@ -75,7 +77,7 @@ void Boiler::start(std::shared_ptr<Part> part)
 	run();
 }
 
-void Boiler::run()
+void Engine::run()
 {
 	double prevTime = SDL_GetTicks();
 	double frameLag = 0.0f;
@@ -108,7 +110,7 @@ void Boiler::run()
 	}
 }
 
-void Boiler::processEvents()
+void Engine::processEvents()
 {
 	// poll input events
 	SDL_Event event;
@@ -203,12 +205,12 @@ void Boiler::processEvents()
 	}
 }
 
-void Boiler::update(const double delta)
+void Engine::update(const double delta)
 {
 	ecs.update(delta);
 }
 
-Boiler::~Boiler()
+Engine::~Engine()
 {
 	logger.log("Exiting");
 	if (renderer)

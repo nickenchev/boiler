@@ -5,6 +5,9 @@
 #include <vector>
 #include "rect.h"
 
+namespace Boiler
+{
+
 #define NUM_SUBNODES 4
 
 class Entity;
@@ -30,5 +33,7 @@ public:
     void insert(std::shared_ptr<Entity> entity);
     void retrieve(std::vector<std::shared_ptr<Entity>> &objects, const Rect &rect) const;
 };
+
+}
 
 #endif /* QUADTREE_H */

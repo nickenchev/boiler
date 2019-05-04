@@ -8,6 +8,9 @@
 #include "core/componentmapper.h"
 #include "core/logger.h"
 
+namespace Boiler
+{
+
 class ComponentStore;
 
 class System
@@ -49,4 +52,5 @@ public:
 	const std::vector<Entity> &getEntities() const { return entities; }
 };
 
+}
 #endif /* SYSTEM_H */

@@ -7,6 +7,9 @@
 #include "video/glyphmap.h"
 #include "video/glyph.h"
 
+namespace Boiler
+{
+
 class GlyphMap;
 
 struct TextComponent : public ComponentType<TextComponent>
@@ -46,5 +49,7 @@ struct TextComponent : public ComponentType<TextComponent>
 		*/
 	}
 };
+
+}
 
 #endif /* TEXTCOMPONENT_H */

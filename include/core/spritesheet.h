@@ -7,6 +7,9 @@
 #include "rect.h"
 #include "spritesheetframe.h"
 
+namespace Boiler
+{
+
 typedef unsigned int GLuint;
 
 class Texture;
@@ -29,5 +32,7 @@ public:
     const std::map<std::string, SpriteSheetFrame> &getAllFrames() const { return frames; }
     const SpriteSheetFrame *getFirstFrame() const;
 };
+
+}
 
 #endif // SPRITESHEET_H

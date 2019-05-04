@@ -4,6 +4,9 @@
 #include <glm/glm.hpp>
 #include "rect.h"
 
+namespace Boiler
+{
+
 class StandardForm
 {
     float a, b, c;
@@ -24,5 +27,6 @@ public:
     bool intersects(const Line &rect);
 };
 
+}
 
 #endif /* LINE_H */

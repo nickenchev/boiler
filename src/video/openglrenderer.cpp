@@ -5,18 +5,19 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "core/boiler.h"
+#include "core/engine.h"
 #include "video/openglrenderer.h"
 #include "video/opengltexture.h"
 #include "video/openglmodel.h"
 #include "video/vertexdata.h"
 #include "core/spritesheetframe.h"
-#include "core/boiler.h"
 #include "core/part.h"
 #include "core/components/positioncomponent.h"
 #include "core/components/spritecomponent.h"
 #include "core/components/textcomponent.h"
 #include "camera/camera.h"
+
+using namespace Boiler;
 
 OpenGLRenderer::OpenGLRenderer(bool useGLES) : Renderer(std::string(COMPONENT_NAME))
 {
@@ -79,7 +80,7 @@ void checkOpenGLErrors()
                 break;
             }
         }
-        Boiler::getInstance().getRenderer().showMessageBox("OpenGL Error", errorString);
+        Engine::getInstance().getRenderer().showMessageBox("OpenGL Error", errorString);
     }
 }
 
@@ -268,7 +269,7 @@ void OpenGLRenderer::render(const PositionComponent &position, const std::shared
 		{
 			// binds the current frames texture VBO and ensure it is linked to the current VAO
 			glBindBuffer(GL_ARRAY_BUFFER, texCoordsVbo);
-            glVertexAttribPointer(ATTRIB_ARRAY_TEXTURE, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+            glVertexAttribPointer((GLuint)AttribArray::Texture, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 			// set the current texture
 			setActiveTexture(sourceTexture);

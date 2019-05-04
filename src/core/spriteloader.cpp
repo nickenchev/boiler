@@ -4,12 +4,14 @@
 #include "video/opengl.h"
 #include "core/spriteloader.h"
 #include "json/json.h"
-#include "core/boiler.h"
+#include "core/engine.h"
 #include "video/renderer.h"
 #include "util/filemanager.h"
 #include "util/texutil.h"
 
 #define COMPONENT_NAME "Sprite Loader"
+
+using namespace Boiler;
 
 SpriteLoader::SpriteLoader() : logger(std::string(COMPONENT_NAME))
 {
@@ -31,7 +33,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadJsonArray(std::string
         std::string imageFile = "data/" + json["meta"]["image"].asString();
 
         //read the sprite image name and load the texture
-        auto texture = Boiler::getInstance().getImageLoader().loadImage(imageFile);
+        auto texture = Engine::getInstance().getImageLoader().loadImage(imageFile);
 
 		const Size texSize(json["meta"]["size"]["w"].asFloat(), json["meta"]["size"]["h"].asFloat());
 

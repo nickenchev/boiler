@@ -4,6 +4,9 @@
 #include <string>
 #include "core/logger.h"
 
+namespace Boiler
+{
+
 class Part
 {
 	std::string name;
@@ -20,5 +23,7 @@ public:
     virtual void onStart() = 0;
     virtual void update(double deltaTime) { }
 };
+
+}
 
 #endif /* PART_H */

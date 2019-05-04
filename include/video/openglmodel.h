@@ -5,8 +5,14 @@
 #include "opengl.h"
 #include "vertexdata.h"
 
-#define ATTRIB_ARRAY_VERTEX 0
-#define ATTRIB_ARRAY_TEXTURE 1
+namespace Boiler
+{
+
+enum class AttribArray
+{
+	Vertex = 0,
+	Texture = 1
+};
 
 class OpenGLModel : public Model
 {
@@ -20,6 +26,6 @@ public:
     unsigned int getVao() const { return meshVao; }
 };
 
-
+}
 
 #endif /* OPENGLMODEL_H */

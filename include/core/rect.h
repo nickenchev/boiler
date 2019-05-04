@@ -3,6 +3,9 @@
 
 #include <glm/glm.hpp>
 
+namespace Boiler
+{
+
 using cgfloat = float;
 
 struct Size
@@ -44,5 +47,7 @@ struct Rect
     bool collides(const Rect &rect) const;
     bool collides(const glm::vec2 point) const;
 };
+
+}
 
 #endif // RECT

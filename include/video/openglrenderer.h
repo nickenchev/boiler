@@ -7,6 +7,9 @@
 #include "renderer.h"
 #include "renderdetails.h"
 
+namespace Boiler
+{
+
 #define COMPONENT_NAME "OpenGL Renderer"
 #define VERSION COMPONENT_NAME
 
@@ -47,5 +50,6 @@ public:
     void showMessageBox(const std::string &title, const std::string &message) override;
 };
 
+}
 
 #endif /* OPENGLRENDERER_H */

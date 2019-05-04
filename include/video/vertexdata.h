@@ -4,6 +4,9 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+namespace Boiler
+{
+
 class VertexData
 {
     bool owned;
@@ -17,5 +20,6 @@ public:
     int size() const { return vertices.size() * sizeof(glm::vec3); }
 };
 
+}
 
 #endif /* VERTEXDATA_H */

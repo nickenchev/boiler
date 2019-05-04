@@ -1,6 +1,12 @@
 #ifndef RENDERDETAILS_H
 #define RENDERDETAILS_H
 
+#include <glm/glm.hpp>
+#include "video/shaderprogram.h"
+
+namespace Boiler
+{
+
 struct RenderDetails
 {
 	const ShaderProgram *shaderProgram;
@@ -15,5 +21,7 @@ struct RenderDetails
         colorUniform = -1;
     }
 };
+
+}
 
 #endif /* RENDERDETAILS_H */

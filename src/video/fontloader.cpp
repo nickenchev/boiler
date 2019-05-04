@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "core/boiler.h"
+#include "core/engine.h"
 #include "core/bmfont.h"
 #include "core/fileutils.h"
 #include "video/fontloader.h"
@@ -12,6 +12,7 @@
 
 #define COMPONENT_NAME "FontLoader"
 
+using namespace Boiler;
 using namespace tinyxml2;
 
 FontLoader::FontLoader() : logger(COMPONENT_NAME)
@@ -68,7 +69,7 @@ const BMFont FontLoader::loadBMFont(const std::string fontPath) const
                 Page pageObj;
                 pageObj.id = page->IntAttribute("id");
                 pageObj.file = page->Attribute("file");
-                pageObj.texture = Boiler::getInstance().getImageLoader().loadImage(FileUtils::buildPath(imagePath, pageObj.file));
+                pageObj.texture = Engine::getInstance().getImageLoader().loadImage(FileUtils::buildPath(imagePath, pageObj.file));
                 font.pageList.push_back(std::move(pageObj));
 
                 page = page->NextSiblingElement();

@@ -3,6 +3,9 @@
 
 #include "core/logger.h"
 
+namespace Boiler
+{
+
 struct BMFont;
 
 class FontLoader
@@ -15,6 +18,5 @@ public:
     const BMFont loadBMFont(const std::string fontPath) const;
 };
 
-
-
+}
 #endif /* FONTLOADER_H */

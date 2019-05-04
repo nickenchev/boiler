@@ -3,6 +3,9 @@
 
 #include "camera.h"
 
+namespace Boiler
+{
+
 class PlatformerCamera : public Camera
 {
 public:
@@ -12,5 +15,6 @@ public:
     glm::mat4 getViewMatrix() const override;
 };
 
+}
 
 #endif /* PLATFORMERCAMERA_H */

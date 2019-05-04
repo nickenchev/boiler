@@ -4,6 +4,9 @@
 #include <video/renderer.h>
 #include <SDL2/SDL.h>
 
+namespace Boiler
+{
+
 class GUIHandler
 {
 public:
@@ -21,5 +24,6 @@ public:
 	virtual void render() const = 0;
 };
 
+}
 
 #endif /* GUIHANDLER_H */

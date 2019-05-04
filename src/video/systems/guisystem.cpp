@@ -2,6 +2,8 @@
 #include "core/components/guicomponent.h"
 #include "video/systems/guisystem.h"
 
+using namespace Boiler;
+
 void GUISystem::update(ComponentStore &store, const double delta) const
 {
 	if (getEntities().size())

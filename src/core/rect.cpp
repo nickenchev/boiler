@@ -1,5 +1,7 @@
 #include "core/rect.h"
 
+using namespace Boiler;
+
 bool Rect::collides(const Rect &rect) const
 {
     cgfloat x1a = position.x;

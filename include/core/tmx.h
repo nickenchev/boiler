@@ -8,127 +8,126 @@
 
 using namespace std;
 
-namespace ensoft
+namespace Boiler { namespace tmx
 {
-	namespace tmx
-	{
-		struct TileSet;
-		struct Tile;
-		struct Layer;
-		struct ImageLayer;
-		struct ObjectGroup;
-		struct Object;
 
-		struct Property
-		{
-			string name, value;
-		};
+struct TileSet;
+struct Tile;
+struct Layer;
+struct ImageLayer;
+struct ObjectGroup;
+struct Object;
 
-		struct Properties
-		{
-			map<string, Property> properties;
+struct Property
+{
+	string name, value;
+};
 
-			Properties(const map<string, Property> &properties) : properties(properties) { }
+struct Properties
+{
+	map<string, Property> properties;
 
-			string getValue(string key) const { return properties.find(key)->second.value; }
-		};
+	Properties(const map<string, Property> &properties) : properties(properties) { }
 
-		struct Component
-		{
-			Properties properties;
-			explicit Component(const Properties &properties) : properties(properties) { }
-		};
+	string getValue(string key) const { return properties.find(key)->second.value; }
+};
 
-		struct Map : Component
-		{
-			string version, orientation;
-			int width, height, tilewidth, tileheight;
-			string renderorder;
+struct Component
+{
+	Properties properties;
+	explicit Component(const Properties &properties) : properties(properties) { }
+};
 
-			map<int, Tile *> allTiles;
-			vector<unique_ptr<TileSet>> tilesets;
-			vector<shared_ptr<Layer>> layers;
-			vector<unique_ptr<ImageLayer>> imageLayers;
-			vector<unique_ptr<ObjectGroup>> objectGroups;
+struct Map : Component
+{
+	string version, orientation;
+	int width, height, tilewidth, tileheight;
+	string renderorder;
 
-			using Component::Component;
-		};
+	map<int, Tile *> allTiles;
+	vector<unique_ptr<TileSet>> tilesets;
+	vector<shared_ptr<Layer>> layers;
+	vector<unique_ptr<ImageLayer>> imageLayers;
+	vector<unique_ptr<ObjectGroup>> objectGroups;
 
-		struct TileSet : Component
-		{
-			int firstgid;
-			string source, name;
-			int tilewidth, tileheight, spacing, margin;
-			vector<unique_ptr<Tile>> tiles;
+	using Component::Component;
+};
 
-			using Component::Component;
-		};
+struct TileSet : Component
+{
+	int firstgid;
+	string source, name;
+	int tilewidth, tileheight, spacing, margin;
+	vector<unique_ptr<Tile>> tiles;
 
-		struct Image
-		{
-			string format, source, trans;
-			int width, height;
-		};
+	using Component::Component;
+};
 
-		struct Tile : Component
-		{
-			int id;
-			string terrain;
-			float probability;
-			Image image;
+struct Image
+{
+	string format, source, trans;
+	int width, height;
+};
 
-			using Component::Component;
-		};
+struct Tile : Component
+{
+	int id;
+	string terrain;
+	float probability;
+	Image image;
 
-		struct TileOffset
-		{
-			int x, y;
-		};
+	using Component::Component;
+};
 
-		struct Layer : Component
-		{
-			string name;
-			int x, y, width, height;
-			float opacity;
-			bool visible;
-			vector<int> tiles;
+struct TileOffset
+{
+	int x, y;
+};
 
-			using Component::Component;
-		};
+struct Layer : Component
+{
+	string name;
+	int x, y, width, height;
+	float opacity;
+	bool visible;
+	vector<int> tiles;
 
-		struct ImageLayer : Component
-		{
-			string name;
-			int x, y, width, height;
-			float opacity;
-			bool visible;
-			Image image;
+	using Component::Component;
+};
 
-			using Component::Component;
-		};
+struct ImageLayer : Component
+{
+	string name;
+	int x, y, width, height;
+	float opacity;
+	bool visible;
+	Image image;
 
-		struct ObjectGroup : Component
-		{
-			string name, color;
-			int x, y, width, height;
-			float opacity;
-			bool visible;
-			vector<unique_ptr<Object>> objects;
+	using Component::Component;
+};
 
-			using Component::Component;
-		};
+struct ObjectGroup : Component
+{
+	string name, color;
+	int x, y, width, height;
+	float opacity;
+	bool visible;
+	vector<unique_ptr<Object>> objects;
 
-		struct Object : Component
-		{
-			string id, name, type;
-			int x, y, width, height;
-			float rotation;
-			int gid;
-			bool visible;
+	using Component::Component;
+};
 
-			using Component::Component;
-		};
-	}
-}
+struct Object : Component
+{
+	string id, name, type;
+	int x, y, width, height;
+	float rotation;
+	int gid;
+	bool visible;
+
+	using Component::Component;
+};
+
+} }
 
 #endif /* TMX_H */

@@ -2,20 +2,20 @@
 #define TILE_H
 
 #include "entity.h"
+#include "rect.h"
 
-namespace ensoft
-{
-    class TmxTile;
-};
+namespace Boiler { namespace tmx {
+
+class TmxTile;
 
 class Tile : public Entity
 {
-    const ensoft::TmxTile &tmxTile;
+    const TmxTile &tmxTile;
 public:
-    Tile(const ensoft::TmxTile &tmxTile, Rect frame) : Entity(frame), tmxTile(tmxTile) { }
+    Tile(const TmxTile &tmxTile, Rect frame) : Entity(frame), tmxTile(tmxTile) { }
 
-    const ensoft::TmxTile &getTmxTile() const { return tmxTile; }
+    const TmxTile &getTmxTile() const { return tmxTile; }
 };
 
-
+} }
 #endif /* TILE_H */

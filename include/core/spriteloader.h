@@ -12,6 +12,9 @@
 class SDL_Texture;
 typedef unsigned int GLuint;
 
+namespace Boiler
+{
+
 class SpriteLoader
 {
 	Logger logger;
@@ -24,5 +27,7 @@ public:
     const std::shared_ptr<const SpriteSheet> loadJsonArray(std::string filename) const;
     const std::shared_ptr<const SpriteSheet> loadTexture(std::shared_ptr<const Texture> texture) const;
 };
+
+}
 
 #endif // SPRITELOADER_H

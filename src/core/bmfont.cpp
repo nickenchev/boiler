@@ -1,4 +1,4 @@
 #include "core/bmfont.h"
 
-BMFont::BMFont()
+Boiler::BMFont::BMFont()
 {}

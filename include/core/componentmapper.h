@@ -9,6 +9,9 @@
 #include "core/ecstypes.h"
 #include "core/component.h"
 
+namespace Boiler
+{
+
 class ComponentMapper
 {
 	Logger logger;
@@ -29,4 +32,5 @@ public:
 	}
 };
 
+}
 #endif /* COMPONENTMAPPER_H */

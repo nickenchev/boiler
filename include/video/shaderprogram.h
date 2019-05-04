@@ -4,6 +4,9 @@
 #include <string>
 #include "core/logger.h"
 
+namespace Boiler
+{
+
 class ShaderProgram
 {
 	Logger logger;
@@ -19,5 +22,6 @@ public:
 	bool operator!=(const ShaderProgram &rhs) { return !(getShaderProgram() == rhs.getShaderProgram()); }
 };
 
+}
 
 #endif /* SHADER_H */

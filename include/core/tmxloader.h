@@ -5,16 +5,15 @@
 #include <string>
 #include "tmx.h"
 
-namespace ensoft
+namespace Boiler { namespace tmx
 {
-	namespace tmx
-	{
-		class TmxLoader
-		{
-		public:
-			static std::unique_ptr<ensoft::tmx::Map> loadMap(std::string filename);
-		};
-	};
+
+class TmxLoader
+{
+public:
+	static std::unique_ptr<Map> loadMap(std::string filename);
 };
+
+} }
 
 #endif /* TMXLOADER_H */

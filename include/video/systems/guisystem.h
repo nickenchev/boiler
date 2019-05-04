@@ -5,6 +5,9 @@
 #include <core/system.h>
 #include <video/guihandler.h>
 
+namespace Boiler
+{
+
 class Renderer;
 
 class GUISystem : public System
@@ -36,5 +39,6 @@ public:
 	}
 };
 
+}
 
 #endif /* GUISYSTEM_H */

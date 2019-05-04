@@ -2,6 +2,8 @@
 #include "core/spritesheet.h"
 #include "video/opengl.h"
 
+using namespace Boiler;
+
 SpriteSheet::SpriteSheet(std::string imageFile, Size size, std::shared_ptr<const Texture> texture, std::map<std::string, SpriteSheetFrame> &frames) : size(size), frames(frames), texture(texture)
 {
     this->imageFile = imageFile;

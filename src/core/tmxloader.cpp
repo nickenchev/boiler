@@ -16,7 +16,7 @@ string getAttributeString(XMLElement *elem, const char *key)
     return (str) ? string(str) : string("");
 }
 
-ensoft::tmx::Image loadImage(XMLElement *element)
+Boiler::tmx::Image loadImage(XMLElement *element)
 {
     XMLElement *ximage = element->FirstChildElement("image");
     std::string format = getAttributeString(ximage, "format");
@@ -25,12 +25,12 @@ ensoft::tmx::Image loadImage(XMLElement *element)
     int width = ximage->IntAttribute("width");
     int height = ximage->IntAttribute("height");
 
-    return ensoft::tmx::Image{format, source, trans, width, height};
+    return Boiler::tmx::Image{format, source, trans, width, height};
 }
 
-void loadData(ensoft::tmx::Layer &layer, ensoft::tmx::Map *map, std::string data)
+void loadData(Boiler::tmx::Layer &layer, Boiler::tmx::Map *map, std::string data)
 {
-    vector<BYTE> decoded = base64_decode(data);
+    vector<Boiler::BYTE> decoded = Boiler::base64_decode(data);
 
     // TODO: look into better predicting the de-compressed size of the data
     const int compressionFactor = 1000;
@@ -58,29 +58,29 @@ void loadData(ensoft::tmx::Layer &layer, ensoft::tmx::Map *map, std::string data
     }
 }
 
-ensoft::tmx::Properties loadProperties(XMLElement *sourceElement)
+Boiler::tmx::Properties loadProperties(XMLElement *sourceElement)
 {
     XMLElement *xprops = sourceElement->FirstChildElement("properties");
-    std::map<string, ensoft::tmx::Property> props;
+    std::map<string, Boiler::tmx::Property> props;
     if (xprops)
     {
         XMLElement *xprop = xprops->FirstChildElement("property");
-        ensoft::tmx::Property prop;
+        Boiler::tmx::Property prop;
         prop.name = getAttributeString(xprop, "name");
         prop.value = getAttributeString(xprop, "value");
 
-        props.insert(std::pair<string, ensoft::tmx::Property>(prop.name, prop));
+        props.insert(std::pair<string, Boiler::tmx::Property>(prop.name, prop));
     }
-    return ensoft::tmx::Properties(props);
+    return Boiler::tmx::Properties(props);
 }
 
-std::unique_ptr<ensoft::tmx::Map> ensoft::tmx::TmxLoader::loadMap(std::string filename)
+std::unique_ptr<Boiler::tmx::Map> Boiler::tmx::TmxLoader::loadMap(std::string filename)
 {
 	Logger logger("TMX Loader");
 	logger.log("Loading " + filename);
     XMLDocument doc;
     XMLError error = doc.LoadFile(filename.c_str());
-    std::unique_ptr<ensoft::tmx::Map> map;
+    std::unique_ptr<Boiler::tmx::Map> map;
 
     if (error != XMLError::XML_NO_ERROR)
     {
@@ -91,7 +91,7 @@ std::unique_ptr<ensoft::tmx::Map> ensoft::tmx::TmxLoader::loadMap(std::string fi
         // start parsing the TMX map
         XMLElement *xmap = doc.FirstChildElement("map");
         
-        map = std::make_unique<ensoft::tmx::Map>(loadProperties(xmap));
+        map = std::make_unique<Boiler::tmx::Map>(loadProperties(xmap));
         map->version = xmap->Attribute("version");
         map->orientation = xmap->Attribute("orientation");
         map->width = xmap->IntAttribute("width");
@@ -105,7 +105,7 @@ std::unique_ptr<ensoft::tmx::Map> ensoft::tmx::TmxLoader::loadMap(std::string fi
         XMLElement *xtileset = xmap->FirstChildElement("tileset");
         while (xtileset)
         {
-            auto tileSet = std::make_unique<ensoft::tmx::TileSet>(loadProperties(xtileset));
+            auto tileSet = std::make_unique<Boiler::tmx::TileSet>(loadProperties(xtileset));
             tileSet->firstgid = xtileset->IntAttribute("firstgid");
             tileSet->source = getAttributeString(xtileset, "source");
             tileSet->name = getAttributeString(xtileset, "name");
@@ -118,7 +118,7 @@ std::unique_ptr<ensoft::tmx::Map> ensoft::tmx::TmxLoader::loadMap(std::string fi
             XMLElement *xtile = xtileset->FirstChildElement("tile");
             while (xtile)
             {
-                auto tile = make_unique<ensoft::tmx::Tile>(loadProperties(xtile));
+                auto tile = make_unique<Boiler::tmx::Tile>(loadProperties(xtile));
                 tile->id = xtile->IntAttribute("id");
                 tile->terrain = getAttributeString(xtile, "terrain");
                 tile->probability = xtile->FloatAttribute("probability");
@@ -141,7 +141,7 @@ std::unique_ptr<ensoft::tmx::Map> ensoft::tmx::TmxLoader::loadMap(std::string fi
         XMLElement *xlayer = xmap->FirstChildElement("layer");
         while (xlayer)
         {
-            auto layer = std::make_shared<ensoft::tmx::Layer>(loadProperties(xlayer));
+            auto layer = std::make_shared<Boiler::tmx::Layer>(loadProperties(xlayer));
             layer->name = xlayer->Attribute("name");
             layer->x = xlayer->IntAttribute("x");
             layer->y = xlayer->IntAttribute("y");
@@ -165,7 +165,7 @@ std::unique_ptr<ensoft::tmx::Map> ensoft::tmx::TmxLoader::loadMap(std::string fi
         XMLElement *ximagelayer = xmap->FirstChildElement("imagelayer");
         while (ximagelayer)
         {
-            auto imageLayer = std::make_unique<ensoft::tmx::ImageLayer>(loadProperties(ximagelayer));
+            auto imageLayer = std::make_unique<Boiler::tmx::ImageLayer>(loadProperties(ximagelayer));
             imageLayer->name = ximagelayer->Attribute("name");
             imageLayer->x = ximagelayer->IntAttribute("x");
             imageLayer->y = ximagelayer->IntAttribute("y");
@@ -183,7 +183,7 @@ std::unique_ptr<ensoft::tmx::Map> ensoft::tmx::TmxLoader::loadMap(std::string fi
         XMLElement *xobjectgroup = xmap->FirstChildElement("objectgroup");
         while (xobjectgroup)
         {
-            auto objectGroup = std::make_unique<ensoft::tmx::ObjectGroup>(loadProperties(xobjectgroup));
+            auto objectGroup = std::make_unique<Boiler::tmx::ObjectGroup>(loadProperties(xobjectgroup));
             objectGroup->name = xobjectgroup->Attribute("name");
             objectGroup->x = xobjectgroup->IntAttribute("x");
             objectGroup->y = xobjectgroup->IntAttribute("y");
@@ -196,7 +196,7 @@ std::unique_ptr<ensoft::tmx::Map> ensoft::tmx::TmxLoader::loadMap(std::string fi
             XMLElement *xobject = xobjectgroup->FirstChildElement("object");
             while (xobject)
             {
-                auto object = std::make_unique<ensoft::tmx::Object>(loadProperties(xobject));
+                auto object = std::make_unique<Boiler::tmx::Object>(loadProperties(xobject));
                 object->id = xobject->Attribute("id");
                 object->name = getAttributeString(xobject, "name");
                 object->type = getAttributeString(xobject, "type");

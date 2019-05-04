@@ -1,6 +1,9 @@
 #ifndef ENTITYSTATE_H
 #define ENTITYSTATE_H
 
+namespace Boiler
+{
+
 class SpriteAnimation;
 
 class EntityState 
@@ -14,5 +17,7 @@ public:
     virtual void onExit() = 0;
     virtual void handleInput() = 0;
 };
+
+}
 
 #endif /* ENTITYSTATE_H */

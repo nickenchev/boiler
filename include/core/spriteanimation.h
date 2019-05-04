@@ -3,6 +3,9 @@
 
 #include <vector>
 
+namespace Boiler
+{
+
 class SpriteSheetFrame;
 
 class SpriteAnimation
@@ -23,5 +26,7 @@ public:
     void restart();
     bool isFinished() const;
 };
+
+}
 
 #endif /* SPRITEANIMATION_H */

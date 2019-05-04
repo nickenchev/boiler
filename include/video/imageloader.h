@@ -4,6 +4,9 @@
 #include <memory>
 #include "core/logger.h"
 
+namespace Boiler
+{
+
 class Texture;
 
 class ImageLoader
@@ -16,4 +19,5 @@ public:
     const std::shared_ptr<const Texture> loadImage(const std::string filePath) const;
 };
 
+}
 #endif /* IMAGELOADER_H */

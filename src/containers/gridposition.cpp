@@ -8,6 +8,8 @@
 
 #include "containers/gridposition.h"
 
+using namespace Boiler;
+
 GridPosition::GridPosition() : GridPosition(1, 1)
 {
 }

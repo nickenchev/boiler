@@ -5,6 +5,9 @@
 #include <vector>
 #include <functional>
 
+namespace Boiler
+{
+
 using MessageId = int;
 
 template <typename T>
@@ -33,5 +36,6 @@ public:
 	}
 };
 
+}
 
 #endif /* MESSAGEDISPATCH_H */

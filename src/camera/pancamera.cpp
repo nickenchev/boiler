@@ -2,6 +2,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "camera/pancamera.h"
 
+using namespace Boiler;
+
 void PanCemera::update(glm::vec3 moveAmount)
 {
     frame.position += moveAmount;

@@ -32,7 +32,7 @@ set(BOILER_HEADERS
 
 # Engine related sources
 set(BOILER_SOURCES
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/boiler.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/engine.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/entityworld.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/tmxloader.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/spriteloader.cpp

@@ -4,6 +4,9 @@
 #include <functional>
 #include "core/componenttype.h"
 
+namespace Boiler
+{
+
 struct GUIComponent : public ComponentType<GUIComponent>
 {
 	const std::function<void()> guiRender;
@@ -12,5 +15,7 @@ struct GUIComponent : public ComponentType<GUIComponent>
 	{
 	}
 };
+
+}
 
 #endif /* GUICOMPONENT_H */

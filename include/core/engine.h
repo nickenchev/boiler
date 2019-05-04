@@ -19,6 +19,9 @@
 #include "video/guihandler.h"
 #include "logger.h"
 
+namespace Boiler
+{
+
 class Entity;
 class Renderer;
 class Part;
@@ -28,7 +31,7 @@ typedef std::function<void(const TouchTapEvent &event)> TouchTapEventListener;
 typedef std::function<void(const MouseMotionEvent &event)> MouseMotionListener;
 typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 
-class Boiler
+class Engine
 {
 	Logger logger;
 	EntityComponentSystem ecs;
@@ -55,14 +58,14 @@ class Boiler
     std::shared_ptr<Part> part;
 
     // singleton
-    Boiler();
-    ~Boiler();
+    Engine();
+    ~Engine();
 
 public:
-    Boiler(const Boiler &) = delete;
-    void operator=(const Boiler &s) = delete;
+    Engine(const Engine &) = delete;
+    void operator=(const Engine &s) = delete;
 
-    static Boiler &getInstance();
+    static Engine &getInstance();
 
     void initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight);
     void start(std::shared_ptr<Part> part);
@@ -81,5 +84,7 @@ public:
     void addMouseMotionListener(const MouseMotionListener &listener) { mouseMotionListeners.push_back(listener); }
     void addKeyInputListener(const KeyInputListener &listener) { keyInputListeners.push_back(listener); }
 };
+
+}
 
 #endif // ENGINE_H

@@ -6,6 +6,9 @@
 #include "core/component.h"
 #include "core/entity.h"
 
+namespace Boiler
+{
+
 typedef std::unordered_map<ComponentMask, std::shared_ptr<Component>> ComponentMap;
 
 class ComponentStore
@@ -30,5 +33,6 @@ public:
 	}
 };
 
+}
 
 #endif /* COMPONENTSTORE_H */

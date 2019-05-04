@@ -11,6 +11,8 @@
 #include "video/model.h"
 #include "util/texutil.h"
 
+using namespace Boiler;
+
 GlyphLoader::GlyphLoader() : logger("Glyph Loader")
 {
 	if (FT_Init_FreeType(&ft))
@@ -150,7 +152,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 			logger.error("Unable to create the texture coordinate VBO.");
 		}
 
-		glyphMap.insert({code, Glyph(code, Boiler::getInstance().getRenderer().loadModel(vertData), texCoordVbo, destRect,
+		glyphMap.insert({code, Glyph(code, Engine::getInstance().getRenderer().loadModel(vertData), texCoordVbo, destRect,
 									 glm::ivec2(bearing.x, bearing.y), ftGlyph->advance.x)});
 
 		FT_Done_Glyph(ftGlyph);

@@ -1,6 +1,8 @@
 #include "video/glyphmap.h"
 #include "video/opengl.h"
 
+using namespace Boiler;
+
 GlyphMap::~GlyphMap()
 {
 	for (auto itr : map)

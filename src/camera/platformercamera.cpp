@@ -5,6 +5,8 @@
 #include "camera/platformercamera.h"
 #include "core/entity.h"
 
+using namespace Boiler;
+
 void PlatformerCamera::update(glm::vec3 moveAmount)
 {
     if (centralEntity)

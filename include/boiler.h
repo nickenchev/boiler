@@ -1,7 +1,7 @@
 #ifndef BOILER_H
 #define BOILER_H
 
-#include "core/boiler.h"
+#include "core/engine.h"
 #include "core/entity.h"
 #include "core/part.h"
 #include "camera/pancamera.h"

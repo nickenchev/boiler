@@ -4,6 +4,9 @@
 #include <string>
 #include "texture.h"
 
+namespace Boiler
+{
+
 struct Size;
 
 class OpenGLTexture : public Texture
@@ -18,5 +21,6 @@ public:
     unsigned int getOpenGLTextureId() const { return textureId; }
 };
 
+}
 
 #endif /* OPENGLTEXTURE_H */

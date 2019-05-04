@@ -1,6 +1,9 @@
 #ifndef MOUSEMOTIONEVENT_H
 #define MOUSEMOTIONEVENT_H
 
+namespace Boiler
+{
+
 struct MouseMotionEvent
 {
     float x, y, xDistance, yDistance;
@@ -12,5 +15,7 @@ struct MouseMotionEvent
         this->yDistance = yDistance;
     }
 };
+
+}
 
 #endif /* MOUSEMOTIONEVENT_H */

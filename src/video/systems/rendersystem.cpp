@@ -3,6 +3,8 @@
 #include "core/componentstore.h"
 #include "video/systems/rendersystem.h"
 
+using namespace Boiler;
+
 void RenderSystem::update(ComponentStore &store, const double delta) const
 {
 	for (auto &entity : getEntities())
@@ -10,6 +12,6 @@ void RenderSystem::update(ComponentStore &store, const double delta) const
 		PositionComponent &pos = store.retrieve<PositionComponent>(entity);
 		SpriteComponent &sprite = store.retrieve<SpriteComponent>(entity);
 
-		Boiler::getInstance().getRenderer().render(pos, sprite);
+		Engine::getInstance().getRenderer().render(pos, sprite);
 	}
 }
