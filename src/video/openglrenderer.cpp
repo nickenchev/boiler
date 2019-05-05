@@ -1,6 +1,5 @@
 #include <string>
 #include <iostream>
-#include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -130,8 +129,6 @@ void OpenGLRenderer::initialize(const Size screenSize)
             {
                 logger.log("Using Context: OpenGL " + std::string((const char *)glGetString(GL_VERSION)));
                 setupGLExtensions();
-
-                IMG_Init(IMG_INIT_PNG);
 
 				try
 				{
