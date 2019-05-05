@@ -55,19 +55,19 @@ void ImageLoader::readPNG(std::string filePath) const
 			png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
 			if (!png_ptr)
 			{
-				// couldn't get png struct
+				logger.error("Couldn't get PNG struct");
 			}
 			else
 			{
 				png_infop info_ptr = png_create_info_struct(png_ptr);
 				if (!info_ptr)
 				{
-					// couldn't init info struct
+					logger.error("Couldn't create info struct.");
 					png_destroy_read_struct(&png_ptr, nullptr, nullptr);
 
 					if (setjmp(png_jmpbuf(png_ptr)))
 					{
-						// error
+						logger.error("Couldn't setjmp.");
 					}
 					else
 					{
@@ -80,6 +80,22 @@ void ImageLoader::readPNG(std::string filePath) const
 
 						// callback function for status
 						png_set_read_status_fn(png_ptr, read_row_callback);
+
+						png_read_info(png_ptr, info_ptr);
+
+						png_uint_32 width = 0;
+						png_uint_32 height = 0;
+						int bitDepth = 0;
+						int colorType = 0;
+						int interlaceMethod = 0;
+						int compressionMethod = 0;
+						int filterMethod = 0;
+
+						png_get_IHDR(png_ptr, info_ptr, &width, &height, &bitDepth, &colorType,
+									 &interlaceMethod, &compressionMethod, &filterMethod);
+
+						std::cout << width << std::endl;
+						std::cout << height << std::endl;
 					}
 				}
 			}
@@ -92,6 +108,10 @@ void ImageLoader::readPNG(std::string filePath) const
 
 void user_read_data(png_structp png_ptr, png_bytep data, size_t length)
 {
+	png_voidp io_ptr = png_get_io_ptr(png_ptr);
+	SDL_RWops *file = static_cast<SDL_RWops *>(io_ptr);
+
+	size_t objsRead = SDL_RWread(file, data, sizeof(png_byte), length);
 }
 
 void user_write_data(png_structp png_ptr, png_bytep data, size_t length)
