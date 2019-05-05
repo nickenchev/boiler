@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include "core/engine.h"
 #include "video/renderer.h"

@@ -1,7 +1,7 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <vector>
 #include <string>
 #include "core/ecstypes.h"
