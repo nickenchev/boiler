@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.2)
 project(boiler)
 
+include(ExternalProject)
+
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
@@ -10,10 +12,18 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 # Shader files
 set(SHADER_FILES data/shaders/basic.vert data/shaders/basic.frag)
 
+# build SDL2
+add_subdirectory(libs/SDL2-2.0.9)
+
+#build SDL2_image
+set(SDL2_IMAGE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libs/SDL2_image-2.0.4)
+ExternalProject_Add(libsdl2_image
+  SOURCE_DIR ${SDL2_IMAGE_DIR}
+  CONFIGURE_COMMAND ${SDL2_IMAGE_DIR}/configure
+  BUILD_COMMAND ${MAKE})
+
 # boiler sources
 find_package(glm REQUIRED)
-find_package(SDL2 REQUIRED)
-find_package(SDL2_image REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
@@ -76,11 +86,11 @@ target_include_directories(boiler PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/include
   ${CMAKE_CURRENT_LIST_DIR}/include/tinyxml2
   ${GLM_INCLUDE_DIR}
-  ${SDL2_INCLUDE_DIR}
-  ${SDL2_IMAGE_INCLUDE_DIR}
+  SDL2-static
+  libsdl2_image
   ${ZLIB_INCLUDE_DIR}
   ${OPENGL_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIR}
   ${FREETYPE_INCLUDE_DIRS})
 
-target_link_libraries(boiler ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY} ${FREETYPE_LIBRARIES})
+target_link_libraries(boiler SDL2-static libsdl2_image ${ZLIB_LIBRARY} ${OPENGL_LIBRARY} ${GLEW_LIBRARY} ${FREETYPE_LIBRARIES})
