@@ -7,8 +7,8 @@
 #include "video/imageloader.h"
 
 #include <cstring>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 using namespace Boiler;
 
@@ -133,6 +133,7 @@ SDL_Surface *readPNG(std::string filePath)
 						}
 
 						// clean up
+						free(outData);
 						png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
 					}
 				}
