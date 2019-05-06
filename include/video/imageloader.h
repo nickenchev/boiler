@@ -17,7 +17,6 @@ public:
     ImageLoader();
 
 	const std::shared_ptr<const Texture> loadImage(const std::string &filePath) const;
-	void readPNG(std::string filePath) const;
 };
 
 }

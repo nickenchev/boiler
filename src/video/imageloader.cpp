@@ -10,6 +10,7 @@ using namespace Boiler;
 
 #define COMPONENT_NAME "Image Loader"
 
+SDL_Surface *readPNG(std::string filePath);
 void user_read_data(png_structp png_ptr, png_bytep data, size_t length);
 void user_write_data(png_structp png_ptr, png_bytep data, size_t length);
 void user_flush_data(png_structp png_ptr);
@@ -21,10 +22,9 @@ ImageLoader::ImageLoader() : logger(COMPONENT_NAME)
 
 const std::shared_ptr<const Texture> ImageLoader::loadImage(const std::string &filePath) const
 {
-    logger.log("Loading image: " + filePath);
-	readPNG(filePath);
+	logger.log("Loading image: " + filePath);
 
-    SDL_Surface *surface = nullptr;
+    SDL_Surface *surface = readPNG(filePath);
 
     assert(surface != nullptr);
     auto texture = Engine::getInstance().getRenderer().createTexture(filePath, Size(surface->w, surface->h), surface->pixels);
@@ -34,8 +34,10 @@ const std::shared_ptr<const Texture> ImageLoader::loadImage(const std::string &f
     return std::move(texture);
 }
 
-void ImageLoader::readPNG(std::string filePath) const
+SDL_Surface *readPNG(std::string filePath)
 {
+	Logger logger("imgpng");
+	SDL_Surface *surface = nullptr;
     SDL_RWops *file = SDL_RWFromFile(filePath.c_str(), "rb");
 	const short headerSize = 8;
 	unsigned char header[headerSize];
@@ -48,7 +50,7 @@ void ImageLoader::readPNG(std::string filePath) const
 		SDL_RWread(file, header, sizeof(char), headerSize);
 		if (png_sig_cmp(header, 0, headerSize))
 		{
-			// invalid header
+			logger.error("Invalid PNG file");
 		}
 		else
 		{
@@ -64,7 +66,9 @@ void ImageLoader::readPNG(std::string filePath) const
 				{
 					logger.error("Couldn't create info struct.");
 					png_destroy_read_struct(&png_ptr, nullptr, nullptr);
-
+				}
+				else
+				{
 					if (setjmp(png_jmpbuf(png_ptr)))
 					{
 						logger.error("Couldn't setjmp.");
@@ -73,29 +77,44 @@ void ImageLoader::readPNG(std::string filePath) const
 					{
 						// setup custom read/write functions
 						png_set_read_fn(png_ptr, file, user_read_data);
-						png_set_write_fn(png_ptr, file, user_write_data, user_flush_data);
 
 						// ensures we don't read the header in again
 						png_set_sig_bytes(png_ptr, headerSize);
 
-						// callback function for status
 						png_set_read_status_fn(png_ptr, read_row_callback);
+						//png_read_info(png_ptr, info_ptr);
+						png_read_png(png_ptr, info_ptr, 0, nullptr);
 
-						png_read_info(png_ptr, info_ptr);
+						// get image info
+						png_uint_32 width = png_get_image_width(png_ptr, info_ptr);
+						png_uint_32 height = png_get_image_height(png_ptr, info_ptr);
+						int bitDepth = png_get_bit_depth(png_ptr, info_ptr);
+						int colorType = png_get_color_type(png_ptr, info_ptr);
 
-						png_uint_32 width = 0;
-						png_uint_32 height = 0;
-						int bitDepth = 0;
-						int colorType = 0;
-						int interlaceMethod = 0;
-						int compressionMethod = 0;
-						int filterMethod = 0;
+						png_bytepp dataPtr = png_get_rows(png_ptr, info_ptr);
 
-						png_get_IHDR(png_ptr, info_ptr, &width, &height, &bitDepth, &colorType,
-									 &interlaceMethod, &compressionMethod, &filterMethod);
+						// create the SDL surface from the pixel dataUint32 rmask, gmask, bmask, amask;
+						Uint32 rmask, gmask, bmask, amask;
+					#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+						int shift = (req_format == STBI_rgb) ? 8 : 0;
+						rmask = 0xff000000 >> shift;
+						gmask = 0x00ff0000 >> shift;
+						bmask = 0x0000ff00 >> shift;
+						amask = 0x000000ff >> shift;
+					#else // little endian, like x86
+						rmask = 0x000000ff;
+						gmask = 0x0000ff00;
+						bmask = 0x00ff0000;
+						amask = (colorType == PNG_COLOR_TYPE_RGB) ? 0 : 0xff000000;
+					#endif
+						surface = SDL_CreateRGBSurfaceFrom((void *)dataPtr, width, height, bitDepth, 4 * width, rmask, gmask, bmask, amask);
+						if (!surface)
+						{
+							logger.error(SDL_GetError());
+						}
 
-						std::cout << width << std::endl;
-						std::cout << height << std::endl;
+						// clean up
+						png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
 					}
 				}
 			}
@@ -104,6 +123,7 @@ void ImageLoader::readPNG(std::string filePath) const
 		// cleanup file handles
 		SDL_RWclose(file);
 	}
+	return surface;
 }
 
 void user_read_data(png_structp png_ptr, png_bytep data, size_t length)
@@ -124,5 +144,4 @@ void user_flush_data(png_structp png_ptr)
 
 void read_row_callback(png_structp png_ptr, png_uint_32 row, int pass)
 {
-	std::cout << "read read read ";
 }

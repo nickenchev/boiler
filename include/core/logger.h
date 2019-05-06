@@ -19,12 +19,12 @@ public:
 
     void log(std::string message) const
 	{
-		string entry = "[" + name + "]" + message;
+		string entry = "[" + name + "] " + message;
 		cout << entry << endl;
 	}
     void error(std::string message) const
 	{
-		string entry = "[ERROR ->" + name + "]" + message;
+		string entry = "[ERROR ->" + name + "] " + message;
 		cerr << entry << endl;
 	}
 };
