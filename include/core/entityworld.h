@@ -7,6 +7,9 @@
 #include "component.h"
 #include "logger.h"
 
+namespace Boiler
+{
+
 class EntityWorld
 {
 	Logger logger;
@@ -22,4 +25,5 @@ public:
 	void removeEntity(const Entity &entity);
 };
 
+}
 #endif /* ENTITYWORLD_H */

@@ -1,6 +1,9 @@
 #ifndef TOUCHMOTIONEVENT_H
 #define TOUCHMOTIONEVENT_H
 
+namespace Boiler
+{
+
 struct TouchMotionEvent
 {
     float x, y, xDistance, yDistance;
@@ -12,5 +15,7 @@ struct TouchMotionEvent
         this->yDistance = yDistance;
     }
 };
+
+}
 
 #endif /* TOUCHMOTIONEVENT_H */

@@ -5,6 +5,9 @@
 #include <string>
 #include "rect.h"
 
+namespace Boiler
+{
+
 class SpriteSheet;
 class Texture;
 
@@ -29,5 +32,7 @@ public:
     bool isTrimmed() const { return trimmed; }
     const std::shared_ptr<const Texture> getSourceTexture() const { return sourceTexture; }
 };
+
+}
 
 #endif /* SPRITESHEETFRAME_H */

@@ -5,6 +5,8 @@
 #define MAX_OBJECTS 10
 #define MAX_SUB_LEVELS 5 
 
+using namespace Boiler;
+
 Quadtree::Quadtree(int level, const Rect &bounds) : maxObjects(MAX_OBJECTS), maxSubLevels(MAX_SUB_LEVELS), bounds(bounds)
 {
     //std::cout << "(" << bounds.position.x << "," << bounds.position.y << " " << bounds.size.width << "x" << bounds.size.height << ")" << std::endl;

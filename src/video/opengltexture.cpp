@@ -3,6 +3,8 @@
 #include "video/opengltexture.h"
 #include "core/rect.h"
 
+using namespace Boiler;
+
 OpenGLTexture::OpenGLTexture(const std::string filePath, unsigned int textureId) : Texture(filePath)
 {
     this->textureId = textureId;

@@ -3,6 +3,9 @@
 
 #define NUM_DIMENSIONS 2
 
+namespace Boiler
+{
+
 struct Rect;
 
 class Ray
@@ -15,5 +18,7 @@ public:
 
     bool intersects(const Rect &aabb) const;
 };
+
+}
 
 #endif /* RAY_H */

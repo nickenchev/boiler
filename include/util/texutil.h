@@ -4,6 +4,9 @@
 #include <vector>
 #include "core/rect.h"
 
+namespace Boiler
+{
+
 class TextureUtil
 {
 public:
@@ -32,5 +35,6 @@ public:
 	}
 };
 
+}
 
 #endif /* TEXUTIL_H */

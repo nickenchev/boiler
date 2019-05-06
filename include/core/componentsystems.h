@@ -10,6 +10,9 @@
 #include "core/componentmapper.h"
 #include "core/componentstore.h"
 
+namespace Boiler
+{
+
 class ComponentSystems
 {
 	Logger logger;
@@ -65,5 +68,6 @@ public:
 	}
 };
 
+}
 
 #endif /* COMPONENTSYSTEMS_H */

@@ -3,6 +3,9 @@
 
 #include "inputevent.h"
 
+namespace Boiler
+{
+
 enum class MouseButton { LEFT, MIDDLE, RIGHT };
 
 struct MouseButtonEvent : public InputEvent
@@ -12,5 +15,6 @@ struct MouseButtonEvent : public InputEvent
     MouseButtonEvent(const MouseButton button, const ButtonState state) : button(button), state(state), InputEvent() { }
 };
 
+}
 
 #endif /* MOUSEBUTTONEVENT_H */

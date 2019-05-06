@@ -6,6 +6,9 @@
 #include "core/componenttype.h"
 #include "core/rect.h"
 
+namespace Boiler
+{
+
 struct PositionComponent : public ComponentType<PositionComponent>
 {
 	PositionComponent *parent;
@@ -49,5 +52,7 @@ struct PositionComponent : public ComponentType<PositionComponent>
 		return modelMatrix;
 	}
 };
+
+}
 
 #endif /* POSITIONCOMPONENT_H */

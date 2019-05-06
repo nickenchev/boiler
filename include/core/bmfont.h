@@ -7,6 +7,9 @@
 #include <memory>
 #include "rect.h"
 
+namespace Boiler
+{
+
 class Texture;
 
 struct Page
@@ -38,5 +41,7 @@ struct BMFont
 
     BMFont();
 };
+
+}
 
 #endif /* BMFONT_H */

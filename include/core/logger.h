@@ -2,23 +2,33 @@
 #define LOGGER_H
 
 #include <string>
+#include <vector>
 #include <iostream>
+
+using namespace std;
+
+namespace Boiler
+{
 
 class Logger
 {
-	std::string name;
+	static vector<string> buffer;
+	string name;
 public:
     Logger(std::string name) { this->name = name; }
 
     void log(std::string message) const
 	{
-		std::cout << "[" << name << "] " << message << std::endl;
+		string entry = "[" + name + "]" + message;
+		cout << entry << endl;
 	}
     void error(std::string message) const
 	{
-		std::cerr << "[ERROR -> " << name << "] " << message << std::endl;
+		string entry = "[ERROR ->" + name + "]" + message;
+		cerr << entry << endl;
 	}
 };
 
+}
 
 #endif /* LOGGER_H */

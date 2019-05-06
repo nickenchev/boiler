@@ -6,8 +6,11 @@
 //
 //
 
-#ifndef __DigTale__GridPosition__
-#define __DigTale__GridPosition__
+#ifndef GRIDPOSITION_H
+#define GRIDPOSITION_H
+
+namespace Boiler
+{
 
 class GridPosition
 {
@@ -22,4 +25,6 @@ public:
     GridPosition &operator=(const GridPosition &rh);
 };
 
-#endif /* defined(__DigTale__GridPosition__) */
+}
+
+#endif /* GRIDPOSITION_H */

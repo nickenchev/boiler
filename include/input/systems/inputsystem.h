@@ -3,6 +3,9 @@
 
 #include "core/system.h"
 
+namespace Boiler
+{
+
 class InputSystem : public System
 {
 public:
@@ -11,5 +14,6 @@ public:
 	}
 };
 
+}
 
 #endif /* INPUTSYSTEM_H */

@@ -3,6 +3,9 @@
 
 #include "core/system.h"
 
+namespace Boiler
+{
+
 class Renderer;
 
 class GlyphSystem : public System
@@ -13,5 +16,7 @@ public:
 
 	void update(ComponentStore &store, const double delta) const override;
 };
+
+}
 
 #endif /* GLYPHSYSTEM_H */

@@ -3,6 +3,9 @@
 
 #include "camera.h"
 
+namespace Boiler
+{
+
 class PanCemera : public Camera
 {
 public:
@@ -12,6 +15,6 @@ public:
     glm::mat4 getViewMatrix() const override;
 };
 
-
+}
 
 #endif /* PANCAMERA_H */

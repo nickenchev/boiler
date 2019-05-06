@@ -11,6 +11,8 @@
 #include "video/model.h"
 #include "util/texutil.h"
 
+using namespace Boiler;
+
 GlyphLoader::GlyphLoader() : logger("Glyph Loader")
 {
 	if (FT_Init_FreeType(&ft))
@@ -19,14 +21,14 @@ GlyphLoader::GlyphLoader() : logger("Glyph Loader")
 	}
 }
 
-const GlyphMap GlyphLoader::loadFace(std::string fontPath)
+const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 {
 	FT_Face face;
 	if (FT_New_Face(ft, fontPath.c_str(), 0, &face))
 	{
 		logger.error("Could not load font");
 	}
-	FT_Set_Pixel_Sizes(face, 0, 48);
+	FT_Set_Pixel_Sizes(face, 0, fontSize);
 
     const std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`1234567890-=~!@#$%^&*()_+[]{}\\|;:'\",<.>/? ";
     const unsigned long glyphCount = characters.length();
@@ -109,7 +111,6 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 		unsigned long code = tgl.first;
 		FT_Glyph ftGlyph = tgl.second;
 		FT_BitmapGlyph bmg = (FT_BitmapGlyph)ftGlyph;
-		std::cout << "'" << (char)code << "', " << bmg->bitmap.rows << std::endl;
 		Rect destRect(xOffset, yOffset, bmg->bitmap.width, bmg->bitmap.rows);
 		glm::vec2 bearing(bmg->left, bmg->top);
 
@@ -123,8 +124,6 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 
 		// create model data
 		const float scale = 1.0f;
-		GLfloat xpos = x + bearing.x * scale;
-		GLfloat ypos = y + bearing.y * scale;
 		GLfloat sizeW = destRect.size.width * scale;
 		GLfloat sizeH = destRect.size.height * scale;
 
@@ -153,7 +152,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath)
 			logger.error("Unable to create the texture coordinate VBO.");
 		}
 
-		glyphMap.insert({code, Glyph(code, Boiler::getInstance().getRenderer().loadModel(vertData), texCoordVbo, destRect,
+		glyphMap.insert({code, Glyph(code, Engine::getInstance().getRenderer().loadModel(vertData), texCoordVbo, destRect,
 									 glm::ivec2(bearing.x, bearing.y), ftGlyph->advance.x)});
 
 		FT_Done_Glyph(ftGlyph);

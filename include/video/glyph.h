@@ -5,6 +5,9 @@
 #include <glm/glm.hpp>
 #include "core/rect.h"
 
+namespace Boiler
+{
+
 class Model;
 
 class Glyph
@@ -31,5 +34,7 @@ public:
 	auto &getBearing() const { return bearing; }
 	auto &getAdvance() const { return advance; }
 };
+
+}
 
 #endif /* GLYPH_H */

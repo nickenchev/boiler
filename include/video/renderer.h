@@ -10,6 +10,9 @@
 #include "core/rect.h"
 #include "texture.h"
 
+namespace Boiler
+{
+
 typedef glm::vec3 Color3;
 typedef glm::vec4 Color4;
 
@@ -61,5 +64,6 @@ public:
     virtual void showMessageBox(const std::string &title, const std::string &message) = 0;
 };
 
+}
 
 #endif /* RENDERER_H */

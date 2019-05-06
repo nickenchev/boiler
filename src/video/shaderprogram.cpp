@@ -2,12 +2,13 @@
 #include <fstream>
 #include <SDL2/SDL.h>
 
-#include "core/boiler.h"
-#include "core/boiler.h"
+#include "core/engine.h"
 #include "video/renderer.h"
 #include "video/shaderprogram.h"
 #include "video/opengl.h"
 #include "util/filemanager.h"
+
+using namespace Boiler;
 
 GLint compileShader(const char *src, GLenum shaderType)
 {

@@ -1,5 +1,7 @@
 #include "core/line.h"
 
+using namespace Boiler;
+
 StandardForm::StandardForm(glm::vec2 p0, glm::vec2 p1)
 {
     a = p1.y - p0.y;

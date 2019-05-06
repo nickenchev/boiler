@@ -2,6 +2,8 @@
 #include "core/ray.h"
 #include "core/rect.h"
 
+using namespace Boiler;
+
 Ray::Ray(const glm::vec2 &origin, const glm::vec2 &direction) : origin(origin), direction(direction)
 {
     inverseDirection = glm::vec2(1 / this->direction.x, 1 / this->direction.y);

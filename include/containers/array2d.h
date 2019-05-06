@@ -13,6 +13,9 @@
 #include <vector>
 #include "gridposition.h"
 
+namespace Boiler
+{
+
 template <class T>
 class Array2D
 {
@@ -140,5 +143,7 @@ public:
         }
     }
 };
+
+}
 
 #endif /* ARRAY2D_H */

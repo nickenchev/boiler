@@ -4,6 +4,9 @@
 #include <iostream>
 #include "component.h"
 
+namespace Boiler
+{
+
 template <typename T>
 class ComponentType : public Component
 {
@@ -12,7 +15,7 @@ public:
 	const ComponentMask &getMask() const { return T::mask; }
 };
 
-static ComponentMask componentMask()
+inline ComponentMask componentMask()
 {
 	static ComponentMask mask{1};
 	ComponentMask newMask = mask;
@@ -31,5 +34,7 @@ static ComponentMask componentMask()
 }
 
 template <typename T> ComponentMask ComponentType<T>::mask{componentMask()};
+
+}
 
 #endif /* COMPONENTTYPE_H */

@@ -4,6 +4,9 @@
 #include <glm/glm.hpp>
 #include "rect.h"
 
+namespace Boiler
+{
+
 class RayCaster
 {
     bool clipLine(int d, const Rect &box, const glm::vec2 &v0, const glm::vec2 &v1, float &fLow, float &fHigh);
@@ -14,5 +17,7 @@ public:
     bool detectVertical(const Rect &source, const Rect &dest, const glm::vec2 ray, int numRays, bool top, glm::vec2 &diff);
     bool detectHorizontal(const Rect &source, const Rect &dest, const glm::vec2 ray, int numRays, bool left, glm::vec2 &diff);
 };
+
+}
 
 #endif /* RAYCASTER_H */

@@ -1,6 +1,8 @@
 #include <SDL2/SDL.h>
 #include "util/filemanager.h"
 
+using namespace Boiler;
+
 std::string FileManager::readTextFile(const std::string &filePath)
 {
     std::string output;

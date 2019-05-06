@@ -5,6 +5,9 @@
 #include <memory>
 #include "core/rect.h"
 
+namespace Boiler
+{
+
 class Entity;
 
 class Camera
@@ -25,5 +28,6 @@ public:
     const std::shared_ptr<Entity> &getCentralEntity() const { return centralEntity; }
 };
 
+}
 
 #endif /* CAMERA_H */

@@ -1,6 +1,8 @@
 #include <iostream>
 #include "core/spriteanimation.h"
 
+using namespace Boiler;
+
 SpriteAnimation::SpriteAnimation(float duration)
 {
     this->duration = duration;

@@ -3,6 +3,10 @@
 
 #include <bitset>
 
+namespace Boiler
+{
+
 using ComponentMask = std::bitset<64>;
 
+}
 #endif /* ECSTYPES_H */

@@ -1,5 +1,7 @@
 #include "core/fileutils.h"
 
+using namespace Boiler;
+
 std::string FileUtils::getDirectory(const std::string fullPath)
 {
     std::string directory;

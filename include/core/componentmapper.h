@@ -9,6 +9,9 @@
 #include "core/ecstypes.h"
 #include "core/component.h"
 
+namespace Boiler
+{
+
 class ComponentMapper
 {
 	Logger logger;
@@ -25,10 +28,9 @@ public:
 		// update the entity mask
 		ComponentMask &entMask = componentMap[entity.getId()];
 		entMask = entMask | T::mask;
-
-		logger.log("Entity Mask: " + entMask.to_string());
 		return entMask;
 	}
 };
 
+}
 #endif /* COMPONENTMAPPER_H */

@@ -1,6 +1,8 @@
 #include "core/base64.h"
 #include <iostream>
 
+using namespace Boiler;
+
 static const std::string base64_chars = 
              "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
              "abcdefghijklmnopqrstuvwxyz"

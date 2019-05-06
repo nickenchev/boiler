@@ -1,5 +1,7 @@
 #include "core/entityworld.h"
 
+using namespace Boiler;
+
 EntityWorld::EntityWorld() : logger("Entity World")
 {
 	entityCount = 0;

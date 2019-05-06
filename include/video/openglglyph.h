@@ -3,6 +3,9 @@
 
 #include "glyph.h"
 
+namespace Boiler
+{
+
 class OpenGLGlyph : public Glyph
 {
 public:
@@ -10,6 +13,6 @@ public:
     virtual ~OpenGLGlyph();
 };
 
-
+}
 
 #endif /* OPENGLGLYPH_H */

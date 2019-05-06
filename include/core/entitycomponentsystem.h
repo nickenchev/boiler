@@ -6,6 +6,9 @@
 #include "core/componentsystems.h"
 #include "core/componentstore.h"
 
+namespace Boiler
+{
+
 class Entity;
 
 class EntityComponentSystem
@@ -41,4 +44,5 @@ public:
 	ComponentSystems &getComponentSystems() { return systems; }
 };
 
+}
 #endif /* ENTITYCOMPONENTSYSTEM_H */

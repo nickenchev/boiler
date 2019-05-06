@@ -2,7 +2,9 @@
 #include "core/components/positioncomponent.h"
 #include "core/components/textcomponent.h"
 #include "video/renderer.h"
-#include "core/boiler.h"
+#include "core/engine.h"
+
+using namespace Boiler;
 
 void GlyphSystem::update(ComponentStore &store, const double delta) const
 {
@@ -18,6 +20,6 @@ void GlyphSystem::update(ComponentStore &store, const double delta) const
 		}
 
 		assert(text.glyphMap != nullptr);
-		Boiler::getInstance().getRenderer().render(pos, text);
+		Engine::getInstance().getRenderer().render(pos, text);
 	}
 }

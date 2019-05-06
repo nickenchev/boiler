@@ -5,18 +5,19 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "core/boiler.h"
+#include "core/engine.h"
 #include "video/openglrenderer.h"
 #include "video/opengltexture.h"
 #include "video/openglmodel.h"
 #include "video/vertexdata.h"
 #include "core/spritesheetframe.h"
-#include "core/boiler.h"
 #include "core/part.h"
 #include "core/components/positioncomponent.h"
 #include "core/components/spritecomponent.h"
 #include "core/components/textcomponent.h"
 #include "camera/camera.h"
+
+using namespace Boiler;
 
 OpenGLRenderer::OpenGLRenderer(bool useGLES) : Renderer(std::string(COMPONENT_NAME))
 {
@@ -79,7 +80,7 @@ void checkOpenGLErrors()
                 break;
             }
         }
-        Boiler::getInstance().getRenderer().showMessageBox("OpenGL Error", errorString);
+        Engine::getInstance().getRenderer().showMessageBox("OpenGL Error", errorString);
     }
 }
 
@@ -87,7 +88,7 @@ void OpenGLRenderer::initialize(const Size screenSize)
 {
     bool success = false;
 
-    if (SDL_Init(SDL_INIT_VIDEO) == 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
     {
 		if (useGLES)
 		{
@@ -99,9 +100,8 @@ void OpenGLRenderer::initialize(const Size screenSize)
 		}
 		else
 		{
-			win = SDL_CreateWindow("Boiler", 0, 0,
-								screenSize.width,
-								screenSize.height, SDL_WINDOW_OPENGL);
+			SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+			win = SDL_CreateWindow("Boiler", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenSize.width, screenSize.height, winFlags);
 			setScreenSize(screenSize);
 		}
 
@@ -245,7 +245,7 @@ void OpenGLRenderer::beginRender()
         renderDetails.camViewProjection = renderDetails.viewProjection * camera->getViewMatrix();
     }
 
-	static const GLfloat color[] = { getClearColor().r, getClearColor().g, getClearColor().b, 1.0f};
+	const GLfloat color[] = { getClearColor().r, getClearColor().g, getClearColor().b, 1.0f};
 	glClearBufferfv(GL_COLOR, 0, color);
 }
 
@@ -269,7 +269,7 @@ void OpenGLRenderer::render(const PositionComponent &position, const std::shared
 		{
 			// binds the current frames texture VBO and ensure it is linked to the current VAO
 			glBindBuffer(GL_ARRAY_BUFFER, texCoordsVbo);
-			glVertexAttribPointer(ATTRIB_ARRAY_TEXTURE, 2, GL_FLOAT, GL_FALSE, 0, 0);
+            glVertexAttribPointer((GLuint)AttribArray::Texture, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 			// set the current texture
 			setActiveTexture(sourceTexture);
@@ -306,88 +306,6 @@ void OpenGLRenderer::render(const PositionComponent &position, const SpriteCompo
 {
 	render(position, sprite.model, sprite.spriteFrame->getSourceTexture(),
 		   sprite.spriteFrame->getTexCoordsVbo(), sprite.colour);
-	/*
-	std::string test = "Amazing!?";
-	GLuint vao = 0;
-	GLuint vertsVbo = 0;
-	GLuint texCoordsVbo = 0;
-
-	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vertsVbo);
-	glGenBuffers(1, &texCoordsVbo);
-
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, vertsVbo);
-	constexpr int bufferSize = sizeof(GLfloat) * 6 * 2;
-	glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(ATTRIB_ARRAY_VERTEX);
-	glVertexAttribPointer(ATTRIB_ARRAY_VERTEX, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, texCoordsVbo);
-	glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr, GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(ATTRIB_ARRAY_TEXTURE);
-	glVertexAttribPointer(ATTRIB_ARRAY_TEXTURE, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
-
-	// draw some text
-	glActiveTexture(GL_TEXTURE0);
-
-	GLfloat x = 0;
-	GLfloat y = 100;
-	GLfloat scale = 1.0f;
-	
-	for (char c : test)
-	{
-		const Glyph &glyph = glyphs.at(c);
-		GLfloat xpos = x + glyph.bearing.x * scale;
-		GLfloat ypos = y - (glyph.size.y - glyph.bearing.y) * scale;
-
-		GLfloat w = glyph.size.x * scale;
-		GLfloat h = glyph.size.y * scale;
-
-		GLfloat vertices[6][2] = {
-			{ xpos,     ypos + h },
-			{ xpos,     ypos },
-			{ xpos + w, ypos },
-
-			{ xpos,     ypos + h },
-			{ xpos + w, ypos },
-			{ xpos + w, ypos + h }           
-        };
-		glBindBuffer(GL_ARRAY_BUFFER, vertsVbo);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-
-		GLfloat texCoords[6][2] = {
-			{ 0.0, 0.0 },
-			{ 0.0, 1.0 },
-			{ 1.0, 1.0 },
-
-			{ 0.0, 0.0 },
-			{ 1.0, 1.0 },
-			{ 1.0, 0.0 }           
-        };
-		glBindBuffer(GL_ARRAY_BUFFER, texCoordsVbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_DYNAMIC_DRAW);
-
-		glBindTexture(GL_TEXTURE_2D, glyph.textureID);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		x += (glyph.advance >> 6) * scale;
-
-		GLenum glError = glGetError();
-		if (glError != GL_NO_ERROR)
-		{
-			logger.error("GL Error returned: " + std::to_string(glError));
-		}
-	}
-
-	glDeleteBuffers(1, &vertsVbo);
-	glDeleteBuffers(1, &texCoordsVbo);
-	glDeleteVertexArrays(1, &vao);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	*/
 }
 
 void OpenGLRenderer::render(const PositionComponent &position, const TextComponent &text) const
@@ -395,9 +313,9 @@ void OpenGLRenderer::render(const PositionComponent &position, const TextCompone
 	const GlyphMap &glyphMap = *text.glyphMap;
 
 	float xOffset = 0;
-	for (unsigned long character : text.text)
+    for (char character : text.text)
 	{
-		const Glyph &glyph = glyphMap[character];
+        const Glyph &glyph = glyphMap[static_cast<unsigned long>(character)];
 
 		PositionComponent glyphPos = position;
 		glyphPos.frame.position.x += xOffset + glyph.getBearing().x;

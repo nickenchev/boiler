@@ -1,6 +1,9 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+namespace Boiler
+{
+
 class Model
 {
     int numVertices;
@@ -11,5 +14,5 @@ public:
     int getNumVertices() const { return numVertices; }
 };
 
-
+}
 #endif /* MODEL_H */

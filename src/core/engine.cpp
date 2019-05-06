@@ -11,21 +11,24 @@
 #include "core/components/positioncomponent.h"
 #include "core/components/spritecomponent.h"
 #include "core/components/textcomponent.h"
+#include "core/components/guicomponent.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
-Boiler::Boiler() : spriteLoader(), imageLoader(), fontLoader(), baseDataPath(""), logger("Boiler")
+using namespace Boiler;
+
+Engine::Engine() : spriteLoader(), imageLoader(), fontLoader(), baseDataPath(""), logger("Engine")
 {
-	logger.log("Boiler instance created");
+	logger.log("Engine instance created");
 }
 
-Boiler &Boiler::getInstance()
+Engine &Engine::getInstance()
 {
-	static Boiler instance;
+	static Engine instance;
 	return instance;
 }
 
-void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight)
+void Engine::initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight)
 {
 	if (this->renderer != nullptr)
 	{
@@ -44,20 +47,25 @@ void Boiler::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, 
 	this->renderer = std::move(renderer);
 	getRenderer().initialize(Size(resWidth, resHeight));
 
-	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*renderer)
+	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*this->renderer)
 		.expects<PositionComponent>()
 		.expects<SpriteComponent>();
 	ecs.getComponentSystems().removeUpdate(&renderSys);
 	this->renderSystem = &renderSys;
 
-	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*renderer)
+	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*this->renderer)
 		.expects<PositionComponent>()
 		.expects<TextComponent>();
 	ecs.getComponentSystems().removeUpdate(&glyphSys);
 	this->glyphSystem = &glyphSys;
+
+	System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*this->renderer, std::move(guiHandler))
+		.expects<GUIComponent>();
+	ecs.getComponentSystems().removeUpdate(&guiSys);
+	this->guiSystem = &guiSys;
 }
 
-void Boiler::start(std::shared_ptr<Part> part)
+void Engine::start(std::shared_ptr<Part> part)
 {
 	//store the incoming part and start it
 	this->part = part;
@@ -69,7 +77,7 @@ void Boiler::start(std::shared_ptr<Part> part)
 	run();
 }
 
-void Boiler::run()
+void Engine::run()
 {
 	double prevTime = SDL_GetTicks();
 	double frameLag = 0.0f;
@@ -83,7 +91,7 @@ void Boiler::run()
 		prevTime = currentTime;
 		frameLag += frameDelta;
 
-		processInput();
+		processEvents();
 
 		while (frameLag >= frameInterval)
 		{
@@ -97,11 +105,12 @@ void Boiler::run()
 		renderer->beginRender();
 		renderSystem->update(getEcs().getComponentStore(), frameDelta);
 		glyphSystem->update(getEcs().getComponentStore(), frameDelta);
+		guiSystem->update(getEcs().getComponentStore(), frameDelta);
 		renderer->endRender();
 	}
 }
 
-void Boiler::processInput()
+void Engine::processEvents()
 {
 	// poll input events
 	SDL_Event event;
@@ -109,6 +118,23 @@ void Boiler::processInput()
 	{
 		switch(event.type)
 		{
+			case SDL_QUIT:
+			{
+				quit();
+				break;
+			}
+			case SDL_WINDOWEVENT:
+			{
+				switch (event.window.event)
+				{
+					case SDL_WINDOWEVENT_CLOSE:
+					{
+						quit();
+						break;
+					}
+				}
+				break;
+			}
 			case SDL_FINGERUP:
 			{
 				TouchTapEvent event(TapState::UP);
@@ -169,16 +195,22 @@ void Boiler::processInput()
 				}
 				break;
 			}
+			guiSystem->processEvent(event);
 		}
+
+		/*if (guiHandler)
+		{
+			guiHandler->processEvents(event);
+			}*/
 	}
 }
 
-void Boiler::update(const double delta)
+void Engine::update(const double delta)
 {
 	ecs.update(delta);
 }
 
-Boiler::~Boiler()
+Engine::~Engine()
 {
 	logger.log("Exiting");
 	if (renderer)

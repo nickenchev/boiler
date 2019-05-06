@@ -4,6 +4,9 @@
 #include <SDL.h>
 #include "inputevent.h"
 
+namespace Boiler
+{
+
 struct KeyInputEvent : public InputEvent
 {
     SDL_Keycode keyCode;
@@ -15,5 +18,7 @@ struct KeyInputEvent : public InputEvent
         this->state = state;
     }
 };
+
+}
 
 #endif /* KEYINPUTEVENT_H */

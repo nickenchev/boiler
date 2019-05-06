@@ -1,11 +1,14 @@
 #ifndef SPRITECOMPONENT_H
 #define SPRITECOMPONENT_H
 
-#include "core/boiler.h"
+#include "core/engine.h"
 #include "core/componenttype.h"
 #include "video/renderer.h"
 #include "video/vertexdata.h"
 #include "video/model.h"
+
+namespace Boiler
+{
 
 class SpriteSheetFrame;
 
@@ -32,9 +35,11 @@ struct SpriteComponent : public ComponentType<SpriteComponent>
 			{ sizeW, 0.0f, 0.0f }
 
 		});
-		model = Boiler::getInstance().getRenderer().loadModel(vertData);
+		model = Engine::getInstance().getRenderer().loadModel(vertData);
 		spriteFrame = nullptr;
 	}
 };
+
+}
 
 #endif /* SPRITECOMPONENT_H */

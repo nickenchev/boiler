@@ -2,7 +2,10 @@
 #define SDL_UTIL_H
 
 #include <SDL.h>
-#include "rect.h"
+#include "core/rect.h"
+
+namespace Boiler
+{
 
 SDL_Rect make_rect(glm::vec2 position, Size size)
 {
@@ -17,6 +20,8 @@ SDL_Rect make_rect(glm::vec2 position, Size size)
 SDL_Rect make_rect(Rect frame)
 {
     return make_rect(frame.position, frame.size);
+}
+
 }
 
 #endif /* SDL_UTIL_H */

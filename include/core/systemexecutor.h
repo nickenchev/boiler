@@ -5,6 +5,9 @@
 #include "system.h"
 #include "componentmapper.h"
 
+namespace Boiler
+{
+
 class SystemExecutor
 {
 	ComponentMapper componentMapper;
@@ -14,5 +17,6 @@ public:
     SystemExecutor();
 };
 
+}
 
 #endif /* SYSTEMEXECUTOR_H */

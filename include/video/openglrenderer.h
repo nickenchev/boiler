@@ -7,6 +7,9 @@
 #include "renderer.h"
 #include "renderdetails.h"
 
+namespace Boiler
+{
+
 #define COMPONENT_NAME "OpenGL Renderer"
 #define VERSION COMPONENT_NAME
 
@@ -31,6 +34,8 @@ public:
     std::string getVersion() const override { return std::string(VERSION); }
 
     SDL_Window *getWindow() const { return win; }
+	SDL_GLContext getGLContext() const { return glContext; }
+
     std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const override;
     void setActiveTexture(std::shared_ptr<const Texture> texture) const override;
 
@@ -45,5 +50,6 @@ public:
     void showMessageBox(const std::string &title, const std::string &message) override;
 };
 
+}
 
 #endif /* OPENGLRENDERER_H */

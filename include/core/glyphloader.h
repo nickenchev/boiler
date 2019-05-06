@@ -7,6 +7,9 @@
 #include FT_GLYPH_H
 #include "core/logger.h"
 
+namespace Boiler
+{
+
 class GlyphMap;
 
 class GlyphLoader
@@ -18,8 +21,9 @@ public:
     GlyphLoader();
 	virtual ~GlyphLoader();
 
-	const GlyphMap loadFace(std::string fontPath);
+	const GlyphMap loadFace(std::string fontPath, int fontSize);
 };
 
+}
 
 #endif /* GLYPHLOADER_H */

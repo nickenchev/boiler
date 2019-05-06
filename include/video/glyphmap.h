@@ -4,6 +4,9 @@
 #include <unordered_map>
 #include "video/glyph.h"
 
+namespace Boiler
+{
+
 class Texture;
 
 class GlyphMap
@@ -23,5 +26,6 @@ public:
 	auto getSourceTexture() const { return sourceTexture; }
 };
 
+}
 
 #endif /* GLYPHMAP_H */

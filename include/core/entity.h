@@ -1,6 +1,9 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+namespace Boiler
+{
+
 using EntityId = unsigned long;
 
 class Entity
@@ -15,5 +18,7 @@ public:
 	bool operator==(const Entity &entity) const { return entity.getId() == this->getId(); }
 	EntityId getId() const { return id; }
 };
+
+}
 
 #endif /* ENTITY_H */

@@ -1,5 +1,8 @@
 #include <string>
 
+namespace Boiler
+{
+
 inline std::string trim_right_copy(
   const std::string& s,
   const std::string& delimiters = " \f\n\r\t\v" )
@@ -19,4 +22,6 @@ inline std::string trim_copy(
   const std::string& delimiters = " \f\n\r\t\v" )
 {
   return trim_left_copy( trim_right_copy( s, delimiters ), delimiters );
+}
+
 }

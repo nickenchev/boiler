@@ -15,7 +15,12 @@
 #include "core/entitycomponentsystem.h"
 #include "video/systems/rendersystem.h"
 #include "video/systems/glyphsystem.h"
+#include "video/systems/guisystem.h"
+#include "video/guihandler.h"
 #include "logger.h"
+
+namespace Boiler
+{
 
 class Entity;
 class Renderer;
@@ -26,13 +31,13 @@ typedef std::function<void(const TouchTapEvent &event)> TouchTapEventListener;
 typedef std::function<void(const MouseMotionEvent &event)> MouseMotionListener;
 typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 
-class Boiler
+class Engine
 {
 	Logger logger;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
     std::unique_ptr<Renderer> renderer;
-	System *renderSystem, *glyphSystem;
+	System *renderSystem, *glyphSystem, *guiSystem;
 
     std::vector<TouchMotionListener> touchMotionListeners;
     std::vector<TouchTapEventListener> touchTapEventListeners;
@@ -47,22 +52,22 @@ class Boiler
     double frameInterval;
 
     void run();
-    void processInput();
+    void processEvents();
     void update(const double delta);
 
     std::shared_ptr<Part> part;
 
     // singleton
-    Boiler();
-    ~Boiler();
+    Engine();
+    ~Engine();
 
 public:
-    Boiler(const Boiler &) = delete;
-    void operator=(const Boiler &s) = delete;
+    Engine(const Engine &) = delete;
+    void operator=(const Engine &s) = delete;
 
-    static Boiler &getInstance();
+    static Engine &getInstance();
 
-    void initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight);
+    void initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight);
     void start(std::shared_ptr<Part> part);
     void quit() { running = false; }
 
@@ -79,5 +84,7 @@ public:
     void addMouseMotionListener(const MouseMotionListener &listener) { mouseMotionListeners.push_back(listener); }
     void addKeyInputListener(const KeyInputListener &listener) { keyInputListeners.push_back(listener); }
 };
+
+}
 
 #endif // ENGINE_H
