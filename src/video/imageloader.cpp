@@ -6,6 +6,8 @@
 #include "video/renderer.h"
 #include "video/imageloader.h"
 
+#include <stdio.h>
+
 using namespace Boiler;
 
 #define COMPONENT_NAME "Image Loader"
@@ -39,6 +41,7 @@ SDL_Surface *readPNG(std::string filePath)
 	Logger logger("imgpng");
 	SDL_Surface *surface = nullptr;
     SDL_RWops *file = SDL_RWFromFile(filePath.c_str(), "rb");
+	FILE *fp = fopen(filePath.c_str(), "rb");
 	const short headerSize = 8;
 	unsigned char header[headerSize];
 	if (!file)
@@ -47,7 +50,8 @@ SDL_Surface *readPNG(std::string filePath)
 	}
 	else
 	{
-		SDL_RWread(file, header, sizeof(char), headerSize);
+		//SDL_RWread(file, header, sizeof(char), headerSize);
+		fread(header, 1, headerSize, fp);
 		if (png_sig_cmp(header, 0, headerSize))
 		{
 			logger.error("Invalid PNG file");
@@ -76,12 +80,13 @@ SDL_Surface *readPNG(std::string filePath)
 					else
 					{
 						// setup custom read/write functions
-						png_set_read_fn(png_ptr, file, user_read_data);
+						//png_set_read_fn(png_ptr, file, user_read_data);
+						png_init_io(png_ptr, fp);
 
 						// ensures we don't read the header in again
 						png_set_sig_bytes(png_ptr, headerSize);
 
-						png_set_read_status_fn(png_ptr, read_row_callback);
+						//png_set_read_status_fn(png_ptr, read_row_callback);
 						//png_read_info(png_ptr, info_ptr);
 						png_read_png(png_ptr, info_ptr, 0, nullptr);
 
@@ -90,13 +95,14 @@ SDL_Surface *readPNG(std::string filePath)
 						png_uint_32 height = png_get_image_height(png_ptr, info_ptr);
 						int bitDepth = png_get_bit_depth(png_ptr, info_ptr);
 						int colorType = png_get_color_type(png_ptr, info_ptr);
+						int colorComponents = (colorType == PNG_COLOR_TYPE_RGBA) ? 4 : 3;
 
 						png_bytepp dataPtr = png_get_rows(png_ptr, info_ptr);
 
 						// create the SDL surface from the pixel dataUint32 rmask, gmask, bmask, amask;
 						Uint32 rmask, gmask, bmask, amask;
 					#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-						int shift = (req_format == STBI_rgb) ? 8 : 0;
+						int shift = (req_format == PNG_COLOR_TYPE_RGBA) ? 8 : 0;
 						rmask = 0xff000000 >> shift;
 						gmask = 0x00ff0000 >> shift;
 						bmask = 0x0000ff00 >> shift;
@@ -107,7 +113,8 @@ SDL_Surface *readPNG(std::string filePath)
 						bmask = 0x00ff0000;
 						amask = (colorType == PNG_COLOR_TYPE_RGB) ? 0 : 0xff000000;
 					#endif
-						surface = SDL_CreateRGBSurfaceFrom((void *)dataPtr, width, height, bitDepth * 4, 4 * width, rmask, gmask, bmask, amask);
+						surface = SDL_CreateRGBSurfaceFrom((void *)*dataPtr, width, height, bitDepth * colorComponents,
+														   width * colorComponents, rmask, gmask, bmask, amask);
 						if (!surface)
 						{
 							logger.error(SDL_GetError());
@@ -122,6 +129,7 @@ SDL_Surface *readPNG(std::string filePath)
 
 		// cleanup file handles
 		SDL_RWclose(file);
+		std::fclose(fp);
 	}
 	return surface;
 }
@@ -132,16 +140,9 @@ void user_read_data(png_structp png_ptr, png_bytep data, size_t length)
 	SDL_RWops *file = static_cast<SDL_RWops *>(io_ptr);
 
 	size_t objsRead = SDL_RWread(file, data, sizeof(png_byte), length);
+	std::cout << objsRead * sizeof(png_bytep) << std::endl;
 }
 
-void user_write_data(png_structp png_ptr, png_bytep data, size_t length)
-{
-}
-
-void user_flush_data(png_structp png_ptr)
-{
-}
-
-void read_row_callback(png_structp png_ptr, png_uint_32 row, int pass)
-{
-}
+void user_write_data(png_structp png_ptr, png_bytep data, size_t length) { }
+void user_flush_data(png_structp png_ptr) { }
+void read_row_callback(png_structp png_ptr, png_uint_32 row, int pass) { }
