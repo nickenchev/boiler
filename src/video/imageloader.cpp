@@ -6,7 +6,9 @@
 #include "video/renderer.h"
 #include "video/imageloader.h"
 
+#include <cstring>
 #include <stdio.h>
+#include <stdlib.h>
 
 using namespace Boiler;
 
@@ -38,7 +40,7 @@ const std::shared_ptr<const Texture> ImageLoader::loadImage(const std::string &f
 
 SDL_Surface *readPNG(std::string filePath)
 {
-	Logger logger("imgpng");
+	Logger logger("LibPNG");
 	SDL_Surface *surface = nullptr;
     SDL_RWops *file = SDL_RWFromFile(filePath.c_str(), "rb");
 	FILE *fp = fopen(filePath.c_str(), "rb");
@@ -86,8 +88,7 @@ SDL_Surface *readPNG(std::string filePath)
 						// ensures we don't read the header in again
 						png_set_sig_bytes(png_ptr, headerSize);
 
-						//png_set_read_status_fn(png_ptr, read_row_callback);
-						//png_read_info(png_ptr, info_ptr);
+						png_set_read_status_fn(png_ptr, read_row_callback);
 						png_read_png(png_ptr, info_ptr, 0, nullptr);
 
 						// get image info
@@ -113,7 +114,18 @@ SDL_Surface *readPNG(std::string filePath)
 						bmask = 0x00ff0000;
 						amask = (colorType == PNG_COLOR_TYPE_RGB) ? 0 : 0xff000000;
 					#endif
-						surface = SDL_CreateRGBSurfaceFrom((void *)*dataPtr, width, height, bitDepth * colorComponents,
+						int rowBytes = png_get_rowbytes(png_ptr, info_ptr);
+						const size_t imgBytes = rowBytes * height;
+						logger.log("Read PNG: " + std::to_string(imgBytes) + " bytes.");
+
+						unsigned char *outData = (unsigned char*)malloc(imgBytes);
+						png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
+						for (int i = 0; i < height; i++)
+						{
+							memcpy(outData + (rowBytes * i), row_pointers[i], rowBytes);
+						}
+
+						surface = SDL_CreateRGBSurfaceFrom((void *)outData, width, height, bitDepth * colorComponents,
 														   width * colorComponents, rmask, gmask, bmask, amask);
 						if (!surface)
 						{
