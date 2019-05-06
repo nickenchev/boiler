@@ -4,7 +4,7 @@
 namespace Boiler
 {
 
-typedef unsigned long EntityId;
+using EntityId = unsigned long;
 
 class Entity
 {
