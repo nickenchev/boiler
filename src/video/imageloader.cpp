@@ -107,7 +107,7 @@ SDL_Surface *readPNG(std::string filePath)
 						bmask = 0x00ff0000;
 						amask = (colorType == PNG_COLOR_TYPE_RGB) ? 0 : 0xff000000;
 					#endif
-						surface = SDL_CreateRGBSurfaceFrom((void *)dataPtr, width, height, bitDepth, 4 * width, rmask, gmask, bmask, amask);
+						surface = SDL_CreateRGBSurfaceFrom((void *)dataPtr, width, height, bitDepth * 4, 4 * width, rmask, gmask, bmask, amask);
 						if (!surface)
 						{
 							logger.error(SDL_GetError());
