@@ -12,20 +12,24 @@ set(OpenGL_GL_PREFERENCE "GLVND")
 # Shader files
 set(SHADER_FILES data/shaders/basic.vert data/shaders/basic.frag)
 
+set(LIBS_ROOT ${CMAKE_CURRENT_LIST_DIR}/libs)
+
 # build zlib
-add_subdirectory(libs/zlib-1.2.11)
+add_subdirectory(${LIBS_ROOT}/zlib-1.2.11)
 
 # build SDL2
-add_subdirectory(libs/SDL2-2.0.9)
+add_subdirectory(${LIBS_ROOT}/SDL2-2.0.9)
 
 # build libpng
-add_subdirectory(libs/libpng16)
+add_subdirectory(${LIBS_ROOT}/libpng16)
+
+# build freetype2
+add_subdirectory(${LIBS_ROOT}/freetype2-VER-2-10-0)
 
 # boiler sources
 find_package(glm REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-find_package(Freetype REQUIRED)
 
 # Engine related headers
 set(BOILER_HEADERS
@@ -89,6 +93,6 @@ target_include_directories(boiler PUBLIC
   png
   ${OPENGL_INCLUDE_DIR}
   ${GLEW_INCLUDE_DIR}
-  ${FREETYPE_INCLUDE_DIRS})
+  freetype)
 
-target_link_libraries(boiler SDL2 png zlibstatic ${OPENGL_LIBRARY} ${GLEW_LIBRARY} ${FREETYPE_LIBRARIES})
+target_link_libraries(boiler SDL2 png zlibstatic freetype ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
