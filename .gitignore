@@ -17,3 +17,4 @@ cmake-build-debug/
 .ccls-cache/
 .vs/
 libs/libpng16/pnglibconf.h
+libs/zlib-1.2.11/zconf.h
