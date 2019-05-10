@@ -16,3 +16,4 @@ android/android-studio/app/src/main/jniLibs/
 cmake-build-debug/
 .ccls-cache/
 .vs/
+libs/libpng16/pnglibconf.h
