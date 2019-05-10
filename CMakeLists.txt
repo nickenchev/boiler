@@ -4,10 +4,15 @@ project(boiler)
 include(ExternalProject)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+
+if(MSVC OR MSYS OR MINGW)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++14" FORCE)
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
-set(OpenGL_GL_PREFERENCE "GLVND")
+set(OpenGL_GL_PREFERENCE "GLVND")
 
 # Shader files
 set(SHADER_FILES data/shaders/basic.vert data/shaders/basic.frag)
@@ -29,8 +34,12 @@ set(GLEW_STATIC ON CACHE BOOL "Use GLEW static lib")
 set(GLEW_LIB_DIR ${LIBS_ROOT}/glew-2.1.0)
 add_subdirectory(${GLEW_LIB_DIR}/build/cmake)
 set(GLEW_HEADERS_DIR ${GLEW_LIB_DIR}/include)
+
 # build zlib
-add_subdirectory(${LIBS_ROOT}/zlib-1.2.11)
+set(ZLIB_DIR ${LIBS_ROOT}/zlib-1.2.11)
+add_subdirectory(${ZLIB_DIR})
+set(ZLIB_INCLUDE_DIR ${ZLIB_DIR})
+configure_file(${CMAKE_CURRENT_BINARY_DIR}/libs/zlib-1.2.11/zconf.h ${ZLIB_INCLUDE_DIR})
 
 # build SDL2
 set(SDL_SHARED OFF CACHE BOOL "Disable SDL2 shared lib")
@@ -110,8 +119,8 @@ target_include_directories(boiler PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/include/tinyxml2
   ${OPENGL_INCLUDE_DIR}
   ${GLEW_HEADERS_DIR}
-  ${ZLIB_INCLUDE_DIR}
   ${PNG_INCLUDE_DIR}
+  ${ZLIB_INCLUDE_DIR}
   png
   glm
   SDL2
