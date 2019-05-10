@@ -23,6 +23,7 @@ option(BUILD_SHARED_LIBS OFF)
 
 # build glm
 add_subdirectory(${LIBS_ROOT}/glm-0.9.9.5)
+
 # build glew
 set(GLEW_STATIC ON CACHE BOOL "Use GLEW static lib")
 set(GLEW_LIB_DIR ${LIBS_ROOT}/glew-2.1.0)
@@ -30,15 +31,20 @@ add_subdirectory(${GLEW_LIB_DIR}/build/cmake)
 set(GLEW_HEADERS_DIR ${GLEW_LIB_DIR}/include)
 # build zlib
 add_subdirectory(${LIBS_ROOT}/zlib-1.2.11)
+
 # build SDL2
 set(SDL_SHARED OFF CACHE BOOL "Disable SDL2 shared lib")
 add_subdirectory(${LIBS_ROOT}/SDL2-2.0.9)
+
 # build libpng
 set(PNG_SHARED OFF CACHE BOOL "Disable PNG shared lib")
+set(PNG_STATIC ON CACHE BOOL "Enable PNG static lib")
+set(PNG_BUILD_ZLIB ON CACHE BOOL "Use Boiler's ZLIB")
 set(PNG_DIR ${LIBS_ROOT}/libpng16)
 add_subdirectory(${PNG_DIR})
 set(PNG_INCLUDE_DIR ${PNG_DIR})
 configure_file(${CMAKE_CURRENT_BINARY_DIR}/libs/libpng16/pnglibconf.h ${PNG_INCLUDE_DIR})
+
 # build freetype2
 add_subdirectory(${LIBS_ROOT}/freetype2-VER-2-10-0)
 
@@ -111,4 +117,4 @@ target_include_directories(boiler PUBLIC
   SDL2
   freetype)
 
-target_link_libraries(boiler SDL2-static png_static zlibstatic freetype glm glew_s ${OPENGL_LIBRARY})
+target_link_libraries(boiler SDL2-static png_static zlib freetype glm glew_s ${OPENGL_LIBRARY})
