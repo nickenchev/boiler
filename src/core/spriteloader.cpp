@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
+#include <json/json.h>
 
 #include "video/opengl.h"
 #include "core/spriteloader.h"
-#include "json/json.h"
 #include "core/engine.h"
 #include "video/renderer.h"
 #include "util/filemanager.h"
