@@ -38,7 +38,7 @@ void loadData(Boiler::tmx::Layer &layer, Boiler::tmx::Map *map, std::string data
 
     uLong sourceLen = decoded.size();
     uLongf destLen = buffSize;
-    Bytef buffer[buffSize];
+    Bytef *buffer = new Bytef[buffSize];
 
     int result = uncompress(buffer, &destLen, &decoded[0], sourceLen);
     if (result != Z_OK)
@@ -50,12 +50,13 @@ void loadData(Boiler::tmx::Layer &layer, Boiler::tmx::Map *map, std::string data
         int offset = 0;
         do
         {
-            u_int32_t tileGid = *((u_int32_t *)&buffer[offset]);
+            uint32_t tileGid = *((uint32_t *)&buffer[offset]);
             layer.tiles.push_back(tileGid);
 
             offset += 4;
         } while (offset < destLen);
     }
+	delete[]buffer;
 }
 
 Boiler::tmx::Properties loadProperties(XMLElement *sourceElement)

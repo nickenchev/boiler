@@ -12,7 +12,7 @@ std::string FileManager::readTextFile(const std::string &filePath)
     {
         const int size = SDL_RWsize(file);
 
-        char buffer[size + 1];
+        char *buffer = new char[size + 1];
         char *buffOffset = buffer;
         int totalRead = 0, charsRead = 1;
         while (totalRead < size && charsRead != 0)
@@ -24,6 +24,7 @@ std::string FileManager::readTextFile(const std::string &filePath)
         SDL_RWclose(file);
         buffer[size] = '\0';
         output = buffer;
+		delete[] buffer;
     }
 
     return output;
