@@ -10,6 +10,11 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
+#elif _WIN32
+
+#include <GL/glew.h>
+#include <GL/gl.h>
+
 #else
 
 #include <GLES3/gl3.h>
