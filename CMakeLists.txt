@@ -27,6 +27,7 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "Disable all shared libs")
 option(BUILD_SHARED_LIBS OFF)
 
 # build glm
+set(GLM_TEST_ENABLE OFF)
 add_subdirectory(${LIBS_ROOT}/glm-0.9.9.5)
 
 # build glew
