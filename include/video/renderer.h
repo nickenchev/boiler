@@ -29,8 +29,8 @@ class Renderer
     Color3 clearColor;
 
 protected:
-    Size screenSize;
 	Logger logger;
+    Size screenSize;
     std::unique_ptr<ShaderProgram> program;
     std::shared_ptr<Camera> camera;
 
@@ -42,7 +42,7 @@ public:
     virtual void shutdown() = 0;
     virtual std::string getVersion() const = 0;
 
-    const void setScreenSize(const Size &screenSize) { this->screenSize = screenSize; }
+    void setScreenSize(const Size &screenSize) { this->screenSize = screenSize; }
     const Size &getScreenSize() const { return screenSize; }
     const ShaderProgram *getProgram() const { return program.get(); }
     void setCamera(std::shared_ptr<Camera> camera) { this->camera = camera; }

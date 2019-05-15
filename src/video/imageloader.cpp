@@ -35,7 +35,7 @@ const std::shared_ptr<const Texture> ImageLoader::loadImage(const std::string &f
 
     SDL_FreeSurface(surface);
 
-    return std::move(texture);
+    return texture;
 }
 
 SDL_Surface *readPNG(std::string filePath)

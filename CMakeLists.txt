@@ -80,6 +80,8 @@ target_include_directories(boiler PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/include/boiler
   ${CMAKE_CURRENT_LIST_DIR}/include
   ${CMAKE_CURRENT_LIST_DIR}/include/tinyxml2
-  boiler_deps)
+  PUBLIC SYSTEM boiler_deps)
 
 target_link_libraries(boiler boiler_deps)
+
+target_compile_options(boiler PRIVATE -Wall -Wextra)

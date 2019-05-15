@@ -33,7 +33,7 @@ public:
 	}
 
 	void update(ComponentStore &store, const double delta) const override;
-	void processEvent(const SDL_Event &event) const override
+	void processEvent(const SDL_Event &event) const
 	{
 		guiHandler->processEvent(event);
 	}

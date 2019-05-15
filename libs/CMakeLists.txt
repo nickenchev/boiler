@@ -37,7 +37,6 @@ set(PNG_INCLUDE_DIR ${PNG_DIR})
 add_subdirectory(${LIBS_ROOT}/freetype2-VER-2-10-0)
 
 # build jsoncpp
-
 set(JSONCPP_WITH_TESTS CACHE OFF "Disable JSONCPP unit tests")
 set(JSONCPP_WITH_POST_BUILD_UNITTEST CACHE OFF "Disable JSONCPP post-build runner")
 add_subdirectory(${LIBS_ROOT}/jsoncpp)

@@ -15,7 +15,7 @@ bool Rect::collides(const Rect &rect) const
 
 bool Rect::collides(const glm::vec2 point) const
 {
-    //return (point.x >= getMin(DIM_X) && point.x <= getMax(DIM_X) &&
-	//point.y >= getMin(DIM_Y) && point.y <= getMax(DIM_Y));
-	return false;
+	// TODO: Needs testing
+    return (point.x >= getMinX() && point.x <= getMaxX() &&
+	point.y >= getMinY() && point.y <= getMaxY());
 }

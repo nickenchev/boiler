@@ -10,6 +10,7 @@
 #include "core/components/spritecomponent.h"
 #include "core/components/textcomponent.h"
 #include "core/components/guicomponent.h"
+#include "video/systems/guisystem.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
@@ -194,13 +195,10 @@ void Engine::processEvents()
 				}
 				break;
 			}
-			guiSystem->processEvent(event);
-		}
 
-		/*if (guiHandler)
-		{
-			guiHandler->processEvents(event);
-			}*/
+			// GUI system needs to handle events independantly
+			static_cast<GUISystem *>(guiSystem)->processEvent(event);
+		}
 	}
 }
 

@@ -48,7 +48,6 @@ public:
 	}
 
 	virtual void update(ComponentStore &store, const double delta) const = 0;
-	virtual void processEvent(const SDL_Event &event) const { }
 	const std::vector<Entity> &getEntities() const { return entities; }
 };
 

@@ -9,7 +9,6 @@
 #include "spritesheet.h"
 #include "video/texture.h"
 
-class SDL_Texture;
 typedef unsigned int GLuint;
 
 namespace Boiler
