@@ -18,7 +18,7 @@ set(GLEW_HEADERS_DIR ${GLEW_LIB_DIR}/include)
 set(ZLIB_DIR ${LIBS_ROOT}/zlib-1.2.11)
 add_subdirectory(${ZLIB_DIR})
 set(ZLIB_INCLUDE_DIR ${ZLIB_DIR})
-#configure_file(${CMAKE_CURRENT_BINARY_DIR}/libs/zlib-1.2.11/zconf.h ${ZLIB_INCLUDE_DIR})
+set(PNG_CONFIG_HEADER ${CMAKE_CURRENT_BINARY_DIR}/zlib-1.2.11)
 
 # build SDL2
 set(SDL_SHARED OFF CACHE BOOL "Disable SDL2 shared lib")
@@ -31,7 +31,7 @@ set(PNG_BUILD_ZLIB ON CACHE BOOL "Use Boiler's ZLIB")
 set(PNG_DIR ${LIBS_ROOT}/libpng16)
 add_subdirectory(${PNG_DIR})
 set(PNG_INCLUDE_DIR ${PNG_DIR})
-#configure_file(${CMAKE_CURRENT_BINARY_DIR}/libs/libpng16/pnglibconf.h ${PNG_INCLUDE_DIR})
+set(PNG_CONFIG_HEADER ${CMAKE_CURRENT_BINARY_DIR}/libpng16)
 
 # build freetype2
 add_subdirectory(${LIBS_ROOT}/freetype2-VER-2-10-0)
@@ -50,6 +50,7 @@ target_include_directories(boiler_deps PUBLIC
   ${ZLIB_INCLUDE_DIR}
   ${JSONCPP_INCLUDE_DIR}
   png
+  ${PNG_CONFIG_HEADER}
   glm
   SDL2
   freetype)
