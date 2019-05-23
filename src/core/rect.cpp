@@ -5,11 +5,19 @@ using namespace Boiler;
 bool Rect::collides(const Rect &rect) const
 {
 	bool collision = false;
-	if (getMaxX() > rect.getMinX() && getMaxY() > rect.getMinY() &&
-		getMinX() < rect.getMaxX() && getMinY() < rect.getMaxY())
+
+	cgfloat epsilon = 0.001f;
+	cgfloat xDiff = getMaxX() - rect.getMinX();
+	cgfloat yDiff = getMaxY() - rect.getMinY();
+	cgfloat xDiffMin = rect.getMaxX() - getMinX();
+	cgfloat yDiffMin = rect.getMaxY() - getMinY();
+
+	if (xDiff > epsilon && yDiff > epsilon &&
+		xDiffMin > epsilon && yDiffMin > epsilon)
 	{
 		collision = true;
 	}
+
 	return collision;
 }
 
