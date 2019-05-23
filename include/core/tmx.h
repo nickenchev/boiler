@@ -6,8 +6,6 @@
 #include <vector>
 #include <map>
 
-using namespace std;
-
 namespace Boiler { namespace tmx
 {
 
@@ -20,16 +18,16 @@ struct Object;
 
 struct Property
 {
-	string name, value;
+	std::string name, value;
 };
 
 struct Properties
 {
-	map<string, Property> properties;
+	std::map<std::string, Property> properties;
 
-	Properties(const map<string, Property> &properties) : properties(properties) { }
+	Properties(const std::map<std::string, Property> &properties) : properties(properties) { }
 
-	string getValue(string key) const { return properties.find(key)->second.value; }
+	std::string getValue(std::string key) const { return properties.find(key)->second.value; }
 };
 
 struct Component
@@ -40,15 +38,15 @@ struct Component
 
 struct Map : Component
 {
-	string version, orientation;
+	std::string version, orientation;
 	int width, height, tilewidth, tileheight;
-	string renderorder;
+	std::string renderorder;
 
-	map<int, Tile *> allTiles;
-	vector<unique_ptr<TileSet>> tilesets;
-	vector<shared_ptr<Layer>> layers;
-	vector<unique_ptr<ImageLayer>> imageLayers;
-	vector<unique_ptr<ObjectGroup>> objectGroups;
+	std::map<int, Tile *> allTiles;
+	std::vector<std::unique_ptr<TileSet>> tilesets;
+	std::vector<std::shared_ptr<Layer>> layers;
+	std::vector<std::unique_ptr<ImageLayer>> imageLayers;
+	std::vector<std::unique_ptr<ObjectGroup>> objectGroups;
 
 	using Component::Component;
 };
@@ -56,23 +54,23 @@ struct Map : Component
 struct TileSet : Component
 {
 	int firstgid;
-	string source, name;
+	std::string source, name;
 	int tilewidth, tileheight, spacing, margin;
-	vector<unique_ptr<Tile>> tiles;
+	std::vector<std::unique_ptr<Tile>> tiles;
 
 	using Component::Component;
 };
 
 struct Image
 {
-	string format, source, trans;
+	std::string format, source, trans;
 	int width, height;
 };
 
 struct Tile : Component
 {
 	int id;
-	string terrain;
+	std::string terrain;
 	float probability;
 	Image image;
 
@@ -86,18 +84,18 @@ struct TileOffset
 
 struct Layer : Component
 {
-	string name;
+	std::string name;
 	int x, y, width, height;
 	float opacity;
 	bool visible;
-	vector<int> tiles;
+	std::vector<int> tiles;
 
 	using Component::Component;
 };
 
 struct ImageLayer : Component
 {
-	string name;
+	std::string name;
 	int x, y, width, height;
 	float opacity;
 	bool visible;
@@ -108,18 +106,18 @@ struct ImageLayer : Component
 
 struct ObjectGroup : Component
 {
-	string name, color;
+	std::string name, color;
 	int x, y, width, height;
 	float opacity;
 	bool visible;
-	vector<unique_ptr<Object>> objects;
+	std::vector<std::unique_ptr<Object>> objects;
 
 	using Component::Component;
 };
 
 struct Object : Component
 {
-	string id, name, type;
+	std::string id, name, type;
 	int x, y, width, height;
 	float rotation;
 	int gid;

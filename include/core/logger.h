@@ -5,27 +5,25 @@
 #include <vector>
 #include <iostream>
 
-using namespace std;
-
 namespace Boiler
 {
 
 class Logger
 {
-	static vector<string> buffer;
-	string name;
+	static std::vector<std::string> buffer;
+	std::string name;
 public:
     Logger(std::string name) { this->name = name; }
 
     void log(std::string message) const
 	{
-		string entry = "[" + name + "] " + message;
-		cout << entry << endl;
+		std::string entry = "[" + name + "] " + message;
+		std::cout << entry << std::endl;
 	}
     void error(std::string message) const
 	{
-		string entry = "[ERROR ->" + name + "] " + message;
-		cerr << entry << endl;
+		std::string entry = "[ERROR ->" + name + "] " + message;
+		std::cerr << entry << std::endl;
 	}
 };
 

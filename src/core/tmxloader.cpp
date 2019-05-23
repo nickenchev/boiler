@@ -8,6 +8,7 @@
 #include "util/string_util.h"
 #include "core/logger.h"
 
+using namespace std;
 using namespace tinyxml2;
 
 string getAttributeString(XMLElement *elem, const char *key)
@@ -28,7 +29,7 @@ Boiler::tmx::Image loadImage(XMLElement *element)
     return Boiler::tmx::Image{format, source, trans, width, height};
 }
 
-void loadData(Boiler::tmx::Layer &layer, Boiler::tmx::Map *map, std::string data)
+void loadData(Boiler::tmx::Layer &layer, std::string data)
 {
     vector<Boiler::BYTE> decoded = Boiler::base64_decode(data);
 
@@ -47,7 +48,7 @@ void loadData(Boiler::tmx::Layer &layer, Boiler::tmx::Map *map, std::string data
     }
     else
     {
-        int offset = 0;
+        uLongf offset = 0;
         do
         {
             uint32_t tileGid = *((uint32_t *)&buffer[offset]);
@@ -156,7 +157,7 @@ std::unique_ptr<Boiler::tmx::Map> Boiler::tmx::TmxLoader::loadMap(std::string fi
             if (xdata)
             {
                 string data = trim_copy(xdata->GetText());
-                loadData(*layer, map.get(), data);
+                loadData(*layer, data);
             }
             
             map->layers.push_back(layer);
@@ -216,5 +217,5 @@ std::unique_ptr<Boiler::tmx::Map> Boiler::tmx::TmxLoader::loadMap(std::string fi
         }
     }
 
-    return std::move(map); 
+    return map;
 }
