@@ -5,7 +5,7 @@
 
 using namespace Boiler;
 
-void RenderSystem::update(ComponentStore &store, const double delta) const
+void RenderSystem::update(ComponentStore &store, const double delta)
 {
 	for (auto &entity : getEntities())
 	{

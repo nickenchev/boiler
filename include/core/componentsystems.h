@@ -39,7 +39,7 @@ public:
 		T &sysRef = *system;
 		systems.push_back(std::move(system));
 		updateSystems.push_back(&sysRef);
-		logger.log("System Registered: " + sysRef.name);
+		logger.log("System Registered: " + sysRef.getName());
 
 		return sysRef;
 	}
@@ -50,7 +50,7 @@ public:
 		if (itr != updateSystems.end())
 		{
 			updateSystems.erase(itr);
-			logger.log("Removed " + system->name + " from update list.");
+			logger.log("Removed " + system->getName() + " from update list.");
 		}
 		else
 		{

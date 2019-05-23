@@ -4,7 +4,7 @@
 
 using namespace Boiler;
 
-void GUISystem::update(ComponentStore &store, const double delta) const
+void GUISystem::update(ComponentStore &store, const double delta)
 {
 	if (getEntities().size())
 	{

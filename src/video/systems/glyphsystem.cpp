@@ -6,7 +6,7 @@
 
 using namespace Boiler;
 
-void GlyphSystem::update(ComponentStore &store, const double delta) const
+void GlyphSystem::update(ComponentStore &store, const double delta)
 {
 	for (auto &entity : getEntities())
 	{

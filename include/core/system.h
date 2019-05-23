@@ -17,6 +17,7 @@ class System
 {
 	ComponentMask systemMask;
 	std::vector<Entity> entities;
+	const std::string name;
 
 protected:
 	const Logger logger;
@@ -24,8 +25,6 @@ protected:
 public:
 	System(std::string name) : name(name), logger(name) { }
 	virtual ~System() { }
-
-	const std::string name;
 
 	template<typename T>
 	System &expects()
@@ -47,8 +46,9 @@ public:
 		return matchingMask;
 	}
 
-	virtual void update(ComponentStore &store, const double delta) const = 0;
+	virtual void update(ComponentStore &store, const double delta) = 0;
 	const std::vector<Entity> &getEntities() const { return entities; }
+	const std::string &getName() const { return name; }
 };
 
 }

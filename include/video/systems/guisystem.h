@@ -32,7 +32,7 @@ public:
 		guiHandler->cleanup();
 	}
 
-	void update(ComponentStore &store, const double delta) const override;
+	void update(ComponentStore &store, const double delta) override;
 	void processEvent(const SDL_Event &event) const
 	{
 		guiHandler->processEvent(event);

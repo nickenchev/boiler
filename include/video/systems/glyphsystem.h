@@ -14,7 +14,7 @@ class GlyphSystem : public System
 public:
 	GlyphSystem(const Renderer &renderer) : System("Glyph System"), renderer(renderer) { }
 
-	void update(ComponentStore &store, const double delta) const override;
+	void update(ComponentStore &store, const double delta) override;
 };
 
 }
