@@ -12,7 +12,7 @@ struct MouseButtonEvent : public InputEvent
 {
     MouseButton button;
     ButtonState state;
-    MouseButtonEvent(const MouseButton button, const ButtonState state) : button(button), state(state), InputEvent() { }
+    MouseButtonEvent(const MouseButton button, const ButtonState state) : InputEvent(), button(button), state(state) { }
 };
 
 }

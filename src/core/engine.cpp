@@ -16,7 +16,7 @@
 
 using namespace Boiler;
 
-Engine::Engine() : spriteLoader(), imageLoader(), fontLoader(), baseDataPath(""), logger("Engine")
+Engine::Engine() : logger("Engine"), baseDataPath(""), spriteLoader(), imageLoader(), fontLoader()
 {
 	logger.log("Engine instance created");
 }

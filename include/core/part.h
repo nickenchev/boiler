@@ -13,7 +13,7 @@ class Part
 protected:
 	Logger logger;
 public:
-	Part(const std::string &name) : logger(name), name(name) { }
+	Part(const std::string &name) : name(name), logger(name)  { }
     // disable copying
     Part(const Part &part) = delete;
     Part &operator=(const Part &part) = delete;
@@ -21,7 +21,7 @@ public:
     virtual ~Part() { }
 
     virtual void onStart() = 0;
-    virtual void update(double deltaTime) { }
+    virtual void update(double deltaTime) = 0;
 };
 
 }
