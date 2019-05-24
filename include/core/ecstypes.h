@@ -2,6 +2,7 @@
 #define ECSTYPES_H
 
 #include <bitset>
+#include "entity.h"
 
 namespace Boiler
 {

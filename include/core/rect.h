@@ -44,6 +44,12 @@ struct Rect
 		return position.y + size.height;
     }
 
+	inline glm::vec3 center() const
+	{
+		return glm::vec3(position.x + size.width / 2,
+						 position.y + size.height / 2, 0);
+	}
+
     bool collides(const Rect &rect) const;
     bool collides(const glm::vec2 point) const;
 };
