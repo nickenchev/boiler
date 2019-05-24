@@ -48,13 +48,13 @@ public:
 				// entity is compatible with this system, track it
 				matchingMask = true;
 				entities.push_back(entity);
-				logger.log("Adding entity #" + std::to_string(entity.getId()) + " with signature: " + entityMask.to_string());
+				logger.log("Added entity.");
 			}
 		}
 		else if (entityItr != entities.end())
 		{
 			// entity no longer matches mask, but is in this system, remove it
-			logger.log("Removing entity #" + std::to_string(entity.getId()) + " with signature: " + entityMask.to_string());
+			logger.log("Removed entity");
 			entities.erase(entityItr);
 		}
 

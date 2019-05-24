@@ -12,6 +12,6 @@ void RenderSystem::update(ComponentStore &store, const double delta)
 		PositionComponent &pos = store.retrieve<PositionComponent>(entity);
 		SpriteComponent &sprite = store.retrieve<SpriteComponent>(entity);
 
-		Engine::getInstance().getRenderer().render(pos, sprite);
+		renderer.render(pos, sprite);
 	}
 }

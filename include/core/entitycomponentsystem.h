@@ -1,6 +1,7 @@
 #ifndef ENTITYCOMPONENTSYSTEM_H
 #define ENTITYCOMPONENTSYSTEM_H
 
+#include <string>
 #include "core/entityworld.h"
 #include "core/componentmapper.h"
 #include "core/componentsystems.h"
@@ -13,12 +14,15 @@ class Entity;
 
 class EntityComponentSystem
 {
+	Logger logger;
 	EntityWorld entityWorld;
 	ComponentMapper mapper;
 	ComponentSystems systems;
 	ComponentStore componentStore;
 
 public:
+	EntityComponentSystem() : logger("ECS") { }
+
 	void update(const double delta)
 	{
 		systems.update(componentStore, delta);
@@ -34,6 +38,8 @@ public:
 	{
 		auto entMask = mapper.addComponent<T>(entity);
 		auto component = componentStore.store<T>(entity, std::forward<Args>(args)...);
+
+		logger.log("Checking entity #" + std::to_string(entity.getId()) + " with signature: " + entMask.to_string());
 		systems.checkEntity(entity, entMask);
 
 		return component;
