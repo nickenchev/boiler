@@ -39,9 +39,14 @@ public:
 		bool matchingMask = false;
 		if ((entityMask & systemMask) == systemMask)
 		{
-			matchingMask = true;
-			// entity is compatible with this system, track it
-			entities.push_back(entity);
+			// ensure entity isn't already in here
+			if (std::find(entities.begin(), entities.end(), entity) == entities.end())
+			{
+				matchingMask = true;
+				// entity is compatible with this system, track it
+				entities.push_back(entity);
+				logger.log("Entity #" + std::to_string(entity.getId()) + " with signature: " + entityMask.to_string() + ".");
+			}
 		}
 		return matchingMask;
 	}
