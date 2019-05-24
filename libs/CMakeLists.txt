@@ -55,4 +55,4 @@ target_include_directories(boiler_deps PUBLIC
   SDL2
   freetype)
 
-target_link_libraries(boiler_deps SDL2-static png_static zlib freetype glm glew_s jsoncpp_lib ${OPENGL_LIBRARY})
+target_link_libraries(boiler_deps SDL2-static png_static zlibstatic freetype glm glew_s jsoncpp_lib ${OPENGL_LIBRARY})
