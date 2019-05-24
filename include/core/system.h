@@ -37,17 +37,27 @@ public:
 	virtual bool checkEntity(const Entity &entity, const ComponentMask &entityMask)
 	{
 		bool matchingMask = false;
+		// check if entity exists in this system
+		auto entityItr = std::find(entities.begin(), entities.end(), entity);
+
 		if ((entityMask & systemMask) == systemMask)
 		{
 			// ensure entity isn't already in here
-			if (std::find(entities.begin(), entities.end(), entity) == entities.end())
+			if (entityItr == entities.end())
 			{
 				// entity is compatible with this system, track it
 				matchingMask = true;
 				entities.push_back(entity);
-				logger.log("Entity #" + std::to_string(entity.getId()) + " with signature: " + entityMask.to_string() + ".");
+				logger.log("Adding entity #" + std::to_string(entity.getId()) + " with signature: " + entityMask.to_string());
 			}
 		}
+		else if (entityItr != entities.end())
+		{
+			// entity no longer matches mask, but is in this system, remove it
+			logger.log("Removing entity #" + std::to_string(entity.getId()) + " with signature: " + entityMask.to_string());
+			entities.erase(entityItr);
+		}
+
 		return matchingMask;
 	}
 
