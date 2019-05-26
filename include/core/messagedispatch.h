@@ -9,15 +9,14 @@
 namespace Boiler
 {
 
-using MessageId = int;
-
+template<typename... T>
 class MessageDispatch
 {
 	Logger logger;
-	using ResponderHandler = std::function<void ()>;
+	using ResponderHandler = std::function<void (T...)>;
 	using ResponderList = std::vector<ResponderHandler>;
 
-	std::vector<ResponderList> messageResponders;
+	ResponderList messageResponders;
 
 	// disable copying
 	MessageDispatch(const MessageDispatch &) = delete;
@@ -25,29 +24,17 @@ class MessageDispatch
 public:
 	MessageDispatch() : logger("Message Dispatch") { }
 
-	constexpr MessageId createMessageId()
+	void dispatch(T&&... args)
 	{
-		messageResponders.push_back(std::vector<ResponderHandler>());
-		MessageId newId = messageResponders.size() - 1;
-		logger.log("Created new message with ID: " + std::to_string(newId));
-		return newId;
-	}
-
-	void dispatch(MessageId messageId)
-	{
-		assert(messageId < messageResponders.size());
-		
-		for (ResponderHandler handler : messageResponders[messageId])
+		for (ResponderHandler handler : messageResponders)
 		{
-			handler();
+			handler(std::forward<T...>(args...));
 		}
 	}
 
-	void subscribe(MessageId messageId, ResponderHandler responder)
+	void subscribe(ResponderHandler responder)
 	{
-		assert(messageId < messageResponders.size());
-
-		messageResponders[messageId].push_back(responder);
+		messageResponders.push_back(responder);
 	}
 };
 

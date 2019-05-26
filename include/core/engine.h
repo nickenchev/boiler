@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 #include <functional>
-#include "core/messagedispatch.h"
 #include "spriteloader.h"
 #include "video/imageloader.h"
 #include "video/fontloader.h"
@@ -39,7 +38,6 @@ class Engine
     std::string baseDataPath;
     std::unique_ptr<Renderer> renderer;
 	System *renderSystem, *glyphSystem, *guiSystem;
-	MessageDispatch messageDispatch;
 
     std::vector<TouchMotionListener> touchMotionListeners;
     std::vector<TouchTapEventListener> touchTapEventListeners;
@@ -80,7 +78,6 @@ public:
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
     const ImageLoader &getImageLoader() const { return imageLoader; }
     const FontLoader &getFontLoader() const { return fontLoader; }
-	MessageDispatch &getMessageDispatch() { return messageDispatch; }
 
     void addTouchMotionListener(const TouchMotionListener &listener) { touchMotionListeners.push_back(listener); }
     void addTouchTapEventListener(const TouchTapEventListener &listener) { touchTapEventListeners.push_back(listener); }
