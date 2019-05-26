@@ -14,25 +14,30 @@ template <typename T>
 class MessageDispatch
 {
 	using ResponderHandler = std::function<void (T)>;
-	std::unordered_map<MessageId, std::vector<ResponderHandler> responders;
+	using ResponderList = std::vector<ResponderHandler>;
+
+	std::unordered_map<MessageId, ResponderList> responders;
+
 public:
     MessageDispatch();
 
-	void dispatch(MessageId id)
+	void dispatch(MessageId messageId)
 	{
-		auto
+		auto itr = responders.find(messageId);
+		assert(itr != responders.end());
+
+		for (ResponderHandler handler : itr)
+		{
+			ResponderHandler();
+		}
 	}
 
 	void addResponder(MessageId messageId, ResponderHandler responder)
 	{
-		if (responders.find(messageId) != responders.end())
-		{
-			responders[messageId].push_back(responder);
-		}
-		else
-		{
-			throw std::runtime_error("Provided MessageId is invalid");
-		}
+		auto itr = responders.find(messageId);
+		assert(itr != responders.end());
+
+		responders[messageId].push_back(responder);
 	}
 };
 
