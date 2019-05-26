@@ -4,40 +4,50 @@
 #include <unordered_map>
 #include <vector>
 #include <functional>
+#include "core/logger.h"
 
 namespace Boiler
 {
 
 using MessageId = int;
 
-template <typename T>
 class MessageDispatch
 {
-	using ResponderHandler = std::function<void (T)>;
+	Logger logger;
+	using ResponderHandler = std::function<void ()>;
 	using ResponderList = std::vector<ResponderHandler>;
 
-	std::unordered_map<MessageId, ResponderList> responders;
+	std::vector<ResponderList> messageResponders;
+
+	// disable copying
+	MessageDispatch(const MessageDispatch &) = delete;
 
 public:
-    MessageDispatch();
+	MessageDispatch() : logger("Message Dispatch") { }
+
+	constexpr MessageId createMessageId()
+	{
+		messageResponders.push_back(std::vector<ResponderHandler>());
+		MessageId newId = messageResponders.size() - 1;
+		logger.log("Created new message with ID: " + std::to_string(newId));
+		return newId;
+	}
 
 	void dispatch(MessageId messageId)
 	{
-		auto itr = responders.find(messageId);
-		assert(itr != responders.end());
-
-		for (ResponderHandler handler : itr)
+		assert(messageId < messageResponders.size());
+		
+		for (ResponderHandler handler : messageResponders[messageId])
 		{
-			ResponderHandler();
+			handler();
 		}
 	}
 
-	void addResponder(MessageId messageId, ResponderHandler responder)
+	void subscribe(MessageId messageId, ResponderHandler responder)
 	{
-		auto itr = responders.find(messageId);
-		assert(itr != responders.end());
+		assert(messageId < messageResponders.size());
 
-		responders[messageId].push_back(responder);
+		messageResponders[messageId].push_back(responder);
 	}
 };
 

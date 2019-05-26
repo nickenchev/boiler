@@ -7,7 +7,6 @@
 #include "core/ecstypes.h"
 #include "core/componentmapper.h"
 #include "core/logger.h"
-#include "core/messagedispatch.h"
 
 namespace Boiler
 {
