@@ -27,6 +27,12 @@ public:
 	}
 
 	template<typename T>
+	void remove(const Entity &entity)
+	{
+		entityComponents[entity.getId()][T::mask] = nullptr;
+	}
+
+	template<typename T>
 	T &retrieve(const Entity &entity)
 	{
 		return *std::static_pointer_cast<T>(entityComponents[entity.getId()][T::mask]);
