@@ -3,6 +3,7 @@
 
 #include <SDL.h>
 #include <vector>
+#include <algorithm>
 #include <string>
 #include "core/ecstypes.h"
 #include "core/componentmapper.h"

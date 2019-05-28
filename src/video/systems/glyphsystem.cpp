@@ -13,13 +13,14 @@ void GlyphSystem::update(ComponentStore &store, const double delta)
 		PositionComponent pos = store.retrieve<PositionComponent>(entity);
 		TextComponent &text = store.retrieve<TextComponent>(entity);
 
+		assert(text.glyphMap != nullptr);
+
 		// offset by parent's position
 		if (pos.parent)
 		{
 			pos.frame.position += pos.parent->frame.position;
 		}
 
-		assert(text.glyphMap != nullptr);
 		renderer.render(pos, text);
 	}
 }
