@@ -1,4 +1,3 @@
-#include <iostream>
 #include "core/quadtree.h"
 #include "core/entity.h"
 
@@ -34,8 +33,8 @@ void Quadtree::clear()
 
 void Quadtree::split()
 {
-    int subWidth = bounds.size.getWidth() / 2;
-    int subHeight = bounds.size.getHeight() / 2;
+    int subWidth = bounds.size.width / 2;
+    int subHeight = bounds.size.height / 2;
     int x = bounds.position.x;
     int y = bounds.position.y;
 
@@ -49,13 +48,13 @@ void Quadtree::split()
 int Quadtree::getIndex(const Rect &rect) const
 {
     int index = -1;
-    double vMidpoint = bounds.position.x + bounds.size.getWidth() / 2;
-    double hMidpoint = bounds.position.y + bounds.size.getHeight() / 2;
+    double vMidpoint = bounds.position.x + bounds.size.width / 2;
+    double hMidpoint = bounds.position.y + bounds.size.height / 2;
 
-    bool topQuadrant = (rect.position.y < hMidpoint && rect.position.y + rect.size.getHeight() < hMidpoint);
+    bool topQuadrant = (rect.position.y < hMidpoint && rect.position.y + rect.size.height < hMidpoint);
     bool bottomQuadrant = (rect.position.y > hMidpoint);
 
-    if (rect.position.x < vMidpoint && rect.position.x + rect.size.getWidth() < vMidpoint)
+    if (rect.position.x < vMidpoint && rect.position.x + rect.size.width < vMidpoint)
     {
         // object can fit in the left quadrant
         if (topQuadrant)
@@ -83,20 +82,20 @@ int Quadtree::getIndex(const Rect &rect) const
     return index;
 }
 
-void Quadtree::insert(std::shared_ptr<Entity> entity)
+void Quadtree::insert(const Entity &entity, Rect frame)
 {
     if (nodes[0] != nullptr)
     {
-        int index = getIndex(entity->getFrame());
+        int index = getIndex(frame);
 
         if (index != -1)
         {
-            nodes[index]->insert(entity);
+            nodes[index]->insert(entity, frame);
             return;
         }
     }
 
-    objects.push_back(entity);
+	objects.push_back(std::make_pair(entity, frame));
     if (objects.size() > maxObjects && level < maxSubLevels)
     {
         if (nodes[0] == nullptr)
@@ -106,10 +105,10 @@ void Quadtree::insert(std::shared_ptr<Entity> entity)
         int i = 0;
         while (i < objects.size())
         {
-            int index = getIndex(objects[i]->getFrame());
+			int index = getIndex(frame);
             if (index != -1)
             {
-                nodes[index]->insert(objects[i]);
+                nodes[index]->insert(objects[i].first, objects[i].second);
                 objects.erase(objects.begin() + i);
             }
             else
@@ -120,7 +119,7 @@ void Quadtree::insert(std::shared_ptr<Entity> entity)
     }
 }
 
-void Quadtree::retrieve(std::vector<std::shared_ptr<Entity>> &objects, const Rect &rect) const
+void Quadtree::retrieve(std::vector<std::pair<Entity, Rect>> &objects, const Rect &rect) const
 {
     int index = getIndex(rect);
     if (index != -1 && nodes[0] != nullptr)

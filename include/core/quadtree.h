@@ -4,21 +4,20 @@
 #include <memory>
 #include <vector>
 #include "rect.h"
+#include "core/entity.h"
 
 namespace Boiler
 {
 
 #define NUM_SUBNODES 4
 
-class Entity;
-
 class Quadtree
 {
-    const int maxObjects;
-    const int maxSubLevels;
+    const unsigned int maxObjects;
+    const unsigned int maxSubLevels;
 
     int level;
-    std::vector<std::shared_ptr<Entity>> objects;
+	std::vector<std::pair<Boiler::Entity, Boiler::Rect>> objects;
     Rect bounds;
     Quadtree *nodes[NUM_SUBNODES];
 
@@ -30,8 +29,9 @@ public:
 
     void clear();
     void split();
-    void insert(std::shared_ptr<Entity> entity);
+	void insert(const Boiler::Entity &entity, Boiler::Rect frame);
     void retrieve(std::vector<std::shared_ptr<Entity>> &objects, const Rect &rect) const;
+	void retrieve(std::vector<std::pair<Entity, Rect>> &objects, const Rect &rect) const;
 };
 
 }

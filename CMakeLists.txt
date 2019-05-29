@@ -46,7 +46,7 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/core/spritesheetframe.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/base64.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/glyphloader.cpp
-  # src/core/quadtree.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/core/quadtree.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/rect.cpp
   #${CMAKE_CURRENT_LIST_DIR}/src/core/raycaster.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/ray.cpp
@@ -74,7 +74,7 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/util/filemanager.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/util/tinyxml2.cpp)
 
-add_library(boiler ${BOILER_SOURCES} ${BOILER_HEADERS})
+add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
 target_include_directories(boiler PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/include/boiler
