@@ -56,7 +56,6 @@ public:
 	}
 
 	ComponentStore &getComponentStore() { return componentStore; }
-	ComponentMapper &getComponentMapper() { return mapper; }
 	ComponentSystems &getComponentSystems() { return systems; }
 };
 
