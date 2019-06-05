@@ -1,6 +1,7 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
+#include <type_traits>
 #include <SDL.h>
 #include <vector>
 #include <algorithm>
@@ -30,6 +31,7 @@ public:
 	template<typename T>
 	System &expects()
 	{
+		static_assert(std::is_base_of<Component, T>(), "Component class not specified.");
 		systemMask = systemMask | T::mask;
 		logger.log("System mask: " + systemMask.to_string());
 		return *this;
