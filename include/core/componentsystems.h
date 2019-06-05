@@ -34,6 +34,7 @@ public:
 	template<typename T, typename... Args>
 	T &registerSystem(Args&&... args)
 	{
+		static_assert(std::is_base_of<System, T>(), "Specified type is not a System");
 		// TODO: Check if any of the existing entities fit into the newly registered system
 		auto system = std::make_unique<T>(std::forward<Args>(args)...);
 		T &sysRef = *system;
