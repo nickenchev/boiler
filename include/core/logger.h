@@ -20,6 +20,12 @@ public:
 		std::string entry = "[" + name + "] " + message;
 		std::cout << entry << std::endl;
 	}
+
+	void log(double value) const
+	{
+		log(std::to_string(value));
+	}
+
     void error(std::string message) const
 	{
 		std::string entry = "[ERROR ->" + name + "] " + message;
