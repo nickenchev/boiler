@@ -2,21 +2,31 @@
 
 using namespace Boiler;
 
-bool Rect::collides(const Rect &rect) const
+bool Rect::collides(const Rect &rect, const glm::vec3 &epsilon) const
 {
 	bool collision = false;
 
-	cgfloat epsilon = 0.001f;
+	if (getMaxX() > rect.getMinX() + epsilon.x &&
+		getMinX() < rect.getMaxX() - epsilon.x &&
+		getMaxY() > rect.getMinY() + epsilon.y &&
+		getMinY() < rect.getMaxY() - epsilon.y)
+	{
+		collision = true;
+	}
+	/*
 	cgfloat xDiff = getMaxX() - rect.getMinX();
 	cgfloat yDiff = getMaxY() - rect.getMinY();
 	cgfloat xDiffMin = rect.getMaxX() - getMinX();
 	cgfloat yDiffMin = rect.getMaxY() - getMinY();
 
-	if (xDiff > epsilon && yDiff > epsilon &&
-		xDiffMin > epsilon && yDiffMin > epsilon)
+	// distance between x/y edges must be less than the
+	// epsilon value to register a collision
+	if ((xDiff > epsilon.x && xDiffMin > epsilon.x) &&
+		(yDiff > epsilon.y && yDiffMin > epsilon.y))
 	{
 		collision = true;
 	}
+	*/
 
 	return collision;
 }

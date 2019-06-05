@@ -50,7 +50,7 @@ struct Rect
 						 position.y + size.height / 2, 0);
 	}
 
-    bool collides(const Rect &rect) const;
+	bool collides(const Rect &rect, const glm::vec3 &epsilon = glm::vec3(0, 0, 0)) const;
     bool collides(const glm::vec2 point) const;
 };
 
