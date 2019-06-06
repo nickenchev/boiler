@@ -51,6 +51,25 @@ struct PositionComponent : public ComponentType<PositionComponent>
 
 		return modelMatrix;
 	}
+
+	PositionComponent operator+(const PositionComponent &comp2) const
+	{
+		PositionComponent comp = *this;
+		comp.frame.position += comp2.frame.position;
+		return comp;
+	}
+
+	PositionComponent toAbsolute() const
+	{
+		PositionComponent newPos = *this;
+		PositionComponent *parent = this->parent;
+		while (parent)
+		{
+			newPos.frame.position += parent->frame.position;
+			parent = parent->parent;
+		}
+		return newPos;
+	}
 };
 
 }

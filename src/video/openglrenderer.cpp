@@ -301,7 +301,7 @@ void OpenGLRenderer::render(const PositionComponent &position, const std::shared
 
 void OpenGLRenderer::render(const PositionComponent &position, const SpriteComponent &sprite) const
 {
-	render(position, sprite.model, sprite.spriteFrame->getSourceTexture(),
+	render(position.toAbsolute(), sprite.model, sprite.spriteFrame->getSourceTexture(),
 		   sprite.spriteFrame->getTexCoordsVbo(), sprite.colour);
 }
 
@@ -314,7 +314,7 @@ void OpenGLRenderer::render(const PositionComponent &position, const TextCompone
 	{
         const Glyph &glyph = glyphMap[static_cast<unsigned long>(character)];
 
-		PositionComponent glyphPos = position;
+		PositionComponent glyphPos = position.toAbsolute();
 		glyphPos.frame.position.x += xOffset + glyph.getBearing().x;
 		glyphPos.frame.position.y += -glyph.getBearing().y;
 
