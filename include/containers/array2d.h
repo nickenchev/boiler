@@ -48,7 +48,7 @@ public:
         return obj;
     }
 
-    // raw gettet setters
+    // raw getter setters
     T &get(int x, int y)
     {
         int idx = y * columns + x;
