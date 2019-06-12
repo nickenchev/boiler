@@ -4,6 +4,7 @@
 #include <memory>
 #include <glm/glm.hpp>
 #include "core/rect.h"
+#include "video/opengltextureinfo.h"
 
 namespace Boiler
 {
@@ -17,20 +18,21 @@ class Glyph
     glm::ivec2 bearing;    // Offset from baseline to left/top of glyph
     long int advance;    // Offset to advance to next glyph
 	std::shared_ptr<const Model> model;
-    unsigned int texCoordsVbo;
+	const OpenGLTextureInfo textureInfo;
 	
 public:
-	Glyph(unsigned long code, std::shared_ptr<const Model> model, unsigned int texCoordsVbo, const Rect &sourceRect, const glm::ivec2 &bearing, long int advance) : model(model)
+	Glyph(unsigned long code, std::shared_ptr<const Model> model,
+		  unsigned int texCoordsVbo, const Rect &sourceRect,
+		  const glm::ivec2 &bearing, long int advance) : model(model), textureInfo(texCoordsVbo)
 	{
 		this->code = code;
 		this->sourceRect = sourceRect;
 		this->bearing = bearing;
 		this->advance = advance;
-		this->texCoordsVbo = texCoordsVbo;
 	}
 
 	auto getModel() const { return model; }
-    unsigned int getTexCoordsVbo() const { return texCoordsVbo; }
+	const OpenGLTextureInfo &getTextureInfo() const { return textureInfo; }
 	auto &getBearing() const { return bearing; }
 	auto &getAdvance() const { return advance; }
 };

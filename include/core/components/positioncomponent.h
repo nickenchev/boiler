@@ -28,7 +28,7 @@ struct PositionComponent : public ComponentType<PositionComponent>
 	{
 		// offset the player position based on the pivot modifier
 		glm::vec3 pivotPos(frame.position.x - frame.size.width * frame.pivot.x,
-						frame.position.y - frame.size.height * frame.pivot.y, 0);
+						   frame.position.y - frame.size.height * frame.pivot.y, 0);
 
 		float scaleX = scale.x;
 		float scaleY = scale.y;
