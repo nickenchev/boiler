@@ -9,6 +9,7 @@
 #include "video/opengltexture.h"
 #include "video/openglmodel.h"
 #include "video/vertexdata.h"
+#include "video/opengltextureinfo.h"
 #include "core/spritesheetframe.h"
 #include "core/part.h"
 #include "core/components/positioncomponent.h"
@@ -252,20 +253,24 @@ void OpenGLRenderer::endRender()
     glUseProgram(0);
 }
 
-void OpenGLRenderer::render(const PositionComponent &position, const std::shared_ptr<const Model> model,
-							const std::shared_ptr<const Texture> sourceTexture, GLuint texCoordsVbo, const glm::vec4 &colour) const
+void OpenGLRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
+							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
+							const glm::vec4 &colour) const
 {
 	glUseProgram(getProgram()->getShaderProgram());
 	if (model)
     {
         auto oglModel = std::static_pointer_cast<const OpenGLModel>(model);
+
         // set the vao for the current sprite
         glBindVertexArray(oglModel->getVao());
 
-		if (texCoordsVbo)
+		if (textureInfo)
 		{
+			auto *oglTexInfo = static_cast<const OpenGLTextureInfo *>(textureInfo);
+
 			// binds the current frames texture VBO and ensure it is linked to the current VAO
-			glBindBuffer(GL_ARRAY_BUFFER, texCoordsVbo);
+			glBindBuffer(GL_ARRAY_BUFFER, oglTexInfo->getTexCoordsVbo());
             glVertexAttribPointer((GLuint)AttribArray::Texture, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 			// set the current texture
@@ -273,18 +278,7 @@ void OpenGLRenderer::render(const PositionComponent &position, const std::shared
 		}
 		glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(colour));
 
-		const glm::mat4 &modelMatrix = position.getMatrix();
-		glm::mat4 mvpMatrix;
-
-		// absolute entities aren't affected by the camera
-		if (position.absolute || !this->camera)
-		{
-			mvpMatrix = renderDetails.viewProjection * modelMatrix;
-		}
-		else
-		{
-			mvpMatrix = renderDetails.camViewProjection * modelMatrix;
-		}
+		const glm::mat4 mvpMatrix = renderDetails.viewProjection * modelMatrix;
 		glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 
 		// draw the entity
@@ -299,6 +293,7 @@ void OpenGLRenderer::render(const PositionComponent &position, const std::shared
 	}
 }
 
+/*
 void OpenGLRenderer::render(const PositionComponent &position, const SpriteComponent &sprite) const
 {
 	render(position.toAbsolute(), sprite.model, sprite.spriteFrame->getSourceTexture(),
@@ -324,6 +319,7 @@ void OpenGLRenderer::render(const PositionComponent &position, const TextCompone
 		xOffset += (glyph.getAdvance() >> 6);
 	}
 }
+*/
 
 void OpenGLRenderer::showMessageBox(const std::string &title, const std::string &message)
 {
