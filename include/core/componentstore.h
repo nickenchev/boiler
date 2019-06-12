@@ -32,10 +32,21 @@ public:
 		entityComponents[entity.getId()][T::mask] = nullptr;
 	}
 
+	void removeAll(const Entity &entity)
+	{
+		entityComponents.erase(entity.getId());
+	}
+
 	template<typename T>
 	T &retrieve(const Entity &entity)
 	{
 		return *std::static_pointer_cast<T>(entityComponents[entity.getId()][T::mask]);
+	}
+
+	template<typename T>
+	bool hasComponent(const Entity &entity)
+	{
+		return entityComponents[entity.getId()][T::mask] != nullptr;
 	}
 };
 

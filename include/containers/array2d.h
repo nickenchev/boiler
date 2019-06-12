@@ -35,7 +35,7 @@ public:
     {
         return items[index];
     }
-    T &operator()(GridPosition pos)
+    T &operator()(const GridPosition &pos)
     {
         return (*this)(pos.row, pos.column);
     }

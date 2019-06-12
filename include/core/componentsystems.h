@@ -37,7 +37,7 @@ public:
 		static_assert(std::is_base_of<System, T>(), "Specified type is not a System");
 		// TODO: Check if any of the existing entities fit into the newly registered system
 		auto system = std::make_unique<T>(std::forward<Args>(args)...);
-		T &sysRef = *system;
+		T &sysRef = static_cast<T &>(*system);
 		systems.push_back(std::move(system));
 		updateSystems.push_back(&sysRef);
 		logger.log("System Registered: " + sysRef.getName());
@@ -65,6 +65,14 @@ public:
 		for (auto &system : systems)
 		{
 			system->checkEntity(entity, mask);
+		}
+	}
+
+	void removeEntity(const Entity &entity)
+	{
+		for (auto &system : systems)
+		{
+			system->removeEntity(entity);
 		}
 	}
 };
