@@ -4,7 +4,7 @@
 
 using namespace Boiler;
 
-SpriteSheet::SpriteSheet(std::string imageFile, Size size, std::shared_ptr<const Texture> texture, std::map<std::string, SpriteSheetFrame> &frames) : size(size), frames(frames), texture(texture)
+SpriteSheet::SpriteSheet(std::string imageFile, Size size, std::shared_ptr<const Texture> texture, std::map<std::string, SpriteSheetFrame> &frames) : size(size), texture(texture), frames(frames)
 {
     this->imageFile = imageFile;
 }
@@ -26,13 +26,4 @@ const SpriteSheetFrame *SpriteSheet::getFirstFrame() const
 
 SpriteSheet::~SpriteSheet()
 {
-    // clear out the VBOs
-    for (auto itr = frames.begin(); itr != frames.end(); ++itr)
-    {
-        unsigned int texCoordsVbo = itr->second.getTexCoordsVbo();
-        if (texCoordsVbo)
-        {
-            glDeleteBuffers(1, &texCoordsVbo);
-        }
-    }
 }

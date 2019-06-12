@@ -3,6 +3,7 @@
 #include <json/json.h>
 
 #include "video/opengl.h"
+#include "video/opengltextureinfo.h"
 #include "core/spriteloader.h"
 #include "core/engine.h"
 #include "video/renderer.h"
@@ -66,7 +67,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadJsonArray(std::string
             int pivotY = sprite["pivot"]["y"].asInt();
             glm::vec2 pivot(pivotX, pivotY);
             frames.insert(std::pair<std::string, SpriteSheetFrame>(frameFilename, SpriteSheetFrame(texture, frameFilename, sourceRect,
-																								   rotated, trimmed, pivot, texCoordVbo)));
+																								   rotated, trimmed, pivot, std::make_shared<OpenGLTextureInfo>(texCoordVbo))));
             logger.log("Loaded frame: " + frameFilename);
         }
         sheet = std::make_shared<SpriteSheet>(imageFile, texSize, texture, frames);
@@ -110,7 +111,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadTexture(std::shared_p
         logger.error("Unable to create the texture coordinate VBO.");
     }
     std::map<std::string, SpriteSheetFrame> frames;
-    frames.insert(std::pair<std::string, SpriteSheetFrame>("default", SpriteSheetFrame(texture, texCoordVbo)));
+    frames.insert(std::pair<std::string, SpriteSheetFrame>("default", SpriteSheetFrame(texture, std::make_shared<OpenGLTextureInfo>(texCoordVbo))));
 
     return std::make_shared<const SpriteSheet>("procedural", Size(0, 0), texture, frames);
 }

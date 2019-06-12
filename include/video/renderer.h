@@ -22,6 +22,7 @@ class VertexData;
 struct PositionComponent;
 struct SpriteComponent;
 struct TextComponent;
+class TextureInfo;
 
 class Renderer
 {
@@ -58,8 +59,10 @@ public:
 
 	virtual void beginRender() = 0;
 	virtual void endRender() = 0;
-    virtual void render(const PositionComponent &position, const SpriteComponent &sprite) const = 0;
-	virtual void render(const PositionComponent &position, const TextComponent &text) const = 0;
+
+	virtual void render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
+						const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
+						const glm::vec4 &colour) const = 0;
 
     virtual void showMessageBox(const std::string &title, const std::string &message) = 0;
 };

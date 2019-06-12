@@ -15,6 +15,6 @@ void GlyphSystem::update(ComponentStore &store, const double delta)
 
 		assert(text.glyphMap != nullptr);
 
-		renderer.render(pos, text);
+		//renderer.render(pos, text);
 	}
 }

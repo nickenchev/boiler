@@ -43,10 +43,11 @@ public:
 
 	void beginRender() override;
 	void endRender() override;
-	void render(const PositionComponent &position, const std::shared_ptr<const Model> model,
-				const std::shared_ptr<const Texture> sourceTexture, GLuint texCoordsVbo, const glm::vec4 &colour) const;
-	void render(const PositionComponent &position, const SpriteComponent &sprite) const override;
-	void render(const PositionComponent &position, const TextComponent &text) const override;
+
+	void render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
+				const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
+				const glm::vec4 &colour) const override;
+
     void showMessageBox(const std::string &title, const std::string &message) override;
 };
 
