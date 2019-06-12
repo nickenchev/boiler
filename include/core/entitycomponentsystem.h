@@ -33,13 +33,18 @@ public:
 		return entityWorld.createEntity();
 	}
 
+	void removeEntity(const Entity &entity)
+	{
+		systems.removeEntity(entity);
+		componentStore.removeAll(entity);
+		entityWorld.removeEntity(entity);
+	}
+
 	template<typename T, typename... Args>
 	std::shared_ptr<T> createComponent(const Entity &entity, Args&&... args)
 	{
 		auto entMask = mapper.add<T>(entity);
 		auto component = componentStore.store<T>(entity, std::forward<Args>(args)...);
-
-		logger.log("Checking entity #" + std::to_string(entity.getId()) + " with signature: " + entMask.to_string());
 		systems.checkEntity(entity, entMask);
 
 		return component;
@@ -50,8 +55,6 @@ public:
 	{
 		auto entMask = mapper.remove<T>(entity);
 		componentStore.remove<T>(entity);
-
-		logger.log("Checking entity #" + std::to_string(entity.getId()) + " with signature: " + entMask.to_string());
 		systems.checkEntity(entity, entMask);
 	}
 
