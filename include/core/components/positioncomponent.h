@@ -11,7 +11,6 @@ namespace Boiler
 
 struct PositionComponent : public ComponentType<PositionComponent>
 {
-	PositionComponent *parent;
     Rect frame;
     bool flipH, flipV, collides;
     glm::vec3 scale;
@@ -23,7 +22,6 @@ struct PositionComponent : public ComponentType<PositionComponent>
 		flipV = false;
 		collides = false;
 		absolute = false;
-		parent = nullptr;
 	}
 
 	const glm::mat4 getMatrix() const
@@ -57,18 +55,6 @@ struct PositionComponent : public ComponentType<PositionComponent>
 		PositionComponent comp = *this;
 		comp.frame.position += comp2.frame.position;
 		return comp;
-	}
-
-	PositionComponent toAbsolute() const
-	{
-		PositionComponent newPos = *this;
-		PositionComponent *parent = this->parent;
-		while (parent)
-		{
-			newPos.frame.position += parent->frame.position;
-			parent = parent->parent;
-		}
-		return newPos;
 	}
 };
 
