@@ -1,6 +1,7 @@
 #ifndef OPENGLTEXTUREINFO_H
 #define OPENGLTEXTUREINFO_H
 
+#include "video/opengl.h"
 #include "video/textureinfo.h"
 
 namespace Boiler
