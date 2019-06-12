@@ -67,6 +67,14 @@ public:
 	virtual void update(ComponentStore &store, const double delta) = 0;
 	const std::vector<Entity> &getEntities() const { return entities; }
 	const std::string &getName() const { return name; }
+	void removeEntity(const Entity &entity)
+	{
+		auto itr = std::find(entities.begin(), entities.end(), entity);
+		if (itr != entities.end())
+		{
+			entities.erase(itr);
+		}
+	}
 };
 
 }
