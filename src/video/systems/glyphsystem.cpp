@@ -5,9 +5,6 @@
 #include "video/renderer.h"
 #include "core/engine.h"
 
-// HACK - Temporary to get glyphs rendering, will use TextureInfo after refactor
-#include "video/opengltextureinfo.h"
-
 using namespace Boiler;
 
 void GlyphSystem::update(ComponentStore &store, const double delta)

@@ -1,6 +1,7 @@
 #ifndef COMPONENTSTORE_H
 #define COMPONENTSTORE_H
 
+#include <vector>
 #include <unordered_map>
 #include <memory>
 #include "core/component.h"
@@ -40,13 +41,31 @@ public:
 	template<typename T>
 	T &retrieve(const Entity &entity)
 	{
-		return *std::static_pointer_cast<T>(entityComponents[entity.getId()][T::mask]);
+		auto component = entityComponents[entity.getId()][T::mask];
+
+		assert(component != nullptr);
+		return *std::static_pointer_cast<T>(component);
 	}
 
 	template<typename T>
 	bool hasComponent(const Entity &entity)
 	{
 		return entityComponents[entity.getId()][T::mask] != nullptr;
+	}
+
+	template<typename T>
+	auto find()
+	{
+		std::vector<const Entity> list;
+		for (auto pair : entityComponents)
+		{
+			auto comp = pair.second[T::mask];
+			if (comp != nullptr)
+			{
+				list.push_back(pair.first);
+			}
+		}
+		return list;
 	}
 };
 

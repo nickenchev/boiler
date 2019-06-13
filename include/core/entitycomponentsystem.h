@@ -6,6 +6,7 @@
 #include "core/componentmapper.h"
 #include "core/componentsystems.h"
 #include "core/componentstore.h"
+#include "core/components/parentcomponent.h"
 
 namespace Boiler
 {
@@ -35,6 +36,20 @@ public:
 
 	void removeEntity(const Entity &entity)
 	{
+		logger.log("Deleting entity #: " + std::to_string(entity.getId()));
+
+		// find children and remove
+		auto children = componentStore.find<ParentComponent>();
+		for (auto child : children)
+		{
+			ParentComponent &parent = componentStore.retrieve<ParentComponent>(child);
+			if (parent.entity == entity)
+			{
+				removeEntity(child);
+			}
+		}
+
+		// remove entity itself
 		systems.removeEntity(entity);
 		componentStore.removeAll(entity);
 		entityWorld.removeEntity(entity);

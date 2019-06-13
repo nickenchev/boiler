@@ -17,12 +17,11 @@ Entity EntityWorld::createEntity()
 
 void EntityWorld::removeEntity(const Entity &entity)
 {
-	for (auto ent = entities.begin(); ent != entities.end(); ent++)
+	auto itr = std::find(entities.begin(), entities.end(), entity);
+	if (itr != entities.end())
 	{
-		if (*ent == entity)
-		{
-			entities.erase(ent);
-			logger.log("Destroyed entity with ID: " + std::to_string(entity.getId()));
-		}
+		Entity ent = *itr;
+		entities.erase(itr);
+		logger.log("Destroyed entity with ID: " + std::to_string(ent.getId()));
 	}
 }
