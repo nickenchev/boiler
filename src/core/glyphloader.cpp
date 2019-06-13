@@ -9,6 +9,7 @@
 #include "video/glyph.h"
 #include "video/vertexdata.h"
 #include "video/model.h"
+#include "video/opengltextureinfo.h"
 #include "util/texutil.h"
 
 using namespace Boiler;
@@ -152,8 +153,8 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 			logger.error("Unable to create the texture coordinate VBO.");
 		}
 
-		glyphMap.insert({code, Glyph(code, Engine::getInstance().getRenderer().loadModel(vertData), texCoordVbo, destRect,
-									 glm::ivec2(bearing.x, bearing.y), ftGlyph->advance.x)});
+		glyphMap.insert({code, Glyph(code, Engine::getInstance().getRenderer().loadModel(vertData), std::make_shared<OpenGLTextureInfo>(texCoordVbo),
+									 destRect, glm::ivec2(bearing.x, bearing.y), ftGlyph->advance.x)});
 
 		FT_Done_Glyph(ftGlyph);
 	}

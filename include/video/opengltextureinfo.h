@@ -22,6 +22,7 @@ public:
         if (texCoordsVbo)
         {
             glDeleteBuffers(1, &texCoordsVbo);
+			texCoordsVbo = 0;
         }
 	}
 
