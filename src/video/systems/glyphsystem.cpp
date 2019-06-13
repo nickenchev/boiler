@@ -38,9 +38,9 @@ void GlyphSystem::update(ComponentStore &store, const double delta)
 
 			cgfloat x = xOffset + glyph.getBearing().x;
 			cgfloat y = -glyph.getBearing().y;
-			modelMatrix = glm::translate(modelMatrix, glm::vec3(x, y, 0));
+			glm::mat4 glyphMatrix = modelMatrix * glm::translate(glm::mat4(1), glm::vec3(x, y, 0));
 
-			renderer.render(modelMatrix, glyph.getModel(), glyphMap.getSourceTexture(), glyph.getTextureInfo().get(), text.colour);
+			renderer.render(glyphMatrix, glyph.getModel(), glyphMap.getSourceTexture(), glyph.getTextureInfo().get(), text.colour);
 
 			// move to the next character position
 			xOffset += (glyph.getAdvance() >> 6);
