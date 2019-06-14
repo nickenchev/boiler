@@ -17,6 +17,7 @@ public:
 
 	bool operator==(const Entity &entity) const { return entity.getId() == this->getId(); }
 	bool operator!=(const Entity &entity) const { return !(entity == *this); }
+	bool operator<(const Entity &entity) const { return getId() < entity.getId(); }
 	EntityId getId() const { return id; }
 };
 
