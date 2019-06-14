@@ -35,6 +35,12 @@ public:
 
 	void removeAll(const Entity &entity)
 	{
+		// remove all components first and then the entity
+		ComponentMap &compMap = entityComponents[entity.getId()];
+		for (auto pair : compMap)
+		{
+			compMap.erase(pair.first);
+		}
 		entityComponents.erase(entity.getId());
 	}
 
