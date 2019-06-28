@@ -25,3 +25,14 @@ void EntityWorld::removeEntity(const Entity &entity)
 		logger.log("Destroyed entity with ID: " + std::to_string(ent.getId()));
 	}
 }
+
+bool EntityWorld::exists(const Entity &entity) const
+{
+	bool exists = false;
+	auto itr = std::find(entities.begin(), entities.end(), entity);
+	if (itr != entities.end())
+	{
+		exists = true;
+	}
+	return exists;
+}
