@@ -6,7 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include "core/ecstypes.h"
+#include "core/entity.h"
 #include "core/componentmapper.h"
 #include "core/logger.h"
 

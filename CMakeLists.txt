@@ -77,7 +77,6 @@ set(BOILER_SOURCES
 add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
 target_include_directories(boiler PUBLIC
-  ${CMAKE_CURRENT_LIST_DIR}/include/boiler
   ${CMAKE_CURRENT_LIST_DIR}/include
   ${CMAKE_CURRENT_LIST_DIR}/include/tinyxml2
   PUBLIC boiler_deps)

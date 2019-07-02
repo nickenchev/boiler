@@ -11,7 +11,9 @@ template <typename T>
 class ComponentType : public Component
 {
 public:
+	static int storageIndex;
 	static ComponentMask mask;
+
 	const ComponentMask &getMask() const { return T::mask; }
 };
 
@@ -33,7 +35,17 @@ inline ComponentMask componentMask()
 	return newMask;
 }
 
-template <typename T> ComponentMask ComponentType<T>::mask{componentMask()};
+template <typename T>
+ComponentMask ComponentType<T>::mask{componentMask()};
+
+inline int getStorageIndex()
+{
+	static int index = 0;
+	return index++;
+}
+
+template <typename T>
+int ComponentType<T>::storageIndex = getStorageIndex();
 
 }
 
