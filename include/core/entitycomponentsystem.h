@@ -75,6 +75,7 @@ public:
 
 	ComponentStore &getComponentStore() { return componentStore; }
 	ComponentSystems &getComponentSystems() { return systems; }
+	const EntityWorld &getEntityWorld() const { return entityWorld; }
 };
 
 }

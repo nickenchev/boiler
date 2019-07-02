@@ -23,6 +23,7 @@ public:
 
 	Entity createEntity();
 	void removeEntity(const Entity &entity);
+	bool exists(const Entity &entity) const;
 };
 
 }
