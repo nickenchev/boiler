@@ -1,11 +1,13 @@
 #ifndef COMPONENTSTORE_H
 #define COMPONENTSTORE_H
 
+#include <cassert>
 #include <vector>
 #include <unordered_map>
 #include <memory>
 #include "core/component.h"
 #include "core/entity.h"
+#include "core/logger.h"
 
 namespace Boiler
 {
@@ -14,9 +16,14 @@ typedef std::unordered_map<ComponentMask, std::shared_ptr<Component>> ComponentM
 
 class ComponentStore
 {
+	Logger logger;
 	std::unordered_map<EntityId, ComponentMap> entityComponents;
 
 public:
+	ComponentStore() : logger("Component Store")
+	{
+	}
+
 	template<typename T, typename... Args>
 	std::shared_ptr<T> store(const Entity &entity, Args&&... args)
 	{
@@ -62,7 +69,7 @@ public:
 	template<typename T>
 	auto find()
 	{
-		std::vector<const Entity> list;
+		std::vector<Entity> list;
 		for (auto pair : entityComponents)
 		{
 			auto comp = pair.second[T::mask];

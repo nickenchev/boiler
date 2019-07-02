@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "core/entityworld.h"
 
 using namespace Boiler;
