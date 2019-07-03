@@ -7,5 +7,6 @@
 #include "camera/pancamera.h"
 #include "containers/array2d.h"
 #include "video/renderer.h"
+#include "util/colour.h"
 
 #endif /* BOILER_H */
