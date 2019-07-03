@@ -233,14 +233,9 @@ void OpenGLRenderer::beginRender()
 		const Size screenSize = getScreenSize();
 		const GLfloat orthoW = screenSize.width /  getGlobalScale().x;
 		const GLfloat orthoH = screenSize.height / getGlobalScale().y;
+
 		renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f);
 		//renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
-    }
-
-	// if camera has been set, recalc the projection matrix
-    if (this->camera)
-    {
-        renderDetails.camViewProjection = renderDetails.viewProjection * camera->getViewMatrix();
     }
 
 	const GLfloat color[] = { getClearColor().r, getClearColor().g, getClearColor().b, 1.0f};

@@ -16,7 +16,6 @@ namespace Boiler
 typedef glm::vec3 Color3;
 typedef glm::vec4 Color4;
 
-class Camera;
 class Model;
 class VertexData;
 struct PositionComponent;
@@ -33,7 +32,6 @@ protected:
 	Logger logger;
     Size screenSize;
     std::unique_ptr<ShaderProgram> program;
-    std::shared_ptr<Camera> camera;
 
 public:
     Renderer(std::string name);
@@ -46,7 +44,6 @@ public:
     void setScreenSize(const Size &screenSize) { this->screenSize = screenSize; }
     const Size &getScreenSize() const { return screenSize; }
     const ShaderProgram *getProgram() const { return program.get(); }
-    void setCamera(std::shared_ptr<Camera> camera) { this->camera = camera; }
 
     const glm::vec2 &getGlobalScale() const { return globalScale; }
     void setGlobalScale(const glm::vec2 &scale) { this->globalScale = scale; }
