@@ -23,6 +23,8 @@ class EntityComponentSystem
 
 public:
 	EntityComponentSystem() : logger("ECS") { }
+	EntityComponentSystem(const EntityComponentSystem &ecs) = delete;
+	EntityComponentSystem &operator=(const EntityComponentSystem &) = delete;
 
 	void update(const double delta)
 	{
