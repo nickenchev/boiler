@@ -234,7 +234,7 @@ void OpenGLRenderer::beginRender()
 		const GLfloat orthoW = screenSize.width /  getGlobalScale().x;
 		const GLfloat orthoH = screenSize.height / getGlobalScale().y;
 
-		renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f);
+		//renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f);
 		//renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
     }
 
@@ -273,7 +273,8 @@ void OpenGLRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 		}
 		glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(colour));
 
-		const glm::mat4 mvpMatrix = renderDetails.viewProjection * modelMatrix;
+		//const glm::mat4 mvpMatrix = renderDetails.viewProjection * modelMatrix;
+		const glm::mat4 mvpMatrix = modelMatrix;
 		glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 
 		// draw the entity

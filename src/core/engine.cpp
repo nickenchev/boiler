@@ -7,7 +7,7 @@
 #include "input/mousebuttonevent.h"
 #include "input/keyinputevent.h"
 #include "core/components/positioncomponent.h"
-#include "core/components/spritecomponent.h"
+#include "core/components/rendercomponent.h"
 #include "core/components/textcomponent.h"
 #include "core/components/guicomponent.h"
 #include "video/systems/guisystem.h"
@@ -53,7 +53,7 @@ void Engine::initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIH
 
 	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*this->renderer)
 		.expects<PositionComponent>()
-		.expects<SpriteComponent>();
+		.expects<RenderComponent>();
 	ecs.getComponentSystems().removeUpdate(&renderSys);
 	this->renderSystem = &renderSys;
 

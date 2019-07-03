@@ -1,5 +1,6 @@
+#include "video/renderer.h"
 #include "core/components/positioncomponent.h"
-#include "core/components/spritecomponent.h"
+#include "core/components/rendercomponent.h"
 #include "core/components/parentcomponent.h"
 #include "core/componentstore.h"
 #include "video/systems/rendersystem.h"
@@ -11,7 +12,7 @@ void RenderSystem::update(ComponentStore &store, const double delta)
 	for (auto &entity : getEntities())
 	{
 		PositionComponent &pos = store.retrieve<PositionComponent>(entity);
-		SpriteComponent &sprite = store.retrieve<SpriteComponent>(entity);
+		RenderComponent &render = store.retrieve<RenderComponent>(entity);
 
 		glm::mat4 modelMatrix = pos.getMatrix();
 
@@ -25,7 +26,6 @@ void RenderSystem::update(ComponentStore &store, const double delta)
 			currentEntity = parentComp.entity;
 		}
 
-		renderer.render(modelMatrix, sprite.model, sprite.spriteFrame->getSourceTexture(),
-						sprite.spriteFrame->getTextureInfo().get(), sprite.colour);
+		renderer.render(modelMatrix, render.model, nullptr, nullptr, render.colour);
 	}
 }

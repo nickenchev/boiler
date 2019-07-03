@@ -10,7 +10,7 @@ OpenGLModel::OpenGLModel(const VertexData &data) : Model(data.length())
 
     // enable this attrib arrays
     glEnableVertexAttribArray((GLuint)AttribArray::Vertex);
-    glEnableVertexAttribArray((GLuint)AttribArray::Texture);
+    //glEnableVertexAttribArray((GLuint)AttribArray::Texture);
 
     // setup the VBO for verts
     glGenBuffers(1, &vertVbo);
