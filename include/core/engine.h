@@ -67,6 +67,7 @@ public:
 
     static Engine &getInstance();
 
+    void initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight);
     void initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight);
     void start(std::shared_ptr<Part> part);
     void quit() { running = false; }

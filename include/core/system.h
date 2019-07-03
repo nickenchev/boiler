@@ -33,7 +33,6 @@ public:
 	{
 		static_assert(std::is_base_of<Component, T>(), "Component class not specified.");
 		systemMask = systemMask | T::mask;
-		logger.log("System mask: " + systemMask.to_string());
 		return *this;
 	}
 

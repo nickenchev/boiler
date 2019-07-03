@@ -27,6 +27,11 @@ Engine &Engine::getInstance()
 	return instance;
 }
 
+void Engine::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight)
+{
+	initialize(std::move(renderer), nullptr, resWidth, resHeight);
+}
+
 void Engine::initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight)
 {
 	if (this->renderer != nullptr)
@@ -58,10 +63,13 @@ void Engine::initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIH
 	ecs.getComponentSystems().removeUpdate(&glyphSys);
 	this->glyphSystem = &glyphSys;
 
-	System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*this->renderer, std::move(guiHandler))
-		.expects<GUIComponent>();
-	ecs.getComponentSystems().removeUpdate(&guiSys);
-	this->guiSystem = &guiSys;
+	if (guiHandler)
+	{
+		System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*this->renderer, std::move(guiHandler))
+			.expects<GUIComponent>();
+		ecs.getComponentSystems().removeUpdate(&guiSys);
+		this->guiSystem = &guiSys;
+	}
 }
 
 void Engine::start(std::shared_ptr<Part> part)
@@ -105,7 +113,7 @@ void Engine::run()
 		renderer->beginRender();
 		renderSystem->update(getEcs().getComponentStore(), frameDelta);
 		glyphSystem->update(getEcs().getComponentStore(), frameDelta);
-		guiSystem->update(getEcs().getComponentStore(), frameDelta);
+		if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);
 		renderer->endRender();
 	}
 }
