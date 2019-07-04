@@ -13,7 +13,7 @@ class VertexData
     std::vector<glm::vec3> vertices;
 
 public:
-    VertexData(std::vector<glm::vec3> vertices);
+    VertexData(const std::vector<glm::vec3> &vertices);
 
     const float *begin() const { return &(vertices[0].x); }
     int length() const { return vertices.size(); }

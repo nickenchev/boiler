@@ -3,7 +3,7 @@
 
 using namespace Boiler;
 
-VertexData::VertexData(std::vector<glm::vec3> vertices) : vertices(vertices)
+VertexData::VertexData(const std::vector<glm::vec3> &vertices) : vertices(vertices)
 {
     owned = false;
 }
