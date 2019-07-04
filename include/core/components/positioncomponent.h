@@ -12,16 +12,19 @@ namespace Boiler
 struct PositionComponent : public ComponentType<PositionComponent>
 {
     Rect frame;
+	glm::vec3 rotationAxis;
+	float rotationAngle;
     bool flipH, flipV, collides;
     glm::vec3 scale;
     bool absolute;
 
-	PositionComponent(Rect frame) : frame(frame), scale(1.0f, 1.0f, 1.0f)
+	PositionComponent(Rect frame) : frame(frame), scale(1.0f, 1.0f, 1.0f), rotationAxis(0, 0, 0)
 	{
 		flipH = false;
 		flipV = false;
 		collides = false;
 		absolute = false;
+		rotationAngle = 0;
 	}
 
 	const glm::mat4 getMatrix() const
@@ -46,6 +49,7 @@ struct PositionComponent : public ComponentType<PositionComponent>
 		glm::mat4 modelMatrix;
 		modelMatrix = glm::translate(glm::mat4(1), pivotPos);
 		modelMatrix = glm::scale(modelMatrix, glm::vec3(scaleX, scaleY, 1.0f));
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotationAngle), rotationAxis);
 
 		return modelMatrix;
 	}
