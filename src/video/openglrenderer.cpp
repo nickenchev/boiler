@@ -171,6 +171,9 @@ void OpenGLRenderer::initialize(const Size screenSize)
     // enable blending on all buffers
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// depth testing
+	glEnable(GL_DEPTH_TEST);
 }
 
 void OpenGLRenderer::shutdown()
@@ -243,7 +246,10 @@ void OpenGLRenderer::beginRender()
     }
 
 	const GLfloat color[] = { getClearColor().r, getClearColor().g, getClearColor().b, 1.0f};
+	const GLfloat depth[] = { 0, 0, 0, 0 };
 	glClearBufferfv(GL_COLOR, 0, color);
+	//glClearBufferfv(GL_DEPTH, 0, depth);
+	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 void OpenGLRenderer::endRender()
