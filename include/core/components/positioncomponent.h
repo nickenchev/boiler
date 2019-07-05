@@ -18,7 +18,7 @@ struct PositionComponent : public ComponentType<PositionComponent>
     vec3 scale;
     bool absolute;
 
-	PositionComponent(Rect frame) : frame(frame), scale(1.0f, 1.0f, 1.0f), rotationAxis(0, 0, 0)
+	PositionComponent(Rect frame) : frame(frame), rotationAxis(0, 0, 0), scale(1.0f, 1.0f, 1.0f)
 	{
 		flipH = false;
 		flipV = false;
