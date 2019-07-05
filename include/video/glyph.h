@@ -2,7 +2,7 @@
 #define GLYPH_H
 
 #include <memory>
-#include <glm/glm.hpp>
+#include "core/math.h"
 #include "core/rect.h"
 #include "video/textureinfo.h"
 
@@ -15,14 +15,14 @@ class Glyph
 {
 	unsigned long code;
 	Rect sourceRect;
-    glm::ivec2 bearing;    // Offset from baseline to left/top of glyph
+    ivec2 bearing;    // Offset from baseline to left/top of glyph
     long int advance;    // Offset to advance to next glyph
 	std::shared_ptr<const Model> model;
 	std::shared_ptr<TextureInfo> textureInfo;
 	
 public:
 	Glyph(unsigned long code, std::shared_ptr<const Model> model, std::shared_ptr<TextureInfo> textureInfo, const Rect &sourceRect,
-		  const glm::ivec2 &bearing, long int advance) : model(model)
+		  const ivec2 &bearing, long int advance) : model(model)
 	{
 		this->code = code;
 		this->sourceRect = sourceRect;

@@ -2,7 +2,7 @@
 
 using namespace Boiler;
 
-bool Rect::collides(const Rect &rect, const glm::vec3 &epsilon) const
+bool Rect::collides(const Rect &rect, const vec3 &epsilon) const
 {
 	bool collision = false;
 
@@ -31,7 +31,7 @@ bool Rect::collides(const Rect &rect, const glm::vec3 &epsilon) const
 	return collision;
 }
 
-bool Rect::collides(const glm::vec2 point) const
+bool Rect::collides(const vec2 point) const
 {
 	// TODO: Needs testing
     return (point.x >= getMinX() && point.x <= getMaxX() &&

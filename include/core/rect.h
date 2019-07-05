@@ -1,7 +1,7 @@
 #ifndef RECT
 #define RECT
 
-#include <glm/glm.hpp>
+#include "core/math.h"
 
 namespace Boiler
 {
@@ -18,9 +18,9 @@ struct Size
 
 struct Rect
 {
-    glm::vec3 position;
+    vec3 position;
     Size size;
-    glm::vec3 pivot;
+    vec3 pivot;
 
     Rect() { }
     Rect(cgfloat x, cgfloat y, cgfloat width, cgfloat height) : position(x, y, 0), size(width, height), pivot(0, 0, 0) { }
@@ -44,14 +44,14 @@ struct Rect
 		return position.y + size.height;
     }
 
-	inline glm::vec3 center() const
+	inline vec3 center() const
 	{
-		return glm::vec3(position.x + size.width / 2,
-						 position.y + size.height / 2, 0);
+		return vec3(position.x + size.width / 2,
+					position.y + size.height / 2, 0);
 	}
 
-	bool collides(const Rect &rect, const glm::vec3 &epsilon = glm::vec3(0, 0, 0)) const;
-    bool collides(const glm::vec2 point) const;
+	bool collides(const Rect &rect, const vec3 &epsilon = vec3(0, 0, 0)) const;
+    bool collides(const vec2 point) const;
 };
 
 }

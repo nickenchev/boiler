@@ -1,10 +1,10 @@
 #ifndef POSITIONCOMPONENT_H
 #define POSITIONCOMPONENT_H
 
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "core/componenttype.h"
 #include "core/rect.h"
+#include "core/math.h"
 
 namespace Boiler
 {
@@ -12,10 +12,10 @@ namespace Boiler
 struct PositionComponent : public ComponentType<PositionComponent>
 {
     Rect frame;
-	glm::vec3 rotationAxis;
+	vec3 rotationAxis;
 	float rotationAngle;
     bool flipH, flipV, collides;
-    glm::vec3 scale;
+    vec3 scale;
     bool absolute;
 
 	PositionComponent(Rect frame) : frame(frame), scale(1.0f, 1.0f, 1.0f), rotationAxis(0, 0, 0)
@@ -27,10 +27,10 @@ struct PositionComponent : public ComponentType<PositionComponent>
 		rotationAngle = 0;
 	}
 
-	const glm::mat4 getMatrix() const
+	const mat4 getMatrix() const
 	{
 		// offset the player position based on the pivot modifier
-		glm::vec3 pivotPos(frame.position.x - frame.size.width * frame.pivot.x,
+		vec3 pivotPos(frame.position.x - frame.size.width * frame.pivot.x,
 						   frame.position.y - frame.size.height * frame.pivot.y, 0);
 
 		float scaleX = scale.x;
@@ -46,9 +46,9 @@ struct PositionComponent : public ComponentType<PositionComponent>
 			scaleY *= -1;
 		}
 		// create the model matrix, by getting a 3D vector from the Entity's vec2 position
-		glm::mat4 modelMatrix;
-		modelMatrix = glm::translate(glm::mat4(1), pivotPos);
-		modelMatrix = glm::scale(modelMatrix, glm::vec3(scaleX, scaleY, 1.0f));
+		mat4 modelMatrix;
+		modelMatrix = translate(mat4(1), pivotPos);
+		modelMatrix = glm::scale(modelMatrix, vec3(scaleX, scaleY, 1.0f));
 		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotationAngle), rotationAxis);
 
 		return modelMatrix;

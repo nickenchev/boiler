@@ -2,7 +2,7 @@
 #define TEXTCOMPONENT_H
 
 #include <string>
-#include <glm/glm.hpp>
+#include "core/math.h"
 #include "core/componenttype.h"
 #include "video/glyphmap.h"
 #include "video/glyph.h"
@@ -15,10 +15,10 @@ class GlyphMap;
 struct TextComponent : public ComponentType<TextComponent>
 {
 	std::string text;
-	glm::vec4 colour;
+	vec4 colour;
 	const GlyphMap *glyphMap;
 
-	TextComponent(const std::string &text, const glm::vec4 &colour, const GlyphMap *glyphMap)
+	TextComponent(const std::string &text, const vec4 &colour, const GlyphMap *glyphMap)
 	{
 		this->text = text;
 		this->colour = colour;

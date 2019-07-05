@@ -1,7 +1,7 @@
 #ifndef LINE_H
 #define LINE_H
 
-#include <glm/glm.hpp>
+#include "core/math.h"
 #include "rect.h"
 
 namespace Boiler
@@ -11,16 +11,16 @@ class StandardForm
 {
     float a, b, c;
 public:
-    StandardForm(glm::vec2 p0, glm::vec2 p1);
+    StandardForm(vec2 p0, vec2 p1);
 };
 
 class Line
 {
-    const glm::vec2 p0, p1;
+    const vec2 p0, p1;
     float slope;
 
 public:
-    Line(glm::vec2 p0, glm::vec2 p1);
+    Line(vec2 p0, vec2 p1);
 
     float getSlope() const { return slope; }
 
