@@ -29,7 +29,7 @@ public:
     OpenGLRenderer(bool useGLES);
     ~OpenGLRenderer();
 
-    void initialize(const Size size) override;
+    void initialize(const Size &size) override;
 	void shutdown() override;
     std::string getVersion() const override { return std::string(VERSION); }
 

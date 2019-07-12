@@ -34,7 +34,7 @@ public:
     Renderer(std::string name);
 	virtual ~Renderer() { }
 
-    virtual void initialize(const Size size) = 0;
+    virtual void initialize(const Size &size) = 0;
     virtual void shutdown() = 0;
     virtual std::string getVersion() const = 0;
 

@@ -84,7 +84,7 @@ void checkOpenGLErrors()
     }
 }
 
-void OpenGLRenderer::initialize(const Size screenSize)
+void OpenGLRenderer::initialize(const Size &screenSize)
 {
     bool success = false;
 
