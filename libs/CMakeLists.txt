@@ -41,10 +41,16 @@ set(JSONCPP_WITH_TESTS CACHE OFF "Disable JSONCPP unit tests")
 set(JSONCPP_WITH_POST_BUILD_UNITTEST CACHE OFF "Disable JSONCPP post-build runner")
 add_subdirectory(${LIBS_ROOT}/jsoncpp)
 
+# MoltenVK
+set(MOLTENVK_ROOT "/Users/nenchev/Developer/frameworks/MoltenVK/")
+set(MOLTENVK_INCLUDE_DIR ${MOLTENVK_ROOT}/include)
+set(MOLTENVK_LIBRARY ${MOLTENVK_ROOT}/MoltenVK/macOS/static/libMoltenVK.a)
+
 find_package(OpenGL REQUIRED)
 
 target_include_directories(boiler_deps PUBLIC
   ${OPENGL_INCLUDE_DIR}
+  ${MOLTENVK_INCLUDE_DIR}
   ${GLEW_HEADERS_DIR}
   ${PNG_INCLUDE_DIR}
   ${ZLIB_INCLUDE_DIR}
@@ -55,4 +61,4 @@ target_include_directories(boiler_deps PUBLIC
   SDL2
   freetype)
 
-target_link_libraries(boiler_deps SDL2-static png_static zlibstatic freetype glm glew_s jsoncpp_lib ${OPENGL_LIBRARY})
+target_link_libraries(boiler_deps SDL2-static png_static zlibstatic freetype glm glew_s jsoncpp_lib ${OPENGL_LIBRARY} ${MOLTENVK_LIBRARY})
