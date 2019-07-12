@@ -58,6 +58,10 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/video/model.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/fontloader.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/vertexdata.cpp
+  # Vulkan Rendering
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/vulkanrenderer.cpp
+
+  # OpenGL Rendering
   ${CMAKE_CURRENT_LIST_DIR}/src/video/openglrenderer.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/opengltexture.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/openglmodel.cpp
