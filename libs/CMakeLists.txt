@@ -43,7 +43,7 @@ add_subdirectory(${LIBS_ROOT}/jsoncpp)
 
 # MoltenVK
 set(MOLTENVK_ROOT "/Users/nenchev/Developer/frameworks/MoltenVK/")
-set(MOLTENVK_INCLUDE_DIR ${MOLTENVK_ROOT}/include)
+set(MOLTENVK_INCLUDE_DIR ${MOLTENVK_ROOT}/MoltenVK/include)
 set(MOLTENVK_LIBRARY ${MOLTENVK_ROOT}/MoltenVK/macOS/static/libMoltenVK.a)
 
 find_package(OpenGL REQUIRED)
