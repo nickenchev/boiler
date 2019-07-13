@@ -1,5 +1,8 @@
+#include <SDL.h>
 #include <MoltenVK/mvk_vulkan.h>
 #include "video/vulkanrenderer.h"
+
+#include "core/math.h"
 
 using namespace Boiler;
 
@@ -8,7 +11,23 @@ VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 }
 
 void VulkanRenderer::initialize(const Size &size)
-{
+{    bool success = false;
+
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
+    {
+		SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+		win = SDL_CreateWindow("Boiler", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenSize.width, screenSize.height, winFlags);
+		setScreenSize(screenSize);
+
+        if (win)
+        {
+        }
+    }
+
+    if (!success)
+    {
+        std::cout << "Error Initializing SDL: " << SDL_GetError() << std::endl;
+    }
 }
 
 void VulkanRenderer::shutdown()
@@ -37,6 +56,7 @@ std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) c
 void VulkanRenderer::beginRender()
 {
 }
+
 void VulkanRenderer::endRender()
 {
 }

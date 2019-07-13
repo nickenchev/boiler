@@ -4,11 +4,14 @@
 #include <string>
 #include "video/renderer.h"
 
+class SDL_Window;
+
 namespace Boiler
 {
 
 class VulkanRenderer : public Boiler::Renderer
 {
+	SDL_Window *win;
 public:
     VulkanRenderer();
 
