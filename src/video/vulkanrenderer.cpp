@@ -15,9 +15,12 @@ void VulkanRenderer::initialize(const Size &size)
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
     {
-		SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-		win = SDL_CreateWindow("Boiler", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenSize.width, screenSize.height, winFlags);
-		setScreenSize(screenSize);
+		//SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN);
+		//win = SDL_CreateWindow("Boiler", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenSize.width, screenSize.height, winFlags);
+
+		setScreenSize(size);
+		win = SDL_CreateWindow("Boiler", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+							   getScreenSize().width, getScreenSize().height, SDL_WINDOW_SHOWN);
 
         if (win)
         {
@@ -59,6 +62,7 @@ void VulkanRenderer::beginRender()
 
 void VulkanRenderer::endRender()
 {
+    //SDL_GL_SwapWindow(win);
 }
 
 void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
