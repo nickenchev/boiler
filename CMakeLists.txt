@@ -61,6 +61,9 @@ set(BOILER_SOURCES
   # Vulkan Rendering
   ${CMAKE_CURRENT_LIST_DIR}/src/video/vulkanrenderer.cpp
 
+  # Platform Support
+  ${CMAKE_CURRENT_LIST_DIR}/src/platform/sdlwindow.cpp
+
   # OpenGL Rendering
   ${CMAKE_CURRENT_LIST_DIR}/src/video/openglrenderer.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/opengltexture.cpp
