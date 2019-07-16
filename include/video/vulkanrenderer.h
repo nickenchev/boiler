@@ -2,6 +2,7 @@
 #define VULKANRENDERER_H
 
 #include <string>
+#include <vulkan/vulkan.h>
 #include "video/renderer.h"
 
 class SDL_Window;
@@ -12,6 +13,7 @@ namespace Boiler
 class VulkanRenderer : public Boiler::Renderer
 {
 	SDL_Window *win;
+	VkInstance instance;
 public:
     VulkanRenderer();
 
