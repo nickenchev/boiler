@@ -11,18 +11,22 @@ VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 {
 }
 
+VulkanRenderer::~VulkanRenderer()
+{
+}
+
 void VulkanRenderer::initialize(const Size &size)
 {
 	bool success = false;
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
+	setScreenSize(size);
+
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == 0)
     {
 		SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN);
-		//win = SDL_CreateWindow("Boiler", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenSize.width, screenSize.height, winFlags);
-
-		setScreenSize(size);
 		win = SDL_CreateWindow("Boiler", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 							   getScreenSize().width, getScreenSize().height, winFlags);
 
+		success = true;
         if (win)
         {
 			// query supported extensions
@@ -33,12 +37,29 @@ void VulkanRenderer::initialize(const Size &size)
 			std::vector<const char *> extensionNames(extensionCount);
 			vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, instProps.data());
 
-			for (int i = 0; i < static_cast<int>(extensionCount); ++i)
+			std::vector<const char *> requestedExtensions =
 			{
-				logger.log(instProps[i].extensionName);
-				extensionNames.push_back(instProps[i].extensionName);
+				"VK_KHR_surface"
+			};
+
+			for (auto extension : requestedExtensions)
+			{
+				bool supported = false;
+				for (int i = 0; i < static_cast<int>(extensionCount); ++i)
+				{
+					if (std::strcmp(extension, instProps[i].extensionName) == 0)
+					{
+						supported = true;
+						logger.log(std::string(instProps[i].extensionName) + " enabled");
+						extensionNames.push_back(instProps[i].extensionName);
+					}
+					if (!supported)
+					{
+						logger.error("Unsupported extension: " + std::string(extension));
+					}
+				}
 			}
-			logger.log(std::to_string(extensionCount) + " extensions supported");
+			logger.log(std::to_string(extensionCount) + " extensions supported total");
 
 			// create instance
 			VkApplicationInfo appInfo = {};
@@ -89,6 +110,10 @@ void VulkanRenderer::initialize(const Size &size)
 				createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 				createInfo.ppEnabledLayerNames = validationLayers.data();
 				logger.log("Validation layers are enabled");
+
+				// debug messenger setup
+				VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
+				
 			}
 
 			if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
@@ -108,13 +133,25 @@ void VulkanRenderer::initialize(const Size &size)
     }
 }
 
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+													VkDebugUtilsMessageTypeFlagsEXT messageType,
+													const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+													void* userData)
+{
+	static Logger logger("Vulkan Debugger");
+	logger.error(callbackData->pMessage);
+
+	return VK_FALSE;
+}
+
 void VulkanRenderer::shutdown()
 {
+	vkDestroyInstance(instance, nullptr);
+	logger.log("Instance destroyed");
+
 	if (win)
 	{
 		SDL_DestroyWindow(win);
-		vkDestroyInstance(instance, nullptr);
-		logger.log("Instance destroyed");
 	}
 }
 

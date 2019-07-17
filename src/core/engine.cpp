@@ -215,12 +215,16 @@ void Engine::update(const double delta)
 	ecs.update(delta);
 }
 
-Engine::~Engine()
+void Engine::shutdown()
 {
-	logger.log("Exiting");
+	logger.log("Cleaning up");
 	if (renderer)
 	{
 		renderer->shutdown();
 	}
 	SDL_Quit();
+}
+
+Engine::~Engine()
+{
 }

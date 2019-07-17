@@ -14,8 +14,11 @@ class VulkanRenderer : public Boiler::Renderer
 {
 	SDL_Window *win;
 	VkInstance instance;
+	VkDebugUtilsMessengerEXT debugMessenger;
+
 public:
     VulkanRenderer();
+	~VulkanRenderer();
 
 	void initialize(const Boiler::Size &size) override;
 	void shutdown() override;
