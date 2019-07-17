@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <SDL_vulkan.h>
 #include <cstring>
 #include "video/vulkanrenderer.h"
 
@@ -6,6 +7,11 @@
 
 using namespace Boiler;
 constexpr bool enableValidationLayers = true;
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+													VkDebugUtilsMessageTypeFlagsEXT messageType,
+													const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+													void* userData);
 
 VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 {
@@ -29,6 +35,19 @@ void VulkanRenderer::initialize(const Size &size)
 		success = true;
         if (win)
         {
+			/*
+			unsigned int count;
+			SDL_Vulkan_GetInstanceExtensions(win, &count, nullptr);
+			std::vector<const char *> sdlExts(count);
+			SDL_Vulkan_GetInstanceExtensions(win, &count, sdlExts.data());
+
+			for (auto ext : sdlExts)
+			{
+				logger.log(ext);
+			}
+			*/
+
+
 			// query supported extensions
 			uint32_t extensionCount = 0;
 			vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -39,7 +58,9 @@ void VulkanRenderer::initialize(const Size &size)
 
 			std::vector<const char *> requestedExtensions =
 			{
-				"VK_KHR_surface"
+				VK_KHR_SURFACE_EXTENSION_NAME,
+				VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+				"VK_KHR_xlib_surface"
 			};
 
 			bool extensionsOk = true;
@@ -114,10 +135,6 @@ void VulkanRenderer::initialize(const Size &size)
 				createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 				createInfo.ppEnabledLayerNames = validationLayers.data();
 				logger.log("Validation layers are enabled");
-
-				// debug messenger setup
-				VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
-				
 			}
 
 			if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
@@ -127,6 +144,32 @@ void VulkanRenderer::initialize(const Size &size)
 			else
 			{
 				logger.log("Instance created");
+			}
+
+			// debug messenger setup
+			VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
+			debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+			debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+				VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+			debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+				VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+			debugCreateInfo.pfnUserCallback = debugCallback;
+			debugCreateInfo.pUserData = static_cast<void *>(&logger);
+
+
+			VkDebugUtilsMessengerEXT debugMessenger;
+			std::string funcName{"vkCreateDebugUtilsMessengerEXT"};
+			auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, funcName.c_str());
+			if (func != nullptr)
+			{
+				if (func(instance, &debugCreateInfo, nullptr, &debugMessenger) != VK_SUCCESS)
+				{
+					logger.log("Error setting up debug messenger");
+				}
+			}
+			else
+			{
+				logger.log("Couldn't find Vulkan function: " + funcName);
 			}
         }
     }
@@ -142,8 +185,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 													const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
 													void* userData)
 {
-	static Logger logger("Vulkan Debugger");
-	logger.error(callbackData->pMessage);
+	Logger *logger = static_cast<Logger *>(userData);
+	logger->error(callbackData->pMessage);
 
 	return VK_FALSE;
 }
