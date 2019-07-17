@@ -90,4 +90,4 @@ target_include_directories(boiler PUBLIC
 
 target_link_libraries(boiler boiler_deps)
 
-target_compile_options(boiler PRIVATE -Wall -Wextra)
+#target_compile_options(boiler PRIVATE -Wall -Wextra)
