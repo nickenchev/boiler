@@ -7,15 +7,17 @@ namespace Boiler
 {
 
 struct BMFont;
+class ImageLoader;
 
 class FontLoader
 {
 	Logger logger;
+	const ImageLoader &imageLoader;
 	
 public:
-    FontLoader();
+    FontLoader(const ImageLoader &imageLoader);
 
-    const BMFont loadBMFont(const std::string fontPath) const;
+	const BMFont loadBMFont(const std::string fontPath) const;
 };
 
 }

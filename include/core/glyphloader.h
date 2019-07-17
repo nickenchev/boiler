@@ -11,14 +11,16 @@ namespace Boiler
 {
 
 class GlyphMap;
+class Renderer;
 
 class GlyphLoader
 {
 	FT_Library ft;
 	Logger logger;
+	const Renderer &renderer;
 	
 public:
-    GlyphLoader();
+    GlyphLoader(const Renderer &renderer);
 	virtual ~GlyphLoader();
 
 	const GlyphMap loadFace(std::string fontPath, int fontSize);

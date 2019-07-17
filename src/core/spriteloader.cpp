@@ -14,7 +14,7 @@
 
 using namespace Boiler;
 
-SpriteLoader::SpriteLoader() : logger(std::string(COMPONENT_NAME))
+SpriteLoader::SpriteLoader(const ImageLoader &imageLoader) : logger(std::string(COMPONENT_NAME)), imageLoader(imageLoader)
 {
 }
 
@@ -34,7 +34,7 @@ const std::shared_ptr<const SpriteSheet> SpriteLoader::loadJsonArray(std::string
         std::string imageFile = "data/" + json["meta"]["image"].asString();
 
         //read the sprite image name and load the texture
-        auto texture = Engine::getInstance().getImageLoader().loadImage(imageFile);
+        auto texture = imageLoader.loadImage(imageFile);
 
 		const Size texSize(json["meta"]["size"]["w"].asFloat(), json["meta"]["size"]["h"].asFloat());
 

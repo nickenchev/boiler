@@ -53,10 +53,11 @@ void VulkanRenderer::initialize(const Size &size)
 						logger.log(std::string(instProps[i].extensionName) + " enabled");
 						extensionNames.push_back(instProps[i].extensionName);
 					}
-					if (!supported)
-					{
-						logger.error("Unsupported extension: " + std::string(extension));
-					}
+				}
+				if (!supported)
+				{
+					logger.error("Unsupported extension: " + std::string(extension));
+					break;
 				}
 			}
 			logger.log(std::to_string(extensionCount) + " extensions supported total");

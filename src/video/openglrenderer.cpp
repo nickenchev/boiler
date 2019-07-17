@@ -80,7 +80,7 @@ void checkOpenGLErrors()
                 break;
             }
         }
-        Engine::getInstance().getRenderer().showMessageBox("OpenGL Error", errorString);
+        //Engine::getInstance().getRenderer().showMessageBox("OpenGL Error", errorString);
     }
 }
 

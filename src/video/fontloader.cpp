@@ -15,7 +15,7 @@
 using namespace Boiler;
 using namespace tinyxml2;
 
-FontLoader::FontLoader() : logger(COMPONENT_NAME)
+FontLoader::FontLoader(const ImageLoader &imageLoader) : logger(COMPONENT_NAME), imageLoader(imageLoader)
 {
 }
 
@@ -69,7 +69,7 @@ const BMFont FontLoader::loadBMFont(const std::string fontPath) const
                 Page pageObj;
                 pageObj.id = page->IntAttribute("id");
                 pageObj.file = page->Attribute("file");
-                pageObj.texture = Engine::getInstance().getImageLoader().loadImage(FileUtils::buildPath(imagePath, pageObj.file));
+                pageObj.texture = imageLoader.loadImage(FileUtils::buildPath(imagePath, pageObj.file));
                 font.pageList.push_back(std::move(pageObj));
 
                 page = page->NextSiblingElement();

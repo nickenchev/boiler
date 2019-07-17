@@ -34,9 +34,9 @@ typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 class Engine
 {
 	Logger logger;
+    Renderer &renderer;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
-    std::unique_ptr<Renderer> renderer;
 	System *renderSystem, *glyphSystem, *guiSystem;
 
     std::vector<TouchMotionListener> touchMotionListeners;
@@ -57,24 +57,18 @@ class Engine
 
     std::shared_ptr<Part> part;
 
-    // singleton
-    Engine();
-    ~Engine();
-
 public:
+	Engine(Renderer &renderer);
     Engine(const Engine &) = delete;
     void operator=(const Engine &s) = delete;
 
-    static Engine &getInstance();
-
-    void initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight);
-    void initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight);
+    void initialize(const int resWidth, const int resHeight);
+    void initialize(std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight);
 	void shutdown();
     void start(std::shared_ptr<Part> part);
     void quit() { running = false; }
 
 	EntityComponentSystem &getEcs() { return ecs; }
-    Renderer &getRenderer() const { return *renderer.get(); }
     std::shared_ptr<Part> getPart() const { return part; }
 
     const SpriteLoader &getSpriteLoader() const { return spriteLoader; }

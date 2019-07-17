@@ -5,6 +5,7 @@
 #include "core/engine.h"
 #include "video/renderer.h"
 #include "video/imageloader.h"
+#include "video/renderer.h"
 
 #include <cstring>
 #include <cstdio>
@@ -20,7 +21,7 @@ void user_write_data(png_structp png_ptr, png_bytep data, size_t length);
 void user_flush_data(png_structp png_ptr);
 void read_row_callback(png_structp png_ptr, png_uint_32 row, int pass);
 
-ImageLoader::ImageLoader() : logger(COMPONENT_NAME)
+ImageLoader::ImageLoader(const Renderer &renderer) : logger(COMPONENT_NAME), renderer(renderer)
 {
 }
 
@@ -31,7 +32,7 @@ const std::shared_ptr<const Texture> ImageLoader::loadImage(const std::string &f
     SDL_Surface *surface = readPNG(filePath);
 
     assert(surface != nullptr);
-    auto texture = Engine::getInstance().getRenderer().createTexture(filePath, Size(surface->w, surface->h), surface->pixels);
+    auto texture = renderer.createTexture(filePath, Size(surface->w, surface->h), surface->pixels);
 
     SDL_FreeSurface(surface);
 

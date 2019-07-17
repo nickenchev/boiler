@@ -16,48 +16,33 @@
 
 using namespace Boiler;
 
-Engine::Engine() : logger("Engine"), baseDataPath(""), spriteLoader(), imageLoader(), fontLoader()
+Engine::Engine(Renderer &renderer) : logger("Engine"), renderer(renderer), baseDataPath(""), spriteLoader(renderer),
+										   imageLoader(renderer), fontLoader(renderer)
 {
 	logger.log("Engine instance created");
+	logger.log("Using renderer: " + renderer.getVersion());
 }
 
-Engine &Engine::getInstance()
+void Engine::initialize(const int resWidth, const int resHeight)
 {
-	static Engine instance;
-	return instance;
+	initialize(nullptr, resWidth, resHeight);
 }
 
-void Engine::initialize(std::unique_ptr<Renderer> renderer, const int resWidth, const int resHeight)
+void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight)
 {
-	initialize(std::move(renderer), nullptr, resWidth, resHeight);
-}
-
-void Engine::initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight)
-{
-	if (this->renderer != nullptr)
-	{
-		this->renderer->shutdown();
-	}
-
-	logger.log("Initializing...");
-	assert(renderer != nullptr); // No renderer provided
-
-	// initialization was successful
-	logger.log("Using renderer: " + renderer->getVersion());
 	//baseDataPath = std::string(SDL_GetBasePath());
 
 	// initialize basic engine stuff
 	frameInterval = 1.0f / 60.0f; // 60fps
-	this->renderer = std::move(renderer);
-	getRenderer().initialize(Size(resWidth, resHeight));
+	renderer.initialize(Size(resWidth, resHeight));
 
-	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*this->renderer)
+	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(renderer)
 		.expects<PositionComponent>()
 		.expects<RenderComponent>();
 	ecs.getComponentSystems().removeUpdate(&renderSys);
 	this->renderSystem = &renderSys;
 
-	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*this->renderer)
+	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(renderer)
 		.expects<PositionComponent>()
 		.expects<TextComponent>();
 	ecs.getComponentSystems().removeUpdate(&glyphSys);
@@ -65,7 +50,7 @@ void Engine::initialize(std::unique_ptr<Renderer> renderer, std::unique_ptr<GUIH
 
 	if (guiHandler)
 	{
-		System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*this->renderer, std::move(guiHandler))
+		System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(renderer, std::move(guiHandler))
 			.expects<GUIComponent>();
 		ecs.getComponentSystems().removeUpdate(&guiSys);
 		this->guiSystem = &guiSys;
@@ -110,11 +95,11 @@ void Engine::run()
 		
 		// render related systems only run during render phase
 		// TODO: Handle GUI events differently
-		renderer->beginRender();
+		renderer.beginRender();
 		renderSystem->update(getEcs().getComponentStore(), frameDelta);
 		glyphSystem->update(getEcs().getComponentStore(), frameDelta);
 		if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);
-		renderer->endRender();
+		renderer.endRender();
 	}
 }
 
@@ -218,13 +203,6 @@ void Engine::update(const double delta)
 void Engine::shutdown()
 {
 	logger.log("Cleaning up");
-	if (renderer)
-	{
-		renderer->shutdown();
-	}
+	renderer.shutdown();
 	SDL_Quit();
-}
-
-Engine::~Engine()
-{
 }

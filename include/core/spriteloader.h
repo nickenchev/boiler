@@ -14,12 +14,15 @@ typedef unsigned int GLuint;
 namespace Boiler
 {
 
+class ImageLoader;
+
 class SpriteLoader
 {
 	Logger logger;
+	const ImageLoader &imageLoader;
 
 public:
-    SpriteLoader();
+    SpriteLoader(const ImageLoader &imageLoader);
     ~SpriteLoader();
 
     //sprite handling methods
