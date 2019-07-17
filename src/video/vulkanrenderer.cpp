@@ -42,6 +42,7 @@ void VulkanRenderer::initialize(const Size &size)
 				"VK_KHR_surface"
 			};
 
+			bool extensionsOk = true;
 			for (auto extension : requestedExtensions)
 			{
 				bool supported = false;
@@ -56,10 +57,12 @@ void VulkanRenderer::initialize(const Size &size)
 				}
 				if (!supported)
 				{
+					extensionsOk = false;
 					logger.error("Unsupported extension: " + std::string(extension));
 					break;
 				}
 			}
+			assert(extensionsOk);
 			logger.log(std::to_string(extensionCount) + " extensions supported total");
 
 			// create instance
