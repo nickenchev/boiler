@@ -5,6 +5,7 @@
 #include "core/math.h"
 
 using namespace Boiler;
+constexpr bool enableValidationLayers = true;
 
 VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 {
@@ -39,35 +40,6 @@ void VulkanRenderer::initialize(const Size &size)
 			}
 			logger.log(std::to_string(extensionCount) + " extensions supported");
 
-			// validation layers
-			const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
-			uint32_t layerCount = 0;
-			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-			std::vector<VkLayerProperties> layers(layerCount);
-			vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
-
-			// check that requested layers are supported
-			bool layersOk = true;
-			for (auto layerName : validationLayers)
-			{
-				bool layerFound = false;
-				for (auto availLayer : layers)
-				{
-					if (std::strcmp(layerName, availLayer.layerName) == 0)
-					{
-						layerFound = true;
-						break;
-					}
-				}
-
-				if (!layerFound)
-				{
-					layersOk = false;
-					logger.error("Layer: " + std::string(layerName) + " not found");
-				}
-			}
-			assert(layersOk);
-
 			// create instance
 			VkApplicationInfo appInfo = {};
 			appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -79,9 +51,45 @@ void VulkanRenderer::initialize(const Size &size)
 			VkInstanceCreateInfo createInfo = {};
 			createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 			createInfo.pApplicationInfo = &appInfo;
-			createInfo.enabledLayerCount = 0;
 			createInfo.ppEnabledExtensionNames = extensionNames.data();
-			createInfo.ppEnabledLayerNames = validationLayers.data();
+			createInfo.enabledLayerCount = 0;
+
+			// validation layers
+			const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
+			uint32_t layerCount = 0;
+			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+			std::vector<VkLayerProperties> layers(layerCount);
+			vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
+
+			if constexpr (enableValidationLayers)
+			{
+				// check that requested layers are supported
+				bool layersOk = true;
+				for (auto layerName : validationLayers)
+				{
+					bool layerFound = false;
+					for (auto availLayer : layers)
+					{
+						if (std::strcmp(layerName, availLayer.layerName) == 0)
+						{
+							layerFound = true;
+							break;
+						}
+					}
+
+					if (!layerFound)
+					{
+						layersOk = false;
+						logger.error("Layer: " + std::string(layerName) + " not found");
+					}
+				}
+				assert(layersOk);
+
+				logger.log(std::to_string(validationLayers.size()) + " layer(s) will be enabled");
+				createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+				createInfo.ppEnabledLayerNames = validationLayers.data();
+				logger.log("Validation layers are enabled");
+			}
 
 			if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
 			{
