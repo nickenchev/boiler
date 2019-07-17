@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <cstring>
 #include "video/vulkanrenderer.h"
 
 #include "core/math.h"
@@ -10,8 +11,8 @@ VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 }
 
 void VulkanRenderer::initialize(const Size &size)
-{    bool success = false;
-
+{
+	bool success = false;
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
     {
 		SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN);
@@ -38,6 +39,35 @@ void VulkanRenderer::initialize(const Size &size)
 			}
 			logger.log(std::to_string(extensionCount) + " extensions supported");
 
+			// validation layers
+			const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
+			uint32_t layerCount = 0;
+			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+			std::vector<VkLayerProperties> layers(layerCount);
+			vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
+
+			// check that requested layers are supported
+			bool layersOk = true;
+			for (auto layerName : validationLayers)
+			{
+				bool layerFound = false;
+				for (auto availLayer : layers)
+				{
+					if (std::strcmp(layerName, availLayer.layerName) == 0)
+					{
+						layerFound = true;
+						break;
+					}
+				}
+
+				if (!layerFound)
+				{
+					layersOk = false;
+					logger.error("Layer: " + std::string(layerName) + " not found");
+				}
+			}
+			assert(layersOk);
+
 			// create instance
 			VkApplicationInfo appInfo = {};
 			appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -51,6 +81,7 @@ void VulkanRenderer::initialize(const Size &size)
 			createInfo.pApplicationInfo = &appInfo;
 			createInfo.enabledLayerCount = 0;
 			createInfo.ppEnabledExtensionNames = extensionNames.data();
+			createInfo.ppEnabledLayerNames = validationLayers.data();
 
 			if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
 			{
@@ -74,6 +105,8 @@ void VulkanRenderer::shutdown()
 	if (win)
 	{
 		SDL_DestroyWindow(win);
+		vkDestroyInstance(instance, nullptr);
+		logger.log("Instance destroyed");
 	}
 }
 
