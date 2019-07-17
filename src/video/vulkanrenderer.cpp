@@ -181,7 +181,6 @@ void VulkanRenderer::beginRender()
 
 void VulkanRenderer::endRender()
 {
-	SDL_GL_SwapWindow(win);
 }
 
 void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,

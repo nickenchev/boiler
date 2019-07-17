@@ -23,6 +23,13 @@ Engine::Engine(Renderer &renderer) : logger("Engine"), renderer(renderer), baseD
 	logger.log("Using renderer: " + renderer.getVersion());
 }
 
+Engine::~Engine()
+{
+	logger.log("Cleaning up");
+	renderer.shutdown();
+	SDL_Quit();
+}
+
 void Engine::initialize(const int resWidth, const int resHeight)
 {
 	initialize(nullptr, resWidth, resHeight);
@@ -198,11 +205,4 @@ void Engine::processEvents()
 void Engine::update(const double delta)
 {
 	ecs.update(delta);
-}
-
-void Engine::shutdown()
-{
-	logger.log("Cleaning up");
-	renderer.shutdown();
-	SDL_Quit();
 }

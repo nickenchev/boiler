@@ -59,6 +59,7 @@ class Engine
 
 public:
 	Engine(Renderer &renderer);
+	~Engine();
     Engine(const Engine &) = delete;
     void operator=(const Engine &s) = delete;
 
