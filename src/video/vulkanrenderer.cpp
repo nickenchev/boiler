@@ -167,7 +167,6 @@ void VulkanRenderer::initialize(const Size &size)
 				}
 			}
 
-
 			// Find compatible GPUs
 			VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 			uint32_t deviceCount = 0;
@@ -261,6 +260,9 @@ void VulkanRenderer::initialize(const Size &size)
 				{
 					logger.log("Device created");
 				}
+
+				// retrieve queue handles
+				vkGetDeviceQueue(device, queueFamilyIndices.graphics.value(), 0, &graphicsQueue);
 			}
         }
     }
