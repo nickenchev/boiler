@@ -152,16 +152,9 @@ void VulkanRenderer::initialize(const Size &size)
 				VkDebugUtilsMessengerEXT debugMessenger;
 				std::string funcName{"vkCreateDebugUtilsMessengerEXT"};
 				auto createFunc = getFunctionPointer<PFN_vkCreateDebugUtilsMessengerEXT>(instance, funcName.c_str());
-				if (createFunc)
+				if (createFunc(instance, &debugCreateInfo, nullptr, &debugMessenger) != VK_SUCCESS)
 				{
-					if (createFunc(instance, &debugCreateInfo, nullptr, &debugMessenger) != VK_SUCCESS)
-					{
-						logger.log("Error setting up debug messenger");
-					}
-				}
-				else
-				{
-					throw std::runtime_error("Couldn't find Vulkan function: " + funcName);
+					logger.log("Error setting up debug messenger");
 				}
 			}
 
