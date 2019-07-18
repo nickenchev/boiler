@@ -6,7 +6,7 @@
 #include "core/math.h"
 
 using namespace Boiler;
-constexpr bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = false;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -14,10 +14,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 													const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
 													void* userData);
 
-template<typename T>
 auto getFunctionPointer(VkInstance instance, std::string funcName)
 {
-	auto func = (T)(instance, funcName.c_str());
+	auto func = vkGetInstanceProcAddr(instance, funcName.c_str());
 	if (!func)
 	{
 		throw std::runtime_error("Couldn't find Vulkan function: " + funcName);
@@ -137,9 +136,20 @@ void VulkanRenderer::initialize(const Size &size)
 
 			}
 
+			// create the vulkan instance
+			if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+			{
+				throw std::runtime_error("Error creating Vulkan instance");
+			}
+			else
+			{
+				logger.log("Instance created");
+			}
+
+
+			// debug messenger setup
 			if constexpr (enableDebugMessages)
 			{
-				// debug messenger setup
 				VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
 				debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 				debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
@@ -150,21 +160,13 @@ void VulkanRenderer::initialize(const Size &size)
 				debugCreateInfo.pUserData = static_cast<void *>(&logger);
 
 				std::string funcName{"vkCreateDebugUtilsMessengerEXT"};
-				auto createFunc = getFunctionPointer<PFN_vkCreateDebugUtilsMessengerEXT>(instance, funcName.c_str());
+				auto createFunc = (PFN_vkCreateDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
 				if (createFunc(instance, &debugCreateInfo, nullptr, &debugMessenger) != VK_SUCCESS)
 				{
 					logger.log("Error setting up debug messenger");
 				}
 			}
 
-			if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
-			{
-				throw std::runtime_error("Error creating Vulkan instance");
-			}
-			else
-			{
-				logger.log("Instance created");
-			}
 
 			// Find compatible GPUs
 			VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
@@ -285,7 +287,7 @@ void VulkanRenderer::shutdown()
 	if constexpr (enableDebugMessages)
 	{
 		std::string funcName{"vkDestroyDebugUtilsMessengerEXT"};
-		auto destroyFunc = getFunctionPointer<PFN_vkDestroyDebugUtilsMessengerEXT>(instance, funcName.c_str());
+		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
 		destroyFunc(instance, debugMessenger, nullptr);
 	}
 
