@@ -149,7 +149,6 @@ void VulkanRenderer::initialize(const Size &size)
 				debugCreateInfo.pfnUserCallback = debugCallback;
 				debugCreateInfo.pUserData = static_cast<void *>(&logger);
 
-				VkDebugUtilsMessengerEXT debugMessenger;
 				std::string funcName{"vkCreateDebugUtilsMessengerEXT"};
 				auto createFunc = getFunctionPointer<PFN_vkCreateDebugUtilsMessengerEXT>(instance, funcName.c_str());
 				if (createFunc(instance, &debugCreateInfo, nullptr, &debugMessenger) != VK_SUCCESS)
@@ -283,6 +282,13 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 
 void VulkanRenderer::shutdown()
 {
+	if constexpr (enableDebugMessages)
+	{
+		std::string funcName{"vkDestroyDebugUtilsMessengerEXT"};
+		auto destroyFunc = getFunctionPointer<PFN_vkDestroyDebugUtilsMessengerEXT>(instance, funcName.c_str());
+		destroyFunc(instance, debugMessenger, nullptr);
+	}
+
 	vkDestroyDevice(device, nullptr);
 	logger.log("Device destroyed");
 	vkDestroyInstance(instance, nullptr);
