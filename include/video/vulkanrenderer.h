@@ -2,6 +2,7 @@
 #define VULKANRENDERER_H
 
 #include <string>
+#include <optional>
 #include <vulkan/vulkan.h>
 #include "video/renderer.h"
 
@@ -10,11 +11,17 @@ class SDL_Window;
 namespace Boiler
 {
 
+struct QueueFamilyIndices
+{
+	std::optional<uint32_t> graphics;
+};
+
 class VulkanRenderer : public Boiler::Renderer
 {
 	SDL_Window *win;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
+	QueueFamilyIndices queueFamilyIndices;
 
 public:
     VulkanRenderer();
