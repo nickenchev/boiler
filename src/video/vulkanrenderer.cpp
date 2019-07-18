@@ -6,13 +6,24 @@
 #include "core/math.h"
 
 using namespace Boiler;
-constexpr bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = false;
 constexpr bool enableDebugMessages = false;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
 													const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
 													void* userData);
+
+template<typename T>
+auto getFunctionPointer(VkInstance instance, std::string funcName)
+{
+	auto func = (T)(instance, funcName.c_str());
+	if (!func)
+	{
+		throw std::runtime_error("Couldn't find Vulkan function: " + funcName);
+	}
+	return func;
+}
 
 VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 {
@@ -140,10 +151,10 @@ void VulkanRenderer::initialize(const Size &size)
 
 				VkDebugUtilsMessengerEXT debugMessenger;
 				std::string funcName{"vkCreateDebugUtilsMessengerEXT"};
-				auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, funcName.c_str());
-				if (func != nullptr)
+				auto createFunc = getFunctionPointer<PFN_vkCreateDebugUtilsMessengerEXT>(instance, funcName.c_str());
+				if (createFunc)
 				{
-					if (func(instance, &debugCreateInfo, nullptr, &debugMessenger) != VK_SUCCESS)
+					if (createFunc(instance, &debugCreateInfo, nullptr, &debugMessenger) != VK_SUCCESS)
 					{
 						logger.log("Error setting up debug messenger");
 					}
@@ -197,6 +208,7 @@ void VulkanRenderer::initialize(const Size &size)
 				}
 
 				// queue family query
+				QueueFamilyIndices queueFamilyIndices;
 				uint32_t queueFamilyCount = 0;
 				vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
 
@@ -217,6 +229,43 @@ void VulkanRenderer::initialize(const Size &size)
 						}
 						++i;
 					}
+				}
+
+				// create command queue
+				float queuePriority = 1.0f;
+				VkDeviceQueueCreateInfo queueCreateInfo = {};
+				queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+				queueCreateInfo.queueFamilyIndex = queueFamilyIndices.graphics.value();
+				queueCreateInfo.queueCount = 1;
+				queueCreateInfo.pQueuePriorities = &queuePriority;
+
+				// declare device features
+				VkPhysicalDeviceFeatures deviceFeatures = {};
+
+				// create the logical device
+				VkDeviceCreateInfo deviceCreateInfo = {};
+				deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+				deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+				deviceCreateInfo.queueCreateInfoCount = 1;
+				deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+				deviceCreateInfo.enabledExtensionCount = 0;
+
+				if constexpr(enableValidationLayers)
+				{
+					deviceCreateInfo.enabledLayerCount = validationLayers.size();
+					deviceCreateInfo.ppEnabledLayerNames = validationLayers.data();
+				}
+				else
+				{
+					deviceCreateInfo.enabledLayerCount = 0;
+				}
+				if (vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &device) != VK_SUCCESS)
+				{
+					throw std::runtime_error("Unable to create Vulkan device");
+				}
+				else
+				{
+					logger.log("Device created");
 				}
 			}
         }
@@ -241,6 +290,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 
 void VulkanRenderer::shutdown()
 {
+	vkDestroyDevice(device, nullptr);
+	logger.log("Device destroyed");
 	vkDestroyInstance(instance, nullptr);
 	logger.log("Instance destroyed");
 

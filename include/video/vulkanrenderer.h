@@ -21,7 +21,7 @@ class VulkanRenderer : public Boiler::Renderer
 	SDL_Window *win;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
-	QueueFamilyIndices queueFamilyIndices;
+	VkDevice device;
 
 public:
     VulkanRenderer();
