@@ -54,7 +54,6 @@ void VulkanRenderer::initialize(const Size &size)
 			vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
 			std::vector<VkExtensionProperties> instProps(extensionCount);
-			std::vector<const char *> extensionNames(extensionCount);
 			vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, instProps.data());
 
 			// query required extensions required by SDL Vulkan
@@ -72,8 +71,10 @@ void VulkanRenderer::initialize(const Size &size)
 				requestedExtensions.push_back(ext);
 			}
 
+			// user-requested Vulkan extensions
 			requestedExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
+			// check if extensions are supported
 			bool extensionsOk = true;
 			for (auto extension : requestedExtensions)
 			{
@@ -84,7 +85,6 @@ void VulkanRenderer::initialize(const Size &size)
 					{
 						supported = true;
 						logger.log(std::string(instProps[i].extensionName) + " will be enabled");
-						extensionNames.push_back(instProps[i].extensionName);
 					}
 				}
 				if (!supported)
