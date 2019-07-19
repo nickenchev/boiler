@@ -247,7 +247,7 @@ void VulkanRenderer::initialize(const Size &size)
 				}
 				if (physicalDevice == VK_NULL_HANDLE)
 				{
-					throw std::runtime_error("No suitable GPU detected");
+					throw std::runtime_error("No suitable physical device found");
 				}
 
 				// queue family query
@@ -268,10 +268,20 @@ void VulkanRenderer::initialize(const Size &size)
 							if (queueFamProp.queueFlags & VK_QUEUE_GRAPHICS_BIT)
 							{
 								queueFamilyIndices.graphics = i;
-							}	
+							}
+							VkBool32 presentationSupport = false;
+							vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentationSupport);
+							if (presentationSupport)
+							{
+								queueFamilyIndices.presentation = i;
+							}
 						}
 						++i;
 					}
+				}
+				if (!queueFamilyIndices.graphics || !queueFamilyIndices.presentation)
+				{
+					throw std::runtime_error("Couldn't find required queue family indices");
 				}
 
 				// create command queue

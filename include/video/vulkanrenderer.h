@@ -17,6 +17,7 @@ namespace Boiler
 struct QueueFamilyIndices
 {
 	std::optional<uint32_t> graphics;
+	std::optional<uint32_t> presentation;
 };
 
 class VulkanRenderer : public Boiler::Renderer
