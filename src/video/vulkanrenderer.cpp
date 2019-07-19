@@ -10,7 +10,7 @@
 
 using namespace Boiler;
 constexpr bool enableValidationLayers = true;
-constexpr bool enableDebugMessages = false;
+constexpr bool enableDebugMessages = true;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -329,7 +329,14 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 													void* userData)
 {
 	Logger *logger = static_cast<Logger *>(userData);
-	logger->error(callbackData->pMessage);
+	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+	{
+		logger->error(callbackData->pMessage);
+	}
+	else
+	{
+		logger->log(callbackData->pMessage);
+	}
 
 	return VK_FALSE;
 }
@@ -342,7 +349,6 @@ void VulkanRenderer::shutdown()
 		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
 		destroyFunc(instance, debugMessenger, nullptr);
 	}
-
 
 	vkDestroyDevice(device, nullptr);
 	logger.log("Device destroyed");
