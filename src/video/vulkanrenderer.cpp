@@ -348,7 +348,8 @@ void VulkanRenderer::initialize(const Size &size)
 				deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
 				deviceCreateInfo.queueCreateInfoCount = queueCreateInfos.size();
 				deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-				deviceCreateInfo.enabledExtensionCount = 0;
+				deviceCreateInfo.enabledExtensionCount = requestedDeviceExtensions.size();
+				deviceCreateInfo.ppEnabledExtensionNames = requestedDeviceExtensions.data();
 
 				if constexpr(enableValidationLayers)
 				{
