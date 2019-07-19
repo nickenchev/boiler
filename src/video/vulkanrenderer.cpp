@@ -1,7 +1,10 @@
+#include "video/vulkanrenderer.h"
+
 #include <SDL.h>
 #include <SDL_vulkan.h>
+#include <SDL_syswm.h>
+#include <X11/Xlib-xcb.h>
 #include <cstring>
-#include "video/vulkanrenderer.h"
 
 #include "core/math.h"
 
@@ -39,7 +42,7 @@ void VulkanRenderer::initialize(const Size &size)
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == 0)
     {
-		SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN);
+		SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN);
 		win = SDL_CreateWindow("Boiler", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 							   getScreenSize().width, getScreenSize().height, winFlags);
 
@@ -54,12 +57,22 @@ void VulkanRenderer::initialize(const Size &size)
 			std::vector<const char *> extensionNames(extensionCount);
 			vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, instProps.data());
 
-			std::vector<const char *> requestedExtensions =
+			// query required extensions required by SDL Vulkan
+			unsigned int sdlVkExtCount = 0;
+			SDL_Vulkan_GetInstanceExtensions(win, &sdlVkExtCount, nullptr);
+			std::vector<const char *> sdlVkExts(sdlVkExtCount);
+			if (!SDL_Vulkan_GetInstanceExtensions(win, &sdlVkExtCount, sdlVkExts.data()))
 			{
-				VK_KHR_SURFACE_EXTENSION_NAME,
-				VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-				"VK_KHR_xlib_surface"
-			};
+				throw std::runtime_error("Unable to find required SDL-Vulkan extensions");
+			}
+
+			std::vector<const char *> requestedExtensions;
+			for (const char *ext : sdlVkExts)
+			{
+				requestedExtensions.push_back(ext);
+			}
+
+			requestedExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
 			bool extensionsOk = true;
 			for (auto extension : requestedExtensions)
@@ -70,7 +83,7 @@ void VulkanRenderer::initialize(const Size &size)
 					if (std::strcmp(extension, instProps[i].extensionName) == 0)
 					{
 						supported = true;
-						logger.log(std::string(instProps[i].extensionName) + " enabled");
+						logger.log(std::string(instProps[i].extensionName) + " will be enabled");
 						extensionNames.push_back(instProps[i].extensionName);
 					}
 				}
@@ -95,7 +108,8 @@ void VulkanRenderer::initialize(const Size &size)
 			VkInstanceCreateInfo createInfo = {};
 			createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 			createInfo.pApplicationInfo = &appInfo;
-			createInfo.ppEnabledExtensionNames = extensionNames.data();
+			createInfo.enabledExtensionCount = requestedExtensions.size();
+			createInfo.ppEnabledExtensionNames = requestedExtensions.data();
 			createInfo.enabledLayerCount = 0;
 
 			// validation layers
@@ -167,7 +181,43 @@ void VulkanRenderer::initialize(const Size &size)
 				}
 			}
 
-			// Find compatible GPUs
+			// create surface
+			//VkXcbSurfaceCreateInfoKHR surfaceInfo = {};
+			//surfaceInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+
+			// get platform specific window handle/data
+			/*
+			SDL_SysWMinfo windowInfo;
+			SDL_VERSION(&windowInfo.version);
+			if (!SDL_GetWindowWMInfo(win, &windowInfo))
+			{
+				throw std::runtime_error("Unable to native window info");
+			}
+			
+			switch (windowInfo.subsystem)
+			{
+				case SDL_SYSWM_X11:
+				{
+					surfaceInfo.connection = XGetXCBConnection(windowInfo.info.x11.display);
+					surfaceInfo.window = windowInfo.info.x11.window;
+					break;
+				}
+				default:
+				{
+					throw std::runtime_error("Platform not supported by Boiler Vulkan");
+				}
+			}
+			*/
+			if (!SDL_Vulkan_CreateSurface(win, instance, &surface))
+			{
+				throw std::runtime_error("Unable to create Vulkan surface");
+			}
+			else
+			{
+				logger.log("Surface created");
+			}
+
+			// find compatible GPUs
 			VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 			uint32_t deviceCount = 0;
 			vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -292,6 +342,7 @@ void VulkanRenderer::shutdown()
 		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
 		destroyFunc(instance, debugMessenger, nullptr);
 	}
+
 
 	vkDestroyDevice(device, nullptr);
 	logger.log("Device destroyed");

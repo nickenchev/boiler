@@ -52,8 +52,6 @@ if (APPLE)
 	set(MOLTENVK_LIBRARY ${MOLTENVK_ROOT}/MoltenVK/macOS/static/libMoltenVK.a)
 endif()
 
-find_package(OpenGL REQUIRED)
-
 set(boiler_lib_includes
   ${OPENGL_INCLUDE_DIR}
   #${MOLTENVK_INCLUDE_DIR}
@@ -78,6 +76,5 @@ target_link_libraries(boiler_deps
   glm
   glew_s
   jsoncpp_lib
-  ${VULKAN_LIBS}
-  ${OPENGL_LIBRARY})
+  ${VULKAN_LIBS})
   #${MOLTENVK_LIBRARY})

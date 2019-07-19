@@ -3,7 +3,10 @@
 
 #include <string>
 #include <optional>
+
+#define VK_USE_PLATFORM_XCB_KHR
 #include <vulkan/vulkan.h>
+
 #include "video/renderer.h"
 
 class SDL_Window;
@@ -23,6 +26,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkDevice device;
 	VkQueue graphicsQueue;
+	VkSurfaceKHR surface;
 
 public:
     VulkanRenderer();
