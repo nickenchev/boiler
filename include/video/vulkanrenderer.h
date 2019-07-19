@@ -26,7 +26,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkDevice device;
-	VkQueue graphicsQueue;
+	VkQueue graphicsQueue, presentationQueue;
 	VkSurfaceKHR surface;
 
 public:

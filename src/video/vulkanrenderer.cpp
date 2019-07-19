@@ -5,6 +5,8 @@
 #include <SDL_syswm.h>
 #include <X11/Xlib-xcb.h>
 #include <cstring>
+#include <vector>
+#include <set>
 
 #include "core/math.h"
 
@@ -65,6 +67,7 @@ void VulkanRenderer::initialize(const Size &size)
 				throw std::runtime_error("Unable to find required SDL-Vulkan extensions");
 			}
 
+			// copy required extensions into our final requested list
 			std::vector<const char *> requestedExtensions;
 			for (const char *ext : sdlVkExts)
 			{
@@ -275,6 +278,13 @@ void VulkanRenderer::initialize(const Size &size)
 							{
 								queueFamilyIndices.presentation = i;
 							}
+
+							// done, found everything we need?
+							if (queueFamilyIndices.graphics.has_value() &&
+								queueFamilyIndices.presentation.has_value())
+							{
+								break;
+							}
 						}
 						++i;
 					}
@@ -284,13 +294,50 @@ void VulkanRenderer::initialize(const Size &size)
 					throw std::runtime_error("Couldn't find required queue family indices");
 				}
 
-				// create command queue
-				float queuePriority = 1.0f;
-				VkDeviceQueueCreateInfo queueCreateInfo = {};
-				queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-				queueCreateInfo.queueFamilyIndex = queueFamilyIndices.graphics.value();
-				queueCreateInfo.queueCount = 1;
-				queueCreateInfo.pQueuePriorities = &queuePriority;
+				// device extensions
+				std::vector<const char *> deviceExtensions =
+				{
+					VK_KHR_SWAPCHAIN_EXTENSION_NAME
+				};
+				uint32_t deviceExtensionCount = 0;
+				vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &deviceExtensionCount, nullptr);
+				std::vector<VkExtensionProperties> devExtensionsSupported(deviceExtensionCount);
+				vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &deviceExtensionCount, devExtensionsSupported.data());
+
+				std::vector<const char *> requestedDeviceExtensions;
+				for (const char *extension : deviceExtensions)
+				{
+					bool isSupported = false;
+					for (const auto &supportedExt : devExtensionsSupported)
+					{
+						if (strcmp(extension, supportedExt.extensionName) == 0)
+						{
+							isSupported = true;
+							requestedDeviceExtensions.push_back(extension);
+							logger.log(std::string(extension) + " device extension will be enabled");
+						}
+					}
+					if (!isSupported)
+					{
+						throw std::runtime_error("Unsupported device extension: " + std::string(extension));
+					}
+				}
+
+				// create command queue, using set to ensure only unique queue indices are used
+				const float queuePriority = 1.0f;
+				std::set<uint32_t> uniqueQueueIndices = { queueFamilyIndices.graphics.value(),
+														  queueFamilyIndices.presentation.value() };
+				logger.log("Creating " + std::to_string(uniqueQueueIndices.size()) + " queue(s)");
+				std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+				for (uint32_t index : uniqueQueueIndices)
+				{
+					VkDeviceQueueCreateInfo queueCreateInfo = {};
+					queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+					queueCreateInfo.queueFamilyIndex = index;
+					queueCreateInfo.queueCount = 1;
+					queueCreateInfo.pQueuePriorities = &queuePriority;
+					queueCreateInfos.push_back(queueCreateInfo);
+				}
 
 				// declare device features
 				VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -298,8 +345,8 @@ void VulkanRenderer::initialize(const Size &size)
 				// create the logical device
 				VkDeviceCreateInfo deviceCreateInfo = {};
 				deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-				deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-				deviceCreateInfo.queueCreateInfoCount = 1;
+				deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+				deviceCreateInfo.queueCreateInfoCount = queueCreateInfos.size();
 				deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 				deviceCreateInfo.enabledExtensionCount = 0;
 
@@ -323,6 +370,7 @@ void VulkanRenderer::initialize(const Size &size)
 
 				// retrieve queue handles
 				vkGetDeviceQueue(device, queueFamilyIndices.graphics.value(), 0, &graphicsQueue);
+				vkGetDeviceQueue(device, queueFamilyIndices.presentation.value(), 0, &presentationQueue);
 			}
         }
     }
