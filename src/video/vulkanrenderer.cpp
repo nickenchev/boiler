@@ -3,7 +3,7 @@
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <SDL_syswm.h>
-#include <X11/Xlib-xcb.h>
+//#include <X11/Xlib-xcb.h>
 #include <cstring>
 #include <vector>
 #include <set>
@@ -11,7 +11,7 @@
 #include "core/math.h"
 
 using namespace Boiler;
-constexpr bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = false;
 constexpr bool enableDebugMessages = true;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

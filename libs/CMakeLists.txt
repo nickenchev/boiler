@@ -41,20 +41,20 @@ set(JSONCPP_WITH_TESTS CACHE OFF "Disable JSONCPP unit tests")
 set(JSONCPP_WITH_POST_BUILD_UNITTEST CACHE OFF "Disable JSONCPP post-build runner")
 add_subdirectory(${LIBS_ROOT}/jsoncpp)
 
-# Vulkan
-set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/x86_64/include)
-set(VULKAN_LIBS ${VULKAN_SDK}/x86_64/lib/libvulkan.so)
-
 # MoltenVK
 if (APPLE)
 	set(MOLTENVK_ROOT "/Users/nenchev/Developer/frameworks/MoltenVK/")
-	set(MOLTENVK_INCLUDE_DIR ${MOLTENVK_ROOT}/MoltenVK/include)
-	set(MOLTENVK_LIBRARY ${MOLTENVK_ROOT}/MoltenVK/macOS/static/libMoltenVK.a)
+	set(VULKAN_INCLUDE_DIR ${MOLTENVK_ROOT}/MoltenVK/include)
+	#set(VULKAN_LIBS ${MOLTENVK_ROOT}/MoltenVK/macOS/static/libMoltenVK.a)
+	set(VULKAN_LIBS ${MOLTENVK_ROOT}/MoltenVK/macOS/dynamic/libMoltenVK.dylib)
+else()
+	# Vulkan
+	set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/x86_64/include)
+	set(VULKAN_LIBS ${VULKAN_SDK}/x86_64/lib/libvulkan.so)
 endif()
 
 set(boiler_lib_includes
   ${OPENGL_INCLUDE_DIR}
-  #${MOLTENVK_INCLUDE_DIR}
   ${VULKAN_INCLUDE_DIR}
   ${GLEW_HEADERS_DIR}
   ${PNG_INCLUDE_DIR}
@@ -77,4 +77,3 @@ target_link_libraries(boiler_deps
   glew_s
   jsoncpp_lib
   ${VULKAN_LIBS})
-  #${MOLTENVK_LIBRARY})

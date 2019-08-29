@@ -4,7 +4,7 @@
 #include <string>
 #include <optional>
 
-#define VK_USE_PLATFORM_XCB_KHR
+#define VK_USE_PLATFORM_MACOS_MVK
 #include <vulkan/vulkan.h>
 
 #include "video/renderer.h"
