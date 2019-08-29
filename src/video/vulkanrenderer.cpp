@@ -226,7 +226,7 @@ void VulkanRenderer::initialize(const Size &size)
 			vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 			if (!deviceCount)
 			{
-				throw std::runtime_error("No compatible GPUs found");
+				throw std::runtime_error("No GPUs found");
 			}
 			else
 			{
@@ -240,8 +240,8 @@ void VulkanRenderer::initialize(const Size &size)
 					VkPhysicalDeviceFeatures devFeats;
 					vkGetPhysicalDeviceFeatures(device, &devFeats);
 
-					if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
-						devFeats.geometryShader)
+					if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+						//&& devFeats.geometryShader)
 					{
 						logger.log("Using: " + std::string(devProps.deviceName));
 						physicalDevice = device;
