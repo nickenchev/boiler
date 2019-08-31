@@ -409,6 +409,8 @@ void VulkanRenderer::shutdown()
 		destroyFunc(instance, debugMessenger, nullptr);
 	}
 
+	vkDestroySurfaceKHR(instance, surface, nullptr);
+	logger.log("Surface destroyed");
 	vkDestroyDevice(device, nullptr);
 	logger.log("Device destroyed");
 	vkDestroyInstance(instance, nullptr);
