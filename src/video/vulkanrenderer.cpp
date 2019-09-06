@@ -39,9 +39,9 @@ VulkanRenderer::~VulkanRenderer()
 
 void VulkanRenderer::initialize(const Size &size)
 {
+	Renderer::initialize(size);
+	
 	bool success = false;
-	setScreenSize(size);
-
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == 0)
     {
 		SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN);
@@ -323,7 +323,7 @@ void VulkanRenderer::initialize(const Size &size)
 					}
 				}
 
-				// create command queue, using set to ensure only unique queue indices are used
+				// create queues, ensure indices are unique (set)
 				const float queuePriority = 1.0f;
 				std::set<uint32_t> uniqueQueueIndices = { queueFamilyIndices.graphics.value(),
 														  queueFamilyIndices.presentation.value() };
@@ -372,6 +372,61 @@ void VulkanRenderer::initialize(const Size &size)
 				// retrieve queue handles
 				vkGetDeviceQueue(device, queueFamilyIndices.graphics.value(), 0, &graphicsQueue);
 				vkGetDeviceQueue(device, queueFamilyIndices.presentation.value(), 0, &presentationQueue);
+
+				// swap chain and presentation details
+				VkSurfaceCapabilitiesKHR surfaceCapabilities;
+				vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);
+
+				// surface formats
+				std::vector<VkSurfaceFormatKHR> formats;
+				u_int32_t formatCount = 0;
+				vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
+				if (formatCount > 0)
+				{
+					formats.resize(formatCount);
+					vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, formats.data());
+				}
+
+				// presentation modes
+				std::vector<VkPresentModeKHR> presentModes;
+				u_int32_t presentModeCount = 0;
+				vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
+				if (presentModeCount > 0)
+				{
+					presentModes.resize(presentModeCount);
+					vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes.data());
+				}
+
+				// check if swap chain support is adequate
+				if (formats.empty() || presentModes.empty())
+				{
+					throw std::runtime_error("Swap chain support is incomplete");
+				}
+
+				// choose surface format
+				VkSurfaceFormatKHR selectedFormat;
+				bool foundFormat = false;
+				for (const auto &format : formats)
+				{
+					if (format.format == VK_FORMAT_B8G8R8_UNORM &&
+						format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+					{
+						selectedFormat = format;
+						foundFormat = true;
+					}
+				}
+
+				// select the presentation mode
+				VkPresentModeKHR selectedPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+				for (const auto &presentMode : presentModes)
+				{
+					if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+					{
+						selectedPresentMode = presentMode;
+					}
+				}
+
+				// swap chain extend
 			}
         }
     }
