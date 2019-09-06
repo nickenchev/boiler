@@ -404,15 +404,14 @@ void VulkanRenderer::initialize(const Size &size)
 				}
 
 				// choose surface format
-				VkSurfaceFormatKHR selectedFormat;
-				bool foundFormat = false;
+				VkSurfaceFormatKHR selectedFormat = formats[0];
 				for (const auto &format : formats)
 				{
 					if (format.format == VK_FORMAT_B8G8R8_UNORM &&
 						format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 					{
 						selectedFormat = format;
-						foundFormat = true;
+						logger.log("Found preferred surface image format");
 					}
 				}
 
@@ -423,10 +422,59 @@ void VulkanRenderer::initialize(const Size &size)
 					if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
 					{
 						selectedPresentMode = presentMode;
+						logger.log("Found preferred presentation mode");
 					}
 				}
 
-				// swap chain extend
+				// swap chain extent
+				VkExtent2D surfaceExtent;
+				surfaceExtent.width = std::max(surfaceCapabilities.minImageExtent.width,
+											   std::min(surfaceCapabilities.maxImageExtent.width, static_cast<Uint32>(getScreenSize().width)));
+				surfaceExtent.height = std::max(surfaceCapabilities.minImageExtent.height,
+												std::min(surfaceCapabilities.maxImageExtent.height, static_cast<Uint32>(getScreenSize().height)));
+
+				u_int32_t imageCount = surfaceCapabilities.minImageCount + 1; // extra image to avoid waiting on the driver
+				// ensure we don't request more than max available swapchain images
+				if (surfaceCapabilities.maxImageCount > 0 && imageCount > surfaceCapabilities.maxImageCount)
+				{
+					imageCount = surfaceCapabilities.maxImageCount;
+				}
+
+				// create the swap chain
+				VkSwapchainCreateInfoKHR swapChainCreateInfo = {};
+				swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+				swapChainCreateInfo.surface = surface;
+				swapChainCreateInfo.minImageCount = imageCount;
+				swapChainCreateInfo.imageFormat = selectedFormat.format;
+				swapChainCreateInfo.imageColorSpace = selectedFormat.colorSpace;
+				swapChainCreateInfo.imageExtent = surfaceExtent;
+				swapChainCreateInfo.imageArrayLayers = 1;
+				swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+				swapChainCreateInfo.preTransform = surfaceCapabilities.currentTransform;
+				swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+				swapChainCreateInfo.presentMode = selectedPresentMode;
+				swapChainCreateInfo.clipped = VK_TRUE;
+				swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+
+				// handle swap image ownership in case of different queues
+				u_int32_t queueIndices[] = { queueFamilyIndices.graphics.value(), queueFamilyIndices.presentation.value() };
+				if (graphicsQueue != presentationQueue)
+				{
+					swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+					swapChainCreateInfo.queueFamilyIndexCount = 2;
+					swapChainCreateInfo.pQueueFamilyIndices = queueIndices;
+				}
+				else
+				{
+					swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+					swapChainCreateInfo.queueFamilyIndexCount = 0;
+					swapChainCreateInfo.pQueueFamilyIndices = nullptr;
+				}
+
+				if (vkCreateSwapchainKHR(device, &swapChainCreateInfo, nullptr, &swapChain) != VK_SUCCESS)
+				{
+					throw std::runtime_error("Error creating swapchain");
+				}
 			}
         }
     }
@@ -464,6 +512,8 @@ void VulkanRenderer::shutdown()
 		destroyFunc(instance, debugMessenger, nullptr);
 	}
 
+	vkDestroySwapchainKHR(device, swapChain, nullptr);
+	logger.log("Swapchain destroyed");
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	logger.log("Surface destroyed");
 	vkDestroyDevice(device, nullptr);

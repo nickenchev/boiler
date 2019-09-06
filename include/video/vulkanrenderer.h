@@ -28,6 +28,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkDevice device;
 	VkQueue graphicsQueue, presentationQueue;
 	VkSurfaceKHR surface;
+	VkSwapchainKHR swapChain;
 
 public:
     VulkanRenderer();
