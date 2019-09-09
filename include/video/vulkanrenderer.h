@@ -30,6 +30,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkSurfaceKHR surface;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
+	std::vector<VkImageView> swapChainImageViews;
 	VkFormat swapChainFormat;
 	VkExtent2D swapChainExtent;
 
