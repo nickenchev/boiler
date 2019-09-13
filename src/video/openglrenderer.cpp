@@ -86,6 +86,8 @@ void checkOpenGLErrors()
 
 void OpenGLRenderer::initialize(const Size &screenSize)
 {
+	Renderer::initialize(screenSize);
+
     bool success = false;
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)

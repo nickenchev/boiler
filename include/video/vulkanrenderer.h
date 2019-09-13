@@ -28,6 +28,11 @@ class VulkanRenderer : public Boiler::Renderer
 	VkDevice device;
 	VkQueue graphicsQueue, presentationQueue;
 	VkSurfaceKHR surface;
+	VkSwapchainKHR swapChain;
+	std::vector<VkImage> swapChainImages;
+	std::vector<VkImageView> swapChainImageViews;
+	VkFormat swapChainFormat;
+	VkExtent2D swapChainExtent;
 
 public:
     VulkanRenderer();
