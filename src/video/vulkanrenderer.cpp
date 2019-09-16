@@ -529,7 +529,7 @@ void VulkanRenderer::createSwapChain()
 
 void VulkanRenderer::createGraphicsPipeline()
 {
-	program = std::make_unique<SPVShaderProgram>("shaders/", "vert.spv", "frag.spv");
+	program = std::make_unique<SPVShaderProgram>(device, "shaders/", "vert.spv", "frag.spv");
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -552,6 +552,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 
 void VulkanRenderer::shutdown()
 {
+	Renderer::shutdown();
 	if constexpr (enableDebugMessages)
 	{
 		std::string funcName{"vkDestroyDebugUtilsMessengerEXT"};

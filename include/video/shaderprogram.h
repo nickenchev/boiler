@@ -7,6 +7,7 @@ namespace Boiler
 class ShaderProgram
 {
 public:
+	virtual void destroy() = 0;
 };
 
 }

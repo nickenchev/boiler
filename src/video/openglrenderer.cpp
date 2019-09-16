@@ -181,6 +181,7 @@ void OpenGLRenderer::initialize(const Size &screenSize)
 
 void OpenGLRenderer::shutdown()
 {
+	Renderer::shutdown();
 	SDL_VideoQuit();
 }
 
