@@ -68,6 +68,7 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/video/opengltexture.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/openglmodel.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/glslshaderprogram.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/spvshaderprogram.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/imageloader.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/rendersystem.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/glyphsystem.cpp

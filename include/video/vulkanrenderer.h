@@ -3,6 +3,7 @@
 
 #include <string>
 #include <optional>
+#include <set>
 
 #define VK_USE_PLATFORM_XCB_KHR
 #include <vulkan/vulkan.h>
@@ -25,6 +26,7 @@ class VulkanRenderer : public Boiler::Renderer
 	SDL_Window *win;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
+	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue graphicsQueue, presentationQueue;
 	VkSurfaceKHR surface;
@@ -33,6 +35,11 @@ class VulkanRenderer : public Boiler::Renderer
 	std::vector<VkImageView> swapChainImageViews;
 	VkFormat swapChainFormat;
 	VkExtent2D swapChainExtent;
+	QueueFamilyIndices queueFamilyIndices;
+	std::set<uint32_t> uniqueQueueIndices;
+
+	void createSwapChain();
+	void createGraphicsPipeline();
 
 public:
     VulkanRenderer();
