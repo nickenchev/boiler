@@ -13,6 +13,8 @@ namespace Boiler
 
 class SPVShaderProgram : public ShaderProgram
 {
+	static const std::string SHADER_ENTRY;
+
 	Logger logger;
 	VkDevice &device;
 	VkShaderModule vertexModule;

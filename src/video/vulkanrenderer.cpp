@@ -529,7 +529,65 @@ void VulkanRenderer::createSwapChain()
 
 void VulkanRenderer::createGraphicsPipeline()
 {
+	// load vertex and fragment SPIR-V shaders
 	program = std::make_unique<SPVShaderProgram>(device, "shaders/", "vert.spv", "frag.spv");
+
+	// Vertex input stage
+	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
+	vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vertInputCreateInfo.vertexBindingDescriptionCount = 0;
+	vertInputCreateInfo.pVertexBindingDescriptions = nullptr;
+	vertInputCreateInfo.vertexAttributeDescriptionCount = 0;
+	vertInputCreateInfo.pVertexAttributeDescriptions = nullptr;
+
+	// Input assembly stage
+	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
+	assemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	assemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	assemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
+
+	// Viewport and scissor setup
+	VkViewport viewport = {};
+	viewport.x = 0;
+	viewport.y = 0;
+	viewport.width = static_cast<float>(swapChainExtent.width);
+	viewport.height = static_cast<float>(swapChainExtent.height);
+	viewport.minDepth = 0;
+	viewport.maxDepth = 1;
+
+	VkRect2D scissor = {};
+	scissor.offset = {0, 0};
+	scissor.extent = swapChainExtent;
+
+	VkPipelineViewportStateCreateInfo viewportCreateInfo = {};
+	viewportCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewportCreateInfo.viewportCount = 1;
+	viewportCreateInfo.pViewports = &viewport;
+	viewportCreateInfo.scissorCount = 1;
+	viewportCreateInfo.pScissors = &scissor;
+
+	// Rasterizer configuration
+	VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = {};
+	rasterizerCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	rasterizerCreateInfo.depthClampEnable = VK_FALSE;
+	rasterizerCreateInfo.rasterizerDiscardEnable = VK_FALSE;
+	rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+	rasterizerCreateInfo.lineWidth = 1.0f;
+	rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizerCreateInfo.depthBiasEnable = VK_FALSE;
+	rasterizerCreateInfo.depthBiasConstantFactor = 0.0f;
+	rasterizerCreateInfo.depthBiasClamp = 0.0f;
+	rasterizerCreateInfo.depthBiasSlopeFactor = 0.0f;
+
+	VkPipelineMultisampleStateCreateInfo multiSampCreateInfo = {};
+	multiSampCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	multiSampCreateInfo.sampleShadingEnable = VK_FALSE;
+	multiSampCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	multiSampCreateInfo.minSampleShading = 1.0f;
+	multiSampCreateInfo.pSampleMask = nullptr;
+	multiSampCreateInfo.alphaToCoverageEnable = VK_FALSE;
+	multiSampCreateInfo.alphaToOneEnable = VK_FALSE;
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
