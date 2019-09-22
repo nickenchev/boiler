@@ -21,7 +21,8 @@ VkShaderModule SPVShaderProgram::createShaderModule(const std::vector<char> &con
 }
 
 SPVShaderProgram::SPVShaderProgram(VkDevice &device, std::string path,
-								   std::string vertexShader, std::string fragmentShader) : logger("SPIR-V Loader"), device(device)
+								   std::string vertexShader, std::string fragmentShader) : logger("SPIR-V Loader"), device(device),
+																						   vertStageInfo({}), fragStageInfo({})
 {
 	auto vertContents = FileManager::readBinaryFile(path + vertexShader);
 	logger.log("Loaded " + vertexShader + " (" + std::to_string(vertContents.size()) + " bytes)");
@@ -33,19 +34,15 @@ SPVShaderProgram::SPVShaderProgram(VkDevice &device, std::string path,
 	fragmentModule = createShaderModule(fragContents);
 	logger.log("Created fragment shader module");
 
-	VkPipelineShaderStageCreateInfo vertStageInfo = {};
 	vertStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	vertStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
 	vertStageInfo.module = vertexModule;
 	vertStageInfo.pName = SHADER_ENTRY.c_str();
 
-	VkPipelineShaderStageCreateInfo fragStageInfo = {};
 	fragStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	fragStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	fragStageInfo.module = vertexModule;
+	fragStageInfo.module = fragmentModule;
 	fragStageInfo.pName = SHADER_ENTRY.c_str();
-
-	VkPipelineShaderStageCreateInfo shaderStages[] = { vertStageInfo, fragStageInfo };
 }
 
 void SPVShaderProgram::destroy()
