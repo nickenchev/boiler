@@ -588,6 +588,41 @@ void VulkanRenderer::createGraphicsPipeline()
 	multiSampCreateInfo.pSampleMask = nullptr;
 	multiSampCreateInfo.alphaToCoverageEnable = VK_FALSE;
 	multiSampCreateInfo.alphaToOneEnable = VK_FALSE;
+
+	// Colour blending configuration
+	VkPipelineColorBlendAttachmentState colorBlendAttachState = {};
+	colorBlendAttachState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+		VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachState.blendEnable = VK_TRUE;
+	colorBlendAttachState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+	colorBlendAttachState.colorBlendOp = VK_BLEND_OP_ADD;
+	colorBlendAttachState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachState.alphaBlendOp = VK_BLEND_OP_ADD;
+
+	VkPipelineColorBlendStateCreateInfo colorBlendCreateInfo = {};
+	colorBlendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	colorBlendCreateInfo.logicOpEnable = VK_FALSE;
+	colorBlendCreateInfo.logicOp = VK_LOGIC_OP_COPY;
+	colorBlendCreateInfo.attachmentCount = 1;
+	colorBlendCreateInfo.pAttachments = &colorBlendAttachState;
+	colorBlendCreateInfo.blendConstants[0] = 0.0f;
+	colorBlendCreateInfo.blendConstants[1] = 0.0f;
+	colorBlendCreateInfo.blendConstants[2] = 0.0f;
+	colorBlendCreateInfo.blendConstants[3] = 0.0f;
+
+	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutCreateInfo.setLayoutCount = 0;
+	pipelineLayoutCreateInfo.pSetLayouts = nullptr;
+	pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+	pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+
+	if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error creating pipeline layout.");
+	}
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -611,13 +646,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 void VulkanRenderer::shutdown()
 {
 	Renderer::shutdown();
-	if constexpr (enableDebugMessages)
-	{
-		std::string funcName{"vkDestroyDebugUtilsMessengerEXT"};
-		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
-		destroyFunc(instance, debugMessenger, nullptr);
-	}
 
+	// cleanup resources
 	for (const auto &imageView : swapChainImageViews)
 	{
 		vkDestroyImageView(device, imageView, nullptr);
@@ -627,6 +657,20 @@ void VulkanRenderer::shutdown()
 	logger.log("Swapchain destroyed");
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	logger.log("Surface destroyed");
+
+	// clean up graphics pipeline
+	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	logger.log("Pipeline destroyed");
+
+	// clean up debug callback
+	if constexpr (enableDebugMessages)
+	{
+		std::string funcName{"vkDestroyDebugUtilsMessengerEXT"};
+		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
+		destroyFunc(instance, debugMessenger, nullptr);
+	}
+
+	// cleanup Vulkan device and instance
 	vkDestroyDevice(device, nullptr);
 	logger.log("Device destroyed");
 	vkDestroyInstance(instance, nullptr);

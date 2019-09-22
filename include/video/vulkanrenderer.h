@@ -37,6 +37,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkExtent2D swapChainExtent;
 	QueueFamilyIndices queueFamilyIndices;
 	std::set<uint32_t> uniqueQueueIndices;
+	VkPipelineLayout pipelineLayout;
 
 	void createSwapChain();
 	void createGraphicsPipeline();
