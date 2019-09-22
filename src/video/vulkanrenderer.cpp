@@ -373,6 +373,7 @@ void VulkanRenderer::initialize(const Size &size)
 				vkGetDeviceQueue(device, queueFamilyIndices.presentation.value(), 0, &presentationQueue);
 
 				createSwapChain();
+				createRenderPass();
 				createGraphicsPipeline();
 			}
         }
@@ -527,10 +528,46 @@ void VulkanRenderer::createSwapChain()
 	}
 }
 
+void VulkanRenderer::createRenderPass()
+{
+	VkAttachmentDescription colorAttachment = {};
+	colorAttachment.format = swapChainFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference attachmentRef = {};
+	attachmentRef.attachment = 0;
+	attachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass = {};
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &attachmentRef;
+
+	// create the render pass
+	VkRenderPassCreateInfo renderPassCreateInfo = {};
+	renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassCreateInfo.attachmentCount = 1;
+	renderPassCreateInfo.pAttachments = &colorAttachment;
+	renderPassCreateInfo.subpassCount = 1;
+	renderPassCreateInfo.pSubpasses = &subpass;
+
+	if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error creating render pass.");
+	}
+}
+
 void VulkanRenderer::createGraphicsPipeline()
 {
 	// load vertex and fragment SPIR-V shaders
 	program = std::make_unique<SPVShaderProgram>(device, "shaders/", "vert.spv", "frag.spv");
+	SPVShaderProgram *spvProgram = static_cast<SPVShaderProgram *>(program.get());
 
 	// Vertex input stage
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
@@ -621,8 +658,36 @@ void VulkanRenderer::createGraphicsPipeline()
 
 	if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
 	{
-		throw std::runtime_error("Error creating pipeline layout.");
+		throw std::runtime_error("Error creating pipeline layout");
 	}
+
+	const VkPipelineShaderStageCreateInfo shaderStages[] = { spvProgram->getVertStageInfo(), spvProgram->getFragStageInfo() };
+
+	VkGraphicsPipelineCreateInfo pipelineInfo = {};
+	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	pipelineInfo.stageCount = 2;
+	pipelineInfo.pStages = shaderStages;
+	pipelineInfo.pVertexInputState = &vertInputCreateInfo;
+	pipelineInfo.pInputAssemblyState = &assemblyCreateInfo;
+	pipelineInfo.pViewportState = &viewportCreateInfo;
+	pipelineInfo.pRasterizationState = &rasterizerCreateInfo;
+	pipelineInfo.pMultisampleState = &multiSampCreateInfo;
+	pipelineInfo.pDepthStencilState = nullptr;
+	pipelineInfo.pColorBlendState = &colorBlendCreateInfo;
+	pipelineInfo.pDynamicState = nullptr;
+	pipelineInfo.layout = pipelineLayout;
+	pipelineInfo.renderPass = renderPass;
+	pipelineInfo.subpass = 0; // index of subpass
+
+	// not deriving a pipeline
+	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+	pipelineInfo.basePipelineIndex = -1;
+
+	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error creating graphics pipeline");
+	}
+	logger.log("Created graphics pipeline");
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -659,8 +724,12 @@ void VulkanRenderer::shutdown()
 	logger.log("Surface destroyed");
 
 	// clean up graphics pipeline
-	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	vkDestroyPipeline(device, graphicsPipeline, nullptr);
 	logger.log("Pipeline destroyed");
+	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	logger.log("Pipeline layout destroyed");
+	vkDestroyRenderPass(device, renderPass, nullptr);
+	logger.log("Render pass destroyed");
 
 	// clean up debug callback
 	if constexpr (enableDebugMessages)

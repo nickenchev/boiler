@@ -19,13 +19,17 @@ class SPVShaderProgram : public ShaderProgram
 	VkDevice &device;
 	VkShaderModule vertexModule;
 	VkShaderModule fragmentModule;
+	VkPipelineShaderStageCreateInfo vertStageInfo;
+	VkPipelineShaderStageCreateInfo fragStageInfo;
+
+	VkShaderModule createShaderModule(const std::vector<char> &contents);
 	
 public:
 	SPVShaderProgram(VkDevice &device, std::string path, std::string vertexShader, std::string fragmentShader);
 
 	void destroy() override;
-	
-	VkShaderModule createShaderModule(const std::vector<char> &contents);
+	const VkPipelineShaderStageCreateInfo &getVertStageInfo() const { return vertStageInfo; }
+	const VkPipelineShaderStageCreateInfo &getFragStageInfo() const { return fragStageInfo; }
 };
 
 }
