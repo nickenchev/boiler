@@ -378,6 +378,7 @@ void VulkanRenderer::initialize(const Size &size)
 				createFramebuffers();
 				createCommandPool();
 				createCommandBuffers();
+				createSemaphores();
 			}
         }
     }
@@ -474,12 +475,12 @@ void VulkanRenderer::createSwapChain()
 	swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
 	// handle swap image ownership in case of different queues
-	u_int32_t queueIndices[] = { queueFamilyIndices.graphics.value(), queueFamilyIndices.presentation.value() };
+	std::array<u_int32_t, 2> queueIndices = { queueFamilyIndices.graphics.value(), queueFamilyIndices.presentation.value() };
 	if (graphicsQueue != presentationQueue)
 	{
 		swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-		swapChainCreateInfo.queueFamilyIndexCount = 2;
-		swapChainCreateInfo.pQueueFamilyIndices = queueIndices;
+		swapChainCreateInfo.queueFamilyIndexCount = queueIndices.size();
+		swapChainCreateInfo.pQueueFamilyIndices = queueIndices.data();
 	}
 	else
 	{
@@ -552,6 +553,15 @@ void VulkanRenderer::createRenderPass()
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &attachmentRef;
 
+	// subpass dependencies
+	VkSubpassDependency dependency = {};
+	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependency.dstSubpass = 0; // index
+	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.srcAccessMask = 0;
+	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
 	// create the render pass
 	VkRenderPassCreateInfo renderPassCreateInfo = {};
 	renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -559,6 +569,8 @@ void VulkanRenderer::createRenderPass()
 	renderPassCreateInfo.pAttachments = &colorAttachment;
 	renderPassCreateInfo.subpassCount = 1;
 	renderPassCreateInfo.pSubpasses = &subpass;
+	renderPassCreateInfo.dependencyCount = 1;
+	renderPassCreateInfo.pDependencies = &dependency;
 
 	if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
 	{
@@ -664,12 +676,13 @@ void VulkanRenderer::createGraphicsPipeline()
 		throw std::runtime_error("Error creating pipeline layout");
 	}
 
-	const VkPipelineShaderStageCreateInfo shaderStages[] = { spvProgram->getVertStageInfo(), spvProgram->getFragStageInfo() };
+	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages =
+		{spvProgram->getVertStageInfo(), spvProgram->getFragStageInfo()};
 
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	pipelineInfo.stageCount = 2;
-	pipelineInfo.pStages = shaderStages;
+	pipelineInfo.stageCount = shaderStages.size();
+	pipelineInfo.pStages = shaderStages.data();
 	pipelineInfo.pVertexInputState = &vertInputCreateInfo;
 	pipelineInfo.pInputAssemblyState = &assemblyCreateInfo;
 	pipelineInfo.pViewportState = &viewportCreateInfo;
@@ -784,6 +797,17 @@ void VulkanRenderer::createCommandBuffers()
 	}
 }
 
+void VulkanRenderer::createSemaphores()
+{
+	VkSemaphoreCreateInfo semaphoreCreateInfo = {};
+	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &imageSemaphore) != VK_SUCCESS ||
+		vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &renderSemaphore) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to create semaphores");
+	}
+}
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
 													const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
@@ -821,6 +845,10 @@ void VulkanRenderer::shutdown()
 	logger.log("Swapchain destroyed");
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	logger.log("Surface destroyed");
+
+	vkDestroySemaphore(device, imageSemaphore, nullptr);
+	vkDestroySemaphore(device, renderSemaphore, nullptr);
+	logger.log("Destroed semaphores");
 
 	// clean up graphics pipeline
 	vkDestroyPipeline(device, graphicsPipeline, nullptr);
@@ -885,6 +913,29 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
 							const glm::vec4 &colour) const
 {
+	uint32_t imageIndex = 0;
+	vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+	// semaphore indexes match up with the stages at the respective array index
+	std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphore};
+	std::array<VkPipelineStageFlags, 1> waitStages = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+	
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.waitSemaphoreCount = waitSemaphores.size();
+	submitInfo.pWaitSemaphores = waitSemaphores.data();
+	submitInfo.pWaitDstStageMask = waitStages.data();
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+
+	std::array<VkSemaphore, 1> signalSemaphores = {renderSemaphore};
+	submitInfo.signalSemaphoreCount = signalSemaphores.size();
+	submitInfo.pSignalSemaphores = signalSemaphores.data();
+
+	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to submit draw command buffer to the graphics queue");
+	}
 }
 
 void VulkanRenderer::showMessageBox(const std::string &title, const std::string &message)
