@@ -43,7 +43,9 @@ class VulkanRenderer : public Boiler::Renderer
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
-	VkSemaphore imageSemaphore, renderSemaphore;
+	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
+	std::vector<VkFence> frameFences;
+	short currentFrame;
 
 	void createSwapChain();
 	void createRenderPass();
@@ -51,7 +53,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void createFramebuffers();
 	void createCommandPool();
 	void createCommandBuffers();
-	void createSemaphores();
+	void createSynchronization();
 
 public:
     VulkanRenderer();

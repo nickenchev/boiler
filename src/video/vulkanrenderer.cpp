@@ -13,6 +13,7 @@
 using namespace Boiler;
 constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
+constexpr int maxFramesInFlight = 2;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -31,6 +32,7 @@ auto getFunctionPointer(VkInstance instance, std::string funcName)
 
 VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 {
+	currentFrame = 0;
 }
 
 VulkanRenderer::~VulkanRenderer()
@@ -378,7 +380,7 @@ void VulkanRenderer::initialize(const Size &size)
 				createFramebuffers();
 				createCommandPool();
 				createCommandBuffers();
-				createSemaphores();
+				createSynchronization();
 			}
         }
     }
@@ -797,14 +799,27 @@ void VulkanRenderer::createCommandBuffers()
 	}
 }
 
-void VulkanRenderer::createSemaphores()
+void VulkanRenderer::createSynchronization()
 {
+	imageSemaphores.resize(maxFramesInFlight);
+	renderSemaphores.resize(maxFramesInFlight);
+	frameFences.resize(maxFramesInFlight);
+
 	VkSemaphoreCreateInfo semaphoreCreateInfo = {};
 	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-	if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &imageSemaphore) != VK_SUCCESS ||
-		vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &renderSemaphore) != VK_SUCCESS)
+
+	VkFenceCreateInfo fenceCreateInfo = {};
+	fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	for (int i = 0; i < maxFramesInFlight; ++i)
 	{
-		throw std::runtime_error("Unable to create semaphores");
+		if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &imageSemaphores[i]) != VK_SUCCESS ||
+			vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &renderSemaphores[i]) != VK_SUCCESS ||
+			vkCreateFence(device, &fenceCreateInfo, nullptr, &frameFences[i]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Unable to create synchronization objects");
+		}
 	}
 }
 
@@ -849,8 +864,12 @@ void VulkanRenderer::shutdown()
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	logger.log("Surface destroyed");
 
-	vkDestroySemaphore(device, imageSemaphore, nullptr);
-	vkDestroySemaphore(device, renderSemaphore, nullptr);
+	for (int i = 0; i < maxFramesInFlight; ++i)
+	{
+		vkDestroySemaphore(device, imageSemaphores[i], nullptr);
+		vkDestroySemaphore(device, renderSemaphores[i], nullptr);
+		vkDestroyFence(device, frameFences[i], nullptr);
+	}
 	logger.log("Destroed semaphores");
 
 	// clean up graphics pipeline
@@ -910,17 +929,22 @@ void VulkanRenderer::beginRender()
 
 void VulkanRenderer::endRender()
 {
+	currentFrame = (currentFrame + 1) & maxFramesInFlight;
 }
 
 void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
 							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
 							const glm::vec4 &colour) const
 {
+	// perform synchronization
+	vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
+	vkResetFences(device, 1, &frameFences[currentFrame]);
+	
 	uint32_t imageIndex = 0;
-	vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphore, VK_NULL_HANDLE, &imageIndex);
+	vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
 	// semaphore indexes match up with the stages at the respective array index
-	std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphore};
+	std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[currentFrame]};
 	std::array<VkPipelineStageFlags, 1> waitStages = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 	
 	VkSubmitInfo submitInfo = {};
@@ -931,11 +955,11 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
 
-	std::array<VkSemaphore, 1> signalSemaphores = {renderSemaphore};
+	std::array<VkSemaphore, 1> signalSemaphores = {renderSemaphores[currentFrame]};
 	submitInfo.signalSemaphoreCount = signalSemaphores.size();
 	submitInfo.pSignalSemaphores = signalSemaphores.data();
 
-	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, frameFences[currentFrame]) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to submit draw command buffer to the graphics queue");
 	}
