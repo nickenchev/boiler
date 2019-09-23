@@ -830,6 +830,9 @@ void VulkanRenderer::shutdown()
 {
 	Renderer::shutdown();
 
+	// wait for all queues to empty prior to cleaning up
+	vkDeviceWaitIdle(device);
+	
 	// cleanup resources
 	for (const auto &framebuffer : framebuffers)
 	{
