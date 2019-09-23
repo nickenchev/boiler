@@ -936,6 +936,19 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	{
 		throw std::runtime_error("Failed to submit draw command buffer to the graphics queue");
 	}
+
+	// submit render result back to swap chain for presentation
+	std::array<VkSwapchainKHR, 1> presentSwapChains = {swapChain};
+	VkPresentInfoKHR presentInfo = {};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = signalSemaphores.size();
+	presentInfo.pWaitSemaphores = signalSemaphores.data();
+	presentInfo.swapchainCount = presentSwapChains.size();
+	presentInfo.pSwapchains = presentSwapChains.data();
+	presentInfo.pImageIndices = &imageIndex;
+	presentInfo.pResults = nullptr;
+
+	vkQueuePresentKHR(presentationQueue, &presentInfo);
 }
 
 void VulkanRenderer::showMessageBox(const std::string &title, const std::string &message)
