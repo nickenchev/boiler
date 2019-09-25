@@ -16,6 +16,7 @@
 #include "core/components/spritecomponent.h"
 #include "core/components/textcomponent.h"
 #include "camera/camera.h"
+#include "video/glslshaderprogram.h"
 
 using namespace Boiler;
 
@@ -136,7 +137,7 @@ void OpenGLRenderer::initialize(const Size &screenSize)
 				try
 				{
 					// compile the default shader program
-					program = std::make_unique<ShaderProgram>(shaderPath, "basic.vert", "basic.frag");
+					program = std::make_unique<GLSLShaderProgram>(shaderPath, "basic.vert", "basic.frag");
 					success = true;
 				}
 				catch (int exception)
@@ -180,6 +181,7 @@ void OpenGLRenderer::initialize(const Size &screenSize)
 
 void OpenGLRenderer::shutdown()
 {
+	Renderer::shutdown();
 	SDL_VideoQuit();
 }
 
@@ -225,7 +227,7 @@ std::shared_ptr<const Model> OpenGLRenderer::loadModel(const VertexData &data) c
 
 void OpenGLRenderer::beginRender()
 {
-    const ShaderProgram *program = getProgram();
+    const GLSLShaderProgram *program = static_cast<const GLSLShaderProgram *>(getProgram());
     if (program)
     {
 		renderDetails.shaderProgram = program;
@@ -264,7 +266,8 @@ void OpenGLRenderer::render(const mat4 modelMatrix, const std::shared_ptr<const 
 							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
 							const vec4 &colour) const
 {
-	glUseProgram(getProgram()->getShaderProgram());
+    const GLSLShaderProgram *program = static_cast<const GLSLShaderProgram *>(getProgram());
+	glUseProgram(program->getShaderProgram());
 	if (model)
     {
         auto oglModel = std::static_pointer_cast<const OpenGLModel>(model);

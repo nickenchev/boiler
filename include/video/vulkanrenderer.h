@@ -3,6 +3,7 @@
 
 #include <string>
 #include <optional>
+#include <set>
 
 #define VK_USE_PLATFORM_MACOS_MVK
 #include <vulkan/vulkan.h>
@@ -25,6 +26,7 @@ class VulkanRenderer : public Boiler::Renderer
 	SDL_Window *win;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
+	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue graphicsQueue, presentationQueue;
 	VkSurfaceKHR surface;
@@ -33,6 +35,25 @@ class VulkanRenderer : public Boiler::Renderer
 	std::vector<VkImageView> swapChainImageViews;
 	VkFormat swapChainFormat;
 	VkExtent2D swapChainExtent;
+	QueueFamilyIndices queueFamilyIndices;
+	std::set<uint32_t> uniqueQueueIndices;
+	VkRenderPass renderPass;
+	VkPipelineLayout pipelineLayout;
+	VkPipeline graphicsPipeline;
+	std::vector<VkFramebuffer> framebuffers;
+	VkCommandPool commandPool;
+	std::vector<VkCommandBuffer> commandBuffers;
+	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
+	std::vector<VkFence> frameFences;
+	short currentFrame;
+
+	void createSwapChain();
+	void createRenderPass();
+	void createGraphicsPipeline();
+	void createFramebuffers();
+	void createCommandPool();
+	void createCommandBuffers();
+	void createSynchronization();
 
 public:
     VulkanRenderer();

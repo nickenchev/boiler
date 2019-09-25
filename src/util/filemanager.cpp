@@ -1,5 +1,6 @@
 #include <SDL.h>
 #include "util/filemanager.h"
+#include "core/logger.h"
 
 using namespace Boiler;
 
@@ -10,7 +11,7 @@ std::string FileManager::readTextFile(const std::string &filePath)
 
     if (file != NULL)
     {
-        const int size = SDL_RWsize(file);
+        const Sint64 size = SDL_RWsize(file);
 
         char *buffer = new char[size + 1];
         char *buffOffset = buffer;
@@ -28,4 +29,25 @@ std::string FileManager::readTextFile(const std::string &filePath)
     }
 
     return output;
+}
+
+std::vector<char> FileManager::readBinaryFile(const std::string &filePath)
+{
+	std::vector<char> output;
+	SDL_RWops *file = SDL_RWFromFile(filePath.c_str(), "rb");
+	if (file != NULL)
+	{
+		Sint64 fileSize = SDL_RWsize(file);
+		output.resize(fileSize);
+
+		size_t objsRead = 0;
+		do
+		{
+			objsRead = SDL_RWread(file, output.data(), fileSize, 1);
+		} while (objsRead > 0);
+
+		SDL_RWclose(file);
+	}
+
+	return output;
 }

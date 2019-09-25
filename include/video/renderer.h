@@ -35,7 +35,7 @@ public:
 	virtual ~Renderer() { }
 
     virtual void initialize(const Size &size);
-    virtual void shutdown() = 0;
+    virtual void shutdown();
     virtual std::string getVersion() const = 0;
 
     void setScreenSize(const Size &screenSize) { this->screenSize = screenSize; }
