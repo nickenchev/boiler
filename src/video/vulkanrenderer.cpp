@@ -846,6 +846,7 @@ void VulkanRenderer::shutdown()
 	Renderer::shutdown();
 
 	// wait for all queues to empty prior to cleaning up
+	// validation layers can cause memory leaks without this
 	vkDeviceWaitIdle(device);
 	
 	// cleanup resources
