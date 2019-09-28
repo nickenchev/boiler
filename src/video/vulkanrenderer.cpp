@@ -848,23 +848,10 @@ void VulkanRenderer::shutdown()
 	// wait for all queues to empty prior to cleaning up
 	// validation layers can cause memory leaks without this
 	vkDeviceWaitIdle(device);
-	
-	// cleanup resources
-	for (const auto &framebuffer : framebuffers)
-	{
-		vkDestroyFramebuffer(device, framebuffer, nullptr);
-	}
-	logger.log("Destroyed framebuffers");
-	for (const auto &imageView : swapChainImageViews)
-	{
-		vkDestroyImageView(device, imageView, nullptr);
-	}
-	logger.log("Destroyed image views");
-	vkDestroySwapchainKHR(device, swapChain, nullptr);
-	logger.log("Swapchain destroyed");
-	vkDestroySurfaceKHR(instance, surface, nullptr);
-	logger.log("Surface destroyed");
 
+	cleanupSwapchain();
+	
+	// sync objects cleanup
 	for (int i = 0; i < maxFramesInFlight; ++i)
 	{
 		vkDestroySemaphore(device, imageSemaphores[i], nullptr);
@@ -872,14 +859,6 @@ void VulkanRenderer::shutdown()
 		vkDestroyFence(device, frameFences[i], nullptr);
 	}
 	logger.log("Destroed semaphores");
-
-	// clean up graphics pipeline
-	vkDestroyPipeline(device, graphicsPipeline, nullptr);
-	logger.log("Pipeline destroyed");
-	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-	logger.log("Pipeline layout destroyed");
-	vkDestroyRenderPass(device, renderPass, nullptr);
-	logger.log("Render pass destroyed");
 
 	// command related
 	vkDestroyCommandPool(device, commandPool, nullptr);
@@ -896,6 +875,8 @@ void VulkanRenderer::shutdown()
 	// cleanup Vulkan device and instance
 	vkDestroyDevice(device, nullptr);
 	logger.log("Device destroyed");
+	vkDestroySurfaceKHR(instance, surface, nullptr);
+	logger.log("Surface destroyed");
 	vkDestroyInstance(instance, nullptr);
 	logger.log("Instance destroyed");
 
@@ -903,6 +884,42 @@ void VulkanRenderer::shutdown()
 	{
 		SDL_DestroyWindow(win);
 	}
+}
+
+void VulkanRenderer::recreateSwapchain()
+{
+	vkDeviceWaitIdle(device);
+}
+
+void VulkanRenderer::cleanupSwapchain()
+{
+	// cleanup resources
+	for (const auto &framebuffer : framebuffers)
+	{
+		vkDestroyFramebuffer(device, framebuffer, nullptr);
+	}
+	logger.log("Destroyed framebuffers");
+
+	// command buffers
+	vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
+	logger.log("Destroyed command buffers");
+
+	for (const auto &imageView : swapChainImageViews)
+	{
+		vkDestroyImageView(device, imageView, nullptr);
+	}
+	logger.log("Destroyed image views");
+
+	vkDestroySwapchainKHR(device, swapChain, nullptr);
+	logger.log("Swapchain destroyed");
+
+	// clean up graphics pipeline
+	vkDestroyPipeline(device, graphicsPipeline, nullptr);
+	logger.log("Pipeline destroyed");
+	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	logger.log("Pipeline layout destroyed");
+	vkDestroyRenderPass(device, renderPass, nullptr);
+	logger.log("Render pass destroyed");
 }
 
 std::string VulkanRenderer::getVersion() const

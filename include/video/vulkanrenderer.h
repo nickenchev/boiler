@@ -55,6 +55,9 @@ class VulkanRenderer : public Boiler::Renderer
 	void createCommandBuffers();
 	void createSynchronization();
 
+	void cleanupSwapchain();
+	void recreateSwapchain();
+
 public:
     VulkanRenderer();
 	~VulkanRenderer();
