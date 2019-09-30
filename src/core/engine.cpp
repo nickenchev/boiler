@@ -111,6 +111,10 @@ void Engine::run()
 			renderer.render(mat4(), nullptr, nullptr, nullptr, vec4(1, 1, 1, 1)); // TODO: Remove, needed for vulkan testing
 			renderer.endRender();
 		}
+		else
+		{
+			SDL_Delay(100);
+		}
 	}
 }
 
