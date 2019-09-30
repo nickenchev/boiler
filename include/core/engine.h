@@ -45,6 +45,7 @@ class Engine
     std::vector<KeyInputListener> keyInputListeners;
 
     bool running = true;
+	bool paused = false;
 
     SpriteLoader spriteLoader;
     ImageLoader imageLoader;

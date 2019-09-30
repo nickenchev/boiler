@@ -92,22 +92,25 @@ void Engine::run()
 
 		processEvents();
 
-		// frame update / catchup phase if lagging
-		while (frameLag >= frameInterval)
+		if (!paused)
 		{
-			update(frameInterval);
-			part->update(frameInterval);
-			frameLag -= frameInterval;
-		} 
-		
-		// render related systems only run during render phase
-		// TODO: Handle GUI events differently
-		renderer.beginRender();
-		renderSystem->update(getEcs().getComponentStore(), frameDelta);
-		glyphSystem->update(getEcs().getComponentStore(), frameDelta);
-		if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);
-		renderer.render(mat4(), nullptr, nullptr, nullptr, vec4(1, 1, 1, 1)); // TODO: Remove, needed for vulkan testing
-		renderer.endRender();
+			// frame update / catchup phase if lagging
+			while (frameLag >= frameInterval)
+			{
+				update(frameInterval);
+				part->update(frameInterval);
+				frameLag -= frameInterval;
+			} 
+
+			// render related systems only run during render phase
+			// TODO: Handle GUI events differently
+			renderer.beginRender();
+			renderSystem->update(getEcs().getComponentStore(), frameDelta);
+			glyphSystem->update(getEcs().getComponentStore(), frameDelta);
+			if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);
+			renderer.render(mat4(), nullptr, nullptr, nullptr, vec4(1, 1, 1, 1)); // TODO: Remove, needed for vulkan testing
+			renderer.endRender();
+		}
 	}
 }
 
@@ -138,6 +141,21 @@ void Engine::processEvents()
 					case SDL_WINDOWEVENT_CLOSE:
 					{
 						quit();
+						break;
+					}
+					case SDL_WINDOWEVENT_MINIMIZED:
+					{
+						paused = true;
+						logger.log("Pausing run loop");
+						break;
+					}
+					case SDL_WINDOWEVENT_SHOWN:
+					{
+						if (paused)
+						{
+							paused = false;
+							logger.log("Resuming run loop");
+						}
 						break;
 					}
 				}
