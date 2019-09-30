@@ -78,7 +78,7 @@ public:
 
 	void render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
 				const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-				const glm::vec4 &colour) const override;
+				const glm::vec4 &colour) override;
 
     void showMessageBox(const std::string &title, const std::string &message) override;
 };

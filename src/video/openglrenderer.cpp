@@ -270,7 +270,7 @@ void OpenGLRenderer::endRender()
 
 void OpenGLRenderer::render(const mat4 modelMatrix, const std::shared_ptr<const Model> model,
 							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-							const vec4 &colour) const
+							const vec4 &colour)
 {
     const GLSLShaderProgram *program = static_cast<const GLSLShaderProgram *>(getProgram());
 	glUseProgram(program->getShaderProgram());

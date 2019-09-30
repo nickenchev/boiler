@@ -57,7 +57,7 @@ public:
 
 	virtual void render(const mat4 modelMatrix, const std::shared_ptr<const Model> model,
 						const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-						const vec4 &colour) const = 0;
+						const vec4 &colour) = 0;
 
     virtual void showMessageBox(const std::string &title, const std::string &message) = 0;
 };

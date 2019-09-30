@@ -10,9 +10,9 @@ class Renderer;
 
 class GlyphSystem : public System
 {
-	const Renderer &renderer;
+	Renderer &renderer;
 public:
-	GlyphSystem(const Renderer &renderer) : System("Glyph System"), renderer(renderer) { }
+	GlyphSystem(Renderer &renderer) : System("Glyph System"), renderer(renderer) { }
 
 	void update(ComponentStore &store, const double delta) override;
 };

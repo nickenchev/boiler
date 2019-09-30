@@ -934,7 +934,6 @@ void VulkanRenderer::cleanupSwapchain()
 void VulkanRenderer::resize(const Boiler::Size &size)
 {
 	Renderer::resize(size);
-	recreateSwapchain();
 }
 
 std::string VulkanRenderer::getVersion() const
@@ -967,53 +966,56 @@ void VulkanRenderer::endRender()
 
 void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
 							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-							const glm::vec4 &colour) const
+							const glm::vec4 &colour)
 {
-	// perform synchronization
-	vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
-	vkResetFences(device, 1, &frameFences[currentFrame]);
-	
 	uint32_t imageIndex = 0;
 	VkResult nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
 													 VK_NULL_HANDLE, &imageIndex);
 	if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR)
 	{
 		// handle out of date images
+		recreateSwapchain();
 	}
-
-	// semaphore indexes match up with the stages at the respective array index
-	std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[currentFrame]};
-	std::array<VkPipelineStageFlags, 1> waitStages = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-	
-	VkSubmitInfo submitInfo = {};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.waitSemaphoreCount = waitSemaphores.size();
-	submitInfo.pWaitSemaphores = waitSemaphores.data();
-	submitInfo.pWaitDstStageMask = waitStages.data();
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
-
-	std::array<VkSemaphore, 1> signalSemaphores = {renderSemaphores[currentFrame]};
-	submitInfo.signalSemaphoreCount = signalSemaphores.size();
-	submitInfo.pSignalSemaphores = signalSemaphores.data();
-
-	if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, frameFences[currentFrame]) != VK_SUCCESS)
+	else
 	{
-		throw std::runtime_error("Failed to submit draw command buffer to the graphics queue");
+		// perform synchronization
+		vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
+		vkResetFences(device, 1, &frameFences[currentFrame]);
+	
+		// semaphore indexes match up with the stages at the respective array index
+		std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[currentFrame]};
+		std::array<VkPipelineStageFlags, 1> waitStages = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+
+		VkSubmitInfo submitInfo = {};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.waitSemaphoreCount = waitSemaphores.size();
+		submitInfo.pWaitSemaphores = waitSemaphores.data();
+		submitInfo.pWaitDstStageMask = waitStages.data();
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+
+		std::array<VkSemaphore, 1> signalSemaphores = {renderSemaphores[currentFrame]};
+		submitInfo.signalSemaphoreCount = signalSemaphores.size();
+		submitInfo.pSignalSemaphores = signalSemaphores.data();
+
+		if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, frameFences[currentFrame]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Failed to submit draw command buffer to the graphics queue");
+		}
+
+		// submit render result back to swap chain for presentation
+		std::array<VkSwapchainKHR, 1> presentSwapChains = {swapChain};
+		VkPresentInfoKHR presentInfo = {};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfo.waitSemaphoreCount = signalSemaphores.size();
+		presentInfo.pWaitSemaphores = signalSemaphores.data();
+		presentInfo.swapchainCount = presentSwapChains.size();
+		presentInfo.pSwapchains = presentSwapChains.data();
+		presentInfo.pImageIndices = &imageIndex;
+		presentInfo.pResults = nullptr;
+
+		vkQueuePresentKHR(presentationQueue, &presentInfo);
 	}
-
-	// submit render result back to swap chain for presentation
-	std::array<VkSwapchainKHR, 1> presentSwapChains = {swapChain};
-	VkPresentInfoKHR presentInfo = {};
-	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	presentInfo.waitSemaphoreCount = signalSemaphores.size();
-	presentInfo.pWaitSemaphores = signalSemaphores.data();
-	presentInfo.swapchainCount = presentSwapChains.size();
-	presentInfo.pSwapchains = presentSwapChains.data();
-	presentInfo.pImageIndices = &imageIndex;
-	presentInfo.pResults = nullptr;
-
-	vkQueuePresentKHR(presentationQueue, &presentInfo);
 }
 
 void VulkanRenderer::showMessageBox(const std::string &title, const std::string &message)
