@@ -374,6 +374,9 @@ void VulkanRenderer::initialize(const Size &size)
 				vkGetDeviceQueue(device, queueFamilyIndices.graphics.value(), 0, &graphicsQueue);
 				vkGetDeviceQueue(device, queueFamilyIndices.presentation.value(), 0, &presentationQueue);
 
+				// load vertex and fragment SPIR-V shaders
+				program = std::make_unique<SPVShaderProgram>(device, "shaders/", "vert.spv", "frag.spv");
+
 				createSwapChain();
 				createRenderPass();
 				createGraphicsPipeline();
@@ -582,10 +585,8 @@ void VulkanRenderer::createRenderPass()
 
 void VulkanRenderer::createGraphicsPipeline()
 {
-	// load vertex and fragment SPIR-V shaders
-	program = std::make_unique<SPVShaderProgram>(device, "shaders/", "vert.spv", "frag.spv");
 	SPVShaderProgram *spvProgram = static_cast<SPVShaderProgram *>(program.get());
-
+	
 	// Vertex input stage
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
 	vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -889,6 +890,14 @@ void VulkanRenderer::shutdown()
 void VulkanRenderer::recreateSwapchain()
 {
 	vkDeviceWaitIdle(device);
+
+	cleanupSwapchain();
+
+	createSwapChain();
+	createRenderPass();
+	createGraphicsPipeline();
+	createFramebuffers();
+	createCommandBuffers();
 }
 
 void VulkanRenderer::cleanupSwapchain()
@@ -920,6 +929,12 @@ void VulkanRenderer::cleanupSwapchain()
 	logger.log("Pipeline layout destroyed");
 	vkDestroyRenderPass(device, renderPass, nullptr);
 	logger.log("Render pass destroyed");
+}
+
+void VulkanRenderer::resize(const Boiler::Size &size)
+{
+	Renderer::resize(size);
+	recreateSwapchain();
 }
 
 std::string VulkanRenderer::getVersion() const
@@ -959,7 +974,12 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	vkResetFences(device, 1, &frameFences[currentFrame]);
 	
 	uint32_t imageIndex = 0;
-	vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+	VkResult nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
+													 VK_NULL_HANDLE, &imageIndex);
+	if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		// handle out of date images
+	}
 
 	// semaphore indexes match up with the stages at the respective array index
 	std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[currentFrame]};

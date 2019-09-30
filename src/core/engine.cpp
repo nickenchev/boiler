@@ -128,6 +128,13 @@ void Engine::processEvents()
 			{
 				switch (event.window.event)
 				{
+					case SDL_WINDOWEVENT_RESIZED:
+					{
+						const Size newSize(static_cast<cgfloat>(event.window.data1), static_cast<cgfloat>(event.window.data2));
+						renderer.resize(newSize);
+
+						break;
+					}
 					case SDL_WINDOWEVENT_CLOSE:
 					{
 						quit();

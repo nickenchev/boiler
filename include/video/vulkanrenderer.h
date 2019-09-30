@@ -51,6 +51,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void createRenderPass();
 	void createGraphicsPipeline();
 	void createFramebuffers();
+
 	void createCommandPool();
 	void createCommandBuffers();
 	void createSynchronization();
@@ -63,6 +64,7 @@ public:
 	~VulkanRenderer();
 
 	void initialize(const Boiler::Size &size) override;
+	void resize(const Boiler::Size &size) override;
 	void shutdown() override;
 	std::string getVersion() const override;
 

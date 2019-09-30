@@ -179,6 +179,12 @@ void OpenGLRenderer::initialize(const Size &screenSize)
 	glEnable(GL_DEPTH_TEST);
 }
 
+void OpenGLRenderer::resize(const Size &size)
+{
+	Renderer::resize(size);
+	throw std::runtime_error("Resize not implemented!");
+}
+
 void OpenGLRenderer::shutdown()
 {
 	Renderer::shutdown();

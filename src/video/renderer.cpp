@@ -11,6 +11,11 @@ void Renderer::initialize(const Size &size)
 	setScreenSize(size);
 }
 
+void Renderer::resize(const Size &size)
+{
+	setScreenSize(size);
+}
+
 void Renderer::shutdown()
 {
 	if (program)

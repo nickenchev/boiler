@@ -30,6 +30,7 @@ public:
     ~OpenGLRenderer();
 
     void initialize(const Size &size) override;
+    void resize(const Size &size) override;
 	void shutdown() override;
     std::string getVersion() const override { return std::string(VERSION); }
 
