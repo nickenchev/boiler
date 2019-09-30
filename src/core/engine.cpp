@@ -1,4 +1,7 @@
 #include <iostream>
+#include <chrono>
+#include <thread>
+
 #include "video/opengl.h"
 #include "boiler.h"
 #include "video/renderer.h"
@@ -113,7 +116,7 @@ void Engine::run()
 		}
 		else
 		{
-			SDL_Delay(100);
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
 	}
 }
