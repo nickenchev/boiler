@@ -24,6 +24,7 @@ struct QueueFamilyIndices
 class VulkanRenderer : public Boiler::Renderer
 {
 	SDL_Window *win;
+	bool resizeOccured;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkPhysicalDevice physicalDevice;

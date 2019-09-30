@@ -33,6 +33,7 @@ auto getFunctionPointer(VkInstance instance, std::string funcName)
 VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 {
 	currentFrame = 0;
+	resizeOccured = false;
 }
 
 VulkanRenderer::~VulkanRenderer()
@@ -934,6 +935,7 @@ void VulkanRenderer::cleanupSwapchain()
 void VulkanRenderer::resize(const Boiler::Size &size)
 {
 	Renderer::resize(size);
+	resizeOccured = true;
 }
 
 std::string VulkanRenderer::getVersion() const
@@ -971,12 +973,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	uint32_t imageIndex = 0;
 	VkResult nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
 													 VK_NULL_HANDLE, &imageIndex);
-	if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR)
-	{
-		// handle out of date images
-		recreateSwapchain();
-	}
-	else
+	if (nextImageResult == VK_SUCCESS)
 	{
 		// perform synchronization
 		vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
@@ -1015,6 +1012,16 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 		presentInfo.pResults = nullptr;
 
 		vkQueuePresentKHR(presentationQueue, &presentInfo);
+	}
+	else if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR || resizeOccured)
+	{
+		// handle out of date images
+		resizeOccured = false;
+		recreateSwapchain();
+	}
+	else
+	{
+		throw std::runtime_error("Error during image aquire");
 	}
 }
 
