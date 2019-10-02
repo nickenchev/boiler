@@ -632,12 +632,23 @@ void VulkanRenderer::createRenderPass()
 void VulkanRenderer::createGraphicsPipeline()
 {
 	// Vertex input stage
+	VkVertexInputBindingDescription inputBind = {};
+	inputBind.binding = 0;
+	inputBind.stride = sizeof(glm::vec3);
+	inputBind.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	VkVertexInputAttributeDescription attrDescription;
+	attrDescription.binding = 0;
+	attrDescription.location = 0;
+	attrDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
+	attrDescription.offset = 0;
+
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
 	vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertInputCreateInfo.vertexBindingDescriptionCount = 0;
-	vertInputCreateInfo.pVertexBindingDescriptions = nullptr;
-	vertInputCreateInfo.vertexAttributeDescriptionCount = 0;
-	vertInputCreateInfo.pVertexAttributeDescriptions = nullptr;
+	vertInputCreateInfo.vertexBindingDescriptionCount = 1;
+	vertInputCreateInfo.pVertexBindingDescriptions = &inputBind;
+	vertInputCreateInfo.vertexAttributeDescriptionCount = 1;
+	vertInputCreateInfo.pVertexAttributeDescriptions = &attrDescription;
 
 	// Input assembly stage
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
