@@ -15,6 +15,7 @@ namespace Boiler
 
 class Entity;
 class VertexData;
+class GLSLShaderProgram;
 
 class OpenGLRenderer : public Renderer
 {
@@ -24,6 +25,7 @@ class OpenGLRenderer : public Renderer
     SDL_Window *win = nullptr;
     unsigned int fbo, rbo;
 	RenderDetails renderDetails;
+	std::unique_ptr<GLSLShaderProgram> program;
 
 public:
     OpenGLRenderer(bool useGLES);
@@ -31,7 +33,6 @@ public:
 
     void initialize(const Size &size) override;
     void resize(const Size &size) override;
-	void shutdown() override;
     std::string getVersion() const override { return std::string(VERSION); }
 
     SDL_Window *getWindow() const { return win; }

@@ -2,7 +2,6 @@
 #define RENDERER_H
 
 #include <memory>
-#include "shaderprogram.h"
 #include "core/logger.h"
 #include "core/entity.h"
 #include "core/component.h"
@@ -28,7 +27,6 @@ class Renderer
 protected:
 	Logger logger;
     Size screenSize;
-    std::unique_ptr<ShaderProgram> program;
 
 public:
     Renderer(std::string name);
@@ -36,12 +34,10 @@ public:
 
     virtual void initialize(const Size &size);
 	virtual void resize(const Size &size);
-    virtual void shutdown();
     virtual std::string getVersion() const = 0;
 
     void setScreenSize(const Size &screenSize) { this->screenSize = screenSize; }
     const Size &getScreenSize() const { return screenSize; }
-    const ShaderProgram *getProgram() const { return program.get(); }
 
     const vec2 &getGlobalScale() const { return globalScale; }
     void setGlobalScale(const vec2 &scale) { this->globalScale = scale; }

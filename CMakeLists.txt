@@ -59,6 +59,7 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/video/vertexdata.cpp
   # Vulkan Rendering
   ${CMAKE_CURRENT_LIST_DIR}/src/video/vulkanrenderer.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/vulkanmodel.cpp
 
   # Platform Support
   ${CMAKE_CURRENT_LIST_DIR}/src/platform/sdlwindow.cpp

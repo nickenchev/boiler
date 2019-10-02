@@ -185,12 +185,6 @@ void OpenGLRenderer::resize(const Size &size)
 	throw std::runtime_error("Resize not implemented!");
 }
 
-void OpenGLRenderer::shutdown()
-{
-	Renderer::shutdown();
-	SDL_VideoQuit();
-}
-
 std::shared_ptr<const Texture> OpenGLRenderer::createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const
 {
     GLuint texId;
@@ -233,10 +227,9 @@ std::shared_ptr<const Model> OpenGLRenderer::loadModel(const VertexData &data) c
 
 void OpenGLRenderer::beginRender()
 {
-    const GLSLShaderProgram *program = static_cast<const GLSLShaderProgram *>(getProgram());
     if (program)
     {
-		renderDetails.shaderProgram = program;
+		renderDetails.shaderProgram = program.get();
         // grab the uniform locations
         glUseProgram(program->getShaderProgram());
         renderDetails.mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
@@ -272,7 +265,6 @@ void OpenGLRenderer::render(const mat4 modelMatrix, const std::shared_ptr<const 
 							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
 							const vec4 &colour)
 {
-    const GLSLShaderProgram *program = static_cast<const GLSLShaderProgram *>(getProgram());
 	glUseProgram(program->getShaderProgram());
 	if (model)
     {
@@ -357,4 +349,6 @@ OpenGLRenderer::~OpenGLRenderer()
     }
     glDeleteRenderbuffers(1, &rbo);
     glDeleteFramebuffers(1, &fbo);
+
+	SDL_VideoQuit();
 }

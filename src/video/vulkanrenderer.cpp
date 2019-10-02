@@ -38,6 +38,51 @@ VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 
 VulkanRenderer::~VulkanRenderer()
 {
+	// wait for all queues to empty prior to cleaning up
+	// validation layers can cause memory leaks without this
+	vkDeviceWaitIdle(device);
+
+	cleanupSwapchain();
+
+	// delete the shader module
+	if (program)
+	{
+		program.reset();
+	}
+	
+	// sync objects cleanup
+	for (int i = 0; i < maxFramesInFlight; ++i)
+	{
+		vkDestroySemaphore(device, imageSemaphores[i], nullptr);
+		vkDestroySemaphore(device, renderSemaphores[i], nullptr);
+		vkDestroyFence(device, frameFences[i], nullptr);
+	}
+	logger.log("Destroed semaphores");
+
+	// command related
+	vkDestroyCommandPool(device, commandPool, nullptr);
+	logger.log("Destroyed command pool");
+
+	// clean up debug callback
+	if constexpr (enableDebugMessages)
+	{
+		std::string funcName{"vkDestroyDebugUtilsMessengerEXT"};
+		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
+		destroyFunc(instance, debugMessenger, nullptr);
+	}
+
+	// cleanup Vulkan device and instance
+	vkDestroyDevice(device, nullptr);
+	logger.log("Device destroyed");
+	vkDestroySurfaceKHR(instance, surface, nullptr);
+	logger.log("Surface destroyed");
+	vkDestroyInstance(instance, nullptr);
+	logger.log("Instance destroyed");
+
+	if (win)
+	{
+		SDL_DestroyWindow(win);
+	}
 }
 
 void VulkanRenderer::initialize(const Size &size)
@@ -586,8 +631,6 @@ void VulkanRenderer::createRenderPass()
 
 void VulkanRenderer::createGraphicsPipeline()
 {
-	SPVShaderProgram *spvProgram = static_cast<SPVShaderProgram *>(program.get());
-	
 	// Vertex input stage
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
 	vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -681,7 +724,7 @@ void VulkanRenderer::createGraphicsPipeline()
 	}
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages =
-		{spvProgram->getVertStageInfo(), spvProgram->getFragStageInfo()};
+		{program->getVertStageInfo(), program->getFragStageInfo()};
 
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -841,51 +884,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 	}
 
 	return VK_FALSE;
-}
-
-void VulkanRenderer::shutdown()
-{
-	Renderer::shutdown();
-
-	// wait for all queues to empty prior to cleaning up
-	// validation layers can cause memory leaks without this
-	vkDeviceWaitIdle(device);
-
-	cleanupSwapchain();
-	
-	// sync objects cleanup
-	for (int i = 0; i < maxFramesInFlight; ++i)
-	{
-		vkDestroySemaphore(device, imageSemaphores[i], nullptr);
-		vkDestroySemaphore(device, renderSemaphores[i], nullptr);
-		vkDestroyFence(device, frameFences[i], nullptr);
-	}
-	logger.log("Destroed semaphores");
-
-	// command related
-	vkDestroyCommandPool(device, commandPool, nullptr);
-	logger.log("Destroyed command pool");
-
-	// clean up debug callback
-	if constexpr (enableDebugMessages)
-	{
-		std::string funcName{"vkDestroyDebugUtilsMessengerEXT"};
-		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
-		destroyFunc(instance, debugMessenger, nullptr);
-	}
-
-	// cleanup Vulkan device and instance
-	vkDestroyDevice(device, nullptr);
-	logger.log("Device destroyed");
-	vkDestroySurfaceKHR(instance, surface, nullptr);
-	logger.log("Surface destroyed");
-	vkDestroyInstance(instance, nullptr);
-	logger.log("Instance destroyed");
-
-	if (win)
-	{
-		SDL_DestroyWindow(win);
-	}
 }
 
 void VulkanRenderer::recreateSwapchain()

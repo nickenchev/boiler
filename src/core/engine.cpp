@@ -29,7 +29,6 @@ Engine::Engine(Renderer &renderer) : logger("Engine"), renderer(renderer), baseD
 Engine::~Engine()
 {
 	logger.log("Cleaning up");
-	renderer.shutdown();
 	SDL_Quit();
 }
 

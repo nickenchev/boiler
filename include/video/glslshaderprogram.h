@@ -15,8 +15,7 @@ class GLSLShaderProgram : public ShaderProgram
 
 public:
 	GLSLShaderProgram(std::string path, std::string vertexShader, std::string fragmentShader);
-
-	void destroy() override;
+	~GLSLShaderProgram();
 
     unsigned int getShaderProgram() const { return shaderProgram; }
 

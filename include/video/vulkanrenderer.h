@@ -5,15 +5,15 @@
 #include <optional>
 #include <set>
 
-#define VK_USE_PLATFORM_XCB_KHR
-#include <vulkan/vulkan.h>
-
+#include "video/vulkan.h"
 #include "video/renderer.h"
 
 class SDL_Window;
 
 namespace Boiler
 {
+
+class SPVShaderProgram;
 
 struct QueueFamilyIndices
 {
@@ -46,6 +46,7 @@ class VulkanRenderer : public Boiler::Renderer
 	std::vector<VkCommandBuffer> commandBuffers;
 	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
 	std::vector<VkFence> frameFences;
+	std::unique_ptr<SPVShaderProgram> program;
 	short currentFrame;
 
 	void createSwapChain();
@@ -66,7 +67,6 @@ public:
 
 	void initialize(const Boiler::Size &size) override;
 	void resize(const Boiler::Size &size) override;
-	void shutdown() override;
 	std::string getVersion() const override;
 
     std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const override;

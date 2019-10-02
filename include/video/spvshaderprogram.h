@@ -26,8 +26,8 @@ class SPVShaderProgram : public ShaderProgram
 	
 public:
 	SPVShaderProgram(VkDevice &device, std::string path, std::string vertexShader, std::string fragmentShader);
+	~SPVShaderProgram();
 
-	void destroy() override;
 	const VkPipelineShaderStageCreateInfo &getVertStageInfo() const { return vertStageInfo; }
 	const VkPipelineShaderStageCreateInfo &getFragStageInfo() const { return fragStageInfo; }
 };
