@@ -311,6 +311,7 @@ void VulkanRenderer::initialize(const Size &size)
 
 				if (queueFamilyCount)
 				{
+					logger.log("Physical device has {} queues", queueFamilyCount);
 					std::vector<VkQueueFamilyProperties> queueFamProps(queueFamilyCount);
 					vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamProps.data());
 
@@ -322,19 +323,19 @@ void VulkanRenderer::initialize(const Size &size)
 							if (queueFamProp.queueFlags & VK_QUEUE_GRAPHICS_BIT)
 							{
 								queueFamilyIndices.graphics = i;
+								logger.log("Found graphics queue at index {}", i);
+							}
+							else if (queueFamProp.queueFlags & VK_QUEUE_TRANSFER_BIT)
+							{
+								queueFamilyIndices.transfer = i;
+								logger.log("Found transfer queue at index {}", i);
 							}
 							VkBool32 presentationSupport = false;
 							vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentationSupport);
 							if (presentationSupport)
 							{
 								queueFamilyIndices.presentation = i;
-							}
-
-							// done, found everything we need?
-							if (queueFamilyIndices.graphics.has_value() &&
-								queueFamilyIndices.presentation.has_value())
-							{
-								break;
+								logger.log("Found presentation queue at index {}", i);
 							}
 						}
 						++i;
@@ -375,13 +376,16 @@ void VulkanRenderer::initialize(const Size &size)
 				}
 
 				// create queues, ensure indices are unique (set)
-				const float queuePriority = 1.0f;
-				uniqueQueueIndices = { queueFamilyIndices.graphics.value(),
-									   queueFamilyIndices.presentation.value() };
-				logger.log("Creating " + std::to_string(uniqueQueueIndices.size()) + " queue(s)");
+				if (queueFamilyIndices.graphics.has_value()) uniqueQueueIndices.insert(queueFamilyIndices.graphics.value());
+				if (queueFamilyIndices.presentation.has_value()) uniqueQueueIndices.insert(queueFamilyIndices.presentation.value());
+				if (queueFamilyIndices.transfer.has_value()) uniqueQueueIndices.insert(queueFamilyIndices.transfer.value());
+
+				logger.log("Creating {} queue(s)", uniqueQueueIndices.size());
+
 				std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 				for (uint32_t index : uniqueQueueIndices)
 				{
+					const float queuePriority = 1.0f;
 					VkDeviceQueueCreateInfo queueCreateInfo = {};
 					queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 					queueCreateInfo.queueFamilyIndex = index;
@@ -423,6 +427,7 @@ void VulkanRenderer::initialize(const Size &size)
 				// retrieve queue handles
 				vkGetDeviceQueue(device, queueFamilyIndices.graphics.value(), 0, &graphicsQueue);
 				vkGetDeviceQueue(device, queueFamilyIndices.presentation.value(), 0, &presentationQueue);
+				vkGetDeviceQueue(device, queueFamilyIndices.transfer.value(), 0, &transferQueue);
 
 				// load vertex and fragment SPIR-V shaders
 				program = std::make_unique<SPVShaderProgram>(device, "shaders/", "vert.spv", "frag.spv");
@@ -889,7 +894,7 @@ void VulkanRenderer::createCommandBuffers()
 		renderBeginInfo.renderArea.extent = swapChainExtent;
 
 		// clear colour
-		VkClearValue clearColour = {1, 0, 0, 1.0f};
+		VkClearValue clearColour = {0, 0, 0, 1.0f};
 		renderBeginInfo.clearValueCount = 1;
 		renderBeginInfo.pClearValues = &clearColour;
 

@@ -19,6 +19,7 @@ struct QueueFamilyIndices
 {
 	std::optional<uint32_t> graphics;
 	std::optional<uint32_t> presentation;
+	std::optional<uint32_t> transfer;
 };
 
 class VulkanRenderer : public Boiler::Renderer
@@ -29,7 +30,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
-	VkQueue graphicsQueue, presentationQueue;
+	VkQueue graphicsQueue, presentationQueue, transferQueue;
 	VkSurfaceKHR surface;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
