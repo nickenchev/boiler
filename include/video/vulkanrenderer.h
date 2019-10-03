@@ -31,6 +31,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue graphicsQueue, presentationQueue, transferQueue;
+	bool hasTransferQueue;
 	VkSurfaceKHR surface;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
@@ -43,7 +44,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> framebuffers;
-	VkCommandPool commandPool;
+	VkCommandPool commandPool, transferPool;
 	std::vector<VkCommandBuffer> commandBuffers;
 	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
 	std::vector<VkFence> frameFences;
@@ -57,7 +58,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void createGraphicsPipeline();
 	void createFramebuffers();
 
-	void createCommandPool();
+	void createCommandPools();
 	void createCommandBuffers();
 	void createSynchronization();
 

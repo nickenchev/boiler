@@ -36,6 +36,7 @@ VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 {
 	currentFrame = 0;
 	resizeOccured = false;
+	hasTransferQueue = false;
 }
 
 VulkanRenderer::~VulkanRenderer()
@@ -65,7 +66,12 @@ VulkanRenderer::~VulkanRenderer()
 
 	// command related
 	vkDestroyCommandPool(device, commandPool, nullptr);
-	logger.log("Destroyed command pool");
+	logger.log("Destroyed graphics command pool");
+	if (hasTransferQueue)
+	{
+		vkDestroyCommandPool(device, transferPool, nullptr);
+		logger.log("Destroyed transfer command pool");
+	}
 
 	// clean up debug callback
 	if constexpr (enableDebugMessages)
@@ -425,9 +431,15 @@ void VulkanRenderer::initialize(const Size &size)
 				}
 
 				// retrieve queue handles
-				vkGetDeviceQueue(device, queueFamilyIndices.graphics.value(), 0, &graphicsQueue);
-				vkGetDeviceQueue(device, queueFamilyIndices.presentation.value(), 0, &presentationQueue);
-				vkGetDeviceQueue(device, queueFamilyIndices.transfer.value(), 0, &transferQueue);
+				if (queueFamilyIndices.graphics.has_value())
+					vkGetDeviceQueue(device, queueFamilyIndices.graphics.value(), 0, &graphicsQueue);
+				if (queueFamilyIndices.presentation.has_value())
+					vkGetDeviceQueue(device, queueFamilyIndices.presentation.value(), 0, &presentationQueue);
+				if (queueFamilyIndices.transfer.has_value())
+				{
+					vkGetDeviceQueue(device, queueFamilyIndices.transfer.value(), 0, &transferQueue);
+					hasTransferQueue = true;
+				}
 
 				// load vertex and fragment SPIR-V shaders
 				program = std::make_unique<SPVShaderProgram>(device, "shaders/", "vert.spv", "frag.spv");
@@ -481,7 +493,7 @@ void VulkanRenderer::initialize(const Size &size)
 				createRenderPass();
 				createGraphicsPipeline();
 				createFramebuffers();
-				createCommandPool();
+				createCommandPools();
 				createCommandBuffers();
 				createSynchronization();
 			}
@@ -843,17 +855,31 @@ void VulkanRenderer::createFramebuffers()
 	logger.log("Created framebuffers");
 }
 
-void VulkanRenderer::createCommandPool()
+void VulkanRenderer::createCommandPools()
 {
+	auto createPool = [this](uint32_t index, VkCommandPool *pool) {
+		VkCommandPoolCreateInfo commandPoolInfo = {};
+		commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		commandPoolInfo.queueFamilyIndex = index;
+		commandPoolInfo.flags = 0;
+
+		if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, pool) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Error creating command pool");
+		}
+	};
+
+	createPool(queueFamilyIndices.graphics.value(), &commandPool);
+	if (hasTransferQueue)
+	{
+		createPool(queueFamilyIndices.transfer.value(), &transferPool);
+	}
+
 	VkCommandPoolCreateInfo commandPoolInfo = {};
 	commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	commandPoolInfo.queueFamilyIndex = queueFamilyIndices.graphics.value();
 	commandPoolInfo.flags = 0;
 
-	if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, &commandPool) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Error creating command pool");
-	}
 }
 
 void VulkanRenderer::createCommandBuffers()
