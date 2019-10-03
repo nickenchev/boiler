@@ -110,7 +110,6 @@ void Engine::run()
 			renderSystem->update(getEcs().getComponentStore(), frameDelta);
 			glyphSystem->update(getEcs().getComponentStore(), frameDelta);
 			if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);
-			renderer.render(mat4(), nullptr, nullptr, nullptr, vec4(1, 1, 1, 1)); // TODO: Remove, needed for vulkan testing
 			renderer.endRender();
 		}
 		else

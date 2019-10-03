@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include "video/vulkanmodel.h"
+#include "core/logger.h"
 
 using namespace Boiler;
 
@@ -13,4 +14,7 @@ VulkanModel::~VulkanModel()
 {
 	vkDestroyBuffer(device, buffer, nullptr);
 	vkFreeMemory(device, bufferMemory, nullptr);
+
+	Logger logger("Model");
+	logger.log("Destroyed model data");
 }

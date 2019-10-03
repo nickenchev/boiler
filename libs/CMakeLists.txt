@@ -41,6 +41,9 @@ set(JSONCPP_WITH_TESTS CACHE OFF "Disable JSONCPP unit tests")
 set(JSONCPP_WITH_POST_BUILD_UNITTEST CACHE OFF "Disable JSONCPP post-build runner")
 add_subdirectory(${LIBS_ROOT}/jsoncpp)
 
+# build fmt
+add_subdirectory(${LIBS_ROOT}/fmt-6.0.0)
+
 # Vulkan
 set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/x86_64/include)
 set(VULKAN_LIBS ${VULKAN_SDK}/x86_64/lib/libvulkan.so)
@@ -64,7 +67,8 @@ set(boiler_lib_includes
   ${PNG_CONFIG_HEADER}
   glm
   SDL2
-  freetype)
+  freetype
+  fmt)
 
 target_include_directories(boiler_deps PUBLIC ${boiler_lib_includes})
 
@@ -76,5 +80,6 @@ target_link_libraries(boiler_deps
   glm
   glew_s
   jsoncpp_lib
+  fmt
   ${VULKAN_LIBS})
   #${MOLTENVK_LIBRARY})

@@ -1,11 +1,12 @@
 #include "video/vulkanrenderer.h"
 
+#include <cstring>
+#include <vector>
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <SDL_syswm.h>
 #include <X11/Xlib-xcb.h>
-#include <cstring>
-#include <vector>
+#include <fmt/format.h>
 
 #include "core/math.h"
 #include "video/spvshaderprogram.h"
@@ -818,6 +819,8 @@ void VulkanRenderer::createCommandBuffers()
 		throw std::runtime_error("Error allocating command buffers");
 	}
 
+	logger.log("Allocated {} command buffers", commandBuffers.size());
+
 	for (size_t i = 0; i < commandBuffers.size(); ++i)
 	{
 		VkCommandBufferBeginInfo beginInfo = {};
@@ -839,7 +842,7 @@ void VulkanRenderer::createCommandBuffers()
 		renderBeginInfo.renderArea.extent = swapChainExtent;
 
 		// clear colour
-		VkClearValue clearColour = {0, 0, 0, 1.0f};
+		VkClearValue clearColour = {1, 0, 0, 1.0f};
 		renderBeginInfo.clearValueCount = 1;
 		renderBeginInfo.pClearValues = &clearColour;
 

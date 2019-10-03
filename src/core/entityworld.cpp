@@ -12,7 +12,7 @@ Entity EntityWorld::createEntity()
 {
 	Entity entity(++entityCount);
 	entities.push_back(entity);
-	logger.log("Created entity with ID: " + std::to_string(entity.getId()));
+	logger.log("Created entity with ID: {}", entity.getId());
 	return entity;
 }
 
@@ -23,7 +23,7 @@ void EntityWorld::removeEntity(const Entity &entity)
 	{
 		Entity ent = *itr;
 		entities.erase(itr);
-		logger.log("Destroyed entity with ID: " + std::to_string(ent.getId()));
+		logger.log("Destroyed entity with ID: {}", entity.getId());
 	}
 }
 
