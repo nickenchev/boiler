@@ -46,6 +46,8 @@ VulkanRenderer::~VulkanRenderer()
 
 	cleanupSwapchain();
 
+	testModel.reset();
+
 	// delete the shader module
 	if (program)
 	{
@@ -424,6 +426,51 @@ void VulkanRenderer::initialize(const Size &size)
 
 				// load vertex and fragment SPIR-V shaders
 				program = std::make_unique<SPVShaderProgram>(device, "shaders/", "vert.spv", "frag.spv");
+
+				VertexData vertData({
+					{ -0.5f, -0.5f, -0.5f },
+					{ 0.5f, -0.5f, -0.5f },
+					{ 0.5f,  0.5f, -0.5f },
+					{ 0.5f,  0.5f, -0.5f },
+					{ -0.5f,  0.5f, -0.5f },
+					{ -0.5f, -0.5f, -0.5f },
+
+					{ -0.5f, -0.5f,  0.5f },
+					{ 0.5f, -0.5f,  0.5f },
+					{ 0.5f,  0.5f,  0.5f },
+					{ 0.5f,  0.5f,  0.5f },
+					{ -0.5f,  0.5f,  0.5f },
+					{ -0.5f, -0.5f,  0.5f },
+
+					{ -0.5f,  0.5f,  0.5f },
+					{ -0.5f,  0.5f, -0.5f },
+					{ -0.5f, -0.5f, -0.5f },
+					{ -0.5f, -0.5f, -0.5f },
+					{ -0.5f, -0.5f,  0.5f },
+					{ -0.5f,  0.5f,  0.5f },
+
+					{ 0.5f,  0.5f,  0.5f },
+					{ 0.5f,  0.5f, -0.5f },
+					{ 0.5f, -0.5f, -0.5f },
+					{ 0.5f, -0.5f, -0.5f },
+					{ 0.5f, -0.5f,  0.5f },
+					{ 0.5f,  0.5f,  0.5f },
+
+					{ -0.5f, -0.5f, -0.5f },
+					{ 0.5f, -0.5f, -0.5f },
+					{ 0.5f, -0.5f,  0.5f },
+					{ 0.5f, -0.5f,  0.5f },
+					{ -0.5f, -0.5f,  0.5f },
+					{ -0.5f, -0.5f, -0.5f },
+
+					{ -0.5f,  0.5f, -0.5f },
+					{ 0.5f,  0.5f, -0.5f },
+					{ 0.5f,  0.5f,  0.5f },
+					{ 0.5f,  0.5f,  0.5f },
+					{ -0.5f,  0.5f,  0.5f },
+					{ -0.5f,  0.5f, -0.5f }
+				});
+				testModel = loadModel(vertData);
 
 				createSwapChain();
 				createRenderPass();
@@ -848,8 +895,17 @@ void VulkanRenderer::createCommandBuffers()
 
 		// perform the render pass
 		vkCmdBeginRenderPass(commandBuffers[i], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
 		vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-		vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+
+		const VulkanModel *model = static_cast<const VulkanModel *>(testModel.get());
+		const std::array<VkBuffer, 1> buffers = {model->getBuffer()};
+		const std::array<VkDeviceSize, buffers.size()> offsets = {0};
+		
+		vkCmdBindVertexBuffers(commandBuffers[i], 0, buffers.size(), buffers.data(), offsets.data());
+
+		vkCmdDraw(commandBuffers[i], model->getNumVertices(), buffers.size(), 0, 0);
+
 		vkCmdEndRenderPass(commandBuffers[i]);
 
 		if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)

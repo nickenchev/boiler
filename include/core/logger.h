@@ -12,7 +12,7 @@ namespace Boiler
 class Logger
 {
 	static std::vector<std::string> buffer;
-	std::string name;
+	const std::string name;
 
 	void printInfo(const std::string &message) const
 	{
@@ -27,7 +27,7 @@ class Logger
 	}
 
 public:
-    Logger(std::string name) { this->name = name; }
+    Logger(std::string name) : name(name) { }
 
     void log(std::string message) const
 	{
@@ -35,7 +35,7 @@ public:
 	}
 
 	template<typename... Args>
-	void log(std::string formatString, Args&&... args)
+	void log(std::string formatString, Args&&... args) const
 	{
 		printInfo(fmt::format(formatString, args...));
 	}

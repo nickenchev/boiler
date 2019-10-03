@@ -18,6 +18,11 @@ public:
 	VulkanModel(const VkDevice &device, VkBuffer buffer,
 				VkDeviceMemory bufferMemory, const VertexData &data);
     virtual ~VulkanModel();
+
+	const VkBuffer &getBuffer() const
+	{
+		return buffer;
+	}
 };
 
 }

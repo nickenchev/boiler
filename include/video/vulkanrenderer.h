@@ -49,6 +49,8 @@ class VulkanRenderer : public Boiler::Renderer
 	std::unique_ptr<SPVShaderProgram> program;
 	short currentFrame;
 
+	std::shared_ptr<const Model> testModel;
+
 	void createSwapChain();
 	void createRenderPass();
 	void createGraphicsPipeline();
