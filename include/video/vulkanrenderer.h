@@ -61,6 +61,8 @@ class VulkanRenderer : public Boiler::Renderer
 	void cleanupSwapchain();
 	void recreateSwapchain();
 
+	uint32_t findMemoryType(uint32_t filter, VkMemoryPropertyFlags flags) const;
+
 public:
     VulkanRenderer();
 	~VulkanRenderer();

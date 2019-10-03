@@ -9,6 +9,7 @@
 
 #include "core/math.h"
 #include "video/spvshaderprogram.h"
+#include "video/vulkanmodel.h"
 
 using namespace Boiler;
 constexpr bool enableValidationLayers = true;
@@ -910,6 +911,23 @@ void VulkanRenderer::recreateSwapchain()
 	createCommandBuffers();
 }
 
+uint32_t VulkanRenderer::findMemoryType(uint32_t memoryTypeBits, VkMemoryPropertyFlags propertFlags) const
+{
+	// memoryTypeBits is a bitset of memoryTypes supported by the resource
+	VkPhysicalDeviceMemoryProperties memProps;
+	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProps);
+
+	for (uint32_t i = 0; i < memProps.memoryTypeCount; ++i)
+	{
+		if (memoryTypeBits & (1 << i) && (memProps.memoryTypes[i].propertyFlags & propertFlags) == propertFlags)
+		{
+			return i;
+		}
+	}
+	
+	throw std::runtime_error("Unable to find memory for buffer");
+}
+
 void VulkanRenderer::cleanupSwapchain()
 {
 	// cleanup resources
@@ -963,7 +981,45 @@ void VulkanRenderer::setActiveTexture(std::shared_ptr<const Texture> texture) co
 
 std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) const
 {
-	return nullptr;
+	VkBufferCreateInfo bufferInfo = {};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = data.size();
+	bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	VkBuffer buffer;
+	if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error creating buffer");
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+
+	// allocate memory for the buffer
+	VkMemoryAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits,
+											   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+											   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	VkDeviceMemory bufferMemory;
+	if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to allocate buffer memory");
+	}
+
+	// bind the memory to the buffer and map it
+	vkBindBufferMemory(device, buffer, bufferMemory, 0);
+	void *mappedMem = nullptr;
+	vkMapMemory(device, bufferMemory, 0, bufferInfo.size, 0, &mappedMem);
+	memcpy(mappedMem, data.begin(), bufferInfo.size);
+	vkUnmapMemory(device, bufferMemory);
+
+	logger.log("Generated model buffer (" + std::to_string(bufferInfo.size) + " bytes)");
+
+	return std::make_shared<VulkanModel>(device, buffer, bufferMemory, data);
 }
 
 void VulkanRenderer::beginRender()
