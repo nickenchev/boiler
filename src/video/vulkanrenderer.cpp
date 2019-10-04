@@ -1,5 +1,6 @@
 #include "video/vulkanrenderer.h"
 
+#include <array>
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <SDL_syswm.h>
