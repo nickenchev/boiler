@@ -65,7 +65,12 @@ class VulkanRenderer : public Boiler::Renderer
 	void cleanupSwapchain();
 	void recreateSwapchain();
 
+	// memory/buffer operations
+	VkQueue getTransferQueue() const;
 	uint32_t findMemoryType(uint32_t filter, VkMemoryPropertyFlags flags) const;
+	std::pair<VkBuffer, VkDeviceMemory> createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+													 VkMemoryPropertyFlags memoryProperties) const;
+	void copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const;
 
 public:
     VulkanRenderer();

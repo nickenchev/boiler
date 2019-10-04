@@ -444,6 +444,12 @@ void VulkanRenderer::initialize(const Size &size)
 				// load vertex and fragment SPIR-V shaders
 				program = std::make_unique<SPVShaderProgram>(device, "shaders/", "vert.spv", "frag.spv");
 
+				createSwapChain();
+				createRenderPass();
+				createGraphicsPipeline();
+				createFramebuffers();
+				createCommandPools();
+
 				VertexData vertData({
 					{ -0.5f, -0.5f, -0.5f },
 					{ 0.5f, -0.5f, -0.5f },
@@ -489,11 +495,6 @@ void VulkanRenderer::initialize(const Size &size)
 				});
 				testModel = loadModel(vertData);
 
-				createSwapChain();
-				createRenderPass();
-				createGraphicsPipeline();
-				createFramebuffers();
-				createCommandPools();
 				createCommandBuffers();
 				createSynchronization();
 			}
@@ -873,6 +874,7 @@ void VulkanRenderer::createCommandPools()
 	if (hasTransferQueue)
 	{
 		createPool(queueFamilyIndices.transfer.value(), &transferPool);
+		logger.log("Created dedicated transfer command pool");
 	}
 
 	VkCommandPoolCreateInfo commandPoolInfo = {};
@@ -888,8 +890,8 @@ void VulkanRenderer::createCommandBuffers()
 
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = commandPool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = commandPool;
 	allocInfo.commandBufferCount = static_cast<uint32_t>(framebuffers.size());
 
 	if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
@@ -1069,13 +1071,15 @@ void VulkanRenderer::setActiveTexture(std::shared_ptr<const Texture> texture) co
 {
 }
 
-std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) const
+std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+																 VkMemoryPropertyFlags memoryProperties) const
 {
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferInfo.size = data.size();
-	bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufferInfo.size = size;
+	bufferInfo.usage = usage;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	//bufferInfo.sharingMode = (hasTransferQueue) ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
 
 	VkBuffer buffer;
 	if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
@@ -1090,26 +1094,89 @@ std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) c
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits,
-											   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-											   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, memoryProperties);
 
 	VkDeviceMemory bufferMemory;
 	if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to allocate buffer memory");
 	}
-
 	// bind the memory to the buffer and map it
 	vkBindBufferMemory(device, buffer, bufferMemory, 0);
+
+	logger.log("Created buffer ({} bytes)", size);
+
+	return std::make_pair(buffer, bufferMemory);
+}
+
+VkQueue VulkanRenderer::getTransferQueue() const
+{
+	return (hasTransferQueue) ? transferQueue : graphicsQueue;
+}
+
+void VulkanRenderer::copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const
+{
+	VkCommandBufferAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = transferPool;
+	allocInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to allocate command buffer");
+	}
+
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	if(vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to begin allocate command buffer");
+	}
+
+	VkBufferCopy copyRegion = {};
+	copyRegion.size = dataSize;
+	copyRegion.srcOffset = 0;
+	copyRegion.dstOffset = 0;
+	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+	vkEndCommandBuffer(commandBuffer);
+
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	// TODO: Handle multi operations
+	vkQueueSubmit(getTransferQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(getTransferQueue());
+
+	vkFreeCommandBuffers(device, transferPool, 1, &commandBuffer);
+}
+
+std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) const
+{
+	VkDeviceSize bufferSize = data.size();
+	auto stageBufferPair = createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
 	void *mappedMem = nullptr;
-	vkMapMemory(device, bufferMemory, 0, bufferInfo.size, 0, &mappedMem);
-	memcpy(mappedMem, data.begin(), bufferInfo.size);
-	vkUnmapMemory(device, bufferMemory);
+	vkMapMemory(device, stageBufferPair.second, 0, bufferSize, 0, &mappedMem);
+	memcpy(mappedMem, data.begin(), bufferSize);
+	vkUnmapMemory(device, stageBufferPair.second);
 
-	logger.log("Generated model buffer (" + std::to_string(bufferInfo.size) + " bytes)");
+	// create a device-local buffer
+	auto bufferPair = createBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+								   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	return std::make_shared<VulkanModel>(device, buffer, bufferMemory, data);
+	copyBuffer(stageBufferPair.first, bufferPair.first, bufferSize);
+
+	vkDestroyBuffer(device, stageBufferPair.first, nullptr);
+	vkFreeMemory(device, stageBufferPair.second, nullptr);
+
+	return std::make_shared<VulkanModel>(device, bufferPair.first, bufferPair.second, data);
 }
 
 void VulkanRenderer::beginRender()
