@@ -104,7 +104,7 @@ GLSLShaderProgram::GLSLShaderProgram(std::string path, std::string vertexShader,
 	glDeleteShader(fragShader);
 }
 
-void GLSLShaderProgram::destroy()
+GLSLShaderProgram::~GLSLShaderProgram()
 {
 	logger.log("Cleaning Up");
     glDeleteProgram(shaderProgram);

@@ -10,10 +10,10 @@ class Renderer;
 
 class RenderSystem : public System
 {
-	const Renderer &renderer;
+	Renderer &renderer;
 
 public:
-	RenderSystem(const Renderer &renderer) : System("Render System"), renderer(renderer) { }
+	RenderSystem(Renderer &renderer) : System("Render System"), renderer(renderer) { }
 	void update(ComponentStore &store, const double delta) override;
 };
 

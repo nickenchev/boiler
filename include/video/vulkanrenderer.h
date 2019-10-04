@@ -5,9 +5,7 @@
 #include <optional>
 #include <set>
 
-#define VK_USE_PLATFORM_MACOS_MVK
-#include <vulkan/vulkan.h>
-
+#include "video/vulkan.h"
 #include "video/renderer.h"
 
 class SDL_Window;
@@ -15,20 +13,25 @@ class SDL_Window;
 namespace Boiler
 {
 
+class SPVShaderProgram;
+
 struct QueueFamilyIndices
 {
 	std::optional<uint32_t> graphics;
 	std::optional<uint32_t> presentation;
+	std::optional<uint32_t> transfer;
 };
 
 class VulkanRenderer : public Boiler::Renderer
 {
 	SDL_Window *win;
+	bool resizeOccured;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
-	VkQueue graphicsQueue, presentationQueue;
+	VkQueue graphicsQueue, presentationQueue, transferQueue;
+	bool hasTransferQueue;
 	VkSurfaceKHR surface;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
@@ -41,26 +44,40 @@ class VulkanRenderer : public Boiler::Renderer
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> framebuffers;
-	VkCommandPool commandPool;
+	VkCommandPool commandPool, transferPool;
 	std::vector<VkCommandBuffer> commandBuffers;
 	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
 	std::vector<VkFence> frameFences;
+	std::unique_ptr<SPVShaderProgram> program;
 	short currentFrame;
+
+	std::shared_ptr<const Model> testModel;
 
 	void createSwapChain();
 	void createRenderPass();
 	void createGraphicsPipeline();
 	void createFramebuffers();
-	void createCommandPool();
+
+	void createCommandPools();
 	void createCommandBuffers();
 	void createSynchronization();
+
+	void cleanupSwapchain();
+	void recreateSwapchain();
+
+	// memory/buffer operations
+	VkQueue getTransferQueue() const;
+	uint32_t findMemoryType(uint32_t filter, VkMemoryPropertyFlags flags) const;
+	std::pair<VkBuffer, VkDeviceMemory> createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
+													 VkMemoryPropertyFlags memoryProperties) const;
+	void copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const;
 
 public:
     VulkanRenderer();
 	~VulkanRenderer();
 
 	void initialize(const Boiler::Size &size) override;
-	void shutdown() override;
+	void resize(const Boiler::Size &size) override;
 	std::string getVersion() const override;
 
     std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const override;
@@ -73,7 +90,7 @@ public:
 
 	void render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
 				const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-				const glm::vec4 &colour) const override;
+				const glm::vec4 &colour) override;
 
     void showMessageBox(const std::string &title, const std::string &message) override;
 };

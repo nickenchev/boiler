@@ -8,7 +8,6 @@ class ShaderProgram
 {
 public:
 	virtual ~ShaderProgram() { }
-	virtual void destroy() = 0;
 };
 
 }

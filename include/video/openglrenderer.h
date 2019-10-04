@@ -15,6 +15,7 @@ namespace Boiler
 
 class Entity;
 class VertexData;
+class GLSLShaderProgram;
 
 class OpenGLRenderer : public Renderer
 {
@@ -24,13 +25,14 @@ class OpenGLRenderer : public Renderer
     SDL_Window *win = nullptr;
     unsigned int fbo, rbo;
 	RenderDetails renderDetails;
+	std::unique_ptr<GLSLShaderProgram> program;
 
 public:
     OpenGLRenderer(bool useGLES);
     ~OpenGLRenderer();
 
     void initialize(const Size &size) override;
-	void shutdown() override;
+    void resize(const Size &size) override;
     std::string getVersion() const override { return std::string(VERSION); }
 
     SDL_Window *getWindow() const { return win; }
@@ -46,7 +48,7 @@ public:
 
 	void render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
 				const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-				const glm::vec4 &colour) const override;
+				const glm::vec4 &colour) override;
 
     void showMessageBox(const std::string &title, const std::string &message) override;
 };

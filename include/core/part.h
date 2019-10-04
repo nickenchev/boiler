@@ -7,6 +7,8 @@
 namespace Boiler
 {
 
+class Engine;
+
 class Part
 {
 	std::string name;
@@ -20,7 +22,7 @@ public:
 
     virtual ~Part() { }
 
-    virtual void onStart() = 0;
+    virtual void onStart(Engine &engine) = 0;
     virtual void update(double deltaTime) = 0;
 };
 

@@ -45,7 +45,7 @@ SPVShaderProgram::SPVShaderProgram(VkDevice &device, std::string path,
 	fragStageInfo.pName = SHADER_ENTRY.c_str();
 }
 
-void SPVShaderProgram::destroy()
+SPVShaderProgram::~SPVShaderProgram()
 {
 	logger.log("Destroyed shader modules");
 	vkDestroyShaderModule(device, vertexModule, nullptr);
