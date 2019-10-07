@@ -45,6 +45,12 @@ public:
 		log(std::to_string(value));
 	}
 
+	template<typename... Args>
+	void error(std::string formatString, Args&&... args) const
+	{
+		printError(fmt::format(formatString, args...));
+	}
+
     void error(std::string message) const
 	{
 		printError(message);
