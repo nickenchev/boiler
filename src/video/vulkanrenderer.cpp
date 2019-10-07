@@ -203,7 +203,7 @@ void VulkanRenderer::initialize(const Size &size)
 					if (!layerFound)
 					{
 						layersOk = false;
-						logger.error("Layer: " + std::string(layerName) + " not found");
+						logger.error("Layer: {} not found", layerName);
 					}
 				}
 				assert(layersOk);
