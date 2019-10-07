@@ -330,19 +330,19 @@ void VulkanRenderer::initialize(const Size &size)
 					{
 						if (queueFamProp.queueCount)
 						{
-							if (queueFamProp.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+							if (queueFamProp.queueFlags & VK_QUEUE_GRAPHICS_BIT && !queueFamilyIndices.graphics.has_value())
 							{
 								queueFamilyIndices.graphics = i;
 								logger.log("Found graphics queue at index {}", i);
 							}
-							else if (queueFamProp.queueFlags & VK_QUEUE_TRANSFER_BIT)
+							else if (queueFamProp.queueFlags & VK_QUEUE_TRANSFER_BIT && !queueFamilyIndices.transfer.has_value())
 							{
 								queueFamilyIndices.transfer = i;
 								logger.log("Found transfer queue at index {}", i);
 							}
 							VkBool32 presentationSupport = false;
 							vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentationSupport);
-							if (presentationSupport)
+							if (presentationSupport && !queueFamilyIndices.presentation.has_value())
 							{
 								queueFamilyIndices.presentation = i;
 								logger.log("Found presentation queue at index {}", i);
