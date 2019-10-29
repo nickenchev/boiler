@@ -14,7 +14,4 @@ VulkanModel::~VulkanModel()
 {
 	vkDestroyBuffer(device, buffer, nullptr);
 	vkFreeMemory(device, bufferMemory, nullptr);
-
-	Logger logger("Model");
-	logger.log("Destroyed model data");
 }
