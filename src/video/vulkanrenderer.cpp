@@ -303,7 +303,6 @@ void VulkanRenderer::initialize(const Size &size)
 					vkGetPhysicalDeviceFeatures(device, &devFeats);
 
 					if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-						//&& devFeats.geometryShader)
 					{
 						logger.log("Using: " + std::string(devProps.deviceName));
 						physicalDevice = device;
