@@ -59,6 +59,7 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/video/vertexdata.cpp
   # Vulkan Rendering
   ${CMAKE_CURRENT_LIST_DIR}/src/video/vulkanrenderer.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/vulkanmodel.cpp
 
   # Platform Support
   ${CMAKE_CURRENT_LIST_DIR}/src/platform/sdlwindow.cpp
@@ -67,7 +68,8 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/video/openglrenderer.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/opengltexture.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/openglmodel.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/shaderprogram.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/glslshaderprogram.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/spvshaderprogram.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/imageloader.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/rendersystem.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/glyphsystem.cpp

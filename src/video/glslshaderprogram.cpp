@@ -2,9 +2,9 @@
 #include <fstream>
 #include <SDL.h>
 
+#include "video/glslshaderprogram.h"
 #include "core/engine.h"
 #include "video/renderer.h"
-#include "video/shaderprogram.h"
 #include "video/opengl.h"
 #include "util/filemanager.h"
 
@@ -43,7 +43,7 @@ GLint compileShader(const char *src, GLenum shaderType)
     return shader;
 }
 
-ShaderProgram::ShaderProgram(std::string path, std::string vertexShader, std::string fragmentShader) : logger("Shader Program " + vertexShader + ", " + fragmentShader)
+GLSLShaderProgram::GLSLShaderProgram(std::string path, std::string vertexShader, std::string fragmentShader) : logger("Shader Program " + vertexShader + ", " + fragmentShader)
 {
     std::string vertPath = path + vertexShader;
     std::string fragPath = path + fragmentShader;
@@ -104,7 +104,7 @@ ShaderProgram::ShaderProgram(std::string path, std::string vertexShader, std::st
 	glDeleteShader(fragShader);
 }
 
-ShaderProgram::~ShaderProgram()
+GLSLShaderProgram::~GLSLShaderProgram()
 {
 	logger.log("Cleaning Up");
     glDeleteProgram(shaderProgram);

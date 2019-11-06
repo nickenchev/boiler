@@ -45,6 +45,7 @@ class Engine
     std::vector<KeyInputListener> keyInputListeners;
 
     bool running = true;
+	bool paused = false;
 
     SpriteLoader spriteLoader;
     ImageLoader imageLoader;
@@ -69,6 +70,7 @@ public:
     void start(std::shared_ptr<Part> part);
     void quit() { running = false; }
 
+	Renderer &getRenderer() { return renderer; }
 	EntityComponentSystem &getEcs() { return ecs; }
     std::shared_ptr<Part> getPart() const { return part; }
 

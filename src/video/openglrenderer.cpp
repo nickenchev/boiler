@@ -16,6 +16,7 @@
 #include "core/components/spritecomponent.h"
 #include "core/components/textcomponent.h"
 #include "camera/camera.h"
+#include "video/glslshaderprogram.h"
 
 using namespace Boiler;
 
@@ -86,6 +87,8 @@ void checkOpenGLErrors()
 
 void OpenGLRenderer::initialize(const Size &screenSize)
 {
+	Renderer::initialize(screenSize);
+
     bool success = false;
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
@@ -134,7 +137,7 @@ void OpenGLRenderer::initialize(const Size &screenSize)
 				try
 				{
 					// compile the default shader program
-					program = std::make_unique<ShaderProgram>(shaderPath, "basic.vert", "basic.frag");
+					program = std::make_unique<GLSLShaderProgram>(shaderPath, "basic.vert", "basic.frag");
 					success = true;
 				}
 				catch (int exception)
@@ -176,9 +179,10 @@ void OpenGLRenderer::initialize(const Size &screenSize)
 	glEnable(GL_DEPTH_TEST);
 }
 
-void OpenGLRenderer::shutdown()
+void OpenGLRenderer::resize(const Size &size)
 {
-	SDL_VideoQuit();
+	Renderer::resize(size);
+	throw std::runtime_error("Resize not implemented!");
 }
 
 std::shared_ptr<const Texture> OpenGLRenderer::createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const
@@ -223,10 +227,9 @@ std::shared_ptr<const Model> OpenGLRenderer::loadModel(const VertexData &data) c
 
 void OpenGLRenderer::beginRender()
 {
-    const ShaderProgram *program = getProgram();
     if (program)
     {
-		renderDetails.shaderProgram = program;
+		renderDetails.shaderProgram = program.get();
         // grab the uniform locations
         glUseProgram(program->getShaderProgram());
         renderDetails.mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
@@ -260,9 +263,9 @@ void OpenGLRenderer::endRender()
 
 void OpenGLRenderer::render(const mat4 modelMatrix, const std::shared_ptr<const Model> model,
 							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-							const vec4 &colour) const
+							const vec4 &colour)
 {
-	glUseProgram(getProgram()->getShaderProgram());
+	glUseProgram(program->getShaderProgram());
 	if (model)
     {
         auto oglModel = std::static_pointer_cast<const OpenGLModel>(model);
@@ -346,4 +349,6 @@ OpenGLRenderer::~OpenGLRenderer()
     }
     glDeleteRenderbuffers(1, &rbo);
     glDeleteFramebuffers(1, &fbo);
+
+	SDL_VideoQuit();
 }
