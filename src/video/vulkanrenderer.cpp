@@ -579,6 +579,7 @@ void VulkanRenderer::createSwapChain()
 	{
 		throw std::runtime_error("Error creating swapchain");
 	}
+	logger.log("Created swapchain with {} images", imageCount);
 
 	// retrieve the images from the swapchain
 	u_int32_t swapImagesCount = 0;
@@ -1127,6 +1128,7 @@ void VulkanRenderer::copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDevic
 std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) const
 {
 	VkDeviceSize bufferSize = data.size();
+	// create a staging buffer (host), map memory anb copy from vert data > buffer
 	auto stageBufferPair = createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
@@ -1152,13 +1154,6 @@ void VulkanRenderer::beginRender()
 }
 
 void VulkanRenderer::endRender()
-{
-	currentFrame = (currentFrame + 1) & maxFramesInFlight;
-}
-
-void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
-							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-							const glm::vec4 &colour)
 {
 	uint32_t imageIndex = 0;
 	VkResult nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
@@ -1213,6 +1208,13 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	{
 		throw std::runtime_error("Error during image aquire");
 	}
+	currentFrame = (currentFrame + 1) & maxFramesInFlight;
+}
+
+void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
+							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
+							const glm::vec4 &colour)
+{
 }
 
 void VulkanRenderer::showMessageBox(const std::string &title, const std::string &message)
