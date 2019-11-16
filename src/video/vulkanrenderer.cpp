@@ -912,7 +912,7 @@ void VulkanRenderer::createCommandBuffers()
 
 		if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
 		{
-			throw std::runtime_error("Error ending the render pass");
+			throw std::runtime_error("Error ending the command buffer");
 		}
 	}
 }
