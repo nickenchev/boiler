@@ -872,48 +872,6 @@ void VulkanRenderer::createCommandBuffers()
 
 	for (size_t i = 0; i < commandBuffers.size(); ++i)
 	{
-		VkCommandBufferBeginInfo beginInfo = {};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = 0;
-		beginInfo.pInheritanceInfo = nullptr;
-
-		if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Could not begin command buffer");
-		}
-
-		// begin the render pass
-		VkRenderPassBeginInfo renderBeginInfo = {};
-		renderBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderBeginInfo.renderPass = renderPass;
-		renderBeginInfo.framebuffer = framebuffers[i];
-		renderBeginInfo.renderArea.offset = {0, 0};
-		renderBeginInfo.renderArea.extent = swapChainExtent;
-
-		// clear colour
-		VkClearValue clearColour = {0, 0, 0, 1.0f};
-		renderBeginInfo.clearValueCount = 1;
-		renderBeginInfo.pClearValues = &clearColour;
-
-		// perform the render pass
-		vkCmdBeginRenderPass(commandBuffers[i], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-
-		const VulkanModel *model = static_cast<const VulkanModel *>(testModel.get());
-		const std::array<VkBuffer, 1> buffers = {model->getBuffer()};
-		const std::array<VkDeviceSize, buffers.size()> offsets = {0};
-		
-		vkCmdBindVertexBuffers(commandBuffers[i], 0, buffers.size(), buffers.data(), offsets.data());
-
-		vkCmdDraw(commandBuffers[i], model->getNumVertices(), buffers.size(), 0, 0);
-
-		vkCmdEndRenderPass(commandBuffers[i]);
-
-		if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Error ending the command buffer");
-		}
 	}
 }
 
@@ -1151,24 +1109,68 @@ std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) c
 
 void VulkanRenderer::beginRender()
 {
+	nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
+											VK_NULL_HANDLE, &imageIndex);
+
+	if (nextImageResult == VK_SUCCESS)
+	{
+		// ensure current command buffer has finished executing before attempting to reuse it
+		vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
+		vkResetFences(device, 1, &frameFences[currentFrame]);
+
+		// submit data to command buffer
+		VkCommandBufferBeginInfo beginInfo = {};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = 0;
+		beginInfo.pInheritanceInfo = nullptr;
+
+		if (vkBeginCommandBuffer(commandBuffers[imageIndex], &beginInfo) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Could not begin command buffer");
+		}
+
+		// begin the render pass
+		VkRenderPassBeginInfo renderBeginInfo = {};
+		renderBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderBeginInfo.renderPass = renderPass;
+		renderBeginInfo.framebuffer = framebuffers[imageIndex];
+		renderBeginInfo.renderArea.offset = {0, 0};
+		renderBeginInfo.renderArea.extent = swapChainExtent;
+
+		// clear colour
+		VkClearValue clearColour = {0, 0, 0, 1.0f};
+		renderBeginInfo.clearValueCount = 1;
+		renderBeginInfo.pClearValues = &clearColour;
+
+		// perform the render pass
+		vkCmdBeginRenderPass(commandBuffers[imageIndex], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		vkCmdBindPipeline(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+	}
 }
 
 void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
 							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
 							const glm::vec4 &colour)
 {
+	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
+	const std::array<VkBuffer, 1> buffers = {vkmodel->getBuffer()};
+	const std::array<VkDeviceSize, buffers.size()> offsets = {0};
+
+	vkCmdBindVertexBuffers(commandBuffers[imageIndex], 0, buffers.size(), buffers.data(), offsets.data());
+	vkCmdDraw(commandBuffers[imageIndex], model->getNumVertices(), buffers.size(), 0, 0);
 }
 
 void VulkanRenderer::endRender()
 {
-	uint32_t imageIndex = 0;
-	VkResult nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
-													 VK_NULL_HANDLE, &imageIndex);
 	if (nextImageResult == VK_SUCCESS)
 	{
-		// perform synchronization
-		vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
-		vkResetFences(device, 1, &frameFences[currentFrame]);
+		vkCmdEndRenderPass(commandBuffers[imageIndex]);
+
+		if (vkEndCommandBuffer(commandBuffers[imageIndex]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Error ending the command buffer");
+		}
 	
 		// semaphore indexes match up with the stages at the respective array index
 		std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[currentFrame]};

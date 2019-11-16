@@ -50,6 +50,8 @@ class VulkanRenderer : public Boiler::Renderer
 	std::vector<VkFence> frameFences;
 	std::unique_ptr<SPVShaderProgram> program;
 	short currentFrame;
+	uint32_t imageIndex;
+	VkResult nextImageResult;
 
 	std::shared_ptr<const Model> testModel;
 
