@@ -11,10 +11,13 @@
 #include <SDL_vulkan.h>
 #include <SDL_syswm.h>
 #include <fmt/format.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "core/math.h"
 #include "video/spvshaderprogram.h"
 #include "video/vulkanmodel.h"
+#include "video/modelviewprojection.h"
 
 using namespace Boiler;
 constexpr bool enableValidationLayers = false;
@@ -51,7 +54,7 @@ VulkanRenderer::~VulkanRenderer()
 
 	cleanupSwapchain();
 
-	testModel.reset();
+	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
 	// delete the shader module
 	if (program)
@@ -449,20 +452,11 @@ void VulkanRenderer::initialize(const Size &size)
 
 				createSwapChain();
 				createRenderPass();
+				createDescriptorSetLayout();
 				createGraphicsPipeline();
 				createFramebuffers();
 				createCommandPools();
-
-				VertexData vertData({
-					{ -0.5f, -0.5f, 0 },
-					{ 0.5f, -0.5f, 0 },
-					{ 0.5f,  0.5f, 0 },
-					{ 0.5f,  0.5f, 0 },
-					{ -0.5f,  0.5f, 0 },
-					{ -0.5f, -0.5f, 0 },
-				});
-				testModel = loadModel(vertData);
-
+				createMvpBuffers();
 				createCommandBuffers();
 				createSynchronization();
 			}
@@ -760,8 +754,8 @@ void VulkanRenderer::createGraphicsPipeline()
 
 	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
 	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutCreateInfo.setLayoutCount = 0;
-	pipelineLayoutCreateInfo.pSetLayouts = nullptr;
+	pipelineLayoutCreateInfo.setLayoutCount = 1;
+	pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
 	pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
 	pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
@@ -823,6 +817,26 @@ void VulkanRenderer::createFramebuffers()
 		}
 	}
 	logger.log("Created framebuffers");
+}
+
+void VulkanRenderer::createDescriptorSetLayout()
+{
+	std::array<VkDescriptorSetLayoutBinding, 1> bindings;
+	bindings[0].binding = 0;
+	bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	bindings[0].descriptorCount = 1;
+	bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	bindings[0].pImmutableSamplers = nullptr;
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = bindings.size();
+	layoutInfo.pBindings = bindings.data();
+
+	if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error creating descriptor set layout");
+	}
 }
 
 void VulkanRenderer::createCommandPools()
@@ -899,6 +913,20 @@ void VulkanRenderer::createSynchronization()
 	}
 }
 
+void VulkanRenderer::createMvpBuffers()
+{
+	VkDeviceSize bufferSize = sizeof(ModelViewProjection);
+	mvpBuffers.resize(swapChainImages.size());
+	mvpBuffersMemory.resize(swapChainImages.size());
+
+	for (int i = 0; i < swapChainImages.size(); ++i)
+	{
+		auto buffPair = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		mvpBuffers[i] = buffPair.first;
+		mvpBuffersMemory[i] = buffPair.second;
+	}
+}
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
 													const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
@@ -927,6 +955,7 @@ void VulkanRenderer::recreateSwapchain()
 	createRenderPass();
 	createGraphicsPipeline();
 	createFramebuffers();
+	createMvpBuffers();
 	createCommandBuffers();
 }
 
@@ -1138,7 +1167,8 @@ void VulkanRenderer::beginRender()
 		renderBeginInfo.renderArea.extent = swapChainExtent;
 
 		// clear colour
-		VkClearValue clearColour = {0, 0, 0, 1.0f};
+		const vec3 &clearValue = getClearColor();
+		VkClearValue clearColour = {clearValue.r, clearValue.g, clearValue.b, 1.0f};
 		renderBeginInfo.clearValueCount = 1;
 		renderBeginInfo.pClearValues = &clearColour;
 
@@ -1175,6 +1205,20 @@ void VulkanRenderer::endRender()
 		// semaphore indexes match up with the stages at the respective array index
 		std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[currentFrame]};
 		std::array<VkPipelineStageFlags, 1> waitStages = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+
+		// setup uniforms
+		ModelViewProjection mvp = {};
+		mvp.model = mat4();
+		mvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
+		// flip since Vulkan Y is inverted
+		mvp.projection[1][1] *= -1;
+
+		// map uniform buffer and copy
+		void *data;
+		vkMapMemory(device, mvpBuffersMemory[imageIndex], 0, sizeof(mvp), 0, &data);
+		memcpy(data, &mvp, sizeof(mvp));
+		vkUnmapMemory(device, mvpBuffersMemory[imageIndex]);
 
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

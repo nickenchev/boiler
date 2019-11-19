@@ -41,6 +41,7 @@ class VulkanRenderer : public Boiler::Renderer
 	QueueFamilyIndices queueFamilyIndices;
 	std::set<uint32_t> uniqueQueueIndices;
 	VkRenderPass renderPass;
+	VkDescriptorSetLayout descriptorSetLayout;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> framebuffers;
@@ -48,24 +49,26 @@ class VulkanRenderer : public Boiler::Renderer
 	std::vector<VkCommandBuffer> commandBuffers;
 	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
 	std::vector<VkFence> frameFences;
+	std::vector<VkBuffer> mvpBuffers;
+	std::vector<VkDeviceMemory> mvpBuffersMemory;
 	std::unique_ptr<SPVShaderProgram> program;
 	short currentFrame;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
 
-	std::shared_ptr<const Model> testModel;
-
 	void createSwapChain();
 	void createRenderPass();
 	void createGraphicsPipeline();
 	void createFramebuffers();
+	void createDescriptorSetLayout();
 
 	void createCommandPools();
 	void createCommandBuffers();
 	void createSynchronization();
+	void createMvpBuffers();
 
-	void cleanupSwapchain();
 	void recreateSwapchain();
+	void cleanupSwapchain();
 
 	// memory/buffer operations
 	VkQueue getTransferQueue() const;
