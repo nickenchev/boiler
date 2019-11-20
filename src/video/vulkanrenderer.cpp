@@ -1177,6 +1177,21 @@ void VulkanRenderer::beginRender()
 
 		vkCmdBindPipeline(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 	}
+	else if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR || resizeOccured)
+	{
+		logger.log("Invalidated swapchain, recreating...");
+		// handle out of date images
+		resizeOccured = false;
+		recreateSwapchain();
+
+		// once swapchain is recreated, try again
+		beginRender();
+		logger.log("Swapchain recreated, command buffers reinitialized");
+	}
+	else
+	{
+		throw std::runtime_error("Error during image aquire");
+	}
 }
 
 void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
@@ -1249,16 +1264,6 @@ void VulkanRenderer::endRender()
 		presentInfo.pResults = nullptr;
 
 		vkQueuePresentKHR(presentationQueue, &presentInfo);
-	}
-	else if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR || resizeOccured)
-	{
-		// handle out of date images
-		resizeOccured = false;
-		recreateSwapchain();
-	}
-	else
-	{
-		throw std::runtime_error("Error during image aquire");
 	}
 	currentFrame = (currentFrame + 1) & maxFramesInFlight;
 }
