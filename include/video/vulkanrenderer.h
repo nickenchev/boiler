@@ -42,6 +42,8 @@ class VulkanRenderer : public Boiler::Renderer
 	std::set<uint32_t> uniqueQueueIndices;
 	VkRenderPass renderPass;
 	VkDescriptorSetLayout descriptorSetLayout;
+	VkDescriptorPool descriptorPool;
+	std::vector<VkDescriptorSet> descriptorSets;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> framebuffers;
@@ -61,6 +63,8 @@ class VulkanRenderer : public Boiler::Renderer
 	void createGraphicsPipeline();
 	void createFramebuffers();
 	void createDescriptorSetLayout();
+	void createDescriptorPool();
+	void createDescriptorSets();
 
 	void createCommandPools();
 	void createCommandBuffers();

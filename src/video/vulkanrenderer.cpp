@@ -457,6 +457,8 @@ void VulkanRenderer::initialize(const Size &size)
 				createFramebuffers();
 				createCommandPools();
 				createMvpBuffers();
+				createDescriptorPool();
+				createDescriptorSets();
 				createCommandBuffers();
 				createSynchronization();
 			}
@@ -837,6 +839,48 @@ void VulkanRenderer::createDescriptorSetLayout()
 	{
 		throw std::runtime_error("Error creating descriptor set layout");
 	}
+
+	logger.log("Created descriptor set layout");
+}
+
+void VulkanRenderer::createDescriptorPool()
+{
+	VkDescriptorPoolSize poolSize = {};
+	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSize.descriptorCount = swapChainImages.size();
+
+	VkDescriptorPoolCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	createInfo.poolSizeCount = 1;
+	createInfo.pPoolSizes = &poolSize;
+	createInfo.maxSets = swapChainImages.size();
+
+	if (vkCreateDescriptorPool(device, &createInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to create descriptor pool");
+	}
+
+	logger.log("Created descriptor pool");
+}
+
+void VulkanRenderer::createDescriptorSets()
+{
+	// need to copy layout into array of layouts since create call expects array
+	std::vector<VkDescriptorSetLayout> layouts(swapChainImages.size(), descriptorSetLayout);
+
+	VkDescriptorSetAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocInfo.descriptorPool = descriptorPool;
+	allocInfo.descriptorSetCount = swapChainImages.size();
+	allocInfo.pSetLayouts = layouts.data();
+
+	descriptorSets.resize(swapChainImages.size());
+	if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to allocate descriptor sets");
+	}
+
+	logger.log("Allocated {} descriptor sets", descriptorSets.size());
 }
 
 void VulkanRenderer::createCommandPools()
@@ -956,6 +1000,8 @@ void VulkanRenderer::recreateSwapchain()
 	createGraphicsPipeline();
 	createFramebuffers();
 	createMvpBuffers();
+	createDescriptorPool();
+	createDescriptorSets();
 	createCommandBuffers();
 }
 
@@ -994,6 +1040,9 @@ void VulkanRenderer::cleanupSwapchain()
 		vkDestroyImageView(device, imageView, nullptr);
 	}
 	logger.log("Destroyed image views");
+
+	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+	logger.log("Destroyed descriptor pool");
 
 	vkDestroySwapchainKHR(device, swapChain, nullptr);
 	logger.log("Swapchain destroyed");
@@ -1174,7 +1223,6 @@ void VulkanRenderer::beginRender()
 
 		// perform the render pass
 		vkCmdBeginRenderPass(commandBuffers[imageIndex], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
 		vkCmdBindPipeline(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 	}
 	else if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR || resizeOccured)
@@ -1198,6 +1246,41 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
 							const glm::vec4 &colour)
 {
+	// setup uniforms
+	ModelViewProjection mvp = {};
+	mvp.model = modelMatrix;
+	mvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
+	// flip since Vulkan Y is inverted
+	//mvp.projection[1][1] *= -1;
+
+	// map uniform buffer and copy
+	void *data;
+	vkMapMemory(device, mvpBuffersMemory[imageIndex], 0, sizeof(mvp), 0, &data);
+	memcpy(data, &mvp, sizeof(mvp));
+	vkUnmapMemory(device, mvpBuffersMemory[imageIndex]);
+
+	// setup descriptor sets
+	VkDescriptorBufferInfo bufferInfo = {};
+	bufferInfo.buffer = mvpBuffers[imageIndex];
+	bufferInfo.offset = 0;
+	bufferInfo.range = sizeof(ModelViewProjection);
+
+	VkWriteDescriptorSet descriptorWrite = {};
+	descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWrite.dstSet = descriptorSets[imageIndex];
+	descriptorWrite.dstBinding = 0;
+	descriptorWrite.dstArrayElement = 0;
+	descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	descriptorWrite.descriptorCount = 1;
+	descriptorWrite.pBufferInfo = &bufferInfo;
+	descriptorWrite.pImageInfo = nullptr;
+	descriptorWrite.pTexelBufferView = nullptr;
+
+	vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+
+	vkCmdBindDescriptorSets(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[imageIndex], 0, nullptr);
+
 	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
 	const std::array<VkBuffer, 1> buffers = {vkmodel->getBuffer()};
 	const std::array<VkDeviceSize, buffers.size()> offsets = {0};
@@ -1220,20 +1303,6 @@ void VulkanRenderer::endRender()
 		// semaphore indexes match up with the stages at the respective array index
 		std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[currentFrame]};
 		std::array<VkPipelineStageFlags, 1> waitStages = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-
-		// setup uniforms
-		ModelViewProjection mvp = {};
-		mvp.model = mat4();
-		mvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
-		// flip since Vulkan Y is inverted
-		mvp.projection[1][1] *= -1;
-
-		// map uniform buffer and copy
-		void *data;
-		vkMapMemory(device, mvpBuffersMemory[imageIndex], 0, sizeof(mvp), 0, &data);
-		memcpy(data, &mvp, sizeof(mvp));
-		vkUnmapMemory(device, mvpBuffersMemory[imageIndex]);
 
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
