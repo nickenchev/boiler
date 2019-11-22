@@ -38,7 +38,8 @@ public:
     SDL_Window *getWindow() const { return win; }
 	SDL_GLContext getGLContext() const { return glContext; }
 
-    std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const override;
+    std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize,
+												 const void *pixelData, u_int8_t bytesPerPixel) const override;
     void setActiveTexture(std::shared_ptr<const Texture> texture) const override;
 
     std::shared_ptr<const Model> loadModel(const VertexData &data) const override;

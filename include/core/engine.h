@@ -47,8 +47,8 @@ class Engine
     bool running = true;
 	bool paused = false;
 
-    SpriteLoader spriteLoader;
     ImageLoader imageLoader;
+    SpriteLoader spriteLoader;
     FontLoader fontLoader;
     double frameInterval;
 

@@ -19,8 +19,8 @@
 
 using namespace Boiler;
 
-Engine::Engine(Renderer &renderer) : logger("Engine"), renderer(renderer), baseDataPath(""), spriteLoader(renderer),
-										   imageLoader(renderer), fontLoader(renderer)
+Engine::Engine(Renderer &renderer) : logger("Engine"), renderer(renderer), baseDataPath(""), imageLoader(renderer),
+									 spriteLoader(imageLoader), fontLoader(renderer)
 {
 	logger.log("Engine instance created");
 	logger.log("Using renderer: " + renderer.getVersion());

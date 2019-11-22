@@ -44,7 +44,8 @@ public:
     const vec3 &getClearColor() const { return clearColor; }
     void setClearColor(const vec3 &color) { clearColor = color; }
 
-    virtual std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const = 0;
+    virtual std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize,
+														 const void *pixelData, u_int8_t bytesPerPixel) const = 0;
     virtual void setActiveTexture(std::shared_ptr<const Texture> texture) const = 0;
     virtual std::shared_ptr<const Model> loadModel(const VertexData &data) const = 0;
 

@@ -185,7 +185,8 @@ void OpenGLRenderer::resize(const Size &size)
 	throw std::runtime_error("Resize not implemented!");
 }
 
-std::shared_ptr<const Texture> OpenGLRenderer::createTexture(const std::string filePath, const Size &textureSize, const void *pixelData) const
+std::shared_ptr<const Texture> OpenGLRenderer::createTexture(const std::string filePath, const Size &textureSize,
+															 const void *pixelData, u_int8_t bytesPerPixel) const
 {
     GLuint texId;
     // create the opengl texture and fill it with surface data

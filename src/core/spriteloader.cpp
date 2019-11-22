@@ -20,7 +20,7 @@ SpriteLoader::SpriteLoader(const ImageLoader &imageLoader) : logger(std::string(
 
 const std::shared_ptr<const SpriteSheet> SpriteLoader::loadJsonArray(std::string filename) const
 {
-    logger.log("Loading " + filename);
+    logger.log("Loading {}", filename);
 
     //read the spritesheet manifest
     std::string jsonContent = FileManager::readTextFile(filename);

@@ -27,12 +27,13 @@ ImageLoader::ImageLoader(const Renderer &renderer) : logger(COMPONENT_NAME), ren
 
 const std::shared_ptr<const Texture> ImageLoader::loadImage(const std::string &filePath) const
 {
-	logger.log("Loading image: " + filePath);
+	logger.log("Loading image: {}", filePath);
 
     SDL_Surface *surface = readPNG(filePath);
 
     assert(surface != nullptr);
-    auto texture = renderer.createTexture(filePath, Size(surface->w, surface->h), surface->pixels);
+    auto texture = renderer.createTexture(filePath, Size(surface->w, surface->h),
+										  surface->pixels, surface->format->BytesPerPixel);
 
     SDL_FreeSurface(surface);
 
