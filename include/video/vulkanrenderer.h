@@ -87,6 +87,7 @@ class VulkanRenderer : public Boiler::Renderer
 	// image operations
 	std::pair<VkImage, VkDeviceMemory> createImage(const Size &imageSize, VkFormat format, VkImageTiling tiling,
 												   VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties) const;
+	VkImageView createImageView(VkImage image, VkFormat format) const;
 	void transitionImageLayout(VkImage image, VkFormat format,
 							   VkImageLayout oldLayout, VkImageLayout newLayout) const;
 	void copyBufferToImage(VkBuffer buffer, VkImage image, const Size &imageSize) const;

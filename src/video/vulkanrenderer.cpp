@@ -600,29 +600,9 @@ void VulkanRenderer::createSwapChain()
 
 	// create the image views
 	swapChainImageViews.resize(swapChainImages.size());
-
 	for (int i = 0; i < swapChainImages.size(); ++i)
 	{
-		const VkImage &image = swapChainImages[i];
-		VkImageViewCreateInfo imageViewCreateInfo = {};
-		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCreateInfo.image = image;
-		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		imageViewCreateInfo.format = swapChainFormat;
-		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-		imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-		imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-		imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-		imageViewCreateInfo.subresourceRange.levelCount = 1;
-		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-		imageViewCreateInfo.subresourceRange.layerCount = 1;
-
-		if (vkCreateImageView(device, &imageViewCreateInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Unable to create swapchain image view");
-		}
+		swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainFormat);
 	}
 }
 
@@ -1127,9 +1107,37 @@ std::pair<VkImage, VkDeviceMemory> VulkanRenderer::createImage(const Size &image
 	return std::make_pair(textureImage, textureMemory);
 }
 
+VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format) const
+{
+	VkImageViewCreateInfo imageViewCreateInfo = {};
+	imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	imageViewCreateInfo.image = image;
+	imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	imageViewCreateInfo.format = format;
+	imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+	imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+	imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+	imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+	imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+	imageViewCreateInfo.subresourceRange.levelCount = 1;
+	imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+	imageViewCreateInfo.subresourceRange.layerCount = 1;
+
+	VkImageView imageView;
+	if (vkCreateImageView(device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to create swapchain image view");
+	}
+
+	return imageView;
+}
+
 std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &filePath, const Size &textureSize,
 															 const void *pixelData, u_int8_t bytesPerPixel) const
 {
+	const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+
 	if (bytesPerPixel < 4)
 	{
 		throw std::runtime_error("Texture image must contain alpha channel");
@@ -1145,13 +1153,13 @@ std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &
 	memcpy(data, pixelData, static_cast<size_t>(bytesSize));
 	vkUnmapMemory(device, bufferPair.second);
 
-	auto imagePair = createImage(textureSize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+	auto imagePair = createImage(textureSize, format, VK_IMAGE_TILING_OPTIMAL,
 								 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 								 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 
 	// transition the image to transfer layout, copy the buffer pixel data to the image
-	transitionImageLayout(imagePair.first, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED,
+	transitionImageLayout(imagePair.first, format, VK_IMAGE_LAYOUT_UNDEFINED,
 						  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	copyBufferToImage(bufferPair.first, imagePair.first, textureSize);
 	
@@ -1160,7 +1168,7 @@ std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &
 	vkFreeMemory(device, bufferPair.second, nullptr);
 
 	// transition the image to a layout optimal for shader sampling
-	transitionImageLayout(imagePair.first, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+	transitionImageLayout(imagePair.first, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 						  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	logger.log("Generated image for {}", filePath);
@@ -1204,8 +1212,6 @@ std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createBuffer(VkDeviceSize si
 	}
 	// bind the memory to the buffer and map it
 	vkBindBufferMemory(device, buffer, bufferMemory, 0);
-
-	logger.log("Created buffer ({} bytes)", size);
 
 	return std::make_pair(buffer, bufferMemory);
 }
@@ -1354,6 +1360,8 @@ std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) c
 
 	vkDestroyBuffer(device, stageBufferPair.first, nullptr);
 	vkFreeMemory(device, stageBufferPair.second, nullptr);
+
+	logger.log("Created mondel buffer ({} bytes)", bufferSize);
 
 	return std::make_shared<VulkanModel>(device, bufferPair.first, bufferPair.second, data);
 }
