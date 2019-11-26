@@ -11,7 +11,6 @@ namespace Boiler
 
 class Logger
 {
-	static std::vector<std::string> buffer;
 	const std::string name;
 
 	void printInfo(const std::string &message) const
