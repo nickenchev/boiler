@@ -5,8 +5,10 @@
 #include <optional>
 #include <set>
 
+#include "core/rect.h"
 #include "video/vulkan.h"
 #include "video/renderer.h"
+#include "vulkan/vulkan_core.h"
 
 class SDL_Window;
 
@@ -31,7 +33,6 @@ class VulkanRenderer : public Boiler::Renderer
 	VkPhysicalDevice physicalDevice;
 	VkDevice device;
 	VkQueue graphicsQueue, presentationQueue, transferQueue;
-	bool hasTransferQueue;
 	VkSurfaceKHR surface;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
@@ -75,11 +76,20 @@ class VulkanRenderer : public Boiler::Renderer
 	void cleanupSwapchain();
 
 	// memory/buffer operations
-	VkQueue getTransferQueue() const;
 	uint32_t findMemoryType(uint32_t filter, VkMemoryPropertyFlags flags) const;
 	std::pair<VkBuffer, VkDeviceMemory> createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
 													 VkMemoryPropertyFlags memoryProperties) const;
+
+	VkCommandBuffer beginSingleTimeCommands() const;
+	void endSingleTimeCommands(const VkCommandBuffer &commandBuffer) const;
 	void copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const;
+
+	// image operations
+	std::pair<VkImage, VkDeviceMemory> createImage(const Size &imageSize, VkFormat format, VkImageTiling tiling,
+												   VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties) const;
+	void transitionImageLayout(VkImage image, VkFormat format,
+							   VkImageLayout oldLayout, VkImageLayout newLayout) const;
+	void copyBufferToImage(VkBuffer buffer, VkImage image, const Size &imageSize) const;
 
 public:
     VulkanRenderer();
@@ -89,7 +99,7 @@ public:
 	void resize(const Boiler::Size &size) override;
 	std::string getVersion() const override;
 
-    std::shared_ptr<const Texture> createTexture(const std::string filePath, const Size &textureSize,
+    std::shared_ptr<const Texture> createTexture(const std::string &filePath, const Size &textureSize,
 												 const void *pixelData, u_int8_t bytesPerPixel) const override;
     void setActiveTexture(std::shared_ptr<const Texture> texture) const override;
 

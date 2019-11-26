@@ -6,6 +6,10 @@
 #include <SDL_syswm.h>
 //#include <X11/Xlib-xcb.h>
 #include <cstring>
+#include <memory>
+#include <stdexcept>
+#include <sys/types.h>
+#include <utility>
 #include <vector>
 #include <SDL.h>
 #include <SDL_vulkan.h>
@@ -14,10 +18,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "SDL_atomic.h"
+#include "core/logger.h"
 #include "core/math.h"
 #include "video/spvshaderprogram.h"
 #include "video/vulkanmodel.h"
 #include "video/modelviewprojection.h"
+#include "vulkan/vulkan_core.h"
+#include "video/vktexture.h"
 
 using namespace Boiler;
 constexpr bool enableValidationLayers = false;
@@ -43,7 +51,6 @@ VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 {
 	currentFrame = 0;
 	resizeOccured = false;
-	hasTransferQueue = false;
 }
 
 VulkanRenderer::~VulkanRenderer()
@@ -74,7 +81,7 @@ VulkanRenderer::~VulkanRenderer()
 	// command related
 	vkDestroyCommandPool(device, commandPool, nullptr);
 	logger.log("Destroyed graphics command pool");
-	if (hasTransferQueue)
+	if (transferQueue != graphicsQueue)
 	{
 		vkDestroyCommandPool(device, transferPool, nullptr);
 		logger.log("Destroyed transfer command pool");
@@ -444,7 +451,11 @@ void VulkanRenderer::initialize(const Size &size)
 				if (queueFamilyIndices.transfer.has_value())
 				{
 					vkGetDeviceQueue(device, queueFamilyIndices.transfer.value(), 0, &transferQueue);
-					hasTransferQueue = true;
+				}
+				else
+				{
+					logger.log("Transfer queue will be the same as the graphics queue");
+					transferQueue = graphicsQueue;
 				}
 
 				// load vertex and fragment SPIR-V shaders
@@ -898,17 +909,21 @@ void VulkanRenderer::createCommandPools()
 	};
 
 	createPool(queueFamilyIndices.graphics.value(), &commandPool);
-	if (hasTransferQueue)
+	if (transferQueue != graphicsQueue)
 	{
 		createPool(queueFamilyIndices.transfer.value(), &transferPool);
 		logger.log("Created dedicated transfer command pool");
+	}
+	else
+	{
+		transferPool = commandPool;
+		logger.log("Transfer pool will be the same as the graphics pool");
 	}
 
 	VkCommandPoolCreateInfo commandPoolInfo = {};
 	commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	commandPoolInfo.queueFamilyIndex = queueFamilyIndices.graphics.value();
 	commandPoolInfo.flags = 0;
-
 }
 
 void VulkanRenderer::createCommandBuffers()
@@ -1067,37 +1082,84 @@ std::string VulkanRenderer::getVersion() const
 	return "Boiler Vulkan 1.0";
 }
 
-std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string filePath, const Size &textureSize,
-															 const void *pixelData, u_int8_t bytesPerPixel) const
+std::pair<VkImage, VkDeviceMemory> VulkanRenderer::createImage(const Size &imageSize, VkFormat format, VkImageTiling tiling,
+															   VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties) const
 {
-	VkDeviceSize imageSize = textureSize.width * textureSize.height * bytesPerPixel;
-	auto bufferPair = createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-	void *data;
-	vkMapMemory(device, bufferPair.second, 0, imageSize, 0, &data);
-	memcpy(data, pixelData, imageSize);
-	vkUnmapMemory(device, bufferPair.second);
-
 	VkImage textureImage;
 	VkDeviceMemory textureMemory;
 
 	VkImageCreateInfo imageInfo = {};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageInfo.extent.width = textureSize.width;
-	imageInfo.extent.height = textureSize.height;
+	imageInfo.extent.width = imageSize.width;
+	imageInfo.extent.height = imageSize.height;
 	imageInfo.extent.depth = 1;
 	imageInfo.mipLevels = 1;
 	imageInfo.arrayLayers = 1;
-	imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
-	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	imageInfo.format = format;
+	imageInfo.tiling = tiling;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	imageInfo.usage = usage;
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	imageInfo.flags = 0;
 
-	return nullptr;
+	if (vkCreateImage(device, &imageInfo, nullptr, &textureImage) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error creating image");
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetImageMemoryRequirements(device, textureImage, &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, memProperties);
+
+	if (vkAllocateMemory(device, &allocInfo, nullptr, &textureMemory) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error allocating image memory");
+	}
+
+	vkBindImageMemory(device, textureImage, textureMemory, 0);
+
+	return std::make_pair(textureImage, textureMemory);
+}
+
+std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &filePath, const Size &textureSize,
+															 const void *pixelData, u_int8_t bytesPerPixel) const
+{
+	if (bytesPerPixel < 4)
+	{
+		throw std::runtime_error("Texture image must contain alpha channel");
+	}
+
+	VkDeviceSize bytesSize = textureSize.width * textureSize.height * bytesPerPixel;
+	auto bufferPair = createBuffer(bytesSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+								   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	logger.log("Staging {} bytes of data", bytesSize);
+	void *data = nullptr;
+	vkMapMemory(device, bufferPair.second, 0, static_cast<size_t>(bytesSize), 0, &data);
+	memcpy(data, pixelData, static_cast<size_t>(bytesSize));
+	vkUnmapMemory(device, bufferPair.second);
+
+	auto imagePair = createImage(textureSize, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+								 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+								 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+	// transition the image to transfer layout, copy the buffer pixel data to the image
+	transitionImageLayout(imagePair.first, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED,
+						  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	copyBufferToImage(bufferPair.first, imagePair.first, textureSize);
+
+	// transition the image to a layout optimal for shader sampling
+	transitionImageLayout(imagePair.first, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+						  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	logger.log("Generated image for {}", filePath);
+	return std::make_shared<VkTexture>(filePath, device, imagePair.first, imagePair.second);
 }
 
 void VulkanRenderer::setActiveTexture(std::shared_ptr<const Texture> texture) const
@@ -1112,7 +1174,7 @@ std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createBuffer(VkDeviceSize si
 	bufferInfo.size = size;
 	bufferInfo.usage = usage;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	//bufferInfo.sharingMode = (hasTransferQueue) ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
+	//TODO: bufferInfo.sharingMode = (hasTransferQueue) ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
 
 	VkBuffer buffer;
 	if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
@@ -1142,12 +1204,7 @@ std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createBuffer(VkDeviceSize si
 	return std::make_pair(buffer, bufferMemory);
 }
 
-VkQueue VulkanRenderer::getTransferQueue() const
-{
-	return (hasTransferQueue) ? transferQueue : graphicsQueue;
-}
-
-void VulkanRenderer::copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const
+VkCommandBuffer VulkanRenderer::beginSingleTimeCommands() const
 {
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1169,12 +1226,12 @@ void VulkanRenderer::copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDevic
 		throw std::runtime_error("Unable to begin allocate command buffer");
 	}
 
-	VkBufferCopy copyRegion = {};
-	copyRegion.size = dataSize;
-	copyRegion.srcOffset = 0;
-	copyRegion.dstOffset = 0;
-	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
+	return commandBuffer;
+}
+
+void VulkanRenderer::endSingleTimeCommands(const VkCommandBuffer &commandBuffer) const
+{
 	vkEndCommandBuffer(commandBuffer);
 
 	VkSubmitInfo submitInfo = {};
@@ -1183,10 +1240,70 @@ void VulkanRenderer::copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDevic
 	submitInfo.pCommandBuffers = &commandBuffer;
 
 	// TODO: Handle multi operations
-	vkQueueSubmit(getTransferQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(getTransferQueue());
+	vkQueueSubmit(transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(transferQueue);
 
 	vkFreeCommandBuffers(device, transferPool, 1, &commandBuffer);
+}
+
+void VulkanRenderer::copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const
+{
+	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+	
+	VkBufferCopy copyRegion = {};
+	copyRegion.size = dataSize;
+	copyRegion.srcOffset = 0;
+	copyRegion.dstOffset = 0;
+	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+	endSingleTimeCommands(commandBuffer);
+}
+
+void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format,
+										   VkImageLayout oldLayout, VkImageLayout newLayout) const
+{
+	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+	VkImageMemoryBarrier barrier = {};
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.oldLayout = oldLayout;
+	barrier.newLayout = newLayout;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.image = image;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+	barrier.srcAccessMask = 0;
+	barrier.dstAccessMask = 0;
+
+	vkCmdPipelineBarrier(commandBuffer, 0, 0, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+	endSingleTimeCommands(commandBuffer);
+}
+
+void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, const Size &imageSize) const
+{
+	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+	VkBufferImageCopy region = {};
+	region.bufferOffset = 0;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
+
+	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
+
+	region.imageOffset = {0, 0, 0};
+	region.imageExtent = {static_cast<u_int32_t>(imageSize.width), static_cast<u_int32_t>(imageSize.height), 1};
+
+	vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+	endSingleTimeCommands(commandBuffer);
 }
 
 std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) const
