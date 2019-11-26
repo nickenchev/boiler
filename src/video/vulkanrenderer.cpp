@@ -28,7 +28,7 @@
 #include "video/vktexture.h"
 
 using namespace Boiler;
-constexpr bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 
@@ -900,7 +900,7 @@ void VulkanRenderer::createCommandPools()
 		VkCommandPoolCreateInfo commandPoolInfo = {};
 		commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		commandPoolInfo.queueFamilyIndex = index;
-		commandPoolInfo.flags = 0;
+		commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 		if (vkCreateCommandPool(device, &commandPoolInfo, nullptr, pool) != VK_SUCCESS)
 		{
@@ -1340,6 +1340,9 @@ void VulkanRenderer::beginRender()
 		// ensure current command buffer has finished executing before attempting to reuse it
 		vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
 		vkResetFences(device, 1, &frameFences[currentFrame]);
+
+		// reset the command buffer
+		vkResetCommandBuffer(commandBuffers[imageIndex], 0);
 
 		// submit data to command buffer
 		VkCommandBufferBeginInfo beginInfo = {};
