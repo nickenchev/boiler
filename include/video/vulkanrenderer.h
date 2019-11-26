@@ -58,6 +58,7 @@ class VulkanRenderer : public Boiler::Renderer
 	short currentFrame;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
+	VkSampler textureSampler;
 
 	void createSwapChain();
 	void createRenderPass();
@@ -66,14 +67,13 @@ class VulkanRenderer : public Boiler::Renderer
 	void createDescriptorSetLayout();
 	void createDescriptorPool();
 	void createDescriptorSets();
-
 	void createCommandPools();
 	void createCommandBuffers();
 	void createSynchronization();
 	void createMvpBuffers();
-
 	void recreateSwapchain();
 	void cleanupSwapchain();
+	void createTextureSampler();
 
 	// memory/buffer operations
 	uint32_t findMemoryType(uint32_t filter, VkMemoryPropertyFlags flags) const;

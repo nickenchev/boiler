@@ -13,15 +13,18 @@ class VkTexture : public Texture
 	const VkDevice &device;
 	const VkImage image;
 	const VkDeviceMemory memory;
+	const VkImageView imageView;
 
 public:
-    VkTexture(const std::string &filePath, const VkDevice &device, const VkImage image, const VkDeviceMemory memory)
-		: device(device), image(image), memory(memory), Texture(filePath)
+    VkTexture(const std::string &filePath, const VkDevice &device, const VkImage image,
+			  const VkDeviceMemory memory, const VkImageView imageView)
+		: device(device), image(image), memory(memory), imageView(imageView), Texture(filePath)
 	{
 	}
 
 	~VkTexture()
 	{
+		vkDestroyImageView(device, imageView, nullptr);
 		vkFreeMemory(device, memory, nullptr);
 		vkDestroyImage(device, image, nullptr);
 	}

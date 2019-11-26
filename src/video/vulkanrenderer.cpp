@@ -31,6 +31,7 @@ using namespace Boiler;
 constexpr bool enableValidationLayers = false;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
+constexpr int maxAnistrophy = 16;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -94,6 +95,9 @@ VulkanRenderer::~VulkanRenderer()
 		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
 		destroyFunc(instance, debugMessenger, nullptr);
 	}
+
+	vkDestroySampler(device, textureSampler, nullptr);
+	logger.log("Destroyed sampler");
 
 	// cleanup Vulkan device and instance
 	vkDestroyDevice(device, nullptr);
@@ -312,7 +316,8 @@ void VulkanRenderer::initialize(const Size &size)
 					VkPhysicalDeviceFeatures devFeats;
 					vkGetPhysicalDeviceFeatures(device, &devFeats);
 
-					if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+					if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+						&& devFeats.samplerAnisotropy)
 					{
 						logger.log("Using: " + std::string(devProps.deviceName));
 						physicalDevice = device;
@@ -415,6 +420,7 @@ void VulkanRenderer::initialize(const Size &size)
 
 				// declare device features
 				VkPhysicalDeviceFeatures deviceFeatures = {};
+				deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 				// create the logical device
 				VkDeviceCreateInfo deviceCreateInfo = {};
@@ -952,6 +958,32 @@ void VulkanRenderer::createSynchronization()
 	}
 }
 
+void VulkanRenderer::createTextureSampler()
+{
+	VkSamplerCreateInfo samplerInfo = {};
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.anisotropyEnable = VK_TRUE;
+	samplerInfo.maxAnisotropy = maxAnistrophy;
+	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.compareEnable = VK_FALSE;
+	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerInfo.mipLodBias = 0.0f;
+	samplerInfo.minLod = 0.0f;
+	samplerInfo.maxLod = 0.0f;
+
+	if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error creating sampler");
+	}
+}
+
 void VulkanRenderer::createMvpBuffers()
 {
 	VkDeviceSize bufferSize = sizeof(ModelViewProjection);
@@ -964,24 +996,6 @@ void VulkanRenderer::createMvpBuffers()
 		mvpBuffers[i] = buffPair.first;
 		mvpBuffersMemory[i] = buffPair.second;
 	}
-}
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-													VkDebugUtilsMessageTypeFlagsEXT messageType,
-													const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
-													void* userData)
-{
-	Logger *logger = static_cast<Logger *>(userData);
-	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-	{
-		logger->error(callbackData->pMessage);
-	}
-	else
-	{
-		logger->log(callbackData->pMessage);
-	}
-
-	return VK_FALSE;
 }
 
 void VulkanRenderer::recreateSwapchain()
@@ -1171,9 +1185,10 @@ std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &
 	transitionImageLayout(imagePair.first, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 						  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	logger.log("Generated image for {}", filePath);
+	VkImageView imageView = createImageView(imagePair.first, format);
+	logger.log("Loaded texture data for {}", filePath);
 
-	return std::make_shared<VkTexture>(filePath, device, imagePair.first, imagePair.second);
+	return std::make_shared<VkTexture>(filePath, device, imagePair.first, imagePair.second, imageView);
 }
 
 void VulkanRenderer::setActiveTexture(std::shared_ptr<const Texture> texture) const
@@ -1523,4 +1538,22 @@ void VulkanRenderer::endRender()
 
 void VulkanRenderer::showMessageBox(const std::string &title, const std::string &message)
 {
+}
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+													VkDebugUtilsMessageTypeFlagsEXT messageType,
+													const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
+													void* userData)
+{
+	Logger *logger = static_cast<Logger *>(userData);
+	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+	{
+		logger->error(callbackData->pMessage);
+	}
+	else
+	{
+		logger->log(callbackData->pMessage);
+	}
+
+	return VK_FALSE;
 }
