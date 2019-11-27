@@ -33,6 +33,7 @@ public:
 	virtual ~Renderer() { }
 
     virtual void initialize(const Size &size);
+	virtual void prepareShutdown() = 0;
 	virtual void resize(const Size &size);
     virtual std::string getVersion() const = 0;
 

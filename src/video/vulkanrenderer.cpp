@@ -54,12 +54,15 @@ VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 	resizeOccured = false;
 }
 
-VulkanRenderer::~VulkanRenderer()
+void VulkanRenderer::prepareShutdown()
 {
 	// wait for all queues to empty prior to cleaning up
 	// validation layers can cause memory leaks without this
 	vkDeviceWaitIdle(device);
+}
 
+VulkanRenderer::~VulkanRenderer()
+{
 	cleanupSwapchain();
 
 	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
@@ -830,13 +833,22 @@ void VulkanRenderer::createFramebuffers()
 
 void VulkanRenderer::createDescriptorSetLayout()
 {
-	std::array<VkDescriptorSetLayoutBinding, 1> bindings;
+	std::array<VkDescriptorSetLayoutBinding, 2> bindings;
+
+	// UBO binding
 	bindings[0].binding = 0;
 	bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	bindings[0].descriptorCount = 1;
 	bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	bindings[0].pImmutableSamplers = nullptr;
 
+	// sampler binding
+	bindings[1].binding = 1;
+	bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	bindings[1].descriptorCount = 1;
+	bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	bindings[1].pImmutableSamplers = nullptr;
+	
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layoutInfo.bindingCount = bindings.size();
@@ -847,19 +859,22 @@ void VulkanRenderer::createDescriptorSetLayout()
 		throw std::runtime_error("Error creating descriptor set layout");
 	}
 
-	logger.log("Created descriptor set layout");
+	logger.log("Created {} descriptor set layouts", bindings.size());
 }
 
 void VulkanRenderer::createDescriptorPool()
 {
-	VkDescriptorPoolSize poolSize = {};
-	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSize.descriptorCount = swapChainImages.size();
+	std::array<VkDescriptorPoolSize, 2> poolSizes;
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = swapChainImages.size();
+
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = swapChainImages.size();
 
 	VkDescriptorPoolCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = 1;
-	createInfo.pPoolSizes = &poolSize;
+	createInfo.poolSizeCount = poolSizes.size();
+	createInfo.pPoolSizes = poolSizes.data();
 	createInfo.maxSets = swapChainImages.size();
 
 	if (vkCreateDescriptorPool(device, &createInfo, nullptr, &descriptorPool) != VK_SUCCESS)
@@ -1241,12 +1256,12 @@ std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createBuffer(VkDeviceSize si
 	return std::make_pair(buffer, bufferMemory);
 }
 
-VkCommandBuffer VulkanRenderer::beginSingleTimeCommands() const
+VkCommandBuffer VulkanRenderer::beginSingleTimeCommands(const VkCommandPool &pool) const
 {
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = transferPool;
+	allocInfo.commandPool = pool;
 	allocInfo.commandBufferCount = 1;
 
 	VkCommandBuffer commandBuffer;
@@ -1266,25 +1281,25 @@ VkCommandBuffer VulkanRenderer::beginSingleTimeCommands() const
 	return commandBuffer;
 }
 
-void VulkanRenderer::endSingleTimeCommands(const VkCommandBuffer &commandBuffer) const
+void VulkanRenderer::endSingleTimeCommands(const VkQueue &queue, const VkCommandPool &pool, const VkCommandBuffer &buffer) const
 {
-	vkEndCommandBuffer(commandBuffer);
+	vkEndCommandBuffer(buffer);
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffer;
+	submitInfo.pCommandBuffers = &buffer;
 
 	// TODO: Handle multi operations
-	vkQueueSubmit(transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(transferQueue);
+	vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(queue);
 
-	vkFreeCommandBuffers(device, transferPool, 1, &commandBuffer);
+	vkFreeCommandBuffers(device, pool, 1, &buffer);
 }
 
 void VulkanRenderer::copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const
 {
-	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = beginSingleTimeCommands(transferPool);
 	
 	VkBufferCopy copyRegion = {};
 	copyRegion.size = dataSize;
@@ -1292,13 +1307,13 @@ void VulkanRenderer::copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDevic
 	copyRegion.dstOffset = 0;
 	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-	endSingleTimeCommands(commandBuffer);
+	endSingleTimeCommands(transferQueue, transferPool, commandBuffer);
 }
 
 void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format,
 										   VkImageLayout oldLayout, VkImageLayout newLayout) const
 {
-	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool);
 
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1340,12 +1355,12 @@ void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format,
 	vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0,
 						 nullptr, 0, nullptr, 1, &barrier);
 
-	endSingleTimeCommands(commandBuffer);
+	endSingleTimeCommands(graphicsQueue, commandPool, commandBuffer);
 }
 
 void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, const Size &imageSize) const
 {
-	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = beginSingleTimeCommands(transferPool);
 
 	VkBufferImageCopy region = {};
 	region.bufferOffset = 0;
@@ -1362,7 +1377,7 @@ void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, const Siz
 
 	vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-	endSingleTimeCommands(commandBuffer);
+	endSingleTimeCommands(transferQueue, transferPool, commandBuffer);
 }
 
 std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) const

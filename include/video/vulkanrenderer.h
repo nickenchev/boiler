@@ -80,8 +80,8 @@ class VulkanRenderer : public Boiler::Renderer
 	std::pair<VkBuffer, VkDeviceMemory> createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
 													 VkMemoryPropertyFlags memoryProperties) const;
 
-	VkCommandBuffer beginSingleTimeCommands() const;
-	void endSingleTimeCommands(const VkCommandBuffer &commandBuffer) const;
+	VkCommandBuffer beginSingleTimeCommands(const VkCommandPool &pool) const;
+	void endSingleTimeCommands(const VkQueue &queue, const VkCommandPool &pool, const VkCommandBuffer &buffer) const;
 	void copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const;
 
 	// image operations
@@ -97,6 +97,7 @@ public:
 	~VulkanRenderer();
 
 	void initialize(const Boiler::Size &size) override;
+	void prepareShutdown() override;
 	void resize(const Boiler::Size &size) override;
 	std::string getVersion() const override;
 

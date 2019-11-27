@@ -2,6 +2,7 @@
 #include <chrono>
 #include <thread>
 
+#include "SDL_video.h"
 #include "video/opengl.h"
 #include "boiler.h"
 #include "video/renderer.h"
@@ -117,6 +118,8 @@ void Engine::run()
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
 	}
+	// prepare wait for any renderer commands to finish
+	renderer.prepareShutdown();
 }
 
 void Engine::processEvents()
