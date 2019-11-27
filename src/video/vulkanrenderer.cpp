@@ -1401,7 +1401,7 @@ std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) c
 	vkDestroyBuffer(device, stageBufferPair.first, nullptr);
 	vkFreeMemory(device, stageBufferPair.second, nullptr);
 
-	logger.log("Created mondel buffer ({} bytes)", bufferSize);
+	logger.log("Created model buffer ({} bytes)", bufferSize);
 
 	return std::make_shared<VulkanModel>(device, bufferPair.first, bufferPair.second, data);
 }
@@ -1473,7 +1473,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	// setup uniforms
 	ModelViewProjection mvp = {};
 	mvp.model = modelMatrix;
-	mvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	mvp.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
 	// flip since Vulkan Y is inverted
 	mvp.projection[1][1] *= -1;

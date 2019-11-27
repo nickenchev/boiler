@@ -118,7 +118,7 @@ void Engine::run()
 			std::this_thread::sleep_for(std::chrono::milliseconds(50));
 		}
 	}
-	// prepare wait for any renderer commands to finish
+	// wait for any renderer commands to finish before destructors kick in
 	renderer.prepareShutdown();
 }
 
