@@ -28,7 +28,7 @@
 #include "video/vktexture.h"
 
 using namespace Boiler;
-constexpr bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
@@ -94,6 +94,16 @@ VulkanRenderer::~VulkanRenderer()
 		std::string funcName{"vkDestroyDebugUtilsMessengerEXT"};
 		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
 		destroyFunc(instance, debugMessenger, nullptr);
+	}
+
+	// TODO: Change MVP buffer cleanup
+	for (VkBuffer buffer : mvpBuffers)
+	{
+		vkDestroyBuffer(device, buffer, nullptr);
+	}
+	for (VkDeviceMemory memory : mvpBuffersMemory)
+	{
+		vkFreeMemory(device, memory, nullptr);
 	}
 
 	vkDestroySampler(device, textureSampler, nullptr);
