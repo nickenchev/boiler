@@ -491,6 +491,7 @@ void VulkanRenderer::initialize(const Size &size)
 				createDescriptorSets();
 				createCommandBuffers();
 				createSynchronization();
+				createTextureSampler();
 			}
         }
     }
@@ -833,7 +834,7 @@ void VulkanRenderer::createFramebuffers()
 
 void VulkanRenderer::createDescriptorSetLayout()
 {
-	std::array<VkDescriptorSetLayoutBinding, 2> bindings;
+	std::array<VkDescriptorSetLayoutBinding, 2> bindings = {};
 
 	// UBO binding
 	bindings[0].binding = 0;
@@ -864,7 +865,7 @@ void VulkanRenderer::createDescriptorSetLayout()
 
 void VulkanRenderer::createDescriptorPool()
 {
-	std::array<VkDescriptorPoolSize, 2> poolSizes;
+	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = swapChainImages.size();
 
@@ -1228,7 +1229,6 @@ std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createBuffer(VkDeviceSize si
 	bufferInfo.size = size;
 	bufferInfo.usage = usage;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	//TODO: bufferInfo.sharingMode = (hasTransferQueue) ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE;
 
 	VkBuffer buffer;
 	if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS)
@@ -1475,6 +1475,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	mvp.model = modelMatrix;
 	mvp.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
+
 	// flip since Vulkan Y is inverted
 	mvp.projection[1][1] *= -1;
 
@@ -1484,25 +1485,39 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	memcpy(data, &mvp, sizeof(mvp));
 	vkUnmapMemory(device, mvpBuffersMemory[imageIndex]);
 
+	auto texture = static_cast<const VkTexture *>(sourceTexture.get());
+
 	// setup descriptor sets
 	VkDescriptorBufferInfo bufferInfo = {};
 	bufferInfo.buffer = mvpBuffers[imageIndex];
 	bufferInfo.offset = 0;
 	bufferInfo.range = sizeof(ModelViewProjection);
 
-	VkWriteDescriptorSet descriptorWrite = {};
-	descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrite.dstSet = descriptorSets[imageIndex];
-	descriptorWrite.dstBinding = 0;
-	descriptorWrite.dstArrayElement = 0;
-	descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descriptorWrite.descriptorCount = 1;
-	descriptorWrite.pBufferInfo = &bufferInfo;
-	descriptorWrite.pImageInfo = nullptr;
-	descriptorWrite.pTexelBufferView = nullptr;
+	VkDescriptorImageInfo imageInfo = {};
+	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imageInfo.imageView = texture->getImageView();
+	imageInfo.sampler = textureSampler;
 
-	vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, nullptr);
+	std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+	// MVP uniform
+	descriptorWrites[0].dstBinding = 0;
+	descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWrites[0].dstSet = descriptorSets[imageIndex];
+	descriptorWrites[0].dstArrayElement = 0;
+	descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	descriptorWrites[0].descriptorCount = 1;
+	descriptorWrites[0].pBufferInfo = &bufferInfo;
 
+	// texture
+	descriptorWrites[1].dstBinding = 1;
+	descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWrites[1].dstSet = descriptorSets[imageIndex];
+	descriptorWrites[1].dstArrayElement = 0;
+	descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	descriptorWrites[1].descriptorCount = 1;
+	descriptorWrites[1].pImageInfo = &imageInfo;
+
+	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 	vkCmdBindDescriptorSets(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[imageIndex], 0, nullptr);
 
 	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
@@ -1523,7 +1538,7 @@ void VulkanRenderer::endRender()
 		{
 			throw std::runtime_error("Error ending the command buffer");
 		}
-	
+
 		// semaphore indexes match up with the stages at the respective array index
 		std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[currentFrame]};
 		std::array<VkPipelineStageFlags, 1> waitStages = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};

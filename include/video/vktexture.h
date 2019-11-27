@@ -28,6 +28,8 @@ public:
 		vkFreeMemory(device, memory, nullptr);
 		vkDestroyImage(device, image, nullptr);
 	}
+
+	const VkImageView &getImageView() const { return imageView; }
 };
 
 }
