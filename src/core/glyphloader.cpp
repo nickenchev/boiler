@@ -129,17 +129,17 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		GLfloat sizeW = destRect.size.width * scale;
 		GLfloat sizeH = destRect.size.height * scale;
 
-		VertexData vertData(
-		{
-			{ 0.0f, sizeH, 0.0f },
-			{ sizeW, 0.0f, 0.0f },
-			{ 0.0f, 0.0f, 0.0f },
+		/*
+		std::vector<Vertex> verts = {
+			0.0f, sizeH, 0.0f,
+			sizeW, 0.0f, 0.0f,
+			0.0f, 0.0f, 0.0f,
 
-			{ 0.0f, sizeH, 0.0f },
-			{ sizeW, sizeH, 0.0f },
-			{ sizeW, 0.0f, 0.0f }
-
-		});
+			0.0f, sizeH, 0.0f,
+			sizeW, sizeH, 0.0f,
+			sizeW, 0.0f, 0.0f
+		};
+		VertexData vertData(verts);
 
 		const auto texCoords = TextureUtil::getTextureCoords(atlasSize, destRect);
 
@@ -157,6 +157,7 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		glyphMap.insert({code, Glyph(code, renderer.loadModel(vertData), std::make_shared<OpenGLTextureInfo>(texCoordVbo),
 									 destRect, glm::ivec2(bearing.x, bearing.y), ftGlyph->advance.x)});
 
+		*/
 		FT_Done_Glyph(ftGlyph);
 	}
 	FT_Done_Face(face);

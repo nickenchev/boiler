@@ -8,37 +8,26 @@
 namespace Boiler
 {
 
+struct Vertex
+{
+	glm::vec3 position;
+	glm::vec4 colour;
+	glm::vec2 textureCoordinate;
+};
+
 class VertexData
 {
     bool owned;
-    std::vector<vec3> vertices;
+    std::vector<Vertex> vertices;
 
 public:
-    VertexData(const std::vector<vec3> &vertices);
-
-	template<size_t SIZE>
-	VertexData(std::array<float, SIZE> vertices)
+	VertexData(const std::vector<Vertex> &vertices) : vertices(vertices)
 	{
-		const size_t vertexCount = vertices.size();
-		if (vertexCount % 3 > 0)
-		{
-			throw std::runtime_error("Invalid vertex data passed, count must be divisible by 3 (x, y, z)");
-		}
-
-		const short vertDataCount = 3;
-		this->vertices.resize(vertexCount / vertDataCount);
-
-		for (int i = 0; i < vertexCount; i += vertDataCount)
-		{
-			this->vertices.push_back(glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]));
-		}
-
-		owned = false;
 	}
 
-    const float *begin() const { return &(vertices[0].x); }
+    const float *begin() const { return &(vertices[0].position.x); }
     int length() const { return vertices.size(); }
-    int size() const { return vertices.size() * sizeof(vec3); }
+    int size() const { return vertices.size() * sizeof(Vertex); }
 };
 
 }

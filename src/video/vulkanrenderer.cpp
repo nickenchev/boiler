@@ -677,21 +677,33 @@ void VulkanRenderer::createGraphicsPipeline()
 	// Vertex input stage
 	VkVertexInputBindingDescription inputBind = {};
 	inputBind.binding = 0;
-	inputBind.stride = sizeof(glm::vec3);
+	inputBind.stride = sizeof(Vertex);
 	inputBind.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
+	std::array<VkVertexInputAttributeDescription, 3> attrDescs = {};
 	VkVertexInputAttributeDescription attrDescription;
-	attrDescription.binding = 0;
-	attrDescription.location = 0;
-	attrDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
-	attrDescription.offset = 0;
+	// vertex position
+	attrDescs[0].binding = 0;
+	attrDescs[0].location = 0;
+	attrDescs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attrDescs[0].offset = offsetof(Vertex, Vertex::position);
+	// vertex colour
+	attrDescs[1].binding = 0;
+	attrDescs[1].location = 1;
+	attrDescs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attrDescs[1].offset = offsetof(Vertex, Vertex::colour);
+	// texture coords
+	attrDescs[2].binding = 0;
+	attrDescs[2].location = 2;
+	attrDescs[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attrDescs[2].offset = offsetof(Vertex, Vertex::textureCoordinate);
 
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
 	vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vertInputCreateInfo.vertexBindingDescriptionCount = 1;
 	vertInputCreateInfo.pVertexBindingDescriptions = &inputBind;
-	vertInputCreateInfo.vertexAttributeDescriptionCount = 1;
-	vertInputCreateInfo.pVertexAttributeDescriptions = &attrDescription;
+	vertInputCreateInfo.vertexAttributeDescriptionCount = attrDescs.size();
+	vertInputCreateInfo.pVertexAttributeDescriptions = attrDescs.data();
 
 	// Input assembly stage
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -727,7 +739,7 @@ void VulkanRenderer::createGraphicsPipeline()
 	rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizerCreateInfo.lineWidth = 1.0f;
 	rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizerCreateInfo.depthBiasEnable = VK_FALSE;
 	rasterizerCreateInfo.depthBiasConstantFactor = 0.0f;
 	rasterizerCreateInfo.depthBiasClamp = 0.0f;
@@ -1473,11 +1485,11 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	// setup uniforms
 	ModelViewProjection mvp = {};
 	mvp.model = modelMatrix;
-	mvp.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+	mvp.view = glm::lookAt(glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
 
 	// flip since Vulkan Y is inverted
-	mvp.projection[1][1] *= -1;
+	//mvp.projection[1][1] *= -1;
 
 	// map uniform buffer and copy
 	void *data;
