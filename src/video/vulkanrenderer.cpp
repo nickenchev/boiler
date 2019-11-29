@@ -1188,7 +1188,8 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format) cons
 std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &filePath, const Size &textureSize,
 															 const void *pixelData, u_int8_t bytesPerPixel) const
 {
-	const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+	//const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+	const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
 
 	if (bytesPerPixel < 4)
 	{
@@ -1483,10 +1484,12 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 							const glm::vec4 &colour)
 {
 	// setup uniforms
+	glm::vec3 camPos{0, 0, 2.0f};
+	glm::vec3 direction{0, 0, -1.0f};
 	ModelViewProjection mvp = {};
 	mvp.model = modelMatrix;
-	mvp.view = glm::lookAt(glm::vec3(0.0f, 0.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
+	mvp.view = glm::lookAt(camPos, camPos + direction, glm::vec3(0.0f, 1.0f, 0.0f));
+	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 256.0f);
 
 	// flip since Vulkan Y is inverted
 	//mvp.projection[1][1] *= -1;
