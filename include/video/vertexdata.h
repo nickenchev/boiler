@@ -26,9 +26,13 @@ public:
 	{
 	}
 
-    const float *begin() const { return &(vertices[0].position.x); }
-    int length() const { return vertices.size(); }
-    int size() const { return vertices.size() * sizeof(Vertex); }
+    const float *vertexBegin() const { return &(vertices[0].position.x); }
+    const uint16_t *indexBegin() const { return &(indices[0]); }
+
+	auto &vertexArray() const { return vertices; }
+	long vertexSize() const { return vertices.size() * sizeof(Vertex); }
+	auto &indexArray() const { return indices; }
+	long indexSize() const { return indices.size() * sizeof(uint16_t); }
 };
 
 }

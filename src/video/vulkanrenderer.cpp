@@ -1393,16 +1393,16 @@ void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, const Siz
 	endSingleTimeCommands(transferQueue, transferPool, commandBuffer);
 }
 
-std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) const
+std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createGPUBuffer(void *data, long size) const
 {
-	VkDeviceSize bufferSize = data.size();
+	VkDeviceSize bufferSize = size;
 	// create a staging buffer (host), map memory anb copy from vert data > buffer
 	auto stageBufferPair = createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 	void *mappedMem = nullptr;
 	vkMapMemory(device, stageBufferPair.second, 0, bufferSize, 0, &mappedMem);
-	memcpy(mappedMem, data.begin(), bufferSize);
+	memcpy(mappedMem, data, bufferSize);
 	vkUnmapMemory(device, stageBufferPair.second);
 
 	// create a device-local buffer
@@ -1414,9 +1414,16 @@ std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) c
 	vkDestroyBuffer(device, stageBufferPair.first, nullptr);
 	vkFreeMemory(device, stageBufferPair.second, nullptr);
 
-	logger.log("Created model buffer ({} bytes)", bufferSize);
+	return bufferPair;
+}
 
-	return std::make_shared<VulkanModel>(device, bufferPair.first, bufferPair.second, bufferPair.first, bufferPair.second, data);
+std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) const
+{
+	auto vertexPair = createGPUBuffer((void *)data.vertexBegin(), data.vertexSize());
+	auto indexPair = createGPUBuffer((void *)data.indexBegin(), data.indexSize());
+	logger.log("Created model buffers");
+
+	return std::make_shared<VulkanModel>(device, vertexPair.first, vertexPair.second, indexPair.first, indexPair.second, data);
 }
 
 void VulkanRenderer::beginRender()

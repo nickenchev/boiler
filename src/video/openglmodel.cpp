@@ -2,7 +2,7 @@
 
 using namespace Boiler;
 
-OpenGLModel::OpenGLModel(const VertexData &data) : Model(data.length())
+OpenGLModel::OpenGLModel(const VertexData &data) : Model(data.vertexArray().size())
 {
     // setup a VBO for the vertices
     glGenVertexArrays(1, &meshVao);
@@ -17,7 +17,7 @@ OpenGLModel::OpenGLModel(const VertexData &data) : Model(data.length())
     glBindBuffer(GL_ARRAY_BUFFER, vertVbo);
 
     // TODO: Handle GL_STATIC_DRAW properly, might be dynamic
-    glBufferData(GL_ARRAY_BUFFER, data.size(), data.begin(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, data.vertexSize(), data.vertexBegin(), GL_STATIC_DRAW);
     glVertexAttribPointer((GLuint)AttribArray::Vertex, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
 
     // cleanup
