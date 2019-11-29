@@ -35,6 +35,7 @@ const std::shared_ptr<const Texture> ImageLoader::loadImage(const std::string &f
     auto texture = renderer.createTexture(filePath, Size(surface->w, surface->h),
 										  surface->pixels, surface->format->BytesPerPixel);
 
+	free(surface->pixels);
     SDL_FreeSurface(surface);
 
     return texture;
@@ -116,9 +117,10 @@ SDL_Surface *readPNG(std::string filePath)
 						bmask = 0x00ff0000;
 						amask = (colorType == PNG_COLOR_TYPE_RGB) ? 0 : 0xff000000;
 					#endif
+						const std::string formatStr = (colorComponents == 4) ? "RGBA" : "RGB";
 						int rowBytes = png_get_rowbytes(png_ptr, info_ptr);
 						const size_t imgBytes = rowBytes * height;
-						logger.log("Read PNG: " + std::to_string(imgBytes) + " bytes.");
+						logger.log("Read {} PNG: {} bytes.", formatStr, imgBytes);
 
 						unsigned char *outData = (unsigned char*)malloc(imgBytes);
 						png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
@@ -129,13 +131,14 @@ SDL_Surface *readPNG(std::string filePath)
 
 						surface = SDL_CreateRGBSurfaceFrom((void *)outData, width, height, bitDepth * colorComponents,
 														   width * colorComponents, rmask, gmask, bmask, amask);
+
 						if (!surface)
 						{
+							logger.log("Error creating SDL surface from PNG data");
 							logger.error(SDL_GetError());
 						}
 
 						// clean up
-						free(outData);
 						png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
 					}
 				}
