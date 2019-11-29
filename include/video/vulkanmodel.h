@@ -11,17 +11,25 @@ namespace Boiler
 class VulkanModel : public Model
 {
 	const VkDevice &device;
-	const VkBuffer buffer;
-	const VkDeviceMemory bufferMemory;
+	const VkBuffer vertexBuffer;
+	const VkDeviceMemory vertexMemory;
+	const VkBuffer indexBuffer;
+	const VkDeviceMemory indexMemory;
 
 public:
-	VulkanModel(const VkDevice &device, VkBuffer buffer,
-				VkDeviceMemory bufferMemory, const VertexData &data);
+	VulkanModel(const VkDevice &device,
+				VkBuffer vertexBuffer, VkDeviceMemory vertexMemory,
+				VkBuffer indexBuffer, VkDeviceMemory indexMemory,
+				const VertexData &data);
     virtual ~VulkanModel();
 
-	const VkBuffer &getBuffer() const
+	const VkBuffer &getVertexBuffer() const
 	{
-		return buffer;
+		return vertexBuffer;
+	}
+	const VkBuffer &getIndexBuffer() const
+	{
+		return indexBuffer;
 	}
 };
 

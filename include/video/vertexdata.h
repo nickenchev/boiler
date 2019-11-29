@@ -19,9 +19,10 @@ class VertexData
 {
     bool owned;
     std::vector<Vertex> vertices;
+	std::vector<uint16_t> indices;
 
 public:
-	VertexData(const std::vector<Vertex> &vertices) : vertices(vertices)
+	VertexData(const std::vector<Vertex> &vertices, const std::vector<uint16_t> &indices) : vertices(vertices), indices(indices)
 	{
 	}
 

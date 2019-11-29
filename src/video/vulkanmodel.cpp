@@ -4,14 +4,20 @@
 
 using namespace Boiler;
 
-VulkanModel::VulkanModel(const VkDevice &device, VkBuffer buffer,
-						 VkDeviceMemory bufferMemory, const VertexData &data) : Model(data.length()), device(device),
-																				buffer(buffer), bufferMemory(bufferMemory)
+VulkanModel::VulkanModel(const VkDevice &device,
+						 VkBuffer vertexBuffer, VkDeviceMemory vertexMemory,
+						 VkBuffer indexBuffer, VkDeviceMemory indexMemory,
+						 const VertexData &data) : Model(data.length()), device(device),
+												   vertexBuffer(vertexBuffer), vertexMemory(vertexMemory),
+												   indexBuffer(indexBuffer), indexMemory(indexMemory)
 {
 }
 
 VulkanModel::~VulkanModel()
 {
-	vkDestroyBuffer(device, buffer, nullptr);
-	vkFreeMemory(device, bufferMemory, nullptr);
+	vkDestroyBuffer(device, vertexBuffer, nullptr);
+	vkFreeMemory(device, vertexMemory, nullptr);
+
+	vkDestroyBuffer(device, indexBuffer, nullptr);
+	vkFreeMemory(device, indexMemory, nullptr);
 }

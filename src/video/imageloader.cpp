@@ -15,11 +15,18 @@ using namespace Boiler;
 
 #define COMPONENT_NAME "Image Loader"
 
-SDL_Surface *readPNG(std::string filePath);
 void user_read_data(png_structp png_ptr, png_bytep data, size_t length);
 void user_write_data(png_structp png_ptr, png_bytep data, size_t length);
 void user_flush_data(png_structp png_ptr);
 void read_row_callback(png_structp png_ptr, png_uint_32 row, int pass);
+
+struct ImageData
+{
+	unsigned char *pixelData;
+	Size size;
+	short colorComponents;
+};
+ImageData readPNG(std::string filePath);
 
 ImageLoader::ImageLoader(const Renderer &renderer) : logger(COMPONENT_NAME), renderer(renderer)
 {
@@ -29,19 +36,16 @@ const std::shared_ptr<const Texture> ImageLoader::loadImage(const std::string &f
 {
 	logger.log("Loading image: {}", filePath);
 
-    SDL_Surface *surface = readPNG(filePath);
+    ImageData imageData = readPNG(filePath);
+    auto texture = renderer.createTexture(filePath, imageData.size,
+										  imageData.pixelData, imageData.colorComponents);
 
-    assert(surface != nullptr);
-    auto texture = renderer.createTexture(filePath, Size(surface->w, surface->h),
-										  surface->pixels, surface->format->BytesPerPixel);
-
-	free(surface->pixels);
-    SDL_FreeSurface(surface);
+	free(imageData.pixelData);
 
     return texture;
 }
 
-SDL_Surface *readPNG(std::string filePath)
+ImageData readPNG(std::string filePath)
 {
 	Logger logger("LibPNG");
 	SDL_Surface *surface = nullptr;
@@ -49,6 +53,7 @@ SDL_Surface *readPNG(std::string filePath)
 	FILE *fp = fopen(filePath.c_str(), "rb");
 	const short headerSize = 8;
 	unsigned char header[headerSize];
+	ImageData imageData;
 	if (!file)
 	{
 		// file couldn't be opened
@@ -129,14 +134,8 @@ SDL_Surface *readPNG(std::string filePath)
 							memcpy(outData + (rowBytes * i), row_pointers[i], rowBytes);
 						}
 
-						surface = SDL_CreateRGBSurfaceFrom((void *)outData, width, height, bitDepth * colorComponents,
-														   width * colorComponents, rmask, gmask, bmask, amask);
-
-						if (!surface)
-						{
-							logger.log("Error creating SDL surface from PNG data");
-							logger.error(SDL_GetError());
-						}
+						imageData = ImageData{outData, Size{static_cast<cgfloat>(width), static_cast<cgfloat>(height)},
+											  static_cast<short>(colorComponents)};
 
 						// clean up
 						png_destroy_read_struct(&png_ptr, &info_ptr, nullptr);
@@ -149,7 +148,7 @@ SDL_Surface *readPNG(std::string filePath)
 		SDL_RWclose(file);
 		std::fclose(fp);
 	}
-	return surface;
+	return imageData;
 }
 
 void user_read_data(png_structp png_ptr, png_bytep data, size_t length)

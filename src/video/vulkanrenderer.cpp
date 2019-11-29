@@ -1416,7 +1416,7 @@ std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) c
 
 	logger.log("Created model buffer ({} bytes)", bufferSize);
 
-	return std::make_shared<VulkanModel>(device, bufferPair.first, bufferPair.second, data);
+	return std::make_shared<VulkanModel>(device, bufferPair.first, bufferPair.second, bufferPair.first, bufferPair.second, data);
 }
 
 void VulkanRenderer::beginRender()
@@ -1536,7 +1536,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	vkCmdBindDescriptorSets(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[imageIndex], 0, nullptr);
 
 	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
-	const std::array<VkBuffer, 1> buffers = {vkmodel->getBuffer()};
+	const std::array<VkBuffer, 1> buffers = {vkmodel->getVertexBuffer()};
 	const std::array<VkDeviceSize, buffers.size()> offsets = {0};
 
 	vkCmdBindVertexBuffers(commandBuffers[imageIndex], 0, buffers.size(), buffers.data(), offsets.data());
