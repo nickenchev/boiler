@@ -2,7 +2,7 @@
 
 using namespace Boiler;
 
-OpenGLModel::OpenGLModel(const VertexData &data) : Model(data.vertexArray().size())
+OpenGLModel::OpenGLModel(const VertexData &data) : Model(data.vertexArray().size(), data.indexArray().size())
 {
     // setup a VBO for the vertices
     glGenVertexArrays(1, &meshVao);

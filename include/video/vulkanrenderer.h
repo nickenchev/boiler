@@ -105,7 +105,7 @@ public:
 												 const void *pixelData, u_int8_t bytesPerPixel) const override;
     void setActiveTexture(std::shared_ptr<const Texture> texture) const override;
 
-	std::pair<VkBuffer, VkDeviceMemory> createGPUBuffer(void *data, long size) const;
+	std::pair<VkBuffer, VkDeviceMemory> createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const;
     std::shared_ptr<const Model> loadModel(const VertexData &data) const override;
 
 	void beginRender() override;

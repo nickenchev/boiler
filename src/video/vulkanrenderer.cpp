@@ -739,7 +739,7 @@ void VulkanRenderer::createGraphicsPipeline()
 	rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizerCreateInfo.lineWidth = 1.0f;
 	rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	rasterizerCreateInfo.depthBiasEnable = VK_FALSE;
 	rasterizerCreateInfo.depthBiasConstantFactor = 0.0f;
 	rasterizerCreateInfo.depthBiasClamp = 0.0f;
@@ -1393,10 +1393,10 @@ void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, const Siz
 	endSingleTimeCommands(transferQueue, transferPool, commandBuffer);
 }
 
-std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createGPUBuffer(void *data, long size) const
+std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const
 {
 	VkDeviceSize bufferSize = size;
-	// create a staging buffer (host), map memory anb copy from vert data > buffer
+	// create a staging buffer (host), map memory and copy
 	auto stageBufferPair = createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
@@ -1406,7 +1406,7 @@ std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createGPUBuffer(void *data, 
 	vkUnmapMemory(device, stageBufferPair.second);
 
 	// create a device-local buffer
-	auto bufferPair = createBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+	auto bufferPair = createBuffer(bufferSize, usageFlags | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 								   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	copyBuffer(stageBufferPair.first, bufferPair.first, bufferSize);
@@ -1419,8 +1419,8 @@ std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createGPUBuffer(void *data, 
 
 std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) const
 {
-	auto vertexPair = createGPUBuffer((void *)data.vertexBegin(), data.vertexSize());
-	auto indexPair = createGPUBuffer((void *)data.indexBegin(), data.indexSize());
+	auto vertexPair = createGPUBuffer((void *)data.vertexBegin(), data.vertexSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+	auto indexPair = createGPUBuffer((void *)data.indexBegin(), data.indexSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 	logger.log("Created model buffers");
 
 	return std::make_shared<VulkanModel>(device, vertexPair.first, vertexPair.second, indexPair.first, indexPair.second, data);
@@ -1547,7 +1547,10 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	const std::array<VkDeviceSize, buffers.size()> offsets = {0};
 
 	vkCmdBindVertexBuffers(commandBuffers[imageIndex], 0, buffers.size(), buffers.data(), offsets.data());
-	vkCmdDraw(commandBuffers[imageIndex], model->getNumVertices(), buffers.size(), 0, 0);
+	vkCmdBindIndexBuffer(commandBuffers[imageIndex], vkmodel->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+
+	//vkCmdDraw(commandBuffers[imageIndex], model->getNumVertices(), buffers.size(), 0, 0);
+	vkCmdDrawIndexed(commandBuffers[imageIndex], static_cast<uint32_t>(vkmodel->getNumIndices()), 1, 0, 0, 0);
 }
 
 void VulkanRenderer::endRender()

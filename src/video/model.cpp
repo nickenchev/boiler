@@ -2,7 +2,8 @@
 
 using namespace Boiler;
 
-Model::Model(int numVertices)
+Model::Model(int numVertices, int numIndices)
 {
     this->numVertices = numVertices;
+	this->numIndices = numIndices;
 }
