@@ -1,6 +1,7 @@
 #include "video/vulkanrenderer.h"
 
 #include <array>
+#include <chrono>
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <SDL_syswm.h>
@@ -690,12 +691,12 @@ void VulkanRenderer::createGraphicsPipeline()
 	// vertex colour
 	attrDescs[1].binding = 0;
 	attrDescs[1].location = 1;
-	attrDescs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attrDescs[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 	attrDescs[1].offset = offsetof(Vertex, Vertex::colour);
 	// texture coords
 	attrDescs[2].binding = 0;
 	attrDescs[2].location = 2;
-	attrDescs[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attrDescs[2].format = VK_FORMAT_R32G32_SFLOAT;
 	attrDescs[2].offset = offsetof(Vertex, Vertex::textureCoordinate);
 
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
@@ -1494,9 +1495,10 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	glm::vec3 camPos{0, 0, 2.0f};
 	glm::vec3 direction{0, 0, -1.0f};
 	ModelViewProjection mvp = {};
+
 	mvp.model = modelMatrix;
 	mvp.view = glm::lookAt(camPos, camPos + direction, glm::vec3(0.0f, 1.0f, 0.0f));
-	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 256.0f);
+	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
 
 	// flip since Vulkan Y is inverted
 	//mvp.projection[1][1] *= -1;
@@ -1542,6 +1544,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 	vkCmdBindDescriptorSets(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[imageIndex], 0, nullptr);
 
+	// draw the vertex data
 	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
 	const std::array<VkBuffer, 1> buffers = {vkmodel->getVertexBuffer()};
 	const std::array<VkDeviceSize, buffers.size()> offsets = {0};
