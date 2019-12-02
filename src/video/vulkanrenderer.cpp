@@ -103,16 +103,6 @@ VulkanRenderer::~VulkanRenderer()
 		destroyFunc(instance, debugMessenger, nullptr);
 	}
 
-	// TODO: Change MVP buffer cleanup
-	for (VkBuffer buffer : mvpBuffers)
-	{
-		vkDestroyBuffer(device, buffer, nullptr);
-	}
-	for (VkDeviceMemory memory : mvpBuffersMemory)
-	{
-		vkFreeMemory(device, memory, nullptr);
-	}
-
 	vkDestroySampler(device, textureSampler, nullptr);
 	logger.log("Destroyed sampler");
 
@@ -1127,6 +1117,17 @@ void VulkanRenderer::cleanupSwapchain()
 		vkDestroyFramebuffer(device, framebuffer, nullptr);
 	}
 	logger.log("Destroyed framebuffers");
+
+	// TODO: Change MVP buffer cleanup
+	for (const auto &buffer : mvpBuffers)
+	{
+		vkDestroyBuffer(device, buffer, nullptr);
+	}
+	for (const auto &memory : mvpBuffersMemory)
+	{
+		vkFreeMemory(device, memory, nullptr);
+	}
+	logger.log("Cleaned up mvp buffers");
 
 	// command buffers
 	vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
