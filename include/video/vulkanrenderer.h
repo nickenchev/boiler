@@ -60,6 +60,10 @@ class VulkanRenderer : public Boiler::Renderer
 	VkResult nextImageResult;
 	VkSampler textureSampler;
 
+	VkImage depthImage;
+	VkDeviceMemory depthImageMemory;
+	VkImageView depthImageView;
+
 	void createSwapChain();
 	void createRenderPass();
 	void createGraphicsPipeline();
@@ -74,6 +78,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void recreateSwapchain();
 	void cleanupSwapchain();
 	void createTextureSampler();
+	void createDepthResources();
 
 	// memory/buffer operations
 	uint32_t findMemoryType(uint32_t filter, VkMemoryPropertyFlags flags) const;
@@ -87,10 +92,14 @@ class VulkanRenderer : public Boiler::Renderer
 	// image operations
 	std::pair<VkImage, VkDeviceMemory> createImage(const Size &imageSize, VkFormat format, VkImageTiling tiling,
 												   VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties) const;
-	VkImageView createImageView(VkImage image, VkFormat format) const;
+	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const;
 	void transitionImageLayout(VkImage image, VkFormat format,
 							   VkImageLayout oldLayout, VkImageLayout newLayout) const;
 	void copyBufferToImage(VkBuffer buffer, VkImage image, const Size &imageSize) const;
+	VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling,
+								 VkFormatFeatureFlags features) const;
+	VkFormat findDepthFormat() const;
+	bool hasStencilComponent(VkFormat format) const;
 
 public:
     VulkanRenderer();
