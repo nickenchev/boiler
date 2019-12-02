@@ -687,17 +687,18 @@ void VulkanRenderer::createGraphicsPipeline()
 	attrDescs[0].binding = 0;
 	attrDescs[0].location = 0;
 	attrDescs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attrDescs[0].offset = offsetof(Vertex, Vertex::position);
+	attrDescs[0].offset = offsetof(Vertex, position);
+
 	// vertex colour
 	attrDescs[1].binding = 0;
 	attrDescs[1].location = 1;
 	attrDescs[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-	attrDescs[1].offset = offsetof(Vertex, Vertex::colour);
+	attrDescs[1].offset = offsetof(Vertex, colour);
 	// texture coords
 	attrDescs[2].binding = 0;
 	attrDescs[2].location = 2;
 	attrDescs[2].format = VK_FORMAT_R32G32_SFLOAT;
-	attrDescs[2].offset = offsetof(Vertex, Vertex::textureCoordinate);
+	attrDescs[2].offset = offsetof(Vertex, textureCoordinate);
 
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
 	vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -740,7 +741,7 @@ void VulkanRenderer::createGraphicsPipeline()
 	rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizerCreateInfo.lineWidth = 1.0f;
 	rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizerCreateInfo.depthBiasEnable = VK_FALSE;
 	rasterizerCreateInfo.depthBiasConstantFactor = 0.0f;
 	rasterizerCreateInfo.depthBiasClamp = 0.0f;
@@ -1001,8 +1002,8 @@ void VulkanRenderer::createTextureSampler()
 {
 	VkSamplerCreateInfo samplerInfo = {};
 	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerInfo.magFilter = VK_FILTER_NEAREST;
-	samplerInfo.minFilter = VK_FILTER_NEAREST;
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
 	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
@@ -1012,7 +1013,7 @@ void VulkanRenderer::createTextureSampler()
 	samplerInfo.unnormalizedCoordinates = VK_FALSE;
 	samplerInfo.compareEnable = VK_FALSE;
 	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerInfo.mipLodBias = 0.0f;
 	samplerInfo.minLod = 0.0f;
 	samplerInfo.maxLod = 0.0f;
