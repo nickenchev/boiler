@@ -1494,14 +1494,11 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	// setup uniforms
 	glm::vec3 camPos{0, 0, 2.0f};
 	glm::vec3 direction{0, 0, -1.0f};
-	ModelViewProjection mvp = {};
 
+	ModelViewProjection mvp = {};
 	mvp.model = modelMatrix;
 	mvp.view = glm::lookAt(camPos, camPos + direction, glm::vec3(0.0f, 1.0f, 0.0f));
 	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
-
-	// flip since Vulkan Y is inverted
-	//mvp.projection[1][1] *= -1;
 
 	// map uniform buffer and copy
 	void *data;
