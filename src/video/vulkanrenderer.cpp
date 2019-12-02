@@ -39,8 +39,8 @@ constexpr int maxAnistrophy = 16;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
-													const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
-													void* userData);
+													const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
+													void *userData);
 
 auto getFunctionPointer(VkInstance instance, std::string funcName)
 {
@@ -1089,6 +1089,7 @@ void VulkanRenderer::recreateSwapchain()
 	createSwapChain();
 	createRenderPass();
 	createGraphicsPipeline();
+	createDepthResources();
 	createFramebuffers();
 	createMvpBuffers();
 	createDescriptorPool();
@@ -1565,7 +1566,6 @@ void VulkanRenderer::beginRender()
 	{
 		throw std::runtime_error("Error during image aquire");
 	}
-	logger.log("begin");
 }
 
 void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
@@ -1632,7 +1632,6 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 
 	//vkCmdDraw(commandBuffers[imageIndex], model->getNumVertices(), buffers.size(), 0, 0);
 	vkCmdDrawIndexed(commandBuffers[imageIndex], static_cast<uint32_t>(vkmodel->getNumIndices()), 1, 0, 0, 0);
-	logger.log("render");
 }
 
 void VulkanRenderer::endRender()
@@ -1681,7 +1680,6 @@ void VulkanRenderer::endRender()
 		vkQueuePresentKHR(presentationQueue, &presentInfo);
 	}
 	currentFrame = (currentFrame + 1) & maxFramesInFlight;
-	logger.log("end");
 }
 
 void VulkanRenderer::showMessageBox(const std::string &title, const std::string &message)
@@ -1690,8 +1688,8 @@ void VulkanRenderer::showMessageBox(const std::string &title, const std::string 
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
-													const VkDebugUtilsMessengerCallbackDataEXT* callbackData,
-													void* userData)
+													const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
+													void *userData)
 {
 	Logger *logger = static_cast<Logger *>(userData);
 	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
