@@ -19,20 +19,20 @@ class VertexData
 {
     bool owned;
     std::vector<Vertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<uint32_t> indices;
 
 public:
-	VertexData(const std::vector<Vertex> &vertices, const std::vector<uint16_t> &indices) : vertices(vertices), indices(indices)
+	VertexData(const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices) : vertices(vertices), indices(indices)
 	{
 	}
 
     const float *vertexBegin() const { return &(vertices[0].position.x); }
-    const uint16_t *indexBegin() const { return &(indices[0]); }
+    const uint32_t *indexBegin() const { return &(indices[0]); }
 
 	auto &vertexArray() const { return vertices; }
 	long vertexSize() const { return vertices.size() * sizeof(Vertex); }
 	auto &indexArray() const { return indices; }
-	long indexSize() const { return indices.size() * sizeof(uint16_t); }
+	long indexSize() const { return indices.size() * sizeof(uint32_t); }
 };
 
 }

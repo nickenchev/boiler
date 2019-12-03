@@ -1629,7 +1629,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	const std::array<VkDeviceSize, buffers.size()> offsets = {0};
 
 	vkCmdBindVertexBuffers(commandBuffers[imageIndex], 0, buffers.size(), buffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(commandBuffers[imageIndex], vkmodel->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT16);
+	vkCmdBindIndexBuffer(commandBuffers[imageIndex], vkmodel->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 	//vkCmdDraw(commandBuffers[imageIndex], model->getNumVertices(), buffers.size(), 0, 0);
 	vkCmdDrawIndexed(commandBuffers[imageIndex], static_cast<uint32_t>(vkmodel->getNumIndices()), 1, 0, 0, 0);
