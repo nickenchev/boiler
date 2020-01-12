@@ -44,6 +44,9 @@ add_subdirectory(${LIBS_ROOT}/jsoncpp)
 # build fmt
 add_subdirectory(${LIBS_ROOT}/fmt-6.0.0)
 
+# tinygltf 2
+set(TINYGLTF_INCLUDE_DIR ${LIBS_ROOT}/tinygltf-2.2.0)
+
 # Vulkan
 set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/x86_64/include)
 set(VULKAN_LIBS ${VULKAN_SDK}/x86_64/lib/libvulkan.so)
@@ -72,7 +75,8 @@ set(boiler_lib_includes
   glm
   SDL2
   freetype
-  fmt)
+  fmt
+  ${TINYGLTF_INCLUDE_DIR})
 
 target_include_directories(boiler_deps PUBLIC ${boiler_lib_includes})
 
