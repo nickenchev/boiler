@@ -34,7 +34,7 @@ set(PNG_INCLUDE_DIR ${PNG_DIR})
 set(PNG_CONFIG_HEADER ${CMAKE_CURRENT_BINARY_DIR}/libpng16)
 
 # build freetype2
-add_subdirectory(${LIBS_ROOT}/freetype2-VER-2-10-0)
+add_subdirectory(${LIBS_ROOT}/freetype-2.10.1)
 
 # build jsoncpp
 set(JSONCPP_WITH_TESTS CACHE OFF "Disable JSONCPP unit tests")

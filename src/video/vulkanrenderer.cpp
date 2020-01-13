@@ -32,7 +32,7 @@
 #include "video/vktexture.h"
 
 using namespace Boiler;
-constexpr bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = false;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
@@ -1239,8 +1239,8 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &filePath, const Size &textureSize,
 															 const void *pixelData, u_int8_t bytesPerPixel) const
 {
-	//const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
-	const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+	const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+	//const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
 
 	if (bytesPerPixel < 4)
 	{
