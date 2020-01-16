@@ -752,7 +752,7 @@ void VulkanRenderer::createGraphicsPipeline()
 	rasterizerCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 	rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizerCreateInfo.lineWidth = 1.0f;
-	rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizerCreateInfo.cullMode = VK_CULL_MODE_NONE;
 	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	rasterizerCreateInfo.depthBiasEnable = VK_FALSE;
 	rasterizerCreateInfo.depthBiasConstantFactor = 0.0f;
@@ -1583,7 +1583,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
 
 	// map uniform buffer and copy
-	void *data;
+	void *data = nullptr;
 	vkMapMemory(device, mvpBuffersMemory[imageIndex], 0, sizeof(mvp), 0, &data);
 	memcpy(data, &mvp, sizeof(mvp));
 	vkUnmapMemory(device, mvpBuffersMemory[imageIndex]);
