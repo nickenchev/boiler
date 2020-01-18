@@ -15,12 +15,13 @@ class VulkanModel : public Model
 	const VkDeviceMemory vertexMemory;
 	const VkBuffer indexBuffer;
 	const VkDeviceMemory indexMemory;
+	const unsigned int descriptorId;
 
 public:
 	VulkanModel(const VkDevice &device,
 				VkBuffer vertexBuffer, VkDeviceMemory vertexMemory,
 				VkBuffer indexBuffer, VkDeviceMemory indexMemory,
-				const VertexData &data);
+				const VertexData &data, const unsigned int descriptorId);
     virtual ~VulkanModel();
 
 	const VkBuffer &getVertexBuffer() const
@@ -30,6 +31,10 @@ public:
 	const VkBuffer &getIndexBuffer() const
 	{
 		return indexBuffer;
+	}
+	const auto getDescriptorId() const
+	{
+		return descriptorId;
 	}
 };
 

@@ -7,9 +7,9 @@ using namespace Boiler;
 VulkanModel::VulkanModel(const VkDevice &device,
 						 VkBuffer vertexBuffer, VkDeviceMemory vertexMemory,
 						 VkBuffer indexBuffer, VkDeviceMemory indexMemory,
-						 const VertexData &data) : Model(data.vertexArray().size(), data.indexArray().size()), device(device),
-												   vertexBuffer(vertexBuffer), vertexMemory(vertexMemory),
-												   indexBuffer(indexBuffer), indexMemory(indexMemory)
+						 const VertexData &data, const unsigned int descriptorId) : Model(data.vertexArray().size(), data.indexArray().size()), device(device),
+																					vertexBuffer(vertexBuffer), vertexMemory(vertexMemory),
+																					indexBuffer(indexBuffer), indexMemory(indexMemory), descriptorId(descriptorId)
 {
 }
 
