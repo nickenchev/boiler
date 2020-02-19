@@ -22,7 +22,7 @@ set(PNG_CONFIG_HEADER ${CMAKE_CURRENT_BINARY_DIR}/zlib-1.2.11)
 
 # build SDL2
 set(SDL_SHARED OFF CACHE BOOL "Disable SDL2 shared lib")
-add_subdirectory(${LIBS_ROOT}/SDL2-2.0.9)
+add_subdirectory(${LIBS_ROOT}/SDL2-2.0.10)
 
 # build libpng
 set(PNG_SHARED OFF CACHE BOOL "Disable PNG shared lib")
@@ -48,19 +48,13 @@ add_subdirectory(${LIBS_ROOT}/fmt-6.0.0)
 set(TINYGLTF_INCLUDE_DIR ${LIBS_ROOT}/tinygltf-2.2.0)
 
 # Vulkan
-set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/x86_64/include)
-set(VULKAN_LIBS ${VULKAN_SDK}/x86_64/lib/libvulkan.so)
-
-# MoltenVK
 if (APPLE)
-	set(MOLTENVK_ROOT "/Users/nenchev/Developer/frameworks/MoltenVK/")
-	set(VULKAN_INCLUDE_DIR ${MOLTENVK_ROOT}/MoltenVK/include)
-	#set(VULKAN_LIBS ${MOLTENVK_ROOT}/MoltenVK/macOS/static/libMoltenVK.a)
-	set(VULKAN_LIBS ${MOLTENVK_ROOT}/MoltenVK/macOS/dynamic/libMoltenVK.dylib)
+  set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/include)
+  set(VULKAN_LIBS ${VULKAN_SDK}/lib/libvulkan.dylib)
 else()
-	# Vulkan
-	set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/x86_64/include)
-	set(VULKAN_LIBS ${VULKAN_SDK}/x86_64/lib/libvulkan.so)
+  # Vulkan
+  set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/x86_64/include)
+  set(VULKAN_LIBS ${VULKAN_SDK}/x86_64/lib/libvulkan.so)
 endif()
 
 set(boiler_lib_includes

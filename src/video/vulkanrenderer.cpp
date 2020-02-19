@@ -127,14 +127,12 @@ void VulkanRenderer::initialize(const Size &size)
 {
 	Renderer::initialize(size);
 	
-	bool success = false;
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) == 0)
     {
 		SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN);
 		win = SDL_CreateWindow("Boiler", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 							   getScreenSize().width, getScreenSize().height, winFlags);
 
-		success = true;
         if (win)
         {
 			// query supported extensions
@@ -492,9 +490,12 @@ void VulkanRenderer::initialize(const Size &size)
 				createTextureSampler();
 			}
         }
+		else
+		{
+			throw std::runtime_error("Error creating window");
+		}
     }
-
-    if (!success)
+	else
     {
 		throw std::runtime_error("Error Initializing SDL: " + std::string(SDL_GetError()));
     }
