@@ -1,0 +1,3 @@
+[submodule "libs/boiler-gltf"]
+	path = libs/boiler-gltf
+	url = git@github.com:nickenchev/boiler-gltf.git
