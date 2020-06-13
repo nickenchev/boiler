@@ -71,7 +71,7 @@ void Engine::start(std::shared_ptr<Part> part)
 {
 	//store the incoming part and start it
 	this->part = part;
-	this->part->onStart(*this);
+	this->part->onStart();
 
 	logger.log("Starting main loop");
 	
