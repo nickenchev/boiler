@@ -20,11 +20,12 @@
 
 using namespace Boiler;
 
-Engine::Engine(Renderer &renderer) : logger("Engine"), renderer(renderer), baseDataPath(""), imageLoader(renderer),
-									 spriteLoader(imageLoader), fontLoader(renderer)
+Engine::Engine(std::unique_ptr<Renderer> &&renderer)
+	: logger("Engine"), renderer(std::move(renderer)), baseDataPath(""),
+	  imageLoader(*this->renderer), spriteLoader(imageLoader), fontLoader(imageLoader)
 {
 	logger.log("Engine instance created");
-	logger.log("Using renderer: " + renderer.getVersion());
+	logger.log("Using renderer: " + this->renderer->getVersion());
 }
 
 Engine::~Engine()
@@ -44,15 +45,15 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const int resWid
 
 	// initialize basic engine stuff
 	frameInterval = 1.0f / 60.0f; // 60fps
-	renderer.initialize(Size(resWidth, resHeight));
+	renderer->initialize(Size(resWidth, resHeight));
 
-	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(renderer)
+	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*renderer)
 		.expects<PositionComponent>()
 		.expects<RenderComponent>();
 	ecs.getComponentSystems().removeUpdate(&renderSys);
 	this->renderSystem = &renderSys;
 
-	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(renderer)
+	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*renderer)
 		.expects<PositionComponent>()
 		.expects<TextComponent>();
 	ecs.getComponentSystems().removeUpdate(&glyphSys);
@@ -60,7 +61,7 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const int resWid
 
 	if (guiHandler)
 	{
-		System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(renderer, std::move(guiHandler))
+		System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*renderer, std::move(guiHandler))
 			.expects<GUIComponent>();
 		ecs.getComponentSystems().removeUpdate(&guiSys);
 		this->guiSystem = &guiSys;
@@ -107,11 +108,11 @@ void Engine::run()
 
 			// render related systems only run during render phase
 			// TODO: Handle GUI events differently
-			renderer.beginRender();
+			renderer->beginRender();
 			renderSystem->update(getEcs().getComponentStore(), frameDelta);
 			glyphSystem->update(getEcs().getComponentStore(), frameDelta);
 			if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);
-			renderer.endRender();
+			renderer->endRender();
 		}
 		else
 		{
@@ -119,7 +120,7 @@ void Engine::run()
 		}
 	}
 	// wait for any renderer commands to finish before destructors kick in
-	renderer.prepareShutdown();
+	renderer->prepareShutdown();
 }
 
 void Engine::processEvents()
@@ -142,7 +143,7 @@ void Engine::processEvents()
 					case SDL_WINDOWEVENT_RESIZED:
 					{
 						const Size newSize(static_cast<cgfloat>(event.window.data1), static_cast<cgfloat>(event.window.data2));
-						renderer.resize(newSize);
+						renderer->resize(newSize);
 
 						break;
 					}

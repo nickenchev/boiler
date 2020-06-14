@@ -22,7 +22,7 @@ set(PNG_CONFIG_HEADER ${CMAKE_CURRENT_BINARY_DIR}/zlib-1.2.11)
 
 # build SDL2
 set(SDL_SHARED OFF CACHE BOOL "Disable SDL2 shared lib")
-add_subdirectory(${LIBS_ROOT}/SDL2-2.0.10)
+add_subdirectory(${LIBS_ROOT}/SDL2-2.0.12)
 
 # build libpng
 set(PNG_SHARED OFF CACHE BOOL "Disable PNG shared lib")

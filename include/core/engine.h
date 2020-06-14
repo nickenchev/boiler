@@ -34,7 +34,7 @@ typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 class Engine
 {
 	Logger logger;
-    Renderer &renderer;
+	std::unique_ptr<Renderer> renderer;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
 	System *renderSystem, *glyphSystem, *guiSystem;
@@ -59,7 +59,7 @@ class Engine
     std::shared_ptr<Part> part;
 
 public:
-	Engine(Renderer &renderer);
+	Engine(std::unique_ptr<Renderer> &&renderer);
 	~Engine();
     Engine(const Engine &) = delete;
     void operator=(const Engine &s) = delete;
@@ -70,7 +70,7 @@ public:
     void start(std::shared_ptr<Part> part);
     void quit() { running = false; }
 
-	Renderer &getRenderer() { return renderer; }
+	Renderer &getRenderer() { return *renderer; }
 	EntityComponentSystem &getEcs() { return ecs; }
     std::shared_ptr<Part> getPart() const { return part; }
 
