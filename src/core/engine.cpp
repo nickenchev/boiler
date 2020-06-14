@@ -24,6 +24,7 @@ Engine::Engine(std::unique_ptr<Renderer> &&renderer)
 	: logger("Engine"), renderer(std::move(renderer)), baseDataPath(""),
 	  imageLoader(*this->renderer), spriteLoader(imageLoader), fontLoader(imageLoader)
 {
+	guiSystem = nullptr;
 	logger.log("Engine instance created");
 	logger.log("Using renderer: " + this->renderer->getVersion());
 }
