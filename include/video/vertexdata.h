@@ -13,6 +13,11 @@ struct Vertex
 	glm::vec3 position;
 	glm::vec4 colour;
 	glm::vec2 textureCoordinate;
+
+	Vertex(glm::vec3 position)
+	{
+		this->position = position;
+	}
 };
 
 class VertexData
