@@ -697,24 +697,30 @@ void VulkanRenderer::createGraphicsPipeline()
 	inputBind.stride = sizeof(Vertex);
 	inputBind.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-	std::array<VkVertexInputAttributeDescription, 3> attrDescs = {};
-	VkVertexInputAttributeDescription attrDescription;
+	std::array<VkVertexInputAttributeDescription, 4> attrDescs = {};
 	// vertex position
-	attrDescs[0].binding = 0;
 	attrDescs[0].location = 0;
+	attrDescs[0].binding = 0;
 	attrDescs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	attrDescs[0].offset = offsetof(Vertex, position);
 
 	// vertex colour
-	attrDescs[1].binding = 0;
 	attrDescs[1].location = 1;
+	attrDescs[1].binding = 0;
 	attrDescs[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 	attrDescs[1].offset = offsetof(Vertex, colour);
+
 	// texture coords
-	attrDescs[2].binding = 0;
 	attrDescs[2].location = 2;
+	attrDescs[2].binding = 0;
 	attrDescs[2].format = VK_FORMAT_R32G32_SFLOAT;
 	attrDescs[2].offset = offsetof(Vertex, textureCoordinate);
+
+	// vertex normal
+	attrDescs[3].location = 3;
+	attrDescs[3].binding = 0;
+	attrDescs[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attrDescs[3].offset = offsetof(Vertex, normal);
 
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
 	vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
