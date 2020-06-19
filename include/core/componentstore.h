@@ -63,7 +63,8 @@ public:
 	template<typename T>
 	bool hasComponent(const Entity &entity)
 	{
-		return entityComponents[entity.getId()][T::mask] != nullptr;
+		bool exists = entityComponents[entity.getId()].find(T::mask) != entityComponents[entity.getId()].end();
+		return exists;
 	}
 
 	template<typename T>

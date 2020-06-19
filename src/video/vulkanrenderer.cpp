@@ -1590,7 +1590,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	ModelViewProjection mvp = {};
 	mvp.model = modelMatrix;
 	mvp.view = glm::lookAt(camPos, camPos + direction, glm::vec3(0.0f, 1.0f, 0.0f));
-	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
+	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.01f, 10.0f);
 
 	// map uniform buffer and copy
 	void *data = nullptr;

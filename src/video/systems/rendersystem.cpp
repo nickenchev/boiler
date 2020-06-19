@@ -21,8 +21,11 @@ void RenderSystem::update(ComponentStore &store, const double delta)
 		while (store.hasComponent<ParentComponent>(currentEntity))
 		{
 			ParentComponent &parentComp = store.retrieve<ParentComponent>(currentEntity);
-			PositionComponent &parentPos = store.retrieve<PositionComponent>(parentComp.entity);
-			modelMatrix = parentPos.getMatrix() * modelMatrix;
+			if (store.hasComponent<PositionComponent>(parentComp.entity))
+			{
+				PositionComponent &parentPos = store.retrieve<PositionComponent>(parentComp.entity);
+				modelMatrix = parentPos.getMatrix() * modelMatrix;
+			}
 			currentEntity = parentComp.entity;
 		}
 
