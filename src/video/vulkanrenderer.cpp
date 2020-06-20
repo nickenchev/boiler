@@ -36,7 +36,7 @@ constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
-constexpr int maxObjects = 100;
+constexpr int maxObjects = 1000;
 
 int descriptorId = 0;
 
@@ -1069,10 +1069,10 @@ void VulkanRenderer::createDepthResources()
 void VulkanRenderer::createMvpBuffers()
 {
 	VkDeviceSize bufferSize = sizeof(ModelViewProjection);
-	mvpBuffers.resize(swapChainImages.size());
-	mvpBuffersMemory.resize(swapChainImages.size());
+	mvpBuffers.resize(maxObjects);
+	mvpBuffersMemory.resize(maxObjects);
 
-	for (int i = 0; i < swapChainImages.size(); ++i)
+	for (int i = 0; i < maxObjects; ++i)
 	{
 		auto buffPair = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		mvpBuffers[i] = buffPair.first;
@@ -1513,7 +1513,7 @@ std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) c
 {
 	auto vertexPair = createGPUBuffer((void *)data.vertexBegin(), data.vertexSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 	auto indexPair = createGPUBuffer((void *)data.indexBegin(), data.indexSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-	logger.log("Created model buffers");
+	logger.log("Created model buffers with descriptor id {}", descriptorId);
 
 	return std::make_shared<VulkanModel>(device, vertexPair.first, vertexPair.second, indexPair.first, indexPair.second, data, descriptorId++);
 }
@@ -1584,25 +1584,26 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 							const glm::vec4 &colour)
 {
 	// setup uniforms
-	glm::vec3 camPos{0, 0, 2.0f};
+	glm::vec3 camPos{0, -2, 10.0f};
 	glm::vec3 direction{0, 0, -1.0f};
 
 	ModelViewProjection mvp = {};
 	mvp.model = modelMatrix;
 	mvp.view = glm::lookAt(camPos, camPos + direction, glm::vec3(0.0f, 1.0f, 0.0f));
-	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.01f, 10.0f);
+	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.01f, 100.0f);
+
+	auto texture = static_cast<const VkTexture *>(sourceTexture.get());
+	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
 
 	// map uniform buffer and copy
 	void *data = nullptr;
-	vkMapMemory(device, mvpBuffersMemory[imageIndex], 0, sizeof(mvp), 0, &data);
+	vkMapMemory(device, mvpBuffersMemory[vkmodel->getDescriptorId()], 0, sizeof(mvp), 0, &data);
 	memcpy(data, &mvp, sizeof(mvp));
-	vkUnmapMemory(device, mvpBuffersMemory[imageIndex]);
-
-	auto texture = static_cast<const VkTexture *>(sourceTexture.get());
+	vkUnmapMemory(device, mvpBuffersMemory[vkmodel->getDescriptorId()]);
 
 	// setup descriptor sets
 	VkDescriptorBufferInfo bufferInfo = {};
-	bufferInfo.buffer = mvpBuffers[imageIndex];
+	bufferInfo.buffer = mvpBuffers[vkmodel->getDescriptorId()];
 	bufferInfo.offset = 0;
 	bufferInfo.range = sizeof(ModelViewProjection);
 
@@ -1610,8 +1611,6 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imageInfo.imageView = texture->getImageView();
 	imageInfo.sampler = textureSampler;
-
-	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
 
 	std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
 	// MVP uniform
