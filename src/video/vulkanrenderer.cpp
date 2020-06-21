@@ -1584,7 +1584,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 							const glm::vec4 &colour)
 {
 	// setup uniforms
-	glm::vec3 camPos{0, -2, 10.0f};
+	glm::vec3 camPos{0, 0, 10.0f};
 	glm::vec3 direction{0, 0, -1.0f};
 
 	ModelViewProjection mvp = {};
