@@ -27,6 +27,7 @@ class Renderer
 protected:
 	Logger logger;
     Size screenSize;
+	glm::mat4 viewMatrix;
 
 public:
     Renderer(std::string name);
@@ -44,6 +45,7 @@ public:
     void setGlobalScale(const vec2 &scale) { this->globalScale = scale; }
     const vec3 &getClearColor() const { return clearColor; }
     void setClearColor(const vec3 &color) { clearColor = color; }
+	void setViewMatrix(const glm::mat4 &viewMatrix) { this->viewMatrix = viewMatrix; }
 
     virtual std::shared_ptr<const Texture> createTexture(const std::string &filePath, const Size &textureSize,
 														 const void *pixelData, u_int8_t bytesPerPixel) const = 0;
