@@ -49,8 +49,8 @@ struct PositionComponent : public ComponentType<PositionComponent>
 		// create the model matrix, by getting a 3D vector from the Entity's vec2 position
 		mat4 modelMatrix;
 		modelMatrix = translate(mat4(1), pivotPos);
-		modelMatrix = glm::scale(modelMatrix, vec3(scaleX, scaleY, scale.z));
 		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotationAngle), rotationAxis);
+		modelMatrix = glm::scale(modelMatrix, vec3(scaleX, scaleY, scale.z));
 
 		return modelMatrix;
 	}
