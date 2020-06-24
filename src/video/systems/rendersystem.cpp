@@ -29,8 +29,11 @@ void RenderSystem::update(ComponentStore &store, const double delta)
 			currentEntity = parentComp.entity;
 		}
 
-		renderer.render(modelMatrix, render.model,
-						render.spriteSheetFrame.getSourceTexture(),
-						nullptr, render.colour);
+		for (const auto &mesh : render.meshes)
+		{
+			renderer.render(modelMatrix, mesh.model,
+							mesh.spriteSheetFrame.getSourceTexture(),
+							nullptr, mesh.colour);
+		}
 	}
 }

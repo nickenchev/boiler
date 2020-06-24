@@ -1,25 +1,25 @@
 #ifndef RENDERCOMPONENT_H
 #define RENDERCOMPONENT_H
 
-#include <memory>
+#include <vector>
 #include "core/math.h"
 #include "core/componenttype.h"
-#include "video/model.h"
-#include "core/spritesheetframe.h"
+#include "video/mesh.h"
 
 namespace Boiler
 {
 
 struct RenderComponent : public ComponentType<RenderComponent>
 {
-	std::shared_ptr<const Model> model;
-	const SpriteSheetFrame spriteSheetFrame;
-    vec4 colour;
-
-	RenderComponent(const std::shared_ptr<const Model> model, SpriteSheetFrame spriteSheetFrame) : spriteSheetFrame(spriteSheetFrame)
+	std::vector<Mesh> meshes;
+	
+	RenderComponent()
 	{
-		this->model = model;
-		this->colour = vec4(1, 1, 1, 1);
+	}
+
+	RenderComponent(const Mesh &mesh)
+	{
+		meshes.push_back(mesh);
 	}
 };
 
