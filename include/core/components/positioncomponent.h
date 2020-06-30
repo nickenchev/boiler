@@ -15,13 +15,13 @@ struct PositionComponent : public ComponentType<PositionComponent>
 {
     Rect frame;
     vec3 scale;
-	vec4 rotation;
+	glm::quat orientation;
     bool absolute;
 
 	PositionComponent(Rect frame) : frame(frame)
 	{
 		scale = {1.0f, 1.0f, 1.0f};
-		rotation = {0, 0, 0, 0};
+		orientation = {0, 0, 0, 0};
 		absolute = false;
 	}
 
@@ -34,7 +34,7 @@ struct PositionComponent : public ComponentType<PositionComponent>
 
 		// create the model matrix, by getting a 3D vector from the Entity's vec2 position
 		mat4 scaleMatrix = glm::scale(mat4(1), vec3(scale.x, scale.y, scale.z));
-		mat4 rotationMatrix = glm::mat4(glm::qua(rotation.w, rotation.x, rotation.y, rotation.z));
+		mat4 rotationMatrix = glm::mat4(orientation);
 		mat4 translationMatrix = translate(mat4(1), pivotPos);
 		mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
