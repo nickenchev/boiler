@@ -11,7 +11,7 @@ namespace Boiler
 struct Mesh
 {
 	std::shared_ptr<const Model> model;
-	const SpriteSheetFrame spriteSheetFrame;
+	SpriteSheetFrame spriteSheetFrame;
     vec4 colour;
 
 	Mesh(const std::shared_ptr<const Model> model, SpriteSheetFrame spriteSheetFrame) : spriteSheetFrame(spriteSheetFrame)

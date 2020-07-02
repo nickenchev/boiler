@@ -21,8 +21,7 @@
 using namespace Boiler;
 
 Engine::Engine(std::unique_ptr<Renderer> &&renderer)
-	: logger("Engine"), renderer(std::move(renderer)), baseDataPath(""),
-	  imageLoader(*this->renderer), spriteLoader(imageLoader), fontLoader(imageLoader)
+	: logger("Engine"), renderer(std::move(renderer)), baseDataPath("")
 {
 	guiSystem = nullptr;
 	logger.log("Engine instance created");

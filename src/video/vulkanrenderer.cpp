@@ -1249,7 +1249,7 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &filePath, const Size &textureSize,
 															 const void *pixelData, u_int8_t bytesPerPixel) const
 {
-	const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+	VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
 	//const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
 
 	if (bytesPerPixel < 4)
@@ -1613,7 +1613,6 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	// MVP uniform
 	descriptorWrites[0].dstBinding = 0;
 	descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	//descriptorWrites[0].dstSet = descriptorSets[imageIndex];
 	descriptorWrites[0].dstSet = descriptorSets[vkmodel->getDescriptorId()];
 	descriptorWrites[0].dstArrayElement = 0;
 	descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;

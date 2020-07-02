@@ -40,7 +40,6 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/core/engine.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/entityworld.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/tmxloader.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/spriteloader.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/spritesheet.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/spritesheetframe.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/core/base64.cpp
@@ -55,7 +54,6 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/core/fileutils.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/renderer.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/model.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/fontloader.cpp
   # Vulkan Rendering
   ${CMAKE_CURRENT_LIST_DIR}/src/video/vulkanrenderer.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/vulkanmodel.cpp
@@ -63,13 +61,13 @@ set(BOILER_SOURCES
   # Platform Support
   ${CMAKE_CURRENT_LIST_DIR}/src/platform/sdlwindow.cpp
 
-  # OpenGL Rendering
+  # Video and Rendering
   ${CMAKE_CURRENT_LIST_DIR}/src/video/openglrenderer.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/opengltexture.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/openglmodel.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/glslshaderprogram.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/spvshaderprogram.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/imageloader.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/video/imaging/imageloader.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/rendersystem.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/glyphsystem.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/guisystem.cpp

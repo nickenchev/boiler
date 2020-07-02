@@ -6,7 +6,7 @@
 #include <string>
 #include <functional>
 #include "spriteloader.h"
-#include "video/imageloader.h"
+#include "video/imaging/imageloader.h"
 #include "video/fontloader.h"
 #include "input/touchmotionevent.h"
 #include "input/touchtapevent.h"
@@ -47,9 +47,6 @@ class Engine
     bool running = true;
 	bool paused = false;
 
-    ImageLoader imageLoader;
-    SpriteLoader spriteLoader;
-    FontLoader fontLoader;
     double frameInterval;
 
     void run();
@@ -73,10 +70,6 @@ public:
 	Renderer &getRenderer() { return *renderer; }
 	EntityComponentSystem &getEcs() { return ecs; }
     std::shared_ptr<Part> getPart() const { return part; }
-
-    const SpriteLoader &getSpriteLoader() const { return spriteLoader; }
-    const ImageLoader &getImageLoader() const { return imageLoader; }
-    const FontLoader &getFontLoader() const { return fontLoader; }
 
     void addTouchMotionListener(const TouchMotionListener &listener) { touchMotionListeners.push_back(listener); }
     void addTouchTapEventListener(const TouchTapEventListener &listener) { touchTapEventListeners.push_back(listener); }
