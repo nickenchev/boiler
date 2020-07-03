@@ -1249,7 +1249,7 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &filePath, const Size &textureSize,
 															 const void *pixelData, u_int8_t bytesPerPixel) const
 {
-	VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+	const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
 	//const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
 
 	if (bytesPerPixel < 4)

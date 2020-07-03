@@ -12,7 +12,9 @@ class Texture
 
 protected:
     Texture(const std::string filePath) : filePath(filePath) { }
-    const std::string &getFilePath() { return filePath; }
+
+public:
+    const std::string &getFilePath() const { return filePath; }
 };
 
 }
