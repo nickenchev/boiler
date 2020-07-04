@@ -1587,7 +1587,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	ModelViewProjection mvp = {};
 	mvp.model = modelMatrix;
 	mvp.view = viewMatrix;
-	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.01f, 1000.0f);
+	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 1.0f, 500.0f);
 
 	auto texture = static_cast<const VkTexture *>(sourceTexture.get());
 	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
