@@ -43,7 +43,7 @@ ImageData ImageLoader::load(const std::string &filePath)
 	int width, height, channels;
 
 	unsigned char *imageData = stbi_load(filePath.c_str(), &width, &height, &channels, destColorChannels);
-	logger.log("Loaded {} ({}x{} {} channels)", filePath, width, height, channels);
+	logger.log("{} ({}x{} {}bit)", filePath, width, height, channels * 8);
 
 	return ImageData(imageData, Size(width, height), destColorChannels);
 }

@@ -784,7 +784,7 @@ void VulkanRenderer::createGraphicsPipeline()
 		VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorBlendAttachState.blendEnable = VK_TRUE;
 	colorBlendAttachState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+	colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	colorBlendAttachState.colorBlendOp = VK_BLEND_OP_ADD;
 	colorBlendAttachState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 	colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
@@ -1587,7 +1587,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	ModelViewProjection mvp = {};
 	mvp.model = modelMatrix;
 	mvp.view = viewMatrix;
-	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.01f, 100.0f);
+	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.01f, 1000.0f);
 
 	auto texture = static_cast<const VkTexture *>(sourceTexture.get());
 	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
