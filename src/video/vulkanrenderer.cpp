@@ -479,13 +479,18 @@ void VulkanRenderer::initialize(const Size &size)
 				program = std::make_unique<SPVShaderProgram>(device, "shaders/", "vert.spv", "frag.spv");
 
 				createSwapChain();
-				createRenderPass();
-				createDescriptorSetLayout();
-				createGraphicsPipeline();
+
+				renderPass = createRenderPass();
+				renderPass2 = createRenderPass();
+
+				descriptorSetLayout = createDescriptorSetLayout();
+				pipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
+				graphicsPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, *program.get());
 				createDepthResources();
 				createFramebuffers();
 				createCommandPools();
 				createMvpBuffers();
+				createLightBuffers();
 				createDescriptorPool();
 				createDescriptorSets();
 				createCommandBuffers();
@@ -624,16 +629,17 @@ void VulkanRenderer::createSwapChain()
 	swapChainImageViews.resize(swapChainImages.size());
 	for (int i = 0; i < swapChainImages.size(); ++i)
 	{
-		swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+		swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainFormat,
+												 VK_IMAGE_ASPECT_COLOR_BIT);
 	}
 }
 
-void VulkanRenderer::createRenderPass()
+VkRenderPass VulkanRenderer::createRenderPass()
 {
 	VkAttachmentDescription colorAttachment = {};
 	colorAttachment.format = swapChainFormat;
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -686,13 +692,35 @@ void VulkanRenderer::createRenderPass()
 	renderPassCreateInfo.dependencyCount = 1;
 	renderPassCreateInfo.pDependencies = &dependency;
 
+	VkRenderPass renderPass = VK_NULL_HANDLE;
 	if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Error creating render pass.");
 	}
+
+	return renderPass;
 }
 
-void VulkanRenderer::createGraphicsPipeline()
+VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout) const
+{
+	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+
+	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutCreateInfo.setLayoutCount = 1;
+	pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
+	pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+	pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+
+	if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error creating pipeline layout");
+	}
+
+	return pipelineLayout;
+}
+
+VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent, const SPVShaderProgram &program) const
 {
 	// Vertex input stage
 	VkVertexInputBindingDescription inputBind = {};
@@ -804,18 +832,6 @@ void VulkanRenderer::createGraphicsPipeline()
 	colorBlendCreateInfo.blendConstants[2] = 0.0f;
 	colorBlendCreateInfo.blendConstants[3] = 0.0f;
 
-	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
-	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutCreateInfo.setLayoutCount = 1;
-	pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
-	pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
-	pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
-
-	if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Error creating pipeline layout");
-	}
-
 	// depth/stencil buffer setup
 	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
 	depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -825,8 +841,10 @@ void VulkanRenderer::createGraphicsPipeline()
 	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
 	depthStencilInfo.stencilTestEnable = VK_FALSE;
 
-	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages =
-		{program->getVertStageInfo(), program->getFragStageInfo()};
+	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {
+		program.getVertStageInfo(),
+		program.getFragStageInfo()
+	};
 
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -848,11 +866,14 @@ void VulkanRenderer::createGraphicsPipeline()
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	pipelineInfo.basePipelineIndex = -1;
 
-	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS)
+	VkPipeline pipeline = VK_NULL_HANDLE;
+	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Error creating graphics pipeline");
 	}
 	logger.log("Created graphics pipeline");
+
+	return pipeline;
 }
 
 void VulkanRenderer::createFramebuffers()
@@ -884,7 +905,7 @@ void VulkanRenderer::createFramebuffers()
 	logger.log("Created framebuffers");
 }
 
-void VulkanRenderer::createDescriptorSetLayout()
+VkDescriptorSetLayout VulkanRenderer::createDescriptorSetLayout() const
 {
 	std::array<VkDescriptorSetLayoutBinding, 3> bindings = {};
 
@@ -914,12 +935,14 @@ void VulkanRenderer::createDescriptorSetLayout()
 	layoutInfo.bindingCount = bindings.size();
 	layoutInfo.pBindings = bindings.data();
 
+	VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
 	if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Error creating descriptor set layout");
 	}
-
 	logger.log("Created {} descriptor set layouts", bindings.size());
+
+	return descriptorSetLayout;
 }
 
 void VulkanRenderer::createDescriptorPool()
@@ -1112,10 +1135,13 @@ void VulkanRenderer::recreateSwapchain()
 	vkDeviceWaitIdle(device);
 
 	cleanupSwapchain();
-
 	createSwapChain();
-	createRenderPass();
-	createGraphicsPipeline();
+
+	// render passes
+	renderPass = createRenderPass();
+	renderPass2 = createRenderPass();
+
+	graphicsPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, *program.get());
 	createDepthResources();
 	createFramebuffers();
 	createMvpBuffers();
@@ -1125,7 +1151,8 @@ void VulkanRenderer::recreateSwapchain()
 	createCommandBuffers();
 }
 
-uint32_t VulkanRenderer::findMemoryType(uint32_t memoryTypeBits, VkMemoryPropertyFlags propertFlags) const
+uint32_t VulkanRenderer::findMemoryType(uint32_t memoryTypeBits,
+										VkMemoryPropertyFlags propertFlags) const
 {
 	// memoryTypeBits is a bitset of memoryTypes supported by the resource
 	VkPhysicalDeviceMemoryProperties memProps;
@@ -1196,8 +1223,10 @@ void VulkanRenderer::cleanupSwapchain()
 	logger.log("Pipeline destroyed");
 	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 	logger.log("Pipeline layout destroyed");
+
 	vkDestroyRenderPass(device, renderPass, nullptr);
-	logger.log("Render pass destroyed");
+	vkDestroyRenderPass(device, renderPass2, nullptr);
+	logger.log("Render passes destroyed");
 }
 
 void VulkanRenderer::resize(const Boiler::Size &size)

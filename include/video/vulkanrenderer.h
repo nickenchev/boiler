@@ -41,7 +41,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkExtent2D swapChainExtent;
 	QueueFamilyIndices queueFamilyIndices;
 	std::set<uint32_t> uniqueQueueIndices;
-	VkRenderPass renderPass;
+	VkRenderPass renderPass, renderPass2;
 	VkDescriptorSetLayout descriptorSetLayout;
 	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
@@ -65,10 +65,12 @@ class VulkanRenderer : public Boiler::Renderer
 	VkImageView depthImageView;
 
 	void createSwapChain();
-	void createRenderPass();
-	void createGraphicsPipeline();
+	VkRenderPass createRenderPass();
+	VkPipelineLayout createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout) const;
+	VkPipeline createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent, const SPVShaderProgram &program) const;
+
 	void createFramebuffers();
-	void createDescriptorSetLayout();
+	VkDescriptorSetLayout createDescriptorSetLayout() const;
 	void createDescriptorPool();
 	void createDescriptorSets();
 	void createCommandPools();
