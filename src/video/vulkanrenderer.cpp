@@ -28,6 +28,7 @@
 #include "video/spvshaderprogram.h"
 #include "video/vulkanmodel.h"
 #include "video/modelviewprojection.h"
+#include "video/lightsource.h"
 #include "vulkan/vulkan_core.h"
 #include "video/vktexture.h"
 
@@ -37,8 +38,10 @@ constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
 constexpr int maxObjects = 1000;
+constexpr int maxLights = 100;
 
 int descriptorId = 0;
+int lightId = 0;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -190,7 +193,7 @@ void VulkanRenderer::initialize(const Size &size)
 			appInfo.pApplicationName = "Boiler Vulkan Renderer";
 			appInfo.pEngineName = "Boiler";
 			appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-			appInfo.apiVersion = VK_API_VERSION_1_0;
+			appInfo.apiVersion = VK_API_VERSION_1_2;
 
 			VkInstanceCreateInfo createInfo = {};
 			createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -230,11 +233,11 @@ void VulkanRenderer::initialize(const Size &size)
 				}
 				assert(layersOk);
 
-				logger.log(std::to_string(validationLayers.size()) + " layer(s) will be enabled");
 				createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 				createInfo.ppEnabledLayerNames = validationLayers.data();
-				logger.log("Validation layers are enabled");
 
+				logger.log(std::to_string(validationLayers.size()) + " layer(s) will be enabled");
+				logger.log("Validation layers are enabled");
 			}
 
 			// create the vulkan instance
@@ -537,7 +540,7 @@ void VulkanRenderer::createSwapChain()
 	VkSurfaceFormatKHR selectedFormat = formats[0];
 	for (const auto &format : formats)
 	{
-		if (format.format == VK_FORMAT_B8G8R8_UNORM &&
+		if (format.format == VK_FORMAT_R8G8B8A8_UNORM &&
 			format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 		{
 			selectedFormat = format;
@@ -630,7 +633,7 @@ void VulkanRenderer::createRenderPass()
 	VkAttachmentDescription colorAttachment = {};
 	colorAttachment.format = swapChainFormat;
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -883,7 +886,7 @@ void VulkanRenderer::createFramebuffers()
 
 void VulkanRenderer::createDescriptorSetLayout()
 {
-	std::array<VkDescriptorSetLayoutBinding, 2> bindings = {};
+	std::array<VkDescriptorSetLayoutBinding, 3> bindings = {};
 
 	// UBO binding
 	bindings[0].binding = 0;
@@ -898,6 +901,13 @@ void VulkanRenderer::createDescriptorSetLayout()
 	bindings[1].descriptorCount = 1;
 	bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	bindings[1].pImmutableSamplers = nullptr;
+
+	// light source binding
+	bindings[2].binding = 2;
+	bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	bindings[2].descriptorCount = 1;
+	bindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	bindings[2].pImmutableSamplers = nullptr;
 	
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -914,12 +924,15 @@ void VulkanRenderer::createDescriptorSetLayout()
 
 void VulkanRenderer::createDescriptorPool()
 {
-	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+	std::array<VkDescriptorPoolSize, 3> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = maxObjects;
 
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	poolSizes[1].descriptorCount = maxObjects;
+
+	poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[2].descriptorCount = maxObjects;
 
 	VkDescriptorPoolCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1080,6 +1093,20 @@ void VulkanRenderer::createMvpBuffers()
 	}
 }
 
+void VulkanRenderer::createLightBuffers()
+{
+	VkDeviceSize bufferSize = sizeof(LightSource);
+	lightSourceBuffers.resize(maxLights);
+	lightSourceBuffersMemory.resize(maxLights);
+
+	for (int i = 0; i < maxLights; ++i)
+	{
+		auto buffPair = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		lightSourceBuffers[i] = buffPair.first;
+		lightSourceBuffersMemory[i] = buffPair.second;
+	}
+}
+
 void VulkanRenderer::recreateSwapchain()
 {
 	vkDeviceWaitIdle(device);
@@ -1092,6 +1119,7 @@ void VulkanRenderer::recreateSwapchain()
 	createDepthResources();
 	createFramebuffers();
 	createMvpBuffers();
+	createLightBuffers();
 	createDescriptorPool();
 	createDescriptorSets();
 	createCommandBuffers();
@@ -1137,7 +1165,15 @@ void VulkanRenderer::cleanupSwapchain()
 	{
 		vkFreeMemory(device, memory, nullptr);
 	}
-	logger.log("Cleaned up mvp buffers");
+	for (const auto &buffer : lightSourceBuffers)
+	{
+		vkDestroyBuffer(device, buffer, nullptr);
+	}
+	for (const auto &memory : lightSourceBuffersMemory)
+	{
+		vkFreeMemory(device, memory, nullptr);
+	}
+	logger.log("Cleaned up buffers and memory");
 
 	// command buffers
 	vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
@@ -1271,7 +1307,6 @@ std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &
 								 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 								 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-
 	// transition the image to transfer layout, copy the buffer pixel data to the image
 	transitionImageLayout(imagePair.first, format, VK_IMAGE_LAYOUT_UNDEFINED,
 						  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -1289,10 +1324,6 @@ std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &
 	logger.log("Loaded texture data for {}", filePath);
 
 	return std::make_shared<VkTexture>(filePath, device, imagePair.first, imagePair.second, imageView);
-}
-
-void VulkanRenderer::setActiveTexture(std::shared_ptr<const Texture> texture) const
-{
 }
 
 std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
@@ -1518,6 +1549,14 @@ std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) c
 	return std::make_shared<VulkanModel>(device, vertexPair.first, vertexPair.second, indexPair.first, indexPair.second, data, descriptorId++);
 }
 
+unsigned int VulkanRenderer::createLight()
+{
+	unsigned int lightId = lightId++;
+	logger.log("Created light with id: {}", lightId);
+
+	return lightId;
+}
+
 void VulkanRenderer::beginRender()
 {
 	nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
@@ -1587,7 +1626,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	ModelViewProjection mvp = {};
 	mvp.model = modelMatrix;
 	mvp.view = viewMatrix;
-	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 1.0f, 500.0f);
+	mvp.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 1.0f, 500.0f);
 
 	auto texture = static_cast<const VkTexture *>(sourceTexture.get());
 	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
@@ -1599,17 +1638,23 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	vkUnmapMemory(device, mvpBuffersMemory[vkmodel->getDescriptorId()]);
 
 	// setup descriptor sets
-	VkDescriptorBufferInfo bufferInfo = {};
-	bufferInfo.buffer = mvpBuffers[vkmodel->getDescriptorId()];
-	bufferInfo.offset = 0;
-	bufferInfo.range = sizeof(ModelViewProjection);
+	VkDescriptorBufferInfo mvpBufferInfo = {};
+	mvpBufferInfo.buffer = mvpBuffers[vkmodel->getDescriptorId()];
+	mvpBufferInfo.offset = 0;
+	mvpBufferInfo.range = sizeof(ModelViewProjection);
 
 	VkDescriptorImageInfo imageInfo = {};
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imageInfo.imageView = texture->getImageView();
 	imageInfo.sampler = textureSampler;
 
-	std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+	VkDescriptorBufferInfo lightBufferInfo = {};
+	//lightBufferInfo.buffer = lightSourceBuffers[vkmodel->getDescriptorId()];
+	lightBufferInfo.buffer = mvpBuffers[vkmodel->getDescriptorId()];
+	lightBufferInfo.offset = 0;
+	lightBufferInfo.range = sizeof(LightSource);
+
+	std::array<VkWriteDescriptorSet, 3> descriptorWrites = {};
 	// MVP uniform
 	descriptorWrites[0].dstBinding = 0;
 	descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1617,7 +1662,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	descriptorWrites[0].dstArrayElement = 0;
 	descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	descriptorWrites[0].descriptorCount = 1;
-	descriptorWrites[0].pBufferInfo = &bufferInfo;
+	descriptorWrites[0].pBufferInfo = &mvpBufferInfo;
 
 	// texture
 	descriptorWrites[1].dstBinding = 1;
@@ -1627,6 +1672,15 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	descriptorWrites[1].descriptorCount = 1;
 	descriptorWrites[1].pImageInfo = &imageInfo;
+
+	// lighting
+	descriptorWrites[2].dstBinding = 2;
+	descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWrites[2].dstSet = descriptorSets[vkmodel->getDescriptorId()];
+	descriptorWrites[2].dstArrayElement = 0;
+	descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	descriptorWrites[2].descriptorCount = 1;
+	descriptorWrites[2].pBufferInfo = &lightBufferInfo;
 
 	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 	vkCmdBindDescriptorSets(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[vkmodel->getDescriptorId()], 0, nullptr);

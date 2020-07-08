@@ -52,8 +52,8 @@ class VulkanRenderer : public Boiler::Renderer
 	std::vector<VkCommandBuffer> commandBuffers;
 	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
 	std::vector<VkFence> frameFences;
-	std::vector<VkBuffer> mvpBuffers;
-	std::vector<VkDeviceMemory> mvpBuffersMemory;
+	std::vector<VkBuffer> mvpBuffers, lightSourceBuffers;
+	std::vector<VkDeviceMemory> mvpBuffersMemory, lightSourceBuffersMemory;
 	std::unique_ptr<SPVShaderProgram> program;
 	short currentFrame;
 	uint32_t imageIndex;
@@ -75,6 +75,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void createCommandBuffers();
 	void createSynchronization();
 	void createMvpBuffers();
+	void createLightBuffers();
 	void recreateSwapchain();
 	void cleanupSwapchain();
 	void createTextureSampler();
@@ -112,10 +113,10 @@ public:
 
     std::shared_ptr<const Texture> createTexture(const std::string &filePath, const Size &textureSize,
 												 const void *pixelData, u_int8_t bytesPerPixel) const override;
-    void setActiveTexture(std::shared_ptr<const Texture> texture) const override;
 
 	std::pair<VkBuffer, VkDeviceMemory> createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const;
     std::shared_ptr<const Model> loadModel(const VertexData &data) const override;
+	unsigned int createLight() override;
 
 	void beginRender() override;
 	void endRender() override;

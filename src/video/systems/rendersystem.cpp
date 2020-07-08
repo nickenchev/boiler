@@ -7,12 +7,26 @@
 
 using namespace Boiler;
 
+struct RenderObject
+{
+	Entity entity;
+	PositionComponent positionComponent;
+	RenderComponent renderComponent;
+};
+
 void RenderSystem::update(ComponentStore &store, const double delta)
 {
+	std::vector<RenderObject> renderList;
 	for (auto &entity : getEntities())
 	{
 		PositionComponent &pos = store.retrieve<PositionComponent>(entity);
 		RenderComponent &render = store.retrieve<RenderComponent>(entity);
+
+		renderList.push_back(RenderObject({
+			entity,
+			pos,
+			render
+		}));
 
 		glm::mat4 modelMatrix = pos.getMatrix();
 

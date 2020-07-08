@@ -10,7 +10,6 @@ class SDLWindow : public Window
 {
 public:
     SDLWindow();
-    virtual ~SDLWindow();
 };
 
 }

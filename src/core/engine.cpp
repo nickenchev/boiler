@@ -14,7 +14,9 @@
 #include "core/components/rendercomponent.h"
 #include "core/components/textcomponent.h"
 #include "core/components/guicomponent.h"
+#include "core/components/lightingcomponent.h"
 #include "video/systems/guisystem.h"
+#include "video/systems/lightingsystem.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
@@ -47,23 +49,28 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const int resWid
 	frameInterval = 1.0f / 60.0f; // 60fps
 	renderer->initialize(Size(resWidth, resHeight));
 
+	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer)
+		.expects<LightingComponent>();
+	ecs.getComponentSystems().removeUpdate(lightingSys);
+	this->lightingSystem = &lightingSys;
+
 	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*renderer)
 		.expects<PositionComponent>()
 		.expects<RenderComponent>();
-	ecs.getComponentSystems().removeUpdate(&renderSys);
+	ecs.getComponentSystems().removeUpdate(renderSys);
 	this->renderSystem = &renderSys;
 
 	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*renderer)
 		.expects<PositionComponent>()
 		.expects<TextComponent>();
-	ecs.getComponentSystems().removeUpdate(&glyphSys);
+	ecs.getComponentSystems().removeUpdate(glyphSys);
 	this->glyphSystem = &glyphSys;
 
 	if (guiHandler)
 	{
 		System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*renderer, std::move(guiHandler))
 			.expects<GUIComponent>();
-		ecs.getComponentSystems().removeUpdate(&guiSys);
+		ecs.getComponentSystems().removeUpdate(guiSys);
 		this->guiSystem = &guiSys;
 	}
 }
@@ -109,6 +116,7 @@ void Engine::run()
 			// render related systems only run during render phase
 			// TODO: Handle GUI events differently
 			renderer->beginRender();
+			lightingSystem->update(getEcs().getComponentStore(), frameDelta);
 			renderSystem->update(getEcs().getComponentStore(), frameDelta);
 			glyphSystem->update(getEcs().getComponentStore(), frameDelta);
 			if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);

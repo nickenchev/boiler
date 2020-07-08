@@ -1,3 +1,2 @@
 #include "platform/window.h"
 
-

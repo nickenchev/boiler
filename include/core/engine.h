@@ -37,7 +37,7 @@ class Engine
 	std::unique_ptr<Renderer> renderer;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
-	System *renderSystem, *glyphSystem, *guiSystem;
+	System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem;
 
     std::vector<TouchMotionListener> touchMotionListeners;
     std::vector<TouchTapEventListener> touchTapEventListeners;

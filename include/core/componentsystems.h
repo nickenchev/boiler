@@ -45,13 +45,13 @@ public:
 		return sysRef;
 	}
 
-	void removeUpdate(const System *system)
+	void removeUpdate(const System &system)
 	{
-		auto itr = std::find(updateSystems.begin(), updateSystems.end(), system);
+		auto itr = std::find(updateSystems.begin(), updateSystems.end(), &system);
 		if (itr != updateSystems.end())
 		{
 			updateSystems.erase(itr);
-			logger.log("Removed " + system->getName() + " from update list.");
+			logger.log("Removed " + system.getName() + " from update list.");
 		}
 		else
 		{
