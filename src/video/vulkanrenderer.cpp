@@ -1141,7 +1141,9 @@ void VulkanRenderer::recreateSwapchain()
 	renderPass = createRenderPass();
 	renderPass2 = createRenderPass();
 
+	pipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
 	graphicsPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, *program.get());
+
 	createDepthResources();
 	createFramebuffers();
 	createMvpBuffers();
