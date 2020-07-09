@@ -62,6 +62,7 @@ VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 {
 	currentFrame = 0;
 	resizeOccured = false;
+	commandPool = VK_NULL_HANDLE;
 }
 
 void VulkanRenderer::prepareShutdown()
@@ -488,11 +489,11 @@ void VulkanRenderer::initialize(const Size &size)
 				graphicsPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, *program.get());
 				createDepthResources();
 				createFramebuffers();
-				createCommandPools();
 				createMvpBuffers();
 				createLightBuffers();
 				createDescriptorPool();
 				createDescriptorSets();
+				commandPool = createCommandPools(queueFamilyIndices, graphicsQueue, transferQueue);
 				createCommandBuffers();
 				createSynchronization();
 				createTextureSampler();
@@ -507,6 +508,10 @@ void VulkanRenderer::initialize(const Size &size)
     {
 		throw std::runtime_error("Error Initializing SDL: " + std::string(SDL_GetError()));
     }
+}
+
+void VulkanRenderer::createComponents()
+{
 }
 
 void VulkanRenderer::createSwapChain()
@@ -554,10 +559,11 @@ void VulkanRenderer::createSwapChain()
 	}
 
 	// select the presentation mode
+	const VkPresentModeKHR preferredMode = VK_PRESENT_MODE_MAILBOX_KHR;
 	VkPresentModeKHR selectedPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 	for (const auto &presentMode : presentModes)
 	{
-		if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+		if (presentMode == preferredMode)
 		{
 			selectedPresentMode = presentMode;
 			logger.log("Found preferred presentation mode");
@@ -991,8 +997,10 @@ void VulkanRenderer::createDescriptorSets()
 	logger.log("Allocated {} descriptor sets", descriptorSets.size());
 }
 
-void VulkanRenderer::createCommandPools()
+VkCommandPool VulkanRenderer::createCommandPools(const QueueFamilyIndices &queueFamilyIndices, const VkQueue &graphicsQueue, const VkQueue &transferQueue)
 {
+	VkCommandPool commandPool = VK_NULL_HANDLE;
+	
 	auto createPool = [this](uint32_t index, VkCommandPool *pool) {
 		VkCommandPoolCreateInfo commandPoolInfo = {};
 		commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1021,6 +1029,8 @@ void VulkanRenderer::createCommandPools()
 	commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	commandPoolInfo.queueFamilyIndex = queueFamilyIndices.graphics.value();
 	commandPoolInfo.flags = 0;
+
+	return commandPool;
 }
 
 void VulkanRenderer::createCommandBuffers()
@@ -1135,6 +1145,8 @@ void VulkanRenderer::recreateSwapchain()
 	vkDeviceWaitIdle(device);
 
 	cleanupSwapchain();
+
+	// recreate components
 	createSwapChain();
 
 	// render passes

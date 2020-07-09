@@ -64,6 +64,8 @@ class VulkanRenderer : public Boiler::Renderer
 	VkDeviceMemory depthImageMemory;
 	VkImageView depthImageView;
 
+	void createComponents();
+
 	void createSwapChain();
 	VkRenderPass createRenderPass();
 	VkPipelineLayout createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout) const;
@@ -73,7 +75,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkDescriptorSetLayout createDescriptorSetLayout() const;
 	void createDescriptorPool();
 	void createDescriptorSets();
-	void createCommandPools();
+	VkCommandPool createCommandPools(const QueueFamilyIndices &queueFamilyIndices, const VkQueue &graphicsQueue, const VkQueue &transferQueue);
 	void createCommandBuffers();
 	void createSynchronization();
 	void createMvpBuffers();
