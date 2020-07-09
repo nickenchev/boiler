@@ -76,6 +76,10 @@ VulkanRenderer::~VulkanRenderer()
 {
 	cleanupSwapchain();
 
+	// command buffers
+	vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
+	logger.log("Destroyed command buffers");
+
 	vkDestroyRenderPass(device, renderPass, nullptr);
 	vkDestroyRenderPass(device, renderPass2, nullptr);
 	logger.log("Render passes destroyed");
@@ -1170,17 +1174,17 @@ void VulkanRenderer::recreateSwapchain()
 {
 	vkDeviceWaitIdle(device);
 
+	// recreate swapchain
 	cleanupSwapchain();
-
-	// recreate components
 	createSwapChain();
 
+	// recreate pipeline due to swapchain changes
 	pipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
 	graphicsPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, *program.get());
 
+	// depth and framebuffers need to be recreated due to new swapchain
 	createDepthResources();
 	createFramebuffers();
-	createCommandBuffers();
 }
 
 uint32_t VulkanRenderer::findMemoryType(uint32_t memoryTypeBits,
@@ -1214,10 +1218,6 @@ void VulkanRenderer::cleanupSwapchain()
 		vkDestroyFramebuffer(device, framebuffer, nullptr);
 	}
 	logger.log("Destroyed framebuffers");
-
-	// command buffers
-	vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
-	logger.log("Destroyed command buffers");
 
 	for (const auto &imageView : swapChainImageViews)
 	{
