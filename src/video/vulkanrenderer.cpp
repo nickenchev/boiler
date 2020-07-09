@@ -76,6 +76,25 @@ VulkanRenderer::~VulkanRenderer()
 {
 	cleanupSwapchain();
 
+	// TODO: Change MVP buffer cleanup
+	for (const auto &buffer : mvpBuffers)
+	{
+		vkDestroyBuffer(device, buffer, nullptr);
+	}
+	for (const auto &memory : mvpBuffersMemory)
+	{
+		vkFreeMemory(device, memory, nullptr);
+	}
+	for (const auto &buffer : lightSourceBuffers)
+	{
+		vkDestroyBuffer(device, buffer, nullptr);
+	}
+	for (const auto &memory : lightSourceBuffersMemory)
+	{
+		vkFreeMemory(device, memory, nullptr);
+	}
+	logger.log("Cleaned up buffers and memory");
+
 	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
 	// delete the shader module
@@ -1158,8 +1177,6 @@ void VulkanRenderer::recreateSwapchain()
 
 	createDepthResources();
 	createFramebuffers();
-	createMvpBuffers();
-	createLightBuffers();
 	createDescriptorPool();
 	createDescriptorSets();
 	createCommandBuffers();
@@ -1196,25 +1213,6 @@ void VulkanRenderer::cleanupSwapchain()
 		vkDestroyFramebuffer(device, framebuffer, nullptr);
 	}
 	logger.log("Destroyed framebuffers");
-
-	// TODO: Change MVP buffer cleanup
-	for (const auto &buffer : mvpBuffers)
-	{
-		vkDestroyBuffer(device, buffer, nullptr);
-	}
-	for (const auto &memory : mvpBuffersMemory)
-	{
-		vkFreeMemory(device, memory, nullptr);
-	}
-	for (const auto &buffer : lightSourceBuffers)
-	{
-		vkDestroyBuffer(device, buffer, nullptr);
-	}
-	for (const auto &memory : lightSourceBuffersMemory)
-	{
-		vkFreeMemory(device, memory, nullptr);
-	}
-	logger.log("Cleaned up buffers and memory");
 
 	// command buffers
 	vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
