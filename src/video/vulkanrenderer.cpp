@@ -76,6 +76,10 @@ VulkanRenderer::~VulkanRenderer()
 {
 	cleanupSwapchain();
 
+	vkDestroyRenderPass(device, renderPass, nullptr);
+	vkDestroyRenderPass(device, renderPass2, nullptr);
+	logger.log("Render passes destroyed");
+
 	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 	logger.log("Destroyed descriptor pool");
 
@@ -1171,10 +1175,6 @@ void VulkanRenderer::recreateSwapchain()
 	// recreate components
 	createSwapChain();
 
-	// render passes
-	renderPass = createRenderPass();
-	renderPass2 = createRenderPass();
-
 	pipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
 	graphicsPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, *program.get());
 
@@ -1233,10 +1233,6 @@ void VulkanRenderer::cleanupSwapchain()
 	logger.log("Pipeline destroyed");
 	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 	logger.log("Pipeline layout destroyed");
-
-	vkDestroyRenderPass(device, renderPass, nullptr);
-	vkDestroyRenderPass(device, renderPass2, nullptr);
-	logger.log("Render passes destroyed");
 }
 
 void VulkanRenderer::resize(const Boiler::Size &size)
