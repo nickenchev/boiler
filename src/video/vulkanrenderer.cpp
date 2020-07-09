@@ -76,6 +76,9 @@ VulkanRenderer::~VulkanRenderer()
 {
 	cleanupSwapchain();
 
+	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+	logger.log("Destroyed descriptor pool");
+
 	// TODO: Change MVP buffer cleanup
 	for (const auto &buffer : mvpBuffers)
 	{
@@ -1177,8 +1180,6 @@ void VulkanRenderer::recreateSwapchain()
 
 	createDepthResources();
 	createFramebuffers();
-	createDescriptorPool();
-	createDescriptorSets();
 	createCommandBuffers();
 }
 
@@ -1223,9 +1224,6 @@ void VulkanRenderer::cleanupSwapchain()
 		vkDestroyImageView(device, imageView, nullptr);
 	}
 	logger.log("Destroyed image views");
-
-	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-	logger.log("Destroyed descriptor pool");
 
 	vkDestroySwapchainKHR(device, swapChain, nullptr);
 	logger.log("Swapchain destroyed");
