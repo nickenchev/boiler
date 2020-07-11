@@ -48,7 +48,7 @@ public:
 	void setViewMatrix(const glm::mat4 &viewMatrix) { this->viewMatrix = viewMatrix; }
 
     virtual std::shared_ptr<const Texture> createTexture(const std::string &filePath, const Size &textureSize,
-														 const void *pixelData, u_int8_t bytesPerPixel) const = 0;
+														 const void *pixelData, uint8_t bytesPerPixel) const = 0;
     virtual std::shared_ptr<const Model> loadModel(const VertexData &data) const = 0;
 	virtual unsigned int createLight() = 0;
 

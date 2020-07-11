@@ -40,7 +40,7 @@ public:
 	SDL_GLContext getGLContext() const { return glContext; }
 
     std::shared_ptr<const Texture> createTexture(const std::string &filePath, const Size &textureSize,
-												 const void *pixelData, u_int8_t bytesPerPixel) const override;
+												 const void *pixelData, uint8_t bytesPerPixel) const;
     void setActiveTexture(std::shared_ptr<const Texture> texture) const;
 
     std::shared_ptr<const Model> loadModel(const VertexData &data) const override;

@@ -4,17 +4,12 @@
 #include <chrono>
 #include <SDL.h>
 #include <SDL_vulkan.h>
-#include <SDL_syswm.h>
-//#include <X11/Xlib-xcb.h>
 #include <cstring>
 #include <memory>
 #include <stdexcept>
 #include <sys/types.h>
 #include <utility>
 #include <vector>
-#include <SDL.h>
-#include <SDL_vulkan.h>
-#include <SDL_syswm.h>
 #include <fmt/format.h>
 
 #define GLM_FORCE_RADIANS
@@ -40,8 +35,8 @@ constexpr int maxAnistrophy = 16;
 constexpr int maxObjects = 1000;
 constexpr int maxLights = 100;
 
-int descriptorId = 0;
-int lightId = 0;
+unsigned int descriptorId = 0;
+unsigned int lightId = 0;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -552,7 +547,8 @@ void VulkanRenderer::createSwapChain()
 
 	// surface formats
 	std::vector<VkSurfaceFormatKHR> formats;
-	u_int32_t formatCount = 0;
+
+	uint32_t formatCount = 0;
 	vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
 	if (formatCount > 0)
 	{
@@ -562,7 +558,7 @@ void VulkanRenderer::createSwapChain()
 
 	// presentation modes
 	std::vector<VkPresentModeKHR> presentModes;
-	u_int32_t presentModeCount = 0;
+	uint32_t presentModeCount = 0;
 	vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, nullptr);
 	if (presentModeCount > 0)
 	{
@@ -607,7 +603,7 @@ void VulkanRenderer::createSwapChain()
 	surfaceExtent.height = std::max(surfaceCapabilities.minImageExtent.height,
 									std::min(surfaceCapabilities.maxImageExtent.height, static_cast<Uint32>(getScreenSize().height)));
 
-	u_int32_t imageCount = surfaceCapabilities.minImageCount + 1; // extra image to avoid waiting on the driver
+	uint32_t imageCount = surfaceCapabilities.minImageCount + 1; // extra image to avoid waiting on the driver
 	// ensure we don't request more than max available swapchain images
 	if (surfaceCapabilities.maxImageCount > 0 && imageCount > surfaceCapabilities.maxImageCount)
 	{
@@ -631,7 +627,7 @@ void VulkanRenderer::createSwapChain()
 	swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
 	// handle swap image ownership in case of different queues
-	std::array<u_int32_t, 2> queueIndices = { queueFamilyIndices.graphics.value(), queueFamilyIndices.presentation.value() };
+	std::array<uint32_t, 2> queueIndices = { queueFamilyIndices.graphics.value(), queueFamilyIndices.presentation.value() };
 	if (graphicsQueue != presentationQueue)
 	{
 		swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -652,7 +648,7 @@ void VulkanRenderer::createSwapChain()
 	logger.log("Created swapchain with {} images", imageCount);
 
 	// retrieve the images from the swapchain
-	u_int32_t swapImagesCount = 0;
+	uint32_t swapImagesCount = 0;
 	vkGetSwapchainImagesKHR(device, swapChain, &swapImagesCount, nullptr);
 	swapChainImages.resize(swapImagesCount);
 	vkGetSwapchainImagesKHR(device, swapChain, &swapImagesCount, swapChainImages.data());
@@ -1318,7 +1314,7 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 }
 
 std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &filePath, const Size &textureSize,
-															 const void *pixelData, u_int8_t bytesPerPixel) const
+															 const void *pixelData, uint8_t bytesPerPixel) const
 {
 	const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
 	//const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
@@ -1513,7 +1509,7 @@ void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, const Siz
 	region.imageSubresource.layerCount = 1;
 
 	region.imageOffset = {0, 0, 0};
-	region.imageExtent = {static_cast<u_int32_t>(imageSize.width), static_cast<u_int32_t>(imageSize.height), 1};
+	region.imageExtent = {static_cast<uint32_t>(imageSize.width), static_cast<uint32_t>(imageSize.height), 1};
 
 	vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
@@ -1586,8 +1582,8 @@ std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data) c
 
 unsigned int VulkanRenderer::createLight()
 {
-	unsigned int lightId = lightId++;
-	logger.log("Created light with id: {}", lightId);
+	unsigned int newLightId = lightId++;
+	logger.log("Created light with id: {}", newLightId);
 
 	return lightId;
 }
