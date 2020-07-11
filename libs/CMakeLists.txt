@@ -16,8 +16,7 @@ set(GLEW_HEADERS_DIR ${GLEW_LIB_DIR}/include)
 
 # build zlib
 set(ZLIB_DIR ${LIBS_ROOT}/zlib-1.2.11)
-add_subdirectory(${ZLIB_DIR})
-set(ZLIB_INCLUDE_DIR ${ZLIB_DIR})
+add_subdirectory(${ZLIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/zlib_build)
 
 # build SDL2
 set(SDL_SHARED OFF CACHE BOOL "Disable SDL2 shared lib")
@@ -41,20 +40,27 @@ add_subdirectory(${LIBS_ROOT}/boiler-gltf)
 if (APPLE)
   set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/include)
   set(VULKAN_LIBS ${VULKAN_SDK}/lib/libvulkan.dylib)
+elseif(WIN32)
+  set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/Include)
+  set(VULKAN_LIBS ${VULKAN_SDK}/Lib/vulkan-1.lib)
 else()
-  # Vulkan
+  # Linux
   set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/x86_64/include)
   set(VULKAN_LIBS ${VULKAN_SDK}/x86_64/lib/libvulkan.so ${VULKAN_SDK}/x86_64/lib/libVkLayer_khronos_validation.so)
 endif()
 
+message(${CMAKE_CURRENT_BINARY_DIR}/zlib_build)
+
+include_directories(zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib_build)
 set(boiler_lib_includes
   ${OPENGL_INCLUDE_DIR}
   ${VULKAN_INCLUDE_DIR}
   ${GLEW_HEADERS_DIR}
-  ${ZLIB_INCLUDE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}/zlib_build
+  ${ZLIB_DIR}
   ${JSONCPP_INCLUDE_DIR}
   glm
-  SDL2
+  SDL2::SDL2
   freetype
   fmt
   boiler-gltf)
@@ -63,6 +69,7 @@ target_include_directories(boiler_deps PUBLIC ${boiler_lib_includes})
 
 target_link_libraries(boiler_deps
   SDL2-static
+  SDL2main
   zlibstatic
   freetype
   glm
