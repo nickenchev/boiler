@@ -8,8 +8,7 @@
 #include "shaderprogram.h"
 #include "core/logger.h"
 
-namespace Boiler
-{
+namespace Boiler { namespace Vulkan {
 
 class SPVShaderProgram : public ShaderProgram
 {
@@ -32,6 +31,7 @@ public:
 	const VkPipelineShaderStageCreateInfo &getFragStageInfo() const { return fragStageInfo; }
 };
 
+}
 }
 
 #endif /* SPVSHADERPROGRAM_H */

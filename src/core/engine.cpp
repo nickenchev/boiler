@@ -1,7 +1,9 @@
 #include <iostream>
 #include <chrono>
+#include <stdexcept>
 #include <thread>
 
+#include "SDL_timer.h"
 #include "SDL_video.h"
 #include "video/opengl.h"
 #include "boiler.h"
@@ -22,12 +24,18 @@
 
 using namespace Boiler;
 
-Engine::Engine(std::unique_ptr<Renderer> &&renderer)
-	: logger("Engine"), renderer(std::move(renderer)), baseDataPath("")
+Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer), baseDataPath("")
 {
 	guiSystem = nullptr;
 	logger.log("Engine instance created");
 	logger.log("Using renderer: " + this->renderer->getVersion());
+
+    if (SDL_Init(SDL_INIT_TIMER) != 0)
+	{
+		throw std::runtime_error("Error initializing timer");
+	}
+	prevTime = SDL_GetTicks();
+	frameLag = 0.0f;
 }
 
 Engine::~Engine()
@@ -36,18 +44,18 @@ Engine::~Engine()
 	SDL_Quit();
 }
 
-void Engine::initialize(const int resWidth, const int resHeight)
+void Engine::initialize(const Size &initialSize)
 {
-	initialize(nullptr, resWidth, resHeight);
+	initialize(nullptr, initialSize);
 }
 
-void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight)
+void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &initialSize)
 {
 	//baseDataPath = std::string(SDL_GetBasePath());
 
 	// initialize basic engine stuff
 	frameInterval = 1.0f / 60.0f; // 60fps
-	renderer->initialize(Size(resWidth, resHeight));
+	renderer->initialize(initialSize);
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer)
 		.expects<LightingComponent>();
@@ -89,46 +97,42 @@ void Engine::start(std::shared_ptr<Part> part)
 
 void Engine::run()
 {
-	double prevTime = SDL_GetTicks();
-	double frameLag = 0.0f;
-
 	running = true;
 	while(running)
 	{
-		//get the delta time
-		double currentTime = SDL_GetTicks();
-		double frameDelta = (currentTime - prevTime) / 1000.0f;
-		prevTime = currentTime;
-		frameLag += frameDelta;
-
-		processEvents();
-
-		if (!paused)
-		{
-			// frame update / catchup phase if lagging
-			while (frameLag >= frameInterval)
-			{
-				update(frameInterval);
-				part->update(frameInterval);
-				frameLag -= frameInterval;
-			} 
-
-			// render related systems only run during render phase
-			// TODO: Handle GUI events differently
-			renderer->beginRender();
-			lightingSystem->update(getEcs().getComponentStore(), frameDelta);
-			renderSystem->update(getEcs().getComponentStore(), frameDelta);
-			glyphSystem->update(getEcs().getComponentStore(), frameDelta);
-			if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);
-			renderer->endRender();
-		}
-		else
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		}
+		step();
 	}
 	// wait for any renderer commands to finish before destructors kick in
 	renderer->prepareShutdown();
+}
+
+void Engine::step()
+{
+	frameInterval = 1.0f / 60;
+	//get the delta time
+	double currentTime = SDL_GetTicks();
+	double frameDelta = (currentTime - prevTime) / 1000.0f;
+	prevTime = currentTime;
+	frameLag += frameDelta;
+
+	processEvents();
+
+	// frame update / catchup phase if lagging
+	while (frameLag >= frameInterval)
+	{
+		update(frameInterval);
+		part->update(frameInterval);
+		frameLag -= frameInterval;
+	} 
+
+	// render related systems only run during render phase
+	// TODO: Handle GUI events differently
+	renderer->beginRender();
+	lightingSystem->update(getEcs().getComponentStore(), frameDelta);
+	renderSystem->update(getEcs().getComponentStore(), frameDelta);
+	glyphSystem->update(getEcs().getComponentStore(), frameDelta);
+	if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);
+	renderer->endRender();
 }
 
 void Engine::processEvents()
@@ -162,17 +166,12 @@ void Engine::processEvents()
 					}
 					case SDL_WINDOWEVENT_MINIMIZED:
 					{
-						paused = true;
 						logger.log("Pausing run loop");
 						break;
 					}
 					case SDL_WINDOWEVENT_SHOWN:
 					{
-						if (paused)
-						{
-							paused = false;
-							logger.log("Resuming run loop");
-						}
+						logger.log("Resuming run loop");
 						break;
 					}
 				}

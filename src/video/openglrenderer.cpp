@@ -81,7 +81,6 @@ void checkOpenGLErrors()
                 break;
             }
         }
-        //Engine::getInstance().getRenderer().showMessageBox("OpenGL Error", errorString);
     }
 }
 
@@ -142,7 +141,6 @@ void OpenGLRenderer::initialize(const Size &screenSize)
 				}
 				catch (int exception)
 				{
-					showMessageBox("Error", "Error initializing Boiler");
 				}
             }
         }
@@ -221,10 +219,12 @@ void OpenGLRenderer::setActiveTexture(const std::shared_ptr<const Texture> textu
     glBindTexture(GL_TEXTURE_2D, tex->getOpenGLTextureId());
 }
 
+/*
 std::shared_ptr<const Model> OpenGLRenderer::loadModel(const VertexData &data) const
 {
     return std::make_shared<OpenGLModel>(data);
 }
+*/
 
 void OpenGLRenderer::beginRender()
 {
@@ -292,7 +292,7 @@ void OpenGLRenderer::render(const mat4 modelMatrix, const std::shared_ptr<const 
 		glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
 
 		// draw the entity
-		glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
+		//glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
 		glBindVertexArray(0);
 
 		GLenum glError = glGetError();
@@ -330,11 +330,6 @@ void OpenGLRenderer::render(const PositionComponent &position, const TextCompone
 	}
 }
 */
-
-void OpenGLRenderer::showMessageBox(const std::string &title, const std::string &message)
-{
-    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, title.c_str(), message.c_str(), win);
-}
 
 OpenGLRenderer::~OpenGLRenderer()
 {

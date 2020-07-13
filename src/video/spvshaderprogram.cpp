@@ -1,7 +1,7 @@
 #include "video/spvshaderprogram.h"
 #include "util/filemanager.h"
 
-using namespace Boiler;
+using namespace Boiler::Vulkan;
 
 const std::string SPVShaderProgram::SHADER_ENTRY = "main";
 

@@ -4,16 +4,17 @@
 #include <string>
 #include <optional>
 #include <set>
+#include <vector>
 
 #include "core/rect.h"
 #include "video/vulkan.h"
 #include "video/renderer.h"
+#include "video/vulkan/resourceset.h"
 #include "vulkan/vulkan_core.h"
 
 class SDL_Window;
 
-namespace Boiler
-{
+namespace Boiler { namespace Vulkan {
 
 class SPVShaderProgram;
 
@@ -52,8 +53,10 @@ class VulkanRenderer : public Boiler::Renderer
 	std::vector<VkCommandBuffer> commandBuffers;
 	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
 	std::vector<VkFence> frameFences;
-	std::vector<VkBuffer> mvpBuffers, lightSourceBuffers;
-	std::vector<VkDeviceMemory> mvpBuffersMemory, lightSourceBuffersMemory;
+
+	// resource management
+	std::vector<ResourceSet> resourceSets;
+
 	std::unique_ptr<SPVShaderProgram> program;
 	short currentFrame;
 	uint32_t imageIndex;
@@ -79,7 +82,6 @@ class VulkanRenderer : public Boiler::Renderer
 	void createCommandBuffers();
 	void createSynchronization();
 	void createMvpBuffers();
-	void createLightBuffers();
 	void recreateSwapchain();
 	void cleanupSwapchain();
 	void createTextureSampler();
@@ -110,6 +112,13 @@ public:
     VulkanRenderer();
 	~VulkanRenderer();
 
+	// TODO: This needs to be improved
+	VkInstance getVulkanInstance() const { return instance; }
+	void setSurface(VkSurfaceKHR surface)
+	{
+		this->surface = surface;
+	}
+
 	void initialize(const Boiler::Size &size) override;
 	void prepareShutdown() override;
 	void resize(const Boiler::Size &size) override;
@@ -119,8 +128,7 @@ public:
 												 const void *pixelData, u_int8_t bytesPerPixel) const override;
 
 	std::pair<VkBuffer, VkDeviceMemory> createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const;
-    std::shared_ptr<const Model> loadModel(const VertexData &data) const override;
-	unsigned int createLight() override;
+    std::shared_ptr<const Model> loadModel(const VertexData &data) override;
 
 	void beginRender() override;
 	void endRender() override;
@@ -128,10 +136,9 @@ public:
 	void render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
 				const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
 				const glm::vec4 &colour) override;
-
-    void showMessageBox(const std::string &title, const std::string &message) override;
 };
 
+}
 }
 
 #endif /* VULKANRENDERER_H */

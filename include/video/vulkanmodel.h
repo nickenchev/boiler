@@ -3,6 +3,7 @@
 
 #include "model.h"
 #include "vertexdata.h"
+#include "video/renderer.h"
 #include "video/vulkan.h"
 
 namespace Boiler
@@ -10,32 +11,12 @@ namespace Boiler
 
 class VulkanModel : public Model
 {
-	const VkDevice &device;
-	const VkBuffer vertexBuffer;
-	const VkDeviceMemory vertexMemory;
-	const VkBuffer indexBuffer;
-	const VkDeviceMemory indexMemory;
-	const unsigned int descriptorId;
+	const ResourceId resourceId;
 
 public:
-	VulkanModel(const VkDevice &device,
-				VkBuffer vertexBuffer, VkDeviceMemory vertexMemory,
-				VkBuffer indexBuffer, VkDeviceMemory indexMemory,
-				const VertexData &data, const unsigned int descriptorId);
-    virtual ~VulkanModel();
+	VulkanModel(unsigned int vertexCount, unsigned int indexCount, ResourceId resourceId);
 
-	const VkBuffer &getVertexBuffer() const
-	{
-		return vertexBuffer;
-	}
-	const VkBuffer &getIndexBuffer() const
-	{
-		return indexBuffer;
-	}
-	const auto getDescriptorId() const
-	{
-		return descriptorId;
-	}
+	ResourceId getResourceId() const { return resourceId; }
 };
 
 }

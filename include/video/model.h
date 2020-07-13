@@ -6,14 +6,14 @@ namespace Boiler
 
 class Model
 {
-    int numVertices;
-    int numIndices;
+    unsigned int vertexCount;
+    unsigned int indexCount;
 
 public:
-    Model(int numVertices, int numIndices);
+    Model(unsigned int vertexCount, unsigned int indexCount);
 
-    int getNumVertices() const { return numVertices; }
-    int getNumIndices() const { return numIndices; }
+	unsigned int getVertexCount() const { return vertexCount; }
+	unsigned int getIndexCount() const { return indexCount; }
 };
 
 }

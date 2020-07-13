@@ -2,8 +2,8 @@
 
 using namespace Boiler;
 
-Model::Model(int numVertices, int numIndices)
+Model::Model(unsigned int vertexCount, unsigned int indexCount)
 {
-    this->numVertices = numVertices;
-	this->numIndices = numIndices;
+	this->vertexCount = vertexCount;
+	this->indexCount = indexCount;
 }

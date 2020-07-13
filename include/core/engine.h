@@ -33,8 +33,11 @@ typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 
 class Engine
 {
+	double prevTime;
+	double frameLag;
+
 	Logger logger;
-	std::unique_ptr<Renderer> renderer;
+	Renderer *renderer;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
 	System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem;
@@ -45,31 +48,34 @@ class Engine
     std::vector<KeyInputListener> keyInputListeners;
 
     bool running = true;
-	bool paused = false;
-
     double frameInterval;
 
-    void run();
     void processEvents();
     void update(const double delta);
 
     std::shared_ptr<Part> part;
 
 public:
-	Engine(std::unique_ptr<Renderer> &&renderer);
+	Engine(Renderer *renderer);
 	~Engine();
     Engine(const Engine &) = delete;
     void operator=(const Engine &s) = delete;
 
-    void initialize(const int resWidth, const int resHeight);
-    void initialize(std::unique_ptr<GUIHandler> guiHandler, const int resWidth, const int resHeight);
+    void initialize(const Size &initialSize);
+    void initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &initialSize);
 	void shutdown();
     void start(std::shared_ptr<Part> part);
+    void run();
+	void step();
     void quit() { running = false; }
 
 	Renderer &getRenderer() { return *renderer; }
 	EntityComponentSystem &getEcs() { return ecs; }
     std::shared_ptr<Part> getPart() const { return part; }
+    void setPart(std::shared_ptr<Part> part)
+	{
+		this->part = part;
+	}
 
     void addTouchMotionListener(const TouchMotionListener &listener) { touchMotionListeners.push_back(listener); }
     void addTouchTapEventListener(const TouchTapEventListener &listener) { touchTapEventListeners.push_back(listener); }
