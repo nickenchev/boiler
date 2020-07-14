@@ -32,9 +32,10 @@ using namespace Boiler::Vulkan;
 const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
-constexpr int maxFramesInFlight = 2;
+constexpr int maxFramesInFlight = 3;
 constexpr int maxAnistrophy = 16;
 constexpr int maxObjects = 1000;
+constexpr int descriptorCount = maxFramesInFlight * maxObjects;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -51,7 +52,7 @@ auto getFunctionPointer(VkInstance instance, std::string funcName)
 	return func;
 }
 
-VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
+VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtensions) : Renderer("Vulkan Renderer")
 {
 	currentFrame = 0;
 	resizeOccured = false;
@@ -63,25 +64,9 @@ VulkanRenderer::VulkanRenderer() : Renderer("Vulkan Renderer")
 	std::vector<VkExtensionProperties> instProps(extensionCount);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, instProps.data());
 
-	// query vulkan extensions required by SDL
-	unsigned int sdlVkExtCount = 0;
-	//SDL_Vulkan_GetInstanceExtensions(win, &sdlVkExtCount, nullptr);
-	std::vector<const char *> sdlVkExts(sdlVkExtCount);
-	/*
-	if (!SDL_Vulkan_GetInstanceExtensions(win, &sdlVkExtCount, sdlVkExts.data()))
-	{
-		throw std::runtime_error("Unable to find required SDL-Vulkan extensions");
-	}
-
-	*/
-	sdlVkExts.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-	sdlVkExts.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-	sdlVkExts.push_back("VK_KHR_xlib_surface");
-    sdlVkExts.push_back("VK_KHR_wayland_surface");
-
 	// copy required extensions into our final requested list
 	std::vector<const char *> requestedExtensions;
-	for (const char *ext : sdlVkExts)
+	for (const char *ext : requiredExtensions)
 	{
 		requestedExtensions.push_back(ext);
 	}
@@ -267,16 +252,28 @@ VulkanRenderer::~VulkanRenderer()
 		destroyFunc(instance, debugMessenger, nullptr);
 	}
 
-	vkDestroySampler(device, textureSampler, nullptr);
-	logger.log("Destroyed sampler");
+	if (textureSampler != VK_NULL_HANDLE)
+	{
+		vkDestroySampler(device, textureSampler, nullptr);
+		logger.log("Destroyed sampler");
+	}
 
 	// cleanup Vulkan device and instance
-	vkDestroyDevice(device, nullptr);
-	logger.log("Device destroyed");
-	vkDestroySurfaceKHR(instance, surface, nullptr);
-	logger.log("Surface destroyed");
-	vkDestroyInstance(instance, nullptr);
-	logger.log("Instance destroyed");
+	if (device != VK_NULL_HANDLE)
+	{
+		vkDestroyDevice(device, nullptr);
+		logger.log("Device destroyed");
+	}
+	if (surface != VK_NULL_HANDLE)
+	{
+		vkDestroySurfaceKHR(instance, surface, nullptr);
+		logger.log("Surface destroyed");
+	}
+	if (instance != VK_NULL_HANDLE)
+	{
+		vkDestroyInstance(instance, nullptr);
+		logger.log("Instance destroyed");
+	}
 }
 
 void VulkanRenderer::initialize(const Size &size)
@@ -965,19 +962,19 @@ void VulkanRenderer::createDescriptorPool()
 {
 	std::array<VkDescriptorPoolSize, 3> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = maxObjects;
+	poolSizes[0].descriptorCount = descriptorCount;
 
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = maxObjects;
+	poolSizes[1].descriptorCount = descriptorCount;
 
 	poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[2].descriptorCount = maxObjects;
+	poolSizes[2].descriptorCount = descriptorCount;
 
 	VkDescriptorPoolCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	createInfo.poolSizeCount = poolSizes.size();
 	createInfo.pPoolSizes = poolSizes.data();
-	createInfo.maxSets = maxObjects;
+	createInfo.maxSets = descriptorCount;
 
 	if (vkCreateDescriptorPool(device, &createInfo, nullptr, &descriptorPool) != VK_SUCCESS)
 	{
@@ -990,15 +987,15 @@ void VulkanRenderer::createDescriptorPool()
 void VulkanRenderer::createDescriptorSets()
 {
 	// need to copy layout into array of layouts since create call expects array
-	std::vector<VkDescriptorSetLayout> layouts(maxObjects, descriptorSetLayout);
+	std::vector<VkDescriptorSetLayout> layouts(descriptorCount, descriptorSetLayout);
 
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool = descriptorPool;
-	allocInfo.descriptorSetCount = maxObjects;
+	allocInfo.descriptorSetCount = descriptorCount;
 	allocInfo.pSetLayouts = layouts.data();
 
-	descriptorSets.resize(maxObjects);
+	descriptorSets.resize(descriptorCount);
 	if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to allocate descriptor sets");
@@ -1627,13 +1624,22 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	ModelViewProjection mvp {
 		.model = modelMatrix,
 		.view = viewMatrix,
-		.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 1.0f, 500.0f)
+		.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f)
 	};
 
 	auto texture = static_cast<const VkTexture *>(sourceTexture.get());
 	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
 
-	const ResourceSet &resourceSet = resourceSets[vkmodel->getResourceId()];
+	const unsigned int resourceIndex = vkmodel->getResourceId() - 1;
+	const ResourceSet &resourceSet = resourceSets[resourceIndex];
+	const unsigned int descriptorIndex = ((currentFrame * maxObjects) + (resourceSet.resourceId - 1));
+	const VkDescriptorSet descriptorSet = descriptorSets[descriptorIndex];
+
+	logger.log("{}, {}, {}", resourceSet.resourceId, currentFrame, descriptorIndex);
+
+	// required buffers for rendering
+	VkBuffer vertexBuffer = resourceSet.buffers[0];
+	VkBuffer indexBuffer = resourceSet.buffers[1];
 
 	// map uniform buffer and copy
 	void *data = nullptr;
@@ -1652,12 +1658,11 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	imageInfo.imageView = texture->getImageView();
 	imageInfo.sampler = textureSampler;
 
-	/*
 	std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
 	// MVP uniform
 	descriptorWrites[0].dstBinding = 0;
 	descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[0].dstSet = descriptorSets[vkmodel->getDescriptorId()];
+	descriptorWrites[0].dstSet = descriptorSet;
 	descriptorWrites[0].dstArrayElement = 0;
 	descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	descriptorWrites[0].descriptorCount = 1;
@@ -1666,23 +1671,22 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	// texture
 	descriptorWrites[1].dstBinding = 1;
 	descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[1].dstSet = descriptorSets[vkmodel->getDescriptorId()];
+	descriptorWrites[1].dstSet = descriptorSet;
 	descriptorWrites[1].dstArrayElement = 0;
 	descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	descriptorWrites[1].descriptorCount = 1;
 	descriptorWrites[1].pImageInfo = &imageInfo;
 
 	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[vkmodel->getDescriptorId()], 0, nullptr);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
 	// draw the vertex data
-	const std::array<VkBuffer, 1> buffers = {vkmodel->getVertexBuffer()};
+	const std::array<VkBuffer, 1> buffers = {vertexBuffer};
 	const std::array<VkDeviceSize, buffers.size()> offsets = {0};
 
 	vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(commandBuffer, vkmodel->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
-	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(vkmodel->getNumIndices()), 1, 0, 0, 0);
-	*/
+	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(vkmodel->getIndexCount()), 1, 0, 0, 0);
 }
 
 void VulkanRenderer::endRender()

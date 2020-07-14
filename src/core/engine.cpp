@@ -128,10 +128,12 @@ void Engine::step()
 	// render related systems only run during render phase
 	// TODO: Handle GUI events differently
 	renderer->beginRender();
+
 	lightingSystem->update(getEcs().getComponentStore(), frameDelta);
 	renderSystem->update(getEcs().getComponentStore(), frameDelta);
 	glyphSystem->update(getEcs().getComponentStore(), frameDelta);
 	if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);
+
 	renderer->endRender();
 }
 

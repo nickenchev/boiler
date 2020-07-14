@@ -109,7 +109,7 @@ class VulkanRenderer : public Boiler::Renderer
 	bool hasStencilComponent(VkFormat format) const;
 
 public:
-    VulkanRenderer();
+    VulkanRenderer(const std::vector<const char *> requiredExtensions);
 	~VulkanRenderer();
 
 	// TODO: This needs to be improved
