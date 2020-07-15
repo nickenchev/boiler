@@ -1567,7 +1567,7 @@ void VulkanRenderer::beginRender()
 		vkResetFences(device, 1, &frameFences[currentFrame]);
 
 		// setup the command buffers
-		const VkCommandBuffer commandBuffer = commandBuffers[imageIndex];
+		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 		vkResetCommandBuffer(commandBuffer, 0);
 
 		// submit data to command buffer
@@ -1621,7 +1621,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
                             const glm::vec4 &color)
 {
-	const VkCommandBuffer commandBuffer = commandBuffers[imageIndex];
+	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 	
 	// setup uniforms
 	ModelViewProjection mvp {
@@ -1635,7 +1635,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 
 	const unsigned int resourceIndex = vkmodel->getResourceId() - 1;
 	const ResourceSet &resourceSet = resourceSets[resourceIndex];
-	const unsigned int descriptorIndex = (imageIndex * maxObjects) + resourceIndex;
+	const unsigned int descriptorIndex = (currentFrame * maxObjects) + resourceIndex;
 	const VkDescriptorSet descriptorSet = descriptorSets[descriptorIndex];
 
 	// required buffers for rendering
@@ -1694,7 +1694,7 @@ void VulkanRenderer::endRender()
 {
 	if (nextImageResult == VK_SUCCESS)
 	{
-		const VkCommandBuffer commandBuffer = commandBuffers[imageIndex];
+		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 		vkCmdEndRenderPass(commandBuffer);
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
@@ -1737,7 +1737,7 @@ void VulkanRenderer::endRender()
 
 		vkQueuePresentKHR(presentationQueue, &presentInfo);
 	}
-	currentFrame = (++currentFrame == maxFramesInFlight) ? 0 : currentFrame;
+	currentFrame = (currentFrame + 1) % maxFramesInFlight;
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

@@ -50,13 +50,13 @@ public:
 				// entity is compatible with this system, track it
 				matchingMask = true;
 				entities.push_back(entity);
-				logger.log("Added entity.");
+				logger.log("Tracking entity {}", entity.getId());
 			}
 		}
 		else if (entityItr != entities.end())
 		{
 			// entity no longer matches mask, but is in this system, remove it
-			logger.log("Removed entity");
+			logger.log("No longer tracking entity {}", entity.getId());
 			entities.erase(entityItr);
 		}
 
