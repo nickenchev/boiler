@@ -59,6 +59,7 @@ class VulkanRenderer : public Boiler::Renderer
 
 	std::unique_ptr<SPVShaderProgram> program;
 	short currentFrame;
+	uint32_t descriptorCount;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
 	VkSampler textureSampler;

@@ -35,16 +35,16 @@ constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 3;
 constexpr int maxAnistrophy = 16;
 constexpr int maxObjects = 1000;
-constexpr int descriptorCount = maxFramesInFlight * maxObjects;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
 													const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
 													void *userData);
 
-auto getFunctionPointer(VkInstance instance, std::string funcName)
+template<typename Function>
+Function getFunctionPointer(VkInstance instance, std::string funcName)
 {
-	auto func = vkGetInstanceProcAddr(instance, funcName.c_str());
+	Function func = reinterpret_cast<Function>(vkGetInstanceProcAddr(instance, funcName.c_str()));
 	if (!func)
 	{
 		throw std::runtime_error("Couldn't find Vulkan function: " + funcName);
@@ -173,7 +173,7 @@ VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtension
 		debugCreateInfo.pUserData = static_cast<void *>(&logger);
 
 		std::string funcName{"vkCreateDebugUtilsMessengerEXT"};
-		auto createFunc = (PFN_vkCreateDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
+		auto createFunc = getFunctionPointer<PFN_vkCreateDebugUtilsMessengerEXT>(instance, funcName.c_str());
 		if (createFunc(instance, &debugCreateInfo, nullptr, &debugMessenger) != VK_SUCCESS)
 		{
 			logger.log("Error setting up debug messenger");
@@ -248,7 +248,7 @@ VulkanRenderer::~VulkanRenderer()
 	if constexpr (enableDebugMessages)
 	{
 		std::string funcName{"vkDestroyDebugUtilsMessengerEXT"};
-		auto destroyFunc = (PFN_vkDestroyDebugUtilsMessengerEXT)getFunctionPointer(instance, funcName.c_str());
+		auto destroyFunc = getFunctionPointer<PFN_vkDestroyDebugUtilsMessengerEXT>(instance, funcName.c_str());
 		destroyFunc(instance, debugMessenger, nullptr);
 	}
 
@@ -960,6 +960,8 @@ VkDescriptorSetLayout VulkanRenderer::createDescriptorSetLayout() const
 
 void VulkanRenderer::createDescriptorPool()
 {
+	descriptorCount = swapChainImages.size() * maxObjects;
+
 	std::array<VkDescriptorPoolSize, 3> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = descriptorCount;
@@ -1126,6 +1128,7 @@ void VulkanRenderer::recreateSwapchain()
 	// recreate swapchain
 	cleanupSwapchain();
 	createSwapChain();
+	createCommandBuffers();
 
 	// recreate pipeline due to swapchain changes
 	pipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
@@ -1632,10 +1635,8 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 
 	const unsigned int resourceIndex = vkmodel->getResourceId() - 1;
 	const ResourceSet &resourceSet = resourceSets[resourceIndex];
-	const unsigned int descriptorIndex = ((currentFrame * maxObjects) + (resourceSet.resourceId - 1));
+	const unsigned int descriptorIndex = (imageIndex * maxObjects) + resourceIndex;
 	const VkDescriptorSet descriptorSet = descriptorSets[descriptorIndex];
-
-	logger.log("{}, {}, {}", resourceSet.resourceId, currentFrame, descriptorIndex);
 
 	// required buffers for rendering
 	VkBuffer vertexBuffer = resourceSet.buffers[0];
