@@ -5,7 +5,7 @@ include(ExternalProject)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -62,7 +62,7 @@ set(BOILER_SOURCES
   ${CMAKE_CURRENT_LIST_DIR}/src/platform/sdlwindow.cpp
 
   # Video and Rendering
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/openglrenderer.cpp
+  #${CMAKE_CURRENT_LIST_DIR}/src/video/openglrenderer.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/opengltexture.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/openglmodel.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/video/glslshaderprogram.cpp
@@ -85,7 +85,7 @@ add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 target_include_directories(boiler PUBLIC
   ${CMAKE_CURRENT_LIST_DIR}/include
   ${CMAKE_CURRENT_LIST_DIR}/include/tinyxml2
-  PUBLIC boiler_deps)
+  boiler_deps)
 
 target_link_libraries(boiler boiler_deps)
 

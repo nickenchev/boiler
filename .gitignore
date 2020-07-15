@@ -18,3 +18,7 @@ cmake-build-debug/
 .vs/
 libs/libpng16/pnglibconf.h
 libs/zlib-1.2.11/zconf.h
+.vs/
+out/
+CMakeSettings.json
+libs/glew-2.1.0/glew.pc

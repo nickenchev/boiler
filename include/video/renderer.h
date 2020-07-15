@@ -53,7 +53,7 @@ public:
 	ResourceId nextResourceId();
 
     virtual std::shared_ptr<const Texture> createTexture(const std::string &filePath, const Size &textureSize,
-														 const void *pixelData, u_int8_t bytesPerPixel) const = 0;
+														 const void *pixelData, uint8_t bytesPerPixel) const = 0;
     virtual std::shared_ptr<const Model> loadModel(const VertexData &data) = 0;
 
 	virtual void beginRender() = 0;

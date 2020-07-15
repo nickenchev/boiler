@@ -6,13 +6,13 @@
 #include <set>
 #include <vector>
 
+struct SDL_Window;
+
 #include "core/rect.h"
 #include "video/vulkan.h"
 #include "video/renderer.h"
 #include "video/vulkan/resourceset.h"
 #include "vulkan/vulkan_core.h"
-
-class SDL_Window;
 
 namespace Boiler { namespace Vulkan {
 
@@ -126,7 +126,7 @@ public:
 	std::string getVersion() const override;
 
     std::shared_ptr<const Texture> createTexture(const std::string &filePath, const Size &textureSize,
-												 const void *pixelData, u_int8_t bytesPerPixel) const override;
+												 const void *pixelData, uint8_t bytesPerPixel) const override;
 
 	std::pair<VkBuffer, VkDeviceMemory> createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const;
     std::shared_ptr<const Model> loadModel(const VertexData &data) override;
