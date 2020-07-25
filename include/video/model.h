@@ -6,16 +6,14 @@
 namespace Boiler
 {
 
-class Model
+class Model : public Asset
 {
-	const AssetId assetId;
     const unsigned int vertexCount;
     const unsigned int indexCount;
 
 public:
-    Model(AssetId assetId, unsigned int vertexCount, unsigned int indexCount);
+    Model(const AssetId assetId, unsigned int vertexCount, unsigned int indexCount);
 
-	AssetId getAssetId() const { return assetId; }
 	unsigned int getVertexCount() const { return vertexCount; }
 	unsigned int getIndexCount() const { return indexCount; }
 };

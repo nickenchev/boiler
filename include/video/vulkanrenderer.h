@@ -120,14 +120,13 @@ public:
 	void prepareShutdown() override;
 	void resize(const Boiler::Size &size) override;
 
-    std::shared_ptr<const Texture> createTexture(const std::string &filePath, const ImageData &imageData) const override;
+    Texture createTexture(const std::string &filePath, const ImageData &imageData) override;
     Model loadModel(const VertexData &data) override;
 
 	void beginRender() override;
 	void endRender() override;
-	void render(const glm::mat4 modelMatrix, const Model &model,
-				const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-				const glm::vec4 &colour) override;
+	void render(const mat4 modelMatrix, const Model &model, const Texture &sourceTexture,
+				const TextureInfo *textureInfo, const vec4 &colour) override;
 
 	// TODO: This needs to be improved
 	VkInstance getVulkanInstance() const { return instance; }

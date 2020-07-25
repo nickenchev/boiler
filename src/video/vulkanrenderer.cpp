@@ -23,7 +23,6 @@
 #include "video/modelviewprojection.h"
 #include "video/lightsource.h"
 #include "vulkan/vulkan_core.h"
-#include "video/vktexture.h"
 #include "video/imaging/imagedata.h"
 #include "video/vertexdata.h"
 #include "video/model.h"
@@ -207,16 +206,24 @@ VulkanRenderer::~VulkanRenderer()
 	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 	logger.log("Destroyed descriptor pool");
 
-	// TODO: Change MVP buffer cleanup
+	// Cleanup all resources allocated for various assets
 	for (const auto &resourceSet : resourceSets)
 	{
 		for (const auto &buffer : resourceSet.buffers)
 		{
 			vkDestroyBuffer(device, buffer, nullptr);
 		}
+		for (const auto &imageView : resourceSet.imageViews)
+		{
+			vkDestroyImageView(device, imageView, nullptr);
+		}
 		for (const auto &memory : resourceSet.deviceMemory)
 		{
 			vkFreeMemory(device, memory, nullptr);
+		}
+		for (const auto &image : resourceSet.images)
+		{
+			vkDestroyImage(device, image, nullptr);
 		}
 	}
 	logger.log("Cleaned up buffers and memory");
@@ -1274,8 +1281,11 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 	return imageView;
 }
 
-std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &filePath, const ImageData &imageData) const
+Texture VulkanRenderer::createTexture(const std::string &filePath, const ImageData &imageData)
 {
+	AssetId assetId = nextAssetId();
+	ResourceSet resourceSet(assetId);
+
 	const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
 	//const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
 
@@ -1315,7 +1325,13 @@ std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &
 	VkImageView imageView = createImageView(imagePair.first, format, VK_IMAGE_ASPECT_COLOR_BIT);
 	logger.log("Loaded texture data for {}", filePath);
 
-	return std::make_shared<VkTexture>(filePath, device, imagePair.first, imagePair.second, imageView);
+	resourceSet.images.push_back(imagePair.first);
+	resourceSet.imageViews.push_back(imageView);
+	resourceSet.deviceMemory.push_back(imagePair.second);
+
+	resourceSets.push_back(resourceSet);
+
+	return Texture(assetId, filePath);
 }
 
 std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
@@ -1622,9 +1638,8 @@ void VulkanRenderer::beginRender()
 	}
 }
 
-void VulkanRenderer::render(const glm::mat4 modelMatrix, const Model &model,
-							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-                            const glm::vec4 &color)
+void VulkanRenderer::render(const glm::mat4 modelMatrix, const Model &model, const Texture &sourceTexture,
+							const TextureInfo *textureInfo, const glm::vec4 &color)
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 	
@@ -1635,11 +1650,11 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const Model &model,
 		.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f)
 	};
 
-	auto texture = static_cast<const VkTexture *>(sourceTexture.get());
-
-	const unsigned int resourceIndex = model.getAssetId() - 1;
-	const ResourceSet &resourceSet = resourceSets[resourceIndex];
-	const unsigned int descriptorIndex = (currentFrame * maxObjects) + resourceIndex;
+	const size_t modelResIndex = model.getAssetId() - 1;
+	const size_t textureResIndex = sourceTexture.getAssetId() - 1;
+	const ResourceSet &resourceSet = resourceSets[modelResIndex];
+	const ResourceSet &textureResourceSet = resourceSets[textureResIndex];
+	const unsigned int descriptorIndex = (currentFrame * maxObjects) + modelResIndex;
 	const VkDescriptorSet descriptorSet = descriptorSets[descriptorIndex];
 
 	// required buffers for rendering
@@ -1660,7 +1675,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const Model &model,
 
 	VkDescriptorImageInfo imageInfo = {};
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imageInfo.imageView = texture->getImageView();
+	imageInfo.imageView = textureResourceSet.imageViews[0];
 	imageInfo.sampler = textureSampler;
 
 	std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};

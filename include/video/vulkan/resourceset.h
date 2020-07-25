@@ -16,6 +16,8 @@ struct ResourceSet
 
 	std::vector<VkBuffer> buffers;
 	std::vector<VkDeviceMemory> deviceMemory;
+	std::vector<VkImage> images;
+	std::vector<VkImageView> imageViews;
 };
 
 } }

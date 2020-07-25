@@ -41,7 +41,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/camera/platformercamera.h
   ${INCLUDE_BASE}/containers/array2d.h
   ${INCLUDE_BASE}/containers/gridposition.h
-  ${INCLUDE_BASE}/core/glyphloader.h
+  #${INCLUDE_BASE}/core/glyphloader.h
   ${INCLUDE_BASE}/video/opengl.h
   ${INCLUDE_BASE}/video/renderer.h
   ${INCLUDE_BASE}/video/lightsource.h
@@ -57,7 +57,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/core/spritesheet.cpp
   ${SRC_BASE}/core/spritesheetframe.cpp
   ${SRC_BASE}/core/base64.cpp
-  ${SRC_BASE}/core/glyphloader.cpp
+  #${SRC_BASE}/core/glyphloader.cpp
   ${SRC_BASE}/core/quadtree.cpp
   ${SRC_BASE}/core/rect.cpp
   #${SRC_BASE}/core/raycaster.cpp

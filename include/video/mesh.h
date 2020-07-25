@@ -11,7 +11,7 @@ namespace Boiler
 struct Mesh
 {
 	const Model model;
-	SpriteSheetFrame spriteSheetFrame;
+	SpriteSheetFrame spriteSheetFrame; // TODO: This doesn't belong here
     vec4 colour;
 
 	Mesh(const Model &model, SpriteSheetFrame spriteSheetFrame) : model(model), spriteSheetFrame(spriteSheetFrame)
