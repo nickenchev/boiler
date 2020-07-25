@@ -17,6 +17,7 @@
 #include "core/components/textcomponent.h"
 #include "core/components/guicomponent.h"
 #include "core/components/lightingcomponent.h"
+#include "core/components/materialcomponent.h"
 #include "video/systems/guisystem.h"
 #include "video/systems/lightingsystem.h"
 

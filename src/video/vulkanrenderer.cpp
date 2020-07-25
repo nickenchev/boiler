@@ -20,11 +20,13 @@
 #include "core/logger.h"
 #include "core/math.h"
 #include "video/spvshaderprogram.h"
-#include "video/vulkanmodel.h"
 #include "video/modelviewprojection.h"
 #include "video/lightsource.h"
 #include "vulkan/vulkan_core.h"
 #include "video/vktexture.h"
+#include "video/imaging/imagedata.h"
+#include "video/vertexdata.h"
+#include "video/model.h"
 
 using namespace Boiler;
 using namespace Boiler::Vulkan;
@@ -32,7 +34,7 @@ using namespace Boiler::Vulkan;
 const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
-constexpr int maxFramesInFlight = 3;
+constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
 constexpr int maxObjects = 1000;
 constexpr int maxLights = 100;
@@ -637,7 +639,9 @@ void VulkanRenderer::createSwapChain()
 	vkGetSwapchainImagesKHR(device, swapChain, &swapImagesCount, nullptr);
 	swapChainImages.resize(swapImagesCount);
 	vkGetSwapchainImagesKHR(device, swapChain, &swapImagesCount, swapChainImages.data());
-	logger.log("Got swapchain images");
+	logger.log("Got {} swapchain images", swapImagesCount);
+
+	assert(maxFramesInFlight <= swapImagesCount);
 
 	swapChainFormat = selectedFormat.format;
 	swapChainExtent = surfaceExtent;
@@ -828,8 +832,7 @@ VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPip
 
 	// Colour blending configuration
 	VkPipelineColorBlendAttachmentState colorBlendAttachState = {};
-	colorBlendAttachState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-		VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorBlendAttachState.blendEnable = VK_TRUE;
 	colorBlendAttachState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 	colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -1271,35 +1274,35 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 	return imageView;
 }
 
-std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &filePath, const Size &textureSize,
-															 const void *pixelData, uint8_t bytesPerPixel) const
+std::shared_ptr<const Texture> VulkanRenderer::createTexture(const std::string &filePath, const ImageData &imageData) const
 {
 	const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
 	//const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
 
-	if (bytesPerPixel < 4)
+	const size_t bytesPerPixel = imageData.colorComponents;
+	if (imageData.colorComponents < 4)
 	{
 		throw std::runtime_error("Texture image must contain alpha channel");
 	}
 
-	VkDeviceSize bytesSize = textureSize.width * textureSize.height * bytesPerPixel;
+	const VkDeviceSize bytesSize = imageData.size.width * imageData.size.height * bytesPerPixel;
 	auto bufferPair = createBuffer(bytesSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 								   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 	logger.log("Staging {} bytes of data", bytesSize);
 	void *data = nullptr;
 	vkMapMemory(device, bufferPair.second, 0, static_cast<size_t>(bytesSize), 0, &data);
-	memcpy(data, pixelData, static_cast<size_t>(bytesSize));
+	memcpy(data, imageData.pixelData, static_cast<size_t>(bytesSize));
 	vkUnmapMemory(device, bufferPair.second);
 
-	auto imagePair = createImage(textureSize, format, VK_IMAGE_TILING_OPTIMAL,
+	auto imagePair = createImage(imageData.size, format, VK_IMAGE_TILING_OPTIMAL,
 								 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 								 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	// transition the image to transfer layout, copy the buffer pixel data to the image
 	transitionImageLayout(imagePair.first, format, VK_IMAGE_LAYOUT_UNDEFINED,
 						  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	copyBufferToImage(bufferPair.first, imagePair.first, textureSize);
+	copyBufferToImage(bufferPair.first, imagePair.first, imageData.size);
 	
 	// cleanup buffer and memory
 	vkDestroyBuffer(device, bufferPair.first, nullptr);
@@ -1529,10 +1532,10 @@ std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createGPUBuffer(void *data, 
 	return bufferPair;
 }
 
-std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data)
+Model VulkanRenderer::loadModel(const VertexData &data)
 {
-	ResourceId resourceId = nextResourceId();
-	ResourceSet resourceSet(resourceId);
+	AssetId assetId = nextAssetId();
+	ResourceSet resourceSet(assetId);
 
 	// vertex buffer
 	auto vertexPair = createGPUBuffer((void *)data.vertexBegin(), data.vertexSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
@@ -1552,9 +1555,9 @@ std::shared_ptr<const Model> VulkanRenderer::loadModel(const VertexData &data)
 	resourceSet.deviceMemory.push_back(mvpPair.second);
 
 	resourceSets.push_back(resourceSet);
-	logger.log("Loaded model with resource-id: {}", resourceId);
+	logger.log("Loaded model with asset-id: {}", assetId);
 
-	return std::make_shared<VulkanModel>(data.vertexArray().size(), data.indexArray().size(), resourceId);
+	return Model(assetId, data.vertexArray().size(), data.indexArray().size());
 }
 
 void VulkanRenderer::beginRender()
@@ -1619,7 +1622,7 @@ void VulkanRenderer::beginRender()
 	}
 }
 
-void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
+void VulkanRenderer::render(const glm::mat4 modelMatrix, const Model &model,
 							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
                             const glm::vec4 &color)
 {
@@ -1633,9 +1636,8 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 	};
 
 	auto texture = static_cast<const VkTexture *>(sourceTexture.get());
-	const VulkanModel *vkmodel = static_cast<const VulkanModel *>(model.get());
 
-	const unsigned int resourceIndex = vkmodel->getResourceId() - 1;
+	const unsigned int resourceIndex = model.getAssetId() - 1;
 	const ResourceSet &resourceSet = resourceSets[resourceIndex];
 	const unsigned int descriptorIndex = (currentFrame * maxObjects) + resourceIndex;
 	const VkDescriptorSet descriptorSet = descriptorSets[descriptorIndex];
@@ -1689,7 +1691,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const std::shared_ptr<c
 
 	vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
 	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(vkmodel->getIndexCount()), 1, 0, 0, 0);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(model.getIndexCount()), 1, 0, 0, 0);
 }
 
 void VulkanRenderer::endRender()

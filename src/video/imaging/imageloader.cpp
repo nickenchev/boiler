@@ -42,10 +42,12 @@ ImageData ImageLoader::load(const std::string &filePath)
 	const int destColorChannels = STBI_rgb_alpha;
 	int width, height, channels;
 
-	unsigned char *imageData = stbi_load(filePath.c_str(), &width, &height, &channels, destColorChannels);
-	logger.log("{} ({}x{} {}bit)", filePath, width, height, channels * 8);
+	unsigned char *pixelData = stbi_load(filePath.c_str(), &width, &height, &channels, destColorChannels);
+	ImageData imageData(pixelData, Size(width, height), destColorChannels, channels > 3);
+	stbi_image_free(pixelData);
 
-	return ImageData(imageData, Size(width, height), destColorChannels);
+	logger.log("{} ({}x{} {}bit)", filePath, width, height, channels * 8);
+	return std::move(imageData);
 }
 
 /*

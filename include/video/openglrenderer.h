@@ -48,7 +48,7 @@ public:
 	void beginRender() override;
 	void endRender() override;
 
-	void render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
+	void render(const glm::mat4 modelMatrix, const Model &model,
 				const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
 				const glm::vec4 &colour) override;
 

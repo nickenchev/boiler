@@ -1,17 +1,21 @@
 #ifndef MODEL_H
 #define MODEL_H
 
+#include "core/asset.h"
+
 namespace Boiler
 {
 
 class Model
 {
-    unsigned int vertexCount;
-    unsigned int indexCount;
+	const AssetId assetId;
+    const unsigned int vertexCount;
+    const unsigned int indexCount;
 
 public:
-    Model(unsigned int vertexCount, unsigned int indexCount);
+    Model(AssetId assetId, unsigned int vertexCount, unsigned int indexCount);
 
+	AssetId getAssetId() const { return assetId; }
 	unsigned int getVertexCount() const { return vertexCount; }
 	unsigned int getIndexCount() const { return indexCount; }
 };

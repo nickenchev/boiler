@@ -4,7 +4,7 @@ using namespace Boiler;
 
 Renderer::Renderer(std::string name) : logger(name), clearColor(0, 0, 0), globalScale(1.0f, 1.0f)
 {
-	resourceId = 1;
+	assetId = 1;
 }
 
 void Renderer::initialize(const Size &size)
@@ -17,7 +17,7 @@ void Renderer::resize(const Size &size)
 	setScreenSize(size);
 }
 
-ResourceId Renderer::nextResourceId()
+AssetId Renderer::nextAssetId()
 {
-	return resourceId++;
+	return assetId++;
 }

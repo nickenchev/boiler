@@ -3,23 +3,21 @@
 
 #include <vector>
 #include <vulkan/vulkan.h>
+#include "core/asset.h"
 
-namespace Boiler
+namespace Boiler { namespace Vulkan
 {
-	namespace Vulkan
-	{
-		struct ResourceSet
-		{
-			const ResourceId resourceId;
-			
-			ResourceSet(ResourceId id) : resourceId(id)
-			{
-			}
 
-			std::vector<VkBuffer> buffers;
-			std::vector<VkDeviceMemory> deviceMemory;
-		};
-	}
-}
+struct ResourceSet
+{
+	const AssetId assetId;
+
+	ResourceSet(AssetId assetId) : assetId(assetId) { }
+
+	std::vector<VkBuffer> buffers;
+	std::vector<VkDeviceMemory> deviceMemory;
+};
+
+} }
 
 #endif /* RESOURCESET_H */

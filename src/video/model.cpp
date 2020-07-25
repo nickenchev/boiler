@@ -2,8 +2,7 @@
 
 using namespace Boiler;
 
-Model::Model(unsigned int vertexCount, unsigned int indexCount)
+Model::Model(AssetId assetId, unsigned int vertexCount, unsigned int indexCount)
+	: assetId(assetId), vertexCount(vertexCount), indexCount(indexCount)
 {
-	this->vertexCount = vertexCount;
-	this->indexCount = indexCount;
 }

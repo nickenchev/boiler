@@ -108,10 +108,26 @@ class VulkanRenderer : public Boiler::Renderer
 								 VkFormatFeatureFlags features) const;
 	VkFormat findDepthFormat() const;
 	bool hasStencilComponent(VkFormat format) const;
+	std::pair<VkBuffer, VkDeviceMemory> createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const;
 
 public:
     VulkanRenderer(const std::vector<const char *> requiredExtensions);
 	~VulkanRenderer();
+
+	// overrides
+	std::string getVersion() const override;
+	void initialize(const Boiler::Size &size) override;
+	void prepareShutdown() override;
+	void resize(const Boiler::Size &size) override;
+
+    std::shared_ptr<const Texture> createTexture(const std::string &filePath, const ImageData &imageData) const override;
+    Model loadModel(const VertexData &data) override;
+
+	void beginRender() override;
+	void endRender() override;
+	void render(const glm::mat4 modelMatrix, const Model &model,
+				const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
+				const glm::vec4 &colour) override;
 
 	// TODO: This needs to be improved
 	VkInstance getVulkanInstance() const { return instance; }
@@ -119,24 +135,6 @@ public:
 	{
 		this->surface = surface;
 	}
-
-	void initialize(const Boiler::Size &size) override;
-	void prepareShutdown() override;
-	void resize(const Boiler::Size &size) override;
-	std::string getVersion() const override;
-
-    std::shared_ptr<const Texture> createTexture(const std::string &filePath, const Size &textureSize,
-												 const void *pixelData, uint8_t bytesPerPixel) const override;
-
-	std::pair<VkBuffer, VkDeviceMemory> createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const;
-    std::shared_ptr<const Model> loadModel(const VertexData &data) override;
-
-	void beginRender() override;
-	void endRender() override;
-
-	void render(const glm::mat4 modelMatrix, const std::shared_ptr<const Model> model,
-				const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-				const glm::vec4 &colour) override;
 };
 
 }

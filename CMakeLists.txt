@@ -24,67 +24,80 @@ set(SHADER_FILES data/shaders/basic.vert data/shaders/basic.frag)
 
 # boiler sources
 # Engine related headers
+set(INCLUDE_BASE ${CMAKE_CURRENT_LIST_DIR}/include)
 set(BOILER_HEADERS
-  ${CMAKE_CURRENT_LIST_DIR}/include/boiler.h
-  ${CMAKE_CURRENT_LIST_DIR}/include/camera/camera.h
-  ${CMAKE_CURRENT_LIST_DIR}/include/camera/pancamera.h
-  ${CMAKE_CURRENT_LIST_DIR}/include/camera/platformercamera.h
-  ${CMAKE_CURRENT_LIST_DIR}/include/containers/array2d.h
-  ${CMAKE_CURRENT_LIST_DIR}/include/containers/gridposition.h
-  ${CMAKE_CURRENT_LIST_DIR}/include/core/glyphloader.h
-  ${CMAKE_CURRENT_LIST_DIR}/include/video/opengl.h
-  ${CMAKE_CURRENT_LIST_DIR}/include/video/renderer.h)
+  ${INCLUDE_BASE}/boiler.h
+  ${INCLUDE_BASE}/core/components/guicomponent.h
+  ${INCLUDE_BASE}/core/components/lightingcomponent.h
+  ${INCLUDE_BASE}/core/components/materialcomponent.h
+  ${INCLUDE_BASE}/core/components/rendercomponent.h
+  ${INCLUDE_BASE}/core/components/parentcomponent.h
+  ${INCLUDE_BASE}/core/components/positioncomponent.h
+  ${INCLUDE_BASE}/core/components/rendercomponent.h
+  ${INCLUDE_BASE}/core/components/spritecomponent.h
+  ${INCLUDE_BASE}/core/components/textcomponent.h
+  ${INCLUDE_BASE}/camera/camera.h
+  ${INCLUDE_BASE}/camera/pancamera.h
+  ${INCLUDE_BASE}/camera/platformercamera.h
+  ${INCLUDE_BASE}/containers/array2d.h
+  ${INCLUDE_BASE}/containers/gridposition.h
+  ${INCLUDE_BASE}/core/glyphloader.h
+  ${INCLUDE_BASE}/video/opengl.h
+  ${INCLUDE_BASE}/video/renderer.h
+  ${INCLUDE_BASE}/video/lightsource.h
+  ${INCLUDE_BASE}/video/texture.h
+)
 
 # Engine related sources
+set(SRC_BASE ${CMAKE_CURRENT_LIST_DIR}/src)
 set(BOILER_SOURCES
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/engine.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/entityworld.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/tmxloader.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/spritesheet.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/spritesheetframe.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/base64.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/glyphloader.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/quadtree.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/rect.cpp
-  #${CMAKE_CURRENT_LIST_DIR}/src/core/raycaster.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/ray.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/bmfont.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/spriteanimation.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/line.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/core/fileutils.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/renderer.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/model.cpp
+  ${SRC_BASE}/core/engine.cpp
+  ${SRC_BASE}/core/entityworld.cpp
+  ${SRC_BASE}/core/tmxloader.cpp
+  ${SRC_BASE}/core/spritesheet.cpp
+  ${SRC_BASE}/core/spritesheetframe.cpp
+  ${SRC_BASE}/core/base64.cpp
+  ${SRC_BASE}/core/glyphloader.cpp
+  ${SRC_BASE}/core/quadtree.cpp
+  ${SRC_BASE}/core/rect.cpp
+  #${SRC_BASE}/core/raycaster.cpp
+  ${SRC_BASE}/core/ray.cpp
+  ${SRC_BASE}/core/bmfont.cpp
+  ${SRC_BASE}/core/spriteanimation.cpp
+  ${SRC_BASE}/core/line.cpp
+  ${SRC_BASE}/core/fileutils.cpp
+  ${SRC_BASE}/video/renderer.cpp
+  ${SRC_BASE}/video/model.cpp
   # Vulkan Rendering
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/vulkanrenderer.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/vulkanmodel.cpp
+  ${SRC_BASE}/video/vulkanrenderer.cpp
 
   # Platform Support
-  ${CMAKE_CURRENT_LIST_DIR}/src/platform/sdlwindow.cpp
+  ${SRC_BASE}/platform/sdlwindow.cpp
 
   # Video and Rendering
-  #${CMAKE_CURRENT_LIST_DIR}/src/video/openglrenderer.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/opengltexture.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/openglmodel.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/glslshaderprogram.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/spvshaderprogram.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/imaging/imageloader.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/rendersystem.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/glyphsystem.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/guisystem.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/systems/lightingsystem.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/video/glyphmap.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/camera/camera.cpp
+  #${SRC_BASE}/video/openglrenderer.cpp
+  #${SRC_BASE}/video/opengltexture.cpp
+  #${SRC_BASE}/video/openglmodel.cpp
+  #${SRC_BASE}/video/glslshaderprogram.cpp
+  ${SRC_BASE}/video/spvshaderprogram.cpp
+  ${SRC_BASE}/video/imaging/imageloader.cpp
+  ${SRC_BASE}/video/systems/rendersystem.cpp
+  ${SRC_BASE}/video/systems/glyphsystem.cpp
+  ${SRC_BASE}/video/systems/guisystem.cpp
+  ${SRC_BASE}/video/systems/lightingsystem.cpp
+  ${SRC_BASE}/video/glyphmap.cpp
+  ${SRC_BASE}/camera/camera.cpp
   # src/camera/platformercamera.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/camera/pancamera.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/containers/gridposition.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/util/filemanager.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/src/util/tinyxml2.cpp)
+  ${SRC_BASE}/camera/pancamera.cpp
+  ${SRC_BASE}/containers/gridposition.cpp
+  ${SRC_BASE}/util/filemanager.cpp
+  ${SRC_BASE}/util/tinyxml2.cpp)
 
 add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
 target_include_directories(boiler PUBLIC
-  ${CMAKE_CURRENT_LIST_DIR}/include
-  ${CMAKE_CURRENT_LIST_DIR}/include/tinyxml2
+  ${INCLUDE_BASE}
+  ${INCLUDE_BASE}/tinyxml2
   boiler_deps)
 
 target_link_libraries(boiler boiler_deps)

@@ -11,7 +11,8 @@ class Texture
     std::string filePath;
 
 protected:
-    Texture(const std::string filePath) : filePath(filePath) { }
+    Texture(const std::string filePath)
+		: filePath(filePath) { }
 
 public:
     const std::string &getFilePath() const { return filePath; }
