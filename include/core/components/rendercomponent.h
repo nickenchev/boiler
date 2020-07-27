@@ -12,16 +12,7 @@ namespace Boiler
 
 struct RenderComponent : public ComponentType<RenderComponent>
 {
-	std::vector<Mesh> meshes;
-	
-	RenderComponent()
-	{
-	}
-
-	RenderComponent(const Mesh &mesh)
-	{
-		meshes.push_back(mesh);
-	}
+	Mesh mesh;
 };
 
 }

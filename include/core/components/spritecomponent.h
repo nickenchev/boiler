@@ -5,7 +5,7 @@
 #include "core/componenttype.h"
 #include "video/renderer.h"
 #include "video/vertexdata.h"
-#include "video/model.h"
+#include "video/primitive.h"
 
 namespace Boiler
 {
@@ -16,9 +16,9 @@ struct SpriteComponent : public ComponentType<SpriteComponent>
 {
     const SpriteSheetFrame *spriteFrame;
     glm::vec4 colour;
-    std::shared_ptr<const Model> model;
+    std::shared_ptr<const Primitive> model;
 
-	SpriteComponent(std::shared_ptr<const Model> model, const Rect &frame) : colour(1.0f, 1.0f, 1.0f, 1.0f)
+	SpriteComponent(std::shared_ptr<const Primitive> model, const Rect &frame) : colour(1.0f, 1.0f, 1.0f, 1.0f)
 	{
 		/*
 		// 2D vertex and texture coords

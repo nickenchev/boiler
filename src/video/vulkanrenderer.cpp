@@ -25,7 +25,7 @@
 #include "vulkan/vulkan_core.h"
 #include "video/imaging/imagedata.h"
 #include "video/vertexdata.h"
-#include "video/model.h"
+#include "video/primitive.h"
 
 using namespace Boiler;
 using namespace Boiler::Vulkan;
@@ -1281,7 +1281,7 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 	return imageView;
 }
 
-Texture VulkanRenderer::createTexture(const std::string &filePath, const ImageData &imageData)
+Texture VulkanRenderer::loadTexture(const std::string &filePath, const ImageData &imageData)
 {
 	AssetId assetId = nextAssetId();
 	ResourceSet resourceSet(assetId);
@@ -1548,7 +1548,7 @@ std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createGPUBuffer(void *data, 
 	return bufferPair;
 }
 
-Model VulkanRenderer::loadModel(const VertexData &data)
+Primitive VulkanRenderer::loadPrimitive(const VertexData &data)
 {
 	AssetId assetId = nextAssetId();
 	ResourceSet resourceSet(assetId);
@@ -1571,9 +1571,9 @@ Model VulkanRenderer::loadModel(const VertexData &data)
 	resourceSet.deviceMemory.push_back(mvpPair.second);
 
 	resourceSets.push_back(resourceSet);
-	logger.log("Loaded model with asset-id: {}", assetId);
+	logger.log("Loaded primitive with asset-id: {}", assetId);
 
-	return Model(assetId, data.vertexArray().size(), data.indexArray().size());
+	return Primitive(assetId, data.vertexArray().size(), data.indexArray().size());
 }
 
 void VulkanRenderer::beginRender()
@@ -1638,8 +1638,7 @@ void VulkanRenderer::beginRender()
 	}
 }
 
-void VulkanRenderer::render(const glm::mat4 modelMatrix, const Model &model, const Texture &sourceTexture,
-							const TextureInfo *textureInfo, const glm::vec4 &color)
+void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, const Texture &sourceTexture, const vec4 &colour)
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 	
@@ -1650,7 +1649,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const Model &model, con
 		.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f)
 	};
 
-	const size_t modelResIndex = model.getAssetId() - 1;
+	const size_t modelResIndex = primitive.getAssetId() - 1;
 	const size_t textureResIndex = sourceTexture.getAssetId() - 1;
 	const ResourceSet &resourceSet = resourceSets[modelResIndex];
 	const ResourceSet &textureResourceSet = resourceSets[textureResIndex];
@@ -1706,7 +1705,7 @@ void VulkanRenderer::render(const glm::mat4 modelMatrix, const Model &model, con
 
 	vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
 	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(model.getIndexCount()), 1, 0, 0, 0);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.getIndexCount()), 1, 0, 0, 0);
 }
 
 void VulkanRenderer::endRender()

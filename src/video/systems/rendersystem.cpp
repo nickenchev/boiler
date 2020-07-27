@@ -1,6 +1,7 @@
 #include "video/renderer.h"
 #include "core/components/positioncomponent.h"
 #include "core/components/rendercomponent.h"
+#include "core/components/materialcomponent.h"
 #include "core/components/parentcomponent.h"
 #include "core/componentstore.h"
 #include "video/systems/rendersystem.h"
@@ -43,11 +44,27 @@ void RenderSystem::update(ComponentStore &store, const double delta)
 			currentEntity = parentComp.entity;
 		}
 
-		for (const auto &mesh : render.meshes)
+		for (const auto &primitive : render.mesh.primitives)
 		{
-			renderer.render(modelMatrix, mesh.model,
-							mesh.spriteFrame.getSourceTexture(),
-							nullptr, mesh.colour);
+			unsigned int matIndex = primitive.materialId - 1;
+			const Material &material = materials[matIndex];
+
+			assert(material.baseTexture.has_value());
+			renderer.render(modelMatrix, primitive, material.baseTexture.value(), material.color);
 		}
 	}
+}
+
+MaterialId RenderSystem::addMaterial(const Material &material)
+{
+	materials.push_back(material);
+	MaterialId newId = materialId++;
+
+	logger.log("Added material with ID: {}", newId);
+	return newId;
+}
+
+Material &RenderSystem::getMaterial(MaterialId materialId)
+{
+	return materials[materialId - 1];
 }

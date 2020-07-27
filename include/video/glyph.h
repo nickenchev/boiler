@@ -5,7 +5,7 @@
 #include "core/math.h"
 #include "core/rect.h"
 #include "video/textureinfo.h"
-#include "video/model.h"
+#include "video/primitive.h"
 
 namespace Boiler
 {
@@ -18,12 +18,12 @@ class Glyph
 	Rect sourceRect;
     ivec2 bearing;    // Offset from baseline to left/top of glyph
     long int advance;    // Offset to advance to next glyph
-	Model model;
+	Primitive primitive;
 	std::shared_ptr<TextureInfo> textureInfo;
 	
 public:
-	Glyph(unsigned long code, const Model &model, std::shared_ptr<TextureInfo> textureInfo, const Rect &sourceRect,
-		  const ivec2 &bearing, long int advance) : model(model)
+	Glyph(unsigned long code, const Primitive &primitive, std::shared_ptr<TextureInfo> textureInfo, const Rect &sourceRect,
+		  const ivec2 &bearing, long int advance) : primitive(primitive)
 	{
 		this->code = code;
 		this->sourceRect = sourceRect;
@@ -34,7 +34,7 @@ public:
 
 	auto &getBearing() const { return bearing; }
 	auto &getAdvance() const { return advance; }
-	auto getModel() const { return model; }
+	auto getPrimitive() const { return primitive; }
 	auto getTextureInfo() const { return textureInfo; }
 };
 

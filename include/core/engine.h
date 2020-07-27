@@ -69,6 +69,11 @@ public:
 	void step();
     void quit() { running = false; }
 
+	RenderSystem &getRenderSystem()
+	{
+		return static_cast<RenderSystem &>(*renderSystem);
+	}
+
 	Renderer &getRenderer() { return *renderer; }
 	EntityComponentSystem &getEcs() { return ecs; }
     std::shared_ptr<Part> getPart() const { return part; }

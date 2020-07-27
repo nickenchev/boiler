@@ -2,12 +2,14 @@
 #define MATERIALCOMPONENT_H
 
 #include "core/componenttype.h"
+#include "video/material.h"
 
 namespace Boiler
 {
 
-class MaterialComponent : public ComponentType<MaterialComponent>
+struct MaterialComponent : public ComponentType<MaterialComponent>
 {
+	Material material;
 };
 
 }

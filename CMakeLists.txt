@@ -67,7 +67,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/core/line.cpp
   ${SRC_BASE}/core/fileutils.cpp
   ${SRC_BASE}/video/renderer.cpp
-  ${SRC_BASE}/video/model.cpp
+  ${SRC_BASE}/video/primitive.cpp
   # Vulkan Rendering
   ${SRC_BASE}/video/vulkanrenderer.cpp
 

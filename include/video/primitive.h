@@ -1,22 +1,26 @@
-#ifndef MODEL_H
-#define MODEL_H
+#ifndef PRIMITIVE_H
+#define PRIMITIVE_H
 
 #include "core/asset.h"
+#include "core/materialid.h"
 
 namespace Boiler
 {
 
-class Model : public Asset
+class Primitive : public Asset
 {
     const unsigned int vertexCount;
     const unsigned int indexCount;
 
 public:
-    Model(const AssetId assetId, unsigned int vertexCount, unsigned int indexCount);
+	MaterialId materialId;
+
+    Primitive(const AssetId assetId, unsigned int vertexCount, unsigned int indexCount);
 
 	unsigned int getVertexCount() const { return vertexCount; }
 	unsigned int getIndexCount() const { return indexCount; }
 };
 
 }
-#endif /* MODEL_H */
+
+#endif /* PRIMITIVE_H */
