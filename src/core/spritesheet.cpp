@@ -4,12 +4,14 @@
 
 using namespace Boiler;
 
-SpriteSheet::SpriteSheet(std::string imageFile, Size size, std::shared_ptr<const Texture> texture, std::map<std::string, SpriteSheetFrame> &frames) : size(size), texture(texture), frames(frames)
+SpriteSheet::SpriteSheet(std::string imageFile, Size size, const Texture &texture,
+						 std::map<std::string, SpriteFrame> &frames)
+	: size(size), texture(texture), frames(frames)
 {
     this->imageFile = imageFile;
 }
 
-const SpriteSheetFrame *SpriteSheet::getFrame(const std::string frameName) const
+const SpriteFrame *SpriteSheet::getFrame(const std::string frameName) const
 {
     auto itr = frames.find(frameName);
     // TODO: Add show error when frame is null
@@ -18,7 +20,7 @@ const SpriteSheetFrame *SpriteSheet::getFrame(const std::string frameName) const
     return &itr->second;
 }
 
-const SpriteSheetFrame *SpriteSheet::getFirstFrame() const
+const SpriteFrame *SpriteSheet::getFirstFrame() const
 {
 	assert(frames.size() > 0);
     return &frames.begin()->second;

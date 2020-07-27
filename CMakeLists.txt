@@ -55,7 +55,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/core/entityworld.cpp
   ${SRC_BASE}/core/tmxloader.cpp
   ${SRC_BASE}/core/spritesheet.cpp
-  ${SRC_BASE}/core/spritesheetframe.cpp
+  ${SRC_BASE}/core/spriteframe.cpp
   ${SRC_BASE}/core/base64.cpp
   #${SRC_BASE}/core/glyphloader.cpp
   ${SRC_BASE}/core/quadtree.cpp

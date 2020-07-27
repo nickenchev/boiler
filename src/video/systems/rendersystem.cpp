@@ -46,7 +46,7 @@ void RenderSystem::update(ComponentStore &store, const double delta)
 		for (const auto &mesh : render.meshes)
 		{
 			renderer.render(modelMatrix, mesh.model,
-							mesh.spriteSheetFrame.getSourceTexture(),
+							mesh.spriteFrame.getSourceTexture(),
 							nullptr, mesh.colour);
 		}
 	}

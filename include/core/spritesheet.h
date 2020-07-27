@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 #include "rect.h"
-#include "spritesheetframe.h"
+#include "spriteframe.h"
 
 namespace Boiler
 {
@@ -16,21 +16,22 @@ class Texture;
 
 class SpriteSheet
 {
-    const std::shared_ptr<const Texture> texture;
+    const Texture texture;
     std::string imageFile;
     Size size;
-    std::map<std::string, SpriteSheetFrame> frames;
+    std::map<std::string, SpriteFrame> frames;
 
 public:
-    SpriteSheet(std::string imageFile, Size size, std::shared_ptr<const Texture> texture, std::map<std::string, SpriteSheetFrame> &frames);
+    SpriteSheet(std::string imageFile, Size size, const Texture &texture,
+				std::map<std::string, SpriteFrame> &frames);
     ~SpriteSheet();
 
-    const Texture &getTexture() const { return *texture.get(); }
+    const Texture &getTexture() const { return texture; }
     std::string getImageFile() const { return imageFile; }
     const Size &getSize() const { return size; }
-    const SpriteSheetFrame *getFrame(const std::string frameName) const;
-    const std::map<std::string, SpriteSheetFrame> &getAllFrames() const { return frames; }
-    const SpriteSheetFrame *getFirstFrame() const;
+    const SpriteFrame *getFrame(const std::string frameName) const;
+    const std::map<std::string, SpriteFrame> &getAllFrames() const { return frames; }
+    const SpriteFrame *getFirstFrame() const;
 };
 
 }

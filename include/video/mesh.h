@@ -3,7 +3,7 @@
 
 #include <memory>
 #include "video/model.h"
-#include "core/spritesheetframe.h"
+#include "core/spriteframe.h"
 
 namespace Boiler
 {
@@ -11,10 +11,10 @@ namespace Boiler
 struct Mesh
 {
 	const Model model;
-	SpriteSheetFrame spriteSheetFrame; // TODO: This doesn't belong here
+	SpriteFrame spriteFrame; // TODO: This doesn't belong here
     vec4 colour;
 
-	Mesh(const Model &model, SpriteSheetFrame spriteSheetFrame) : model(model), spriteSheetFrame(spriteSheetFrame)
+	Mesh(const Model &model, SpriteFrame spriteFrame) : model(model), spriteFrame(spriteFrame)
 	{
 		this->colour = vec4(1, 1, 1, 1);
 	}
