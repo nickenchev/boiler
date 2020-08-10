@@ -9,8 +9,8 @@ namespace Boiler
 
 class Primitive : public Asset
 {
-    const unsigned int vertexCount;
-    const unsigned int indexCount;
+    unsigned int vertexCount;
+    unsigned int indexCount;
 
 public:
 	MaterialId materialId;

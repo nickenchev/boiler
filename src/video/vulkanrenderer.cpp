@@ -36,7 +36,7 @@ constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
 constexpr int maxObjects = 1000;
-constexpr int maxLights = 100;
+constexpr int maxLights = 64;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -86,7 +86,7 @@ VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtension
 			if (std::strcmp(extension, instProps[i].extensionName) == 0)
 			{
 				supported = true;
-				logger.log(std::string(instProps[i].extensionName) + " will be enabled");
+				logger.log("{} will be deleted", instProps[i].extensionName);
 			}
 		}
 		if (!supported)
@@ -226,6 +226,8 @@ VulkanRenderer::~VulkanRenderer()
 			vkDestroyImage(device, image, nullptr);
 		}
 	}
+	vkDestroyBuffer(device, lightsBuffer, nullptr);
+	vkFreeMemory(device, lightsMemory, nullptr);
 	logger.log("Cleaned up buffers and memory");
 
 	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
@@ -517,6 +519,7 @@ void VulkanRenderer::initialize(const Size &size)
 		pipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
 		graphicsPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, *program.get());
 		createDepthResources();
+		createLightBuffer(maxLights);
 		createFramebuffers();
 		createDescriptorPool();
 		createDescriptorSets();
@@ -733,6 +736,10 @@ VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLay
 {
 	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 
+	std::array<VkPushConstantRange, 1> pushConstantRanges;
+    pushConstantRanges[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstantRanges[0].offset = 0;
+
 	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
 	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutCreateInfo.setLayoutCount = 1;
@@ -934,21 +941,21 @@ VkDescriptorSetLayout VulkanRenderer::createDescriptorSetLayout() const
 {
 	std::array<VkDescriptorSetLayoutBinding, 3> bindings = {};
 
-	// UBO binding
+	// UBO
 	bindings[0].binding = 0;
 	bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	bindings[0].descriptorCount = 1;
 	bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	bindings[0].pImmutableSamplers = nullptr;
 
-	// sampler binding
+	// sampler
 	bindings[1].binding = 1;
 	bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	bindings[1].descriptorCount = 1;
 	bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	bindings[1].pImmutableSamplers = nullptr;
 
-	// light source binding
+	// lights
 	bindings[2].binding = 2;
 	bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	bindings[2].descriptorCount = 1;
@@ -1131,6 +1138,17 @@ void VulkanRenderer::createDepthResources()
 	depthImage = imagePair.first;
 	depthImageMemory = imagePair.second;
 	depthImageView = createImageView(imagePair.first, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+}
+
+void VulkanRenderer::createLightBuffer(int lightCount)
+{
+	lightSources.resize(lightCount);
+
+	VkDeviceSize bufferSize = sizeof(LightSource) * lightCount;
+	auto buffPair = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+								 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	lightsBuffer = buffPair.first;
+	lightsMemory = buffPair.second;
 }
 
 void VulkanRenderer::recreateSwapchain()
@@ -1578,6 +1596,8 @@ Primitive VulkanRenderer::loadPrimitive(const VertexData &data)
 
 void VulkanRenderer::beginRender()
 {
+	Renderer::beginRender();
+
 	nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
 											VK_NULL_HANDLE, &imageIndex);
 
@@ -1656,10 +1676,6 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	const unsigned int descriptorIndex = (currentFrame * maxObjects) + modelResIndex;
 	const VkDescriptorSet descriptorSet = descriptorSets[descriptorIndex];
 
-	// required buffers for rendering
-	VkBuffer vertexBuffer = resourceSet.buffers[0];
-	VkBuffer indexBuffer = resourceSet.buffers[1];
-
 	// map uniform buffer and copy
 	void *data = nullptr;
 	vkMapMemory(device, resourceSet.deviceMemory[2], 0, sizeof(mvp), 0, &data);
@@ -1677,7 +1693,19 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	imageInfo.imageView = textureResourceSet.imageViews[0];
 	imageInfo.sampler = textureSampler;
 
-	std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+	// copy light source data
+	void *lightData = nullptr;
+	VkDeviceSize lightsMemSize = maxLights * sizeof(LightSource);
+	vkMapMemory(device, lightsMemory, 0, lightsMemSize, 0, &lightData);
+	memcpy(lightData, lightSources.data(), lightsMemSize);
+	vkUnmapMemory(device, lightsMemory);
+
+	VkDescriptorBufferInfo lightsBuffInfo = {};
+	lightsBuffInfo.buffer = lightsBuffer;
+	lightsBuffInfo.offset = 0;
+	lightsBuffInfo.range = sizeof(LightSource) * maxLights;
+
+	std::array<VkWriteDescriptorSet, 3> descriptorWrites = {};
 	// MVP uniform
 	descriptorWrites[0].dstBinding = 0;
 	descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1696,8 +1724,21 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	descriptorWrites[1].descriptorCount = 1;
 	descriptorWrites[1].pImageInfo = &imageInfo;
 
+	// lights
+	descriptorWrites[2].dstBinding = 2;
+	descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWrites[2].dstSet = descriptorSet;
+	descriptorWrites[2].dstArrayElement = 0;
+	descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	descriptorWrites[2].descriptorCount = 1;
+	descriptorWrites[2].pBufferInfo = &lightsBuffInfo;
+
 	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+
+	// required buffers for rendering
+	VkBuffer vertexBuffer = resourceSet.buffers[0];
+	VkBuffer indexBuffer = resourceSet.buffers[1];
 
 	// draw the vertex data
 	const std::array<VkBuffer, 1> buffers = {vertexBuffer};

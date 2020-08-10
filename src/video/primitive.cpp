@@ -3,6 +3,8 @@
 using namespace Boiler;
 
 Primitive::Primitive(AssetId assetId, unsigned int vertexCount, unsigned int indexCount)
-	: Asset(assetId), vertexCount(vertexCount), indexCount(indexCount)
+	: Asset(assetId)
 {
+	this->vertexCount = vertexCount;
+	this->indexCount = indexCount;
 }

@@ -9,7 +9,11 @@ namespace Boiler
 	
 struct LightingComponent : public ComponentType<LightingComponent>
 {
-	LightSource lightSource;
+	LightSource source;
+
+	LightingComponent(const LightSource &source) : source(source)
+	{
+	}
 };
 
 }

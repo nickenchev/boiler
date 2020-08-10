@@ -12,7 +12,6 @@ struct SDL_Window;
 #include "video/vulkan.h"
 #include "video/renderer.h"
 #include "video/vulkan/resourceset.h"
-#include "vulkan/vulkan_core.h"
 
 namespace Boiler { namespace Vulkan {
 
@@ -68,6 +67,9 @@ class VulkanRenderer : public Boiler::Renderer
 	VkDeviceMemory depthImageMemory;
 	VkImageView depthImageView;
 
+	VkBuffer lightsBuffer;
+	VkDeviceMemory lightsMemory;
+
 	void createComponents();
 
 	void createSwapChain();
@@ -87,6 +89,8 @@ class VulkanRenderer : public Boiler::Renderer
 	void cleanupSwapchain();
 	void createTextureSampler();
 	void createDepthResources();
+	void createLightBuffer();
+	void createLightBuffer(int lightCount);
 
 	// memory/buffer operations
 	uint32_t findMemoryType(uint32_t filter, VkMemoryPropertyFlags flags) const;

@@ -95,11 +95,14 @@ set(BOILER_SOURCES
 
 add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
-target_include_directories(boiler PUBLIC
+target_include_directories(boiler
+  INTERFACE
+  ${INCLUDE_BASE}
+  PRIVATE
   ${INCLUDE_BASE}
   ${INCLUDE_BASE}/tinyxml2
   boiler_deps)
 
 target_link_libraries(boiler boiler_deps)
 
-#target_compile_options(boiler PRIVATE -Wall -Wextra)
+target_compile_options(boiler PRIVATE -Wall -Wextra)

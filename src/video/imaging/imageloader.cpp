@@ -39,15 +39,15 @@ ImageData ImageLoader::load(const std::string &filePath)
 	Logger logger("Image Loader");
 	assert(filePath.length() > 0);
 
-	const int destColorChannels = STBI_rgb_alpha;
+	const int dstColorChannels = STBI_rgb_alpha;
 	int width, height, channels;
 
-	unsigned char *pixelData = stbi_load(filePath.c_str(), &width, &height, &channels, destColorChannels);
-	ImageData imageData(pixelData, Size(width, height), destColorChannels, channels > 3);
+	unsigned char *pixelData = stbi_load(filePath.c_str(), &width, &height, &channels, dstColorChannels);
+	ImageData imageData(pixelData, Size(width, height), dstColorChannels, channels > 3);
 	stbi_image_free(pixelData);
 
 	logger.log("{} ({}x{} {}bit)", filePath, width, height, channels * 8);
-	return std::move(imageData);
+	return imageData;
 }
 
 /*

@@ -21,7 +21,6 @@ void EntityWorld::removeEntity(const Entity &entity)
 	auto itr = std::find(entities.begin(), entities.end(), entity);
 	if (itr != entities.end())
 	{
-		Entity ent = *itr;
 		entities.erase(itr);
 		logger.log("Destroyed entity with ID: {}", entity.getId());
 	}

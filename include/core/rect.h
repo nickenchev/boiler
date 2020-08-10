@@ -27,6 +27,13 @@ struct Rect
     Rect(cgfloat x, cgfloat y, const Size &size) : position(x, y, 0), size(size), pivot(0, 0, 0) { }
     Rect(const Rect &rect) { *this = rect; }
 
+	void operator=(const Rect &rect)
+	{
+		this->position = rect.position;
+		this->size = rect.size;
+		this->pivot = rect.pivot;
+	}
+
     inline cgfloat getMinX() const
     {
 		return position.x;

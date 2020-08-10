@@ -10,10 +10,10 @@ class Renderer;
 
 class LightingSystem: public Boiler::System
 {
-	const Renderer &renderer;
+	Renderer &renderer;
 
 public:
-	LightingSystem(const Renderer &renderer) : System("Lighting System"), renderer(renderer)
+	LightingSystem(Renderer &renderer) : System("Lighting System"), renderer(renderer)
 	{
 		logger.log("Setting up lighting system.");
 	}

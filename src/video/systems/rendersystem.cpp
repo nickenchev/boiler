@@ -8,30 +8,16 @@
 
 using namespace Boiler;
 
-struct RenderObject
+void RenderSystem::update(ComponentStore &store, const double)
 {
-	Entity entity;
-	PositionComponent positionComponent;
-	RenderComponent renderComponent;
-};
-
-void RenderSystem::update(ComponentStore &store, const double delta)
-{
-	std::vector<RenderObject> renderList;
+	// draw objects
 	for (auto &entity : getEntities())
 	{
 		PositionComponent &pos = store.retrieve<PositionComponent>(entity);
 		RenderComponent &render = store.retrieve<RenderComponent>(entity);
 
-		renderList.push_back(RenderObject({
-			entity,
-			pos,
-			render
-		}));
-
+		// calculate model matrix
 		glm::mat4 modelMatrix = pos.getMatrix();
-
-		// iterate over the parent chain and setup the model matrix
 		Entity currentEntity = entity;
 		while (store.hasComponent<ParentComponent>(currentEntity))
 		{
@@ -63,7 +49,6 @@ MaterialId RenderSystem::addMaterial(const Material &material)
 	logger.log("Added material with ID: {}", newId);
 	return newId;
 }
-
 Material &RenderSystem::getMaterial(MaterialId materialId)
 {
 	return materials[materialId - 1];

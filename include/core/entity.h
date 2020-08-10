@@ -15,6 +15,10 @@ public:
 	Entity(EntityId id) : id{id} { }
 	Entity(const Entity &entity) : Entity(entity.getId()) { }
 
+	void operator=(const Entity &entity)
+	{
+		this->id = entity.id;
+	}
 	bool operator==(const Entity &entity) const { return entity.getId() == this->getId(); }
 	bool operator!=(const Entity &entity) const { return !(entity == *this); }
 	bool operator<(const Entity &entity) const { return getId() < entity.getId(); }
