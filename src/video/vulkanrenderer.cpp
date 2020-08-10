@@ -1658,6 +1658,16 @@ void VulkanRenderer::beginRender()
 	}
 }
 
+void VulkanRenderer::updateLights()
+{
+	// copy light source data
+	void *lightData = nullptr;
+	VkDeviceSize lightsMemSize = maxLights * sizeof(LightSource);
+	vkMapMemory(device, lightsMemory, 0, lightsMemSize, 0, &lightData);
+	memcpy(lightData, lightSources.data(), lightsMemSize);
+	vkUnmapMemory(device, lightsMemory);
+}
+
 void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, const Texture &sourceTexture, const vec4 &colour)
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
@@ -1692,13 +1702,6 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imageInfo.imageView = textureResourceSet.imageViews[0];
 	imageInfo.sampler = textureSampler;
-
-	// copy light source data
-	void *lightData = nullptr;
-	VkDeviceSize lightsMemSize = maxLights * sizeof(LightSource);
-	vkMapMemory(device, lightsMemory, 0, lightsMemSize, 0, &lightData);
-	memcpy(lightData, lightSources.data(), lightsMemSize);
-	vkUnmapMemory(device, lightsMemory);
 
 	VkDescriptorBufferInfo lightsBuffInfo = {};
 	lightsBuffInfo.buffer = lightsBuffer;

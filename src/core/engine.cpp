@@ -130,6 +130,8 @@ void Engine::step()
 	renderer->beginRender();
 
 	lightingSystem->update(getEcs().getComponentStore(), frameDelta);
+	renderer->updateLights();
+
 	renderSystem->update(getEcs().getComponentStore(), frameDelta);
 	glyphSystem->update(getEcs().getComponentStore(), frameDelta);
 	if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);

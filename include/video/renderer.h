@@ -60,6 +60,7 @@ public:
 
 	virtual void beginRender();
 	virtual void endRender() = 0;
+	virtual void updateLights() = 0;
 	virtual void render(const mat4 modelMatrix, const Primitive &primitive, const Texture &sourceTexture, const vec4 &colour) = 0;
 };
 
