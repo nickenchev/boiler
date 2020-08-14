@@ -1622,6 +1622,11 @@ void VulkanRenderer::beginRender()
 			throw std::runtime_error("Could not begin command buffer");
 		}
 
+		// clear colour
+		std::array<VkClearValue, 2> clearValues = {};
+        clearValues[0].color = {{getClearColor().r, getClearColor().g, getClearColor().b, 1.0f}};
+		clearValues[1].depthStencil = {1.0f, 0};
+
 		// begin the render pass
 		VkRenderPassBeginInfo renderBeginInfo = {};
 		renderBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -1629,11 +1634,6 @@ void VulkanRenderer::beginRender()
 		renderBeginInfo.framebuffer = framebuffers[imageIndex];
 		renderBeginInfo.renderArea.offset = {0, 0};
 		renderBeginInfo.renderArea.extent = swapChainExtent;
-
-		// clear colour
-		std::array<VkClearValue, 2> clearValues = {};
-        clearValues[0].color = {{getClearColor().r, getClearColor().g, getClearColor().b, 1.0f}};
-		clearValues[1].depthStencil = {1.0f, 0};
 		renderBeginInfo.clearValueCount = clearValues.size();
 		renderBeginInfo.pClearValues = clearValues.data();
 
