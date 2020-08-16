@@ -747,18 +747,18 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	std::array<VkAttachmentReference, 4> colorAttachmentRefs;
-	colorAttachmentRefs[0].attachment = 0;
+	std::array<VkAttachmentReference, 1> colorAttachmentRefs;
+	colorAttachmentRefs[0].attachment = 0; // swapchain image
 	colorAttachmentRefs[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	colorAttachmentRefs[1].attachment = 1;
+	colorAttachmentRefs[1].attachment = 2; // positions
 	colorAttachmentRefs[1].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	colorAttachmentRefs[2].attachment = 2;
+	colorAttachmentRefs[2].attachment = 3; // albedo
 	colorAttachmentRefs[2].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	colorAttachmentRefs[3].attachment = 3;
-	colorAttachmentRefs[3].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	colorAttachmentRefs[2].attachment = 3; // normals
+	colorAttachmentRefs[2].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentReference depthAttachRef = {};
-	depthAttachRef.attachment = 4;
+	depthAttachRef.attachment = 1;
 	depthAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription subpass = {};
@@ -778,8 +778,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 
 	// create the render pass
 	std::array<VkAttachmentDescription, 5> attachments = {
-		positionAttachment, albedoAttachment, normalAttachment,
-		colorAttachment, depthAttachment
+		colorAttachment, depthAttachment, positionAttachment, albedoAttachment, normalAttachment
 	};
 	VkRenderPassCreateInfo renderPassCreateInfo = {};
 	renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -984,11 +983,11 @@ void VulkanRenderer::createFramebuffers()
 	for (size_t i = 0; i < swapChainImages.size(); ++i)
 	{
         std::array<VkImageView, 5> attachments = {
+			swapChainImageViews[i],
+			depthImageView,
 			gBuffers[i].positions.imageView,
 			gBuffers[i].albedo.imageView,
-			gBuffers[i].normals.imageView,
-			swapChainImageViews[i],
-			depthImageView
+			gBuffers[i].normals.imageView
 		};
 			
 		VkFramebufferCreateInfo framebufferInfo = {};
@@ -1696,11 +1695,11 @@ void VulkanRenderer::beginRender()
 
 		// clear colour
 		std::array<VkClearValue, 5> clearValues = {};
-        clearValues[0].color = {{0, 0, 0, 0}};
-        clearValues[1].color = {{0, 0, 0, 0}};
+        clearValues[0].color = {{getClearColor().r, getClearColor().g, getClearColor().b, 1.0f}};
+		clearValues[1].depthStencil = {1.0f, 0};
         clearValues[2].color = {{0, 0, 0, 0}};
-        clearValues[3].color = {{getClearColor().r, getClearColor().g, getClearColor().b, 1.0f}};
-		clearValues[4].depthStencil = {1.0f, 0};
+        clearValues[3].color = {{0, 0, 0, 0}};
+        clearValues[4].color = {{0, 0, 0, 0}};
 
 		// begin the render pass
 		VkRenderPassBeginInfo renderBeginInfo = {};
