@@ -26,6 +26,21 @@ struct QueueFamilyIndices
 
 class VulkanRenderer : public Boiler::Renderer
 {
+	struct OffscreenBuffer
+	{
+		VkImage image;
+		VkDeviceMemory imageMemory;
+		VkImageView imageView;
+	};
+
+	struct GBuffer
+	{
+		OffscreenBuffer positions, albedo, normals;
+	};
+
+	VkFormat positionFormat, albedoFormat, normalFormat;
+	std::vector<GBuffer> gBuffers;
+
 	SDL_Window *win;
 	bool resizeOccured;
 	VkInstance instance;
@@ -70,9 +85,9 @@ class VulkanRenderer : public Boiler::Renderer
 	VkBuffer lightsBuffer;
 	VkDeviceMemory lightsMemory;
 
-	void createComponents();
-
 	void createSwapChain();
+	void createGBuffers();
+
 	VkRenderPass createRenderPass();
 	VkPipelineLayout createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout) const;
 	VkPipeline createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent, const SPVShaderProgram &program) const;
