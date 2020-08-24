@@ -24,6 +24,12 @@ struct QueueFamilyIndices
 	std::optional<uint32_t> transfer;
 };
 
+struct ShaderModules
+{
+	std::optional<VkShaderModule> vertex;
+	std::optional<VkShaderModule> fragment;
+};
+
 class VulkanRenderer : public Boiler::Renderer
 {
 	struct OffscreenBuffer
@@ -49,19 +55,22 @@ class VulkanRenderer : public Boiler::Renderer
 	VkDevice device;
 	VkQueue graphicsQueue, presentationQueue, transferQueue;
 	VkSurfaceKHR surface;
+
+	// swapchain related
 	VkSwapchainKHR swapChain;
-	std::vector<VkImage> swapChainImages;
-	std::vector<VkImageView> swapChainImageViews;
 	VkFormat swapChainFormat;
 	VkExtent2D swapChainExtent;
+	std::vector<VkImage> swapChainImages;
+	std::vector<VkImageView> swapChainImageViews;
+
 	QueueFamilyIndices queueFamilyIndices;
 	std::set<uint32_t> uniqueQueueIndices;
-	VkRenderPass renderPass, renderPass2;
+	VkRenderPass renderPass;
 	VkDescriptorSetLayout descriptorSetLayout;
 	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
 	VkPipelineLayout pipelineLayout;
-	VkPipeline graphicsPipeline;
+	VkPipeline gBufferPipeline, deferredPipeline;
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;
 	std::vector<VkCommandBuffer> commandBuffers;
@@ -71,7 +80,7 @@ class VulkanRenderer : public Boiler::Renderer
 	// resource management
 	std::vector<ResourceSet> resourceSets;
 
-	std::unique_ptr<SPVShaderProgram> program;
+	VkShaderModule gBufferVert, gBufferFrag, deferredFrag;
 	short currentFrame;
 	uint32_t descriptorCount;
 	uint32_t imageIndex;
@@ -88,9 +97,12 @@ class VulkanRenderer : public Boiler::Renderer
 	void createSwapChain();
 	void createGBuffers();
 
+	VkShaderModule createShaderModule(const std::vector<char> &contents) const;
 	VkRenderPass createRenderPass();
 	VkPipelineLayout createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout) const;
-	VkPipeline createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent, const SPVShaderProgram &program) const;
+	VkPipeline createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
+									  VkExtent2D swapChainExtent, const ShaderModules &shaderModules) const;
+	void createGraphicsPipelines();
 
 	void createFramebuffers();
 	VkDescriptorSetLayout createDescriptorSetLayout() const;

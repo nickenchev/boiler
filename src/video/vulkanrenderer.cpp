@@ -26,6 +26,7 @@
 #include "video/imaging/imagedata.h"
 #include "video/vertexdata.h"
 #include "video/primitive.h"
+#include "util/filemanager.h"
 
 using namespace Boiler;
 using namespace Boiler::Vulkan;
@@ -200,7 +201,6 @@ VulkanRenderer::~VulkanRenderer()
 	logger.log("Destroyed command buffers");
 
 	vkDestroyRenderPass(device, renderPass, nullptr);
-	vkDestroyRenderPass(device, renderPass2, nullptr);
 	logger.log("Render passes destroyed");
 
 	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
@@ -247,10 +247,10 @@ VulkanRenderer::~VulkanRenderer()
 	}
 
 	// delete the shader module
-	if (program)
-	{
-		program.reset();
-	}
+	vkDestroyShaderModule(device, gBufferVert, nullptr);
+	vkDestroyShaderModule(device, gBufferFrag, nullptr);
+	vkDestroyShaderModule(device, deferredFrag, nullptr);
+	logger.log("Destroyed shader modules");
 	
 	// sync objects cleanup
 	for (int i = 0; i < maxFramesInFlight; ++i)
@@ -521,20 +521,27 @@ void VulkanRenderer::initialize(const Size &size)
 			transferQueue = graphicsQueue;
 		}
 
-		// load vertex and fragment SPIR-V shaders
-		program = std::make_unique<SPVShaderProgram>(device, "shaders/", "vert.spv", "frag.spv");
+		// shader modules to fill g-buffer
+		auto gBuffFragData = FileManager::readBinaryFile("shaders/gbuffer.frag.spv");
+		gBufferFrag = createShaderModule(gBuffFragData);
+		auto gBuffVertData = FileManager::readBinaryFile("shaders/gbuffer.vert.spv");
+		gBufferVert = createShaderModule(gBuffVertData);
+
+		// shader modules to compose final image
+		auto deferredFragData = FileManager::readBinaryFile("shaders/deferred.frag.spv");
+		deferredFrag = createShaderModule(deferredFragData);
 
 		createSwapChain();
 		createGBuffers();
 		createDepthResources();
 		
 		renderPass = createRenderPass();
-		renderPass2 = createRenderPass();
 		createFramebuffers();
 
 		descriptorSetLayout = createDescriptorSetLayout();
-		pipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
-		graphicsPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, *program.get());
+
+		createGraphicsPipelines();
+
 		createLightBuffer(maxLights);
 		createDescriptorPool();
 		createDescriptorSets();
@@ -543,6 +550,36 @@ void VulkanRenderer::initialize(const Size &size)
 		createSynchronization();
 		createTextureSampler();
 	}
+}
+
+void VulkanRenderer::createGraphicsPipelines()
+{
+	pipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
+
+	// pipeline for g-buffer
+	ShaderModules gBufferModules{};
+	gBufferModules.vertex = gBufferVert;
+	gBufferModules.fragment = gBufferFrag;
+	gBufferPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, gBufferModules);
+	// pipeline for deferred final output
+	ShaderModules deferredModules{};
+	deferredModules.fragment = deferredFrag;
+	deferredPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, deferredModules);
+}
+
+VkShaderModule VulkanRenderer::createShaderModule(const std::vector<char> &contents) const
+{
+	VkShaderModuleCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	createInfo.codeSize = contents.size();
+	createInfo.pCode = reinterpret_cast<const uint32_t *>(contents.data());
+
+	VkShaderModule shaderModule;
+	if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error creating shader module");
+	}
+	return shaderModule;
 }
 
 void VulkanRenderer::createGBuffers()
@@ -714,11 +751,11 @@ VkRenderPass VulkanRenderer::createRenderPass()
 		attachment.format = format;
 		attachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 		return attachment;
 	};
 	// G Buffer attachments
@@ -726,55 +763,58 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	VkAttachmentDescription albedoAttachment = createAttachment(albedoFormat);
 	VkAttachmentDescription normalAttachment = createAttachment(normalFormat);
 
-	// final attachments
-	VkAttachmentDescription colorAttachment = {};
-	colorAttachment.format = swapChainFormat;
-	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	// swapchain color attachment
+	VkAttachmentDescription colorAttachment = createAttachment(swapChainFormat);
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-	VkAttachmentDescription depthAttachment = {};
-	depthAttachment.format = findDepthFormat();
-	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	// depth/stencil attachment
+	VkAttachmentDescription depthAttachment = createAttachment(findDepthFormat());
 	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	std::array<VkAttachmentReference, 1> colorAttachmentRefs;
-	colorAttachmentRefs[0].attachment = 0; // swapchain image
+	std::array<VkAttachmentReference, 3> colorAttachmentRefs{};
+	colorAttachmentRefs[0].attachment = 2; // positions
 	colorAttachmentRefs[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	colorAttachmentRefs[1].attachment = 2; // positions
+	colorAttachmentRefs[1].attachment = 3; // albedo
 	colorAttachmentRefs[1].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	colorAttachmentRefs[2].attachment = 3; // albedo
-	colorAttachmentRefs[2].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	colorAttachmentRefs[2].attachment = 3; // normals
+	colorAttachmentRefs[2].attachment = 4; // normals
 	colorAttachmentRefs[2].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentReference depthAttachRef = {};
 	depthAttachRef.attachment = 1;
 	depthAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	VkSubpassDescription subpass = {};
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.colorAttachmentCount = colorAttachmentRefs.size();
-	subpass.pColorAttachments = colorAttachmentRefs.data();
-	subpass.pDepthStencilAttachment = &depthAttachRef;
+	VkAttachmentReference swapColorAttachRef{};
+	swapColorAttachRef.attachment = 0;
+	swapColorAttachRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	std::array<VkSubpassDescription, 1> subpasses{};
+	subpasses[0].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpasses[0].colorAttachmentCount = colorAttachmentRefs.size();
+	subpasses[0].pColorAttachments = colorAttachmentRefs.data();
+	subpasses[0].pDepthStencilAttachment = &depthAttachRef;
+	subpasses[1].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpasses[1].colorAttachmentCount = 1;
+	subpasses[1].pColorAttachments = &swapColorAttachRef;
+	subpasses[1].inputAttachmentCount = colorAttachmentRefs.size();
+	subpasses[1].pInputAttachments = colorAttachmentRefs.data();
 
 	// subpass dependencies
-	VkSubpassDependency dependency = {};
-	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	dependency.dstSubpass = 0; // index
-	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.srcAccessMask = 0;
-	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	std::array<VkSubpassDependency, 2> subpassDependencies{};
+	subpassDependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+	subpassDependencies[0].dstSubpass = 0;
+	subpassDependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependencies[0].srcAccessMask = 0;
+	subpassDependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	/*
+	subpassDependencies[1].srcSubpass = 0;
+	subpassDependencies[1].dstSubpass = 1;
+	subpassDependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependencies[1].srcAccessMask = 0;
+	subpassDependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	*/
 
 	// create the render pass
 	std::array<VkAttachmentDescription, 5> attachments = {
@@ -784,10 +824,10 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	renderPassCreateInfo.attachmentCount = attachments.size();
 	renderPassCreateInfo.pAttachments = attachments.data();
-	renderPassCreateInfo.subpassCount = 1;
-	renderPassCreateInfo.pSubpasses = &subpass;
-	renderPassCreateInfo.dependencyCount = 1;
-	renderPassCreateInfo.pDependencies = &dependency;
+	renderPassCreateInfo.subpassCount = subpasses.size();
+	renderPassCreateInfo.pSubpasses = subpasses.data();
+	renderPassCreateInfo.dependencyCount = subpassDependencies.size();
+	renderPassCreateInfo.pDependencies = subpassDependencies.data();
 
 	VkRenderPass renderPass = VK_NULL_HANDLE;
 	if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
@@ -821,7 +861,8 @@ VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLay
 	return pipelineLayout;
 }
 
-VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent, const SPVShaderProgram &program) const
+VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
+												  VkExtent2D swapChainExtent, const ShaderModules &shaderModules) const
 {
 	// Vertex input stage
 	VkVertexInputBindingDescription inputBind = {};
@@ -829,7 +870,7 @@ VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPip
 	inputBind.stride = sizeof(Vertex);
 	inputBind.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-	std::array<VkVertexInputAttributeDescription, 4> attrDescs = {};
+	std::array<VkVertexInputAttributeDescription, 4> attrDescs{};
 	// vertex position
 	attrDescs[0].location = 0;
 	attrDescs[0].binding = 0;
@@ -860,6 +901,9 @@ VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPip
 	vertInputCreateInfo.pVertexBindingDescriptions = &inputBind;
 	vertInputCreateInfo.vertexAttributeDescriptionCount = attrDescs.size();
 	vertInputCreateInfo.pVertexAttributeDescriptions = attrDescs.data();
+
+	VkPipelineVertexInputStateCreateInfo noInputCreateInfo{};
+	noInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
 	// Input assembly stage
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -941,10 +985,26 @@ VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPip
 	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
 	depthStencilInfo.stencilTestEnable = VK_FALSE;
 
-	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {
-		program.getVertStageInfo(),
-		program.getFragStageInfo()
+	auto createShaderStageInfo = [](VkShaderModule module, VkShaderStageFlagBits stage) {
+		VkPipelineShaderStageCreateInfo shaderStageInfo{};
+		shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		shaderStageInfo.stage = stage;
+		shaderStageInfo.module = module;
+		shaderStageInfo.pName = "main";
+		return shaderStageInfo;
 	};
+
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+	if (shaderModules.vertex.has_value())
+	{
+		shaderStages.push_back(createShaderStageInfo(shaderModules.vertex.value(),
+													 VK_SHADER_STAGE_VERTEX_BIT));
+	}
+	if (shaderModules.fragment.has_value())
+	{
+		shaderStages.push_back(createShaderStageInfo(shaderModules.fragment.value(),
+													 VK_SHADER_STAGE_VERTEX_BIT));
+	}
 
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -1231,9 +1291,8 @@ void VulkanRenderer::recreateSwapchain()
 	createSwapChain();
 	createCommandBuffers();
 
-	// recreate pipeline due to swapchain changes
-	pipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
-	graphicsPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, *program.get());
+	// recreate pipelines due to swapchain changes
+	createGraphicsPipelines();
 
 	// depth and framebuffers need to be recreated due to new swapchain
 	createDepthResources();
@@ -1282,8 +1341,9 @@ void VulkanRenderer::cleanupSwapchain()
 	logger.log("Swapchain destroyed");
 
 	// clean up graphics pipeline
-	vkDestroyPipeline(device, graphicsPipeline, nullptr);
-	logger.log("Pipeline destroyed");
+	vkDestroyPipeline(device, gBufferPipeline, nullptr);
+	vkDestroyPipeline(device, deferredPipeline, nullptr);
+	logger.log("Pipelines destroyed");
 	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 	logger.log("Pipeline layout destroyed");
 }
@@ -1713,7 +1773,7 @@ void VulkanRenderer::beginRender()
 
 		// perform the render pass
 		vkCmdBeginRenderPass(commandBuffer, &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBufferPipeline);
 	}
 	else if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR || resizeOccured)
 	{
@@ -1745,7 +1805,7 @@ void VulkanRenderer::updateLights()
 void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, const Texture &sourceTexture, const vec4 &colour)
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
-	
+
 	// setup uniforms
 	ModelViewProjection mvp {
 		.model = modelMatrix,
@@ -1877,7 +1937,7 @@ void VulkanRenderer::endRender()
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-													VkDebugUtilsMessageTypeFlagsEXT messageType,
+													VkDebugUtilsMessageTypeFlagsEXT,
 													const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
 													void *userData)
 {
