@@ -24,14 +24,16 @@ struct QueueFamilyIndices
 	std::optional<uint32_t> transfer;
 };
 
-struct ShaderModules
+struct ShaderStageModules
 {
-	std::optional<VkShaderModule> vertex;
-	std::optional<VkShaderModule> fragment;
+	VkShaderModule vertex;
+	VkShaderModule fragment;
 };
 
 class VulkanRenderer : public Boiler::Renderer
 {
+	static const std::string SHADER_ENTRY;
+
 	struct OffscreenBuffer
 	{
 		VkImage image;
@@ -69,7 +71,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkDescriptorSetLayout descriptorSetLayout;
 	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
-	VkPipelineLayout pipelineLayout;
+	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout;
 	VkPipeline gBufferPipeline, deferredPipeline;
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;
@@ -80,7 +82,7 @@ class VulkanRenderer : public Boiler::Renderer
 	// resource management
 	std::vector<ResourceSet> resourceSets;
 
-	VkShaderModule gBufferVert, gBufferFrag, deferredFrag;
+	ShaderStageModules gBufferModules, deferredModules;
 	short currentFrame;
 	uint32_t descriptorCount;
 	uint32_t imageIndex;
@@ -100,8 +102,8 @@ class VulkanRenderer : public Boiler::Renderer
 	VkShaderModule createShaderModule(const std::vector<char> &contents) const;
 	VkRenderPass createRenderPass();
 	VkPipelineLayout createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout) const;
-	VkPipeline createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
-									  VkExtent2D swapChainExtent, const ShaderModules &shaderModules) const;
+	VkPipeline createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
+									  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex) const;
 	void createGraphicsPipelines();
 
 	void createFramebuffers();

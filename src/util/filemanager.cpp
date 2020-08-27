@@ -35,7 +35,8 @@ std::vector<char> FileManager::readBinaryFile(const std::string &filePath)
 {
 	std::vector<char> output;
 	SDL_RWops *file = SDL_RWFromFile(filePath.c_str(), "rb");
-	if (file != NULL)
+
+	if (file != nullptr)
 	{
 		Sint64 fileSize = SDL_RWsize(file);
 		output.resize(fileSize);

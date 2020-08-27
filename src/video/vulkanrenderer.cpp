@@ -19,7 +19,6 @@
 
 #include "core/logger.h"
 #include "core/math.h"
-#include "video/spvshaderprogram.h"
 #include "video/modelviewprojection.h"
 #include "video/lightsource.h"
 #include "vulkan/vulkan_core.h"
@@ -38,6 +37,8 @@ constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
 constexpr int maxObjects = 1000;
 constexpr int maxLights = 64;
+
+const std::string VulkanRenderer::SHADER_ENTRY = "main";
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -247,9 +248,10 @@ VulkanRenderer::~VulkanRenderer()
 	}
 
 	// delete the shader module
-	vkDestroyShaderModule(device, gBufferVert, nullptr);
-	vkDestroyShaderModule(device, gBufferFrag, nullptr);
-	vkDestroyShaderModule(device, deferredFrag, nullptr);
+	vkDestroyShaderModule(device, gBufferModules.vertex, nullptr);
+	vkDestroyShaderModule(device, gBufferModules.fragment, nullptr);
+	vkDestroyShaderModule(device, deferredModules.vertex, nullptr);
+	vkDestroyShaderModule(device, deferredModules.fragment, nullptr);
 	logger.log("Destroyed shader modules");
 	
 	// sync objects cleanup
@@ -522,14 +524,16 @@ void VulkanRenderer::initialize(const Size &size)
 		}
 
 		// shader modules to fill g-buffer
-		auto gBuffFragData = FileManager::readBinaryFile("shaders/gbuffer.frag.spv");
-		gBufferFrag = createShaderModule(gBuffFragData);
 		auto gBuffVertData = FileManager::readBinaryFile("shaders/gbuffer.vert.spv");
-		gBufferVert = createShaderModule(gBuffVertData);
+		gBufferModules.vertex = createShaderModule(gBuffVertData);
+		auto gBuffFragData = FileManager::readBinaryFile("shaders/gbuffer.frag.spv");
+		gBufferModules.fragment = createShaderModule(gBuffFragData);
 
 		// shader modules to compose final image
+		auto deferredVertData = FileManager::readBinaryFile("shaders/deferred.vert.spv");
+		deferredModules.vertex = createShaderModule(deferredVertData);
 		auto deferredFragData = FileManager::readBinaryFile("shaders/deferred.frag.spv");
-		deferredFrag = createShaderModule(deferredFragData);
+		deferredModules.fragment = createShaderModule(deferredFragData);
 
 		createSwapChain();
 		createGBuffers();
@@ -537,11 +541,9 @@ void VulkanRenderer::initialize(const Size &size)
 		
 		renderPass = createRenderPass();
 		createFramebuffers();
-
 		descriptorSetLayout = createDescriptorSetLayout();
 
 		createGraphicsPipelines();
-
 		createLightBuffer(maxLights);
 		createDescriptorPool();
 		createDescriptorSets();
@@ -554,17 +556,13 @@ void VulkanRenderer::initialize(const Size &size)
 
 void VulkanRenderer::createGraphicsPipelines()
 {
-	pipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
+	gBuffersPipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
+	deferredPipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
 
 	// pipeline for g-buffer
-	ShaderModules gBufferModules{};
-	gBufferModules.vertex = gBufferVert;
-	gBufferModules.fragment = gBufferFrag;
-	gBufferPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, gBufferModules);
+	gBufferPipeline = createGraphicsPipeline(renderPass, gBuffersPipelineLayout, swapChainExtent, 3, gBufferModules, 0);
 	// pipeline for deferred final output
-	ShaderModules deferredModules{};
-	deferredModules.fragment = deferredFrag;
-	deferredPipeline = createGraphicsPipeline(renderPass, pipelineLayout, swapChainExtent, deferredModules);
+	deferredPipeline = createGraphicsPipeline(renderPass, deferredPipelineLayout, swapChainExtent, 1, deferredModules, 1);
 }
 
 VkShaderModule VulkanRenderer::createShaderModule(const std::vector<char> &contents) const
@@ -597,7 +595,7 @@ void VulkanRenderer::createGBuffers()
 	auto createBuffers = [this, imageSize](OffscreenBuffer &offscreenBuffer, VkFormat imageFormat)
 	{
 		auto imagePair = createImage(imageSize, imageFormat, VK_IMAGE_TILING_OPTIMAL,
-								VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+								VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
 									 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 		offscreenBuffer.image = imagePair.first;
 		offscreenBuffer.imageMemory = imagePair.second;
@@ -780,6 +778,14 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	colorAttachmentRefs[2].attachment = 4; // normals
 	colorAttachmentRefs[2].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+	std::array<VkAttachmentReference, 3> inputColorAttachRefs{};
+	inputColorAttachRefs[0].attachment = 2; // positions
+	inputColorAttachRefs[0].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	inputColorAttachRefs[1].attachment = 3; // albedo
+	inputColorAttachRefs[1].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	inputColorAttachRefs[2].attachment = 4; // normals
+	inputColorAttachRefs[2].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
 	VkAttachmentReference depthAttachRef = {};
 	depthAttachRef.attachment = 1;
 	depthAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -788,16 +794,18 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	swapColorAttachRef.attachment = 0;
 	swapColorAttachRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	std::array<VkSubpassDescription, 1> subpasses{};
+	std::array<VkSubpassDescription, 2> subpasses{};
+	// gbuffer subpasses
 	subpasses[0].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[0].colorAttachmentCount = colorAttachmentRefs.size();
 	subpasses[0].pColorAttachments = colorAttachmentRefs.data();
 	subpasses[0].pDepthStencilAttachment = &depthAttachRef;
+	// deferred subpass
 	subpasses[1].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[1].colorAttachmentCount = 1;
 	subpasses[1].pColorAttachments = &swapColorAttachRef;
-	subpasses[1].inputAttachmentCount = colorAttachmentRefs.size();
-	subpasses[1].pInputAttachments = colorAttachmentRefs.data();
+	subpasses[1].inputAttachmentCount = inputColorAttachRefs.size();
+	subpasses[1].pInputAttachments = inputColorAttachRefs.data();
 
 	// subpass dependencies
 	std::array<VkSubpassDependency, 2> subpassDependencies{};
@@ -807,14 +815,12 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpassDependencies[0].srcAccessMask = 0;
 	subpassDependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	subpassDependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	/*
 	subpassDependencies[1].srcSubpass = 0;
 	subpassDependencies[1].dstSubpass = 1;
 	subpassDependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	subpassDependencies[1].srcAccessMask = 0;
 	subpassDependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	subpassDependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	*/
 
 	// create the render pass
 	std::array<VkAttachmentDescription, 5> attachments = {
@@ -861,8 +867,8 @@ VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLay
 	return pipelineLayout;
 }
 
-VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout,
-												  VkExtent2D swapChainExtent, const ShaderModules &shaderModules) const
+VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
+												  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex) const
 {
 	// Vertex input stage
 	VkVertexInputBindingDescription inputBind = {};
@@ -870,7 +876,7 @@ VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPip
 	inputBind.stride = sizeof(Vertex);
 	inputBind.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-	std::array<VkVertexInputAttributeDescription, 4> attrDescs{};
+	std::array<VkVertexInputAttributeDescription, 4> attrDescs = {};
 	// vertex position
 	attrDescs[0].location = 0;
 	attrDescs[0].binding = 0;
@@ -901,9 +907,6 @@ VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPip
 	vertInputCreateInfo.pVertexBindingDescriptions = &inputBind;
 	vertInputCreateInfo.vertexAttributeDescriptionCount = attrDescs.size();
 	vertInputCreateInfo.pVertexAttributeDescriptions = attrDescs.data();
-
-	VkPipelineVertexInputStateCreateInfo noInputCreateInfo{};
-	noInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
 	// Input assembly stage
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -955,22 +958,29 @@ VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPip
 	multiSampCreateInfo.alphaToOneEnable = VK_FALSE;
 
 	// Colour blending configuration
-	VkPipelineColorBlendAttachmentState colorBlendAttachState = {};
-	colorBlendAttachState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorBlendAttachState.blendEnable = VK_TRUE;
-	colorBlendAttachState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	colorBlendAttachState.colorBlendOp = VK_BLEND_OP_ADD;
-	colorBlendAttachState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachState.alphaBlendOp = VK_BLEND_OP_ADD;
+	std::vector<VkPipelineColorBlendAttachmentState> blendStates{};
+	for (int i = 0; i < attachmentCount; ++i)
+	{
+		VkPipelineColorBlendAttachmentState colorBlendAttachState = {};
+		colorBlendAttachState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		colorBlendAttachState.blendEnable = VK_TRUE;
+		colorBlendAttachState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+		colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		colorBlendAttachState.colorBlendOp = VK_BLEND_OP_ADD;
+		colorBlendAttachState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+		colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+		colorBlendAttachState.alphaBlendOp = VK_BLEND_OP_ADD;
 
+		blendStates.push_back(colorBlendAttachState);
+	}
+	
+	
 	VkPipelineColorBlendStateCreateInfo colorBlendCreateInfo = {};
 	colorBlendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colorBlendCreateInfo.logicOpEnable = VK_FALSE;
 	colorBlendCreateInfo.logicOp = VK_LOGIC_OP_COPY;
-	colorBlendCreateInfo.attachmentCount = 1;
-	colorBlendCreateInfo.pAttachments = &colorBlendAttachState;
+	colorBlendCreateInfo.attachmentCount = blendStates.size();
+	colorBlendCreateInfo.pAttachments = blendStates.data();
 	colorBlendCreateInfo.blendConstants[0] = 0.0f;
 	colorBlendCreateInfo.blendConstants[1] = 0.0f;
 	colorBlendCreateInfo.blendConstants[2] = 0.0f;
@@ -985,26 +995,20 @@ VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPip
 	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
 	depthStencilInfo.stencilTestEnable = VK_FALSE;
 
-	auto createShaderStageInfo = [](VkShaderModule module, VkShaderStageFlagBits stage) {
-		VkPipelineShaderStageCreateInfo shaderStageInfo{};
-		shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		shaderStageInfo.stage = stage;
-		shaderStageInfo.module = module;
-		shaderStageInfo.pName = "main";
-		return shaderStageInfo;
+	auto createStageInfo = [](VkShaderModule module, VkShaderStageFlagBits stage)
+	{
+		VkPipelineShaderStageCreateInfo stageInfo{};
+		stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		stageInfo.stage = stage;
+		stageInfo.module = module;
+		stageInfo.pName = SHADER_ENTRY.c_str();
+		return stageInfo;
 	};
 
-	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-	if (shaderModules.vertex.has_value())
-	{
-		shaderStages.push_back(createShaderStageInfo(shaderModules.vertex.value(),
-													 VK_SHADER_STAGE_VERTEX_BIT));
-	}
-	if (shaderModules.fragment.has_value())
-	{
-		shaderStages.push_back(createShaderStageInfo(shaderModules.fragment.value(),
-													 VK_SHADER_STAGE_VERTEX_BIT));
-	}
+	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {
+		createStageInfo(shaderModules.vertex, VK_SHADER_STAGE_VERTEX_BIT),
+		createStageInfo(shaderModules.fragment, VK_SHADER_STAGE_FRAGMENT_BIT)
+	};
 
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -1020,7 +1024,7 @@ VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPip
 	pipelineInfo.pDynamicState = nullptr;
 	pipelineInfo.layout = pipelineLayout;
 	pipelineInfo.renderPass = renderPass;
-	pipelineInfo.subpass = 0; // index of subpass
+	pipelineInfo.subpass = subpassIndex;
 
 	// not deriving a pipeline
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -1344,8 +1348,9 @@ void VulkanRenderer::cleanupSwapchain()
 	vkDestroyPipeline(device, gBufferPipeline, nullptr);
 	vkDestroyPipeline(device, deferredPipeline, nullptr);
 	logger.log("Pipelines destroyed");
-	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-	logger.log("Pipeline layout destroyed");
+	vkDestroyPipelineLayout(device, gBuffersPipelineLayout, nullptr);
+	vkDestroyPipelineLayout(device, deferredPipelineLayout, nullptr);
+	logger.log("Pipeline layouts destroyed");
 }
 
 void VulkanRenderer::resize(const Boiler::Size &size)
@@ -1871,7 +1876,7 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	descriptorWrites[2].pBufferInfo = &lightsBuffInfo;
 
 	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
 	// required buffers for rendering
 	VkBuffer vertexBuffer = resourceSet.buffers[0];
@@ -1891,6 +1896,12 @@ void VulkanRenderer::endRender()
 	if (nextImageResult == VK_SUCCESS)
 	{
 		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+
+		// perform deferred pass
+		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipeline);
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+	
 		vkCmdEndRenderPass(commandBuffer);
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
