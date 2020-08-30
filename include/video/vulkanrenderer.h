@@ -68,9 +68,23 @@ class VulkanRenderer : public Boiler::Renderer
 	QueueFamilyIndices queueFamilyIndices;
 	std::set<uint32_t> uniqueQueueIndices;
 	VkRenderPass renderPass;
-	VkDescriptorSetLayout descriptorSetLayout;
-	VkDescriptorPool descriptorPool;
-	std::vector<VkDescriptorSet> descriptorSets;
+
+	// descriptor related
+	struct Descriptor
+	{
+		VkDescriptorSetLayout layout;
+		VkDescriptorPool pool;
+		unsigned int count;
+		std::vector<VkDescriptorSet> sets;
+
+		void setCount(unsigned int count)
+		{
+			sets.resize(count);
+			this->count = count;
+		}
+	};
+	Descriptor renderDescriptor, attachDescriptor;
+
 	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout;
 	VkPipeline gBufferPipeline, deferredPipeline;
 	std::vector<VkFramebuffer> framebuffers;
@@ -84,7 +98,6 @@ class VulkanRenderer : public Boiler::Renderer
 
 	ShaderStageModules gBufferModules, deferredModules;
 	short currentFrame;
-	uint32_t descriptorCount;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
 	VkSampler textureSampler;
@@ -103,12 +116,16 @@ class VulkanRenderer : public Boiler::Renderer
 	VkRenderPass createRenderPass();
 	VkPipelineLayout createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout) const;
 	VkPipeline createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
+									  const VkVertexInputBindingDescription *inputBind, const std::vector<VkVertexInputAttributeDescription> *attrDescs,
 									  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex) const;
 	void createGraphicsPipelines();
 
 	void createFramebuffers();
-	VkDescriptorSetLayout createDescriptorSetLayout() const;
-	void createDescriptorPool();
+	void createDescriptorSetLayouts();
+	VkDescriptorSetLayout createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding> bindings) const;
+	template<size_t Size>
+	VkDescriptorPool createDescriptorPool(unsigned int count, const std::array<VkDescriptorPoolSize, Size> &poolSizes) const;
+	void allocateDescriptorSets(Descriptor &descriptor);
 	void createDescriptorSets();
 	VkCommandPool createCommandPools(const QueueFamilyIndices &queueFamilyIndices, const VkQueue &graphicsQueue, const VkQueue &transferQueue);
 	void createCommandBuffers();

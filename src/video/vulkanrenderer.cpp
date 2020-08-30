@@ -204,8 +204,9 @@ VulkanRenderer::~VulkanRenderer()
 	vkDestroyRenderPass(device, renderPass, nullptr);
 	logger.log("Render passes destroyed");
 
-	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-	logger.log("Destroyed descriptor pool");
+	vkDestroyDescriptorPool(device, renderDescriptor.pool, nullptr);
+	vkDestroyDescriptorPool(device, attachDescriptor.pool, nullptr);
+	logger.log("Destroyed descriptor pools");
 
 	// Cleanup all resources allocated for various assets
 	for (const auto &resourceSet : resourceSets)
@@ -231,7 +232,8 @@ VulkanRenderer::~VulkanRenderer()
 	vkFreeMemory(device, lightsMemory, nullptr);
 	logger.log("Cleaned up buffers and memory");
 
-	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+	vkDestroyDescriptorSetLayout(device, renderDescriptor.layout, nullptr);
+	vkDestroyDescriptorSetLayout(device, attachDescriptor.layout, nullptr);
 
 	// clean up g buffers
 	for (size_t i = 0; i < swapChainImages.size(); ++i)
@@ -541,28 +543,14 @@ void VulkanRenderer::initialize(const Size &size)
 		
 		renderPass = createRenderPass();
 		createFramebuffers();
-		descriptorSetLayout = createDescriptorSetLayout();
-
+		createDescriptorSets();
 		createGraphicsPipelines();
 		createLightBuffer(maxLights);
-		createDescriptorPool();
-		createDescriptorSets();
 		commandPool = createCommandPools(queueFamilyIndices, graphicsQueue, transferQueue);
 		createCommandBuffers();
 		createSynchronization();
 		createTextureSampler();
 	}
-}
-
-void VulkanRenderer::createGraphicsPipelines()
-{
-	gBuffersPipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
-	deferredPipelineLayout = createGraphicsPipelineLayout(descriptorSetLayout);
-
-	// pipeline for g-buffer
-	gBufferPipeline = createGraphicsPipeline(renderPass, gBuffersPipelineLayout, swapChainExtent, 3, gBufferModules, 0);
-	// pipeline for deferred final output
-	deferredPipeline = createGraphicsPipeline(renderPass, deferredPipelineLayout, swapChainExtent, 1, deferredModules, 1);
 }
 
 VkShaderModule VulkanRenderer::createShaderModule(const std::vector<char> &contents) const
@@ -786,13 +774,14 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	inputColorAttachRefs[2].attachment = 4; // normals
 	inputColorAttachRefs[2].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-	VkAttachmentReference depthAttachRef = {};
-	depthAttachRef.attachment = 1;
-	depthAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
+	// swapchain image
 	VkAttachmentReference swapColorAttachRef{};
 	swapColorAttachRef.attachment = 0;
 	swapColorAttachRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	// depth/stencil image
+	VkAttachmentReference depthAttachRef = {};
+	depthAttachRef.attachment = 1;
+	depthAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	std::array<VkSubpassDescription, 2> subpasses{};
 	// gbuffer subpasses
@@ -818,8 +807,8 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpassDependencies[1].srcSubpass = 0;
 	subpassDependencies[1].dstSubpass = 1;
 	subpassDependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpassDependencies[1].srcAccessMask = 0;
-	subpassDependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subpassDependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	subpassDependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
 	// create the render pass
@@ -867,46 +856,60 @@ VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLay
 	return pipelineLayout;
 }
 
+void VulkanRenderer::createGraphicsPipelines()
+{
+	gBuffersPipelineLayout = createGraphicsPipelineLayout(renderDescriptor.layout);
+	deferredPipelineLayout = createGraphicsPipelineLayout(attachDescriptor.layout);
+
+	// Vertex input stage
+	VkVertexInputBindingDescription standardInputBind = {};
+	standardInputBind.binding = 0;
+	standardInputBind.stride = sizeof(Vertex);
+	standardInputBind.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	std::vector<VkVertexInputAttributeDescription> standardAttrDesc;
+	standardAttrDesc.push_back({
+		.location = 0,
+		.binding = 0,
+		.format = VK_FORMAT_R32G32B32_SFLOAT,
+		.offset = offsetof(Vertex, position)
+	});
+	standardAttrDesc.push_back({
+		.location = 1,
+		.binding = 0,
+		.format = VK_FORMAT_R32G32B32A32_SFLOAT,
+		.offset = offsetof(Vertex, colour)
+	});
+	standardAttrDesc.push_back({
+		.location = 2,
+		.binding = 0,
+		.format = VK_FORMAT_R32G32_SFLOAT,
+		.offset = offsetof(Vertex, textureCoordinate)
+	});
+	standardAttrDesc.push_back({
+		.location = 3,
+		.binding = 0,
+		.format = VK_FORMAT_R32G32B32_SFLOAT,
+		.offset = offsetof(Vertex, normal)
+	});
+
+	// pipeline for g-buffer
+	gBufferPipeline = createGraphicsPipeline(renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind, &standardAttrDesc, 3, gBufferModules, 0);
+	// pipeline for deferred final output
+	deferredPipeline = createGraphicsPipeline(renderPass, deferredPipelineLayout, swapChainExtent, nullptr, nullptr, 1, deferredModules, 1);
+}
+
+
 VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
+												  const VkVertexInputBindingDescription *inputBind, const std::vector<VkVertexInputAttributeDescription> *attrDescs,
 												  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex) const
 {
-	// Vertex input stage
-	VkVertexInputBindingDescription inputBind = {};
-	inputBind.binding = 0;
-	inputBind.stride = sizeof(Vertex);
-	inputBind.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-	std::array<VkVertexInputAttributeDescription, 4> attrDescs = {};
-	// vertex position
-	attrDescs[0].location = 0;
-	attrDescs[0].binding = 0;
-	attrDescs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attrDescs[0].offset = offsetof(Vertex, position);
-
-	// vertex colour
-	attrDescs[1].location = 1;
-	attrDescs[1].binding = 0;
-	attrDescs[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-	attrDescs[1].offset = offsetof(Vertex, colour);
-
-	// texture coords
-	attrDescs[2].location = 2;
-	attrDescs[2].binding = 0;
-	attrDescs[2].format = VK_FORMAT_R32G32_SFLOAT;
-	attrDescs[2].offset = offsetof(Vertex, textureCoordinate);
-
-	// vertex normal
-	attrDescs[3].location = 3;
-	attrDescs[3].binding = 0;
-	attrDescs[3].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attrDescs[3].offset = offsetof(Vertex, normal);
-
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
 	vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertInputCreateInfo.vertexBindingDescriptionCount = 1;
-	vertInputCreateInfo.pVertexBindingDescriptions = &inputBind;
-	vertInputCreateInfo.vertexAttributeDescriptionCount = attrDescs.size();
-	vertInputCreateInfo.pVertexAttributeDescriptions = attrDescs.data();
+	vertInputCreateInfo.vertexBindingDescriptionCount = (inputBind != nullptr) ? 1 : 0;
+	vertInputCreateInfo.pVertexBindingDescriptions = inputBind;
+	vertInputCreateInfo.vertexAttributeDescriptionCount = (attrDescs != nullptr) ? attrDescs->size() : 0;
+	vertInputCreateInfo.pVertexAttributeDescriptions = (attrDescs != nullptr) ? attrDescs->data() : nullptr;
 
 	// Input assembly stage
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -1072,31 +1075,50 @@ void VulkanRenderer::createFramebuffers()
 	logger.log("Created framebuffers");
 }
 
-VkDescriptorSetLayout VulkanRenderer::createDescriptorSetLayout() const
+void VulkanRenderer::createDescriptorSetLayouts()
 {
-	std::array<VkDescriptorSetLayoutBinding, 3> bindings = {};
+	// bindings for 1st subpass
+	std::vector<VkDescriptorSetLayoutBinding> bindings1{};
+	bindings1.push_back({
+		// UBO
+		.binding = 0,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		.descriptorCount = 1,
+		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+		.pImmutableSamplers = nullptr,
+	});
+	bindings1.push_back({
+		// sampler
+		.binding = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		.descriptorCount = 1,
+		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+		.pImmutableSamplers = nullptr
+	});
+	bindings1.push_back({
+		// lights
+		.binding = 2,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		.descriptorCount = 1,
+		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+		.pImmutableSamplers = nullptr
+	});
+	renderDescriptor.layout = createDescriptorSetLayout(bindings1);
 
-	// UBO
-	bindings[0].binding = 0;
-	bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	bindings[0].descriptorCount = 1;
-	bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	bindings[0].pImmutableSamplers = nullptr;
+	// bindings for 2nd subpass (no inputs)
+	std::vector<VkDescriptorSetLayoutBinding> bindings2{};
+	bindings2.push_back({
+		// position
+		.binding = 0,
+		.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+		.descriptorCount = 1,
+		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+	});
+	attachDescriptor.layout = createDescriptorSetLayout(bindings2);
+}
 
-	// sampler
-	bindings[1].binding = 1;
-	bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	bindings[1].descriptorCount = 1;
-	bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	bindings[1].pImmutableSamplers = nullptr;
-
-	// lights
-	bindings[2].binding = 2;
-	bindings[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	bindings[2].descriptorCount = 1;
-	bindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	bindings[2].pImmutableSamplers = nullptr;
-	
+VkDescriptorSetLayout VulkanRenderer::createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding> bindings) const
+{
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layoutInfo.bindingCount = bindings.size();
@@ -1112,52 +1134,64 @@ VkDescriptorSetLayout VulkanRenderer::createDescriptorSetLayout() const
 	return descriptorSetLayout;
 }
 
-void VulkanRenderer::createDescriptorPool()
+template<size_t Size>
+VkDescriptorPool VulkanRenderer::createDescriptorPool(unsigned int count, const std::array<VkDescriptorPoolSize, Size> &poolSizes) const
 {
-	descriptorCount = swapChainImages.size() * maxObjects;
-
-	std::array<VkDescriptorPoolSize, 3> poolSizes = {};
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = descriptorCount;
-
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = descriptorCount;
-
-	poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[2].descriptorCount = descriptorCount;
-
 	VkDescriptorPoolCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	createInfo.poolSizeCount = poolSizes.size();
 	createInfo.pPoolSizes = poolSizes.data();
-	createInfo.maxSets = descriptorCount;
+	createInfo.maxSets = count;
 
+	VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 	if (vkCreateDescriptorPool(device, &createInfo, nullptr, &descriptorPool) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to create descriptor pool");
 	}
 
 	logger.log("Created descriptor pool");
+	return descriptorPool;
+}
+
+void VulkanRenderer::allocateDescriptorSets(Descriptor &descriptor)
+{
+	// need to copy layout into array of layouts since create call expects array
+	std::vector<VkDescriptorSetLayout> layouts(descriptor.count, descriptor.layout);
+
+	VkDescriptorSetAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocInfo.descriptorPool = descriptor.pool;
+	allocInfo.descriptorSetCount = descriptor.count;
+	allocInfo.pSetLayouts = layouts.data();
+
+	if (vkAllocateDescriptorSets(device, &allocInfo, descriptor.sets.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to allocate descriptor sets");
+	}
+	logger.log("Allocated {} descriptor sets", descriptor.count);
 }
 
 void VulkanRenderer::createDescriptorSets()
 {
-	// need to copy layout into array of layouts since create call expects array
-	std::vector<VkDescriptorSetLayout> layouts(descriptorCount, descriptorSetLayout);
+	createDescriptorSetLayouts();
 
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = descriptorPool;
-	allocInfo.descriptorSetCount = descriptorCount;
-	allocInfo.pSetLayouts = layouts.data();
+	renderDescriptor.setCount(swapChainImages.size() * maxObjects);
+	std::array<VkDescriptorPoolSize, 3> renderPoolSizes{};
+	renderPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	renderPoolSizes[0].descriptorCount = renderDescriptor.count;
+	renderPoolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	renderPoolSizes[1].descriptorCount = renderDescriptor.count;
+	renderPoolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	renderPoolSizes[2].descriptorCount = renderDescriptor.count;
+	renderDescriptor.pool = createDescriptorPool(renderDescriptor.count, renderPoolSizes);
+	allocateDescriptorSets(renderDescriptor);
 
-	descriptorSets.resize(descriptorCount);
-	if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to allocate descriptor sets");
-	}
-
-	logger.log("Allocated {} descriptor sets", descriptorSets.size());
+	attachDescriptor.setCount(swapChainImages.size());
+	std::array<VkDescriptorPoolSize, 1> attachPoolSizes{};
+	attachPoolSizes[0].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	attachPoolSizes[0].descriptorCount = attachDescriptor.count;
+	attachDescriptor.pool = createDescriptorPool(attachDescriptor.count, attachPoolSizes);
+	allocateDescriptorSets(attachDescriptor);
 }
 
 VkCommandPool VulkanRenderer::createCommandPools(const QueueFamilyIndices &queueFamilyIndices, const VkQueue &graphicsQueue, const VkQueue &transferQueue)
@@ -1823,7 +1857,7 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	const ResourceSet &resourceSet = resourceSets[modelResIndex];
 	const ResourceSet &textureResourceSet = resourceSets[textureResIndex];
 	const unsigned int descriptorIndex = (currentFrame * maxObjects) + modelResIndex;
-	const VkDescriptorSet descriptorSet = descriptorSets[descriptorIndex];
+	const VkDescriptorSet descriptorSet = renderDescriptor.sets[descriptorIndex];
 
 	// map uniform buffer and copy
 	void *data = nullptr;
@@ -1896,10 +1930,27 @@ void VulkanRenderer::endRender()
 	if (nextImageResult == VK_SUCCESS)
 	{
 		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
-
-		// perform deferred pass
 		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipeline);
+
+		// perform deferred pass
+		std::array<VkDescriptorImageInfo, 1> descriptorImages{};
+		descriptorImages[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		descriptorImages[0].imageView = gBuffers[currentFrame].positions.imageView;
+		descriptorImages[0].sampler = VK_NULL_HANDLE;
+
+		const VkDescriptorSet descriptorSet = attachDescriptor.sets[currentFrame];
+		std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
+		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[0].dstBinding = 0;
+		descriptorWrites[0].dstSet = descriptorSet;
+		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+		descriptorWrites[0].descriptorCount = 1;
+		descriptorWrites[0].pImageInfo = &descriptorImages[0];
+
+		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 	
 		vkCmdEndRenderPass(commandBuffer);
