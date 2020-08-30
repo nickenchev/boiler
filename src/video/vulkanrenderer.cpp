@@ -746,8 +746,11 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	};
 	// G Buffer attachments
 	VkAttachmentDescription positionAttachment = createAttachment(positionFormat);
+	positionAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	VkAttachmentDescription albedoAttachment = createAttachment(albedoFormat);
+	albedoAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	VkAttachmentDescription normalAttachment = createAttachment(normalFormat);
+	normalAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 	// swapchain color attachment
 	VkAttachmentDescription colorAttachment = createAttachment(swapChainFormat);
@@ -809,7 +812,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpassDependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	subpassDependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	subpassDependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	subpassDependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subpassDependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 	// create the render pass
 	std::array<VkAttachmentDescription, 5> attachments = {
@@ -1933,7 +1936,7 @@ void VulkanRenderer::endRender()
 		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipeline);
 
-		// perform deferred pass
+		// update input attachments
 		std::array<VkDescriptorImageInfo, 1> descriptorImages{};
 		descriptorImages[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		descriptorImages[0].imageView = gBuffers[currentFrame].positions.imageView;
