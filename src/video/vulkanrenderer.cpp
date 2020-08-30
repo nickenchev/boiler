@@ -800,19 +800,32 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpasses[1].pInputAttachments = inputColorAttachRefs.data();
 
 	// subpass dependencies
-	std::array<VkSubpassDependency, 2> subpassDependencies{};
-	subpassDependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-	subpassDependencies[0].dstSubpass = 0;
-	subpassDependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpassDependencies[0].srcAccessMask = 0;
-	subpassDependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpassDependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	subpassDependencies[1].srcSubpass = 0;
-	subpassDependencies[1].dstSubpass = 1;
-	subpassDependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpassDependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	subpassDependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	subpassDependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	std::array<VkSubpassDependency, 3> dependencies;
+
+	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[0].dstSubpass = 0;
+	dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	// This dependency transitions the input attachment from color attachment to shader read
+	dependencies[1].srcSubpass = 0;
+	dependencies[1].dstSubpass = 1;
+	dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	dependencies[2].srcSubpass = 0;
+	dependencies[2].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[2].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[2].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependencies[2].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[2].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	dependencies[2].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 	// create the render pass
 	std::array<VkAttachmentDescription, 5> attachments = {
@@ -824,8 +837,8 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	renderPassCreateInfo.pAttachments = attachments.data();
 	renderPassCreateInfo.subpassCount = subpasses.size();
 	renderPassCreateInfo.pSubpasses = subpasses.data();
-	renderPassCreateInfo.dependencyCount = subpassDependencies.size();
-	renderPassCreateInfo.pDependencies = subpassDependencies.data();
+	renderPassCreateInfo.dependencyCount = dependencies.size();
+	renderPassCreateInfo.pDependencies = dependencies.data();
 
 	VkRenderPass renderPass = VK_NULL_HANDLE;
 	if (vkCreateRenderPass(device, &renderPassCreateInfo, nullptr, &renderPass) != VK_SUCCESS)
@@ -947,7 +960,7 @@ VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPip
 	rasterizerCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 	rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizerCreateInfo.lineWidth = 1.0f;
-	rasterizerCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizerCreateInfo.cullMode = VK_CULL_MODE_NONE;
 	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizerCreateInfo.depthBiasEnable = VK_FALSE;
 	rasterizerCreateInfo.depthBiasConstantFactor = 0.0f;
@@ -1933,9 +1946,6 @@ void VulkanRenderer::endRender()
 	if (nextImageResult == VK_SUCCESS)
 	{
 		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
-		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipeline);
-
 		// update input attachments
 		std::array<VkDescriptorImageInfo, 1> descriptorImages{};
 		descriptorImages[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -1952,10 +1962,11 @@ void VulkanRenderer::endRender()
 		descriptorWrites[0].pImageInfo = &descriptorImages[0];
 
 		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipeline);
+		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
-	
 		vkCmdEndRenderPass(commandBuffer);
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
