@@ -801,7 +801,6 @@ VkRenderPass VulkanRenderer::createRenderPass()
 
 	// subpass dependencies
 	std::array<VkSubpassDependency, 3> dependencies;
-
 	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 	dependencies[0].dstSubpass = 0;
 	dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
@@ -1130,6 +1129,20 @@ void VulkanRenderer::createDescriptorSetLayouts()
 		.descriptorCount = 1,
 		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
 	});
+	bindings2.push_back({
+		// albedos
+		.binding = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+		.descriptorCount = 1,
+		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+	});
+	bindings2.push_back({
+		// normals
+		.binding = 2,
+		.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+		.descriptorCount = 1,
+		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+	});
 	attachDescriptor.layout = createDescriptorSetLayout(bindings2);
 }
 
@@ -1203,9 +1216,13 @@ void VulkanRenderer::createDescriptorSets()
 	allocateDescriptorSets(renderDescriptor);
 
 	attachDescriptor.setCount(swapChainImages.size());
-	std::array<VkDescriptorPoolSize, 1> attachPoolSizes{};
+	std::array<VkDescriptorPoolSize, 3> attachPoolSizes{};
 	attachPoolSizes[0].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
 	attachPoolSizes[0].descriptorCount = attachDescriptor.count;
+	attachPoolSizes[1].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	attachPoolSizes[1].descriptorCount = attachDescriptor.count;
+	attachPoolSizes[2].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	attachPoolSizes[2].descriptorCount = attachDescriptor.count;
 	attachDescriptor.pool = createDescriptorPool(attachDescriptor.count, attachPoolSizes);
 	allocateDescriptorSets(attachDescriptor);
 }
@@ -1947,19 +1964,37 @@ void VulkanRenderer::endRender()
 	{
 		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 		// update input attachments
-		std::array<VkDescriptorImageInfo, 1> descriptorImages{};
+		std::array<VkDescriptorImageInfo, 3> descriptorImages{};
 		descriptorImages[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		descriptorImages[0].imageView = gBuffers[currentFrame].positions.imageView;
 		descriptorImages[0].sampler = VK_NULL_HANDLE;
+		descriptorImages[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		descriptorImages[1].imageView = gBuffers[currentFrame].albedo.imageView;
+		descriptorImages[1].sampler = VK_NULL_HANDLE;
+		descriptorImages[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		descriptorImages[2].imageView = gBuffers[currentFrame].normals.imageView;
+		descriptorImages[2].sampler = VK_NULL_HANDLE;
 
 		const VkDescriptorSet descriptorSet = attachDescriptor.sets[currentFrame];
-		std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
+		std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrites[0].dstBinding = 0;
 		descriptorWrites[0].dstSet = descriptorSet;
 		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
 		descriptorWrites[0].descriptorCount = 1;
 		descriptorWrites[0].pImageInfo = &descriptorImages[0];
+		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[1].dstBinding = 1;
+		descriptorWrites[1].dstSet = descriptorSet;
+		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+		descriptorWrites[1].descriptorCount = 1;
+		descriptorWrites[1].pImageInfo = &descriptorImages[1];
+		descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[2].dstBinding = 2;
+		descriptorWrites[2].dstSet = descriptorSet;
+		descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+		descriptorWrites[2].descriptorCount = 1;
+		descriptorWrites[2].pImageInfo = &descriptorImages[2];
 
 		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
