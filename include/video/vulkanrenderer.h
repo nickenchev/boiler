@@ -122,7 +122,8 @@ class VulkanRenderer : public Boiler::Renderer
 
 	void createFramebuffers();
 	void createDescriptorSetLayouts();
-	VkDescriptorSetLayout createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding> bindings) const;
+	template<size_t Size>
+	VkDescriptorSetLayout createDescriptorSetLayout(const std::array<VkDescriptorSetLayoutBinding, Size> bindings) const;
 	template<size_t Size>
 	VkDescriptorPool createDescriptorPool(unsigned int count, const std::array<VkDescriptorPoolSize, Size> &poolSizes) const;
 	void allocateDescriptorSets(Descriptor &descriptor);

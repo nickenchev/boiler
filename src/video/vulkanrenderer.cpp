@@ -1093,60 +1093,51 @@ void VulkanRenderer::createFramebuffers()
 void VulkanRenderer::createDescriptorSetLayouts()
 {
 	// bindings for 1st subpass
-	std::vector<VkDescriptorSetLayoutBinding> bindings1{};
-	bindings1.push_back({
-		// UBO
-		.binding = 0,
-		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		.descriptorCount = 1,
-		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-		.pImmutableSamplers = nullptr,
-	});
-	bindings1.push_back({
-		// sampler
-		.binding = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-		.descriptorCount = 1,
-		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-		.pImmutableSamplers = nullptr
-	});
-	bindings1.push_back({
-		// lights
-		.binding = 2,
-		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		.descriptorCount = 1,
-		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-		.pImmutableSamplers = nullptr
-	});
+	std::array<VkDescriptorSetLayoutBinding, 3> bindings1{};
+	// UBO
+	bindings1[0].binding = 0;
+	bindings1[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	bindings1[0].descriptorCount = 1;
+	bindings1[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	bindings1[0].pImmutableSamplers = nullptr;
+	// sampler
+	bindings1[1].binding = 1;
+	bindings1[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	bindings1[1].descriptorCount = 1;
+	bindings1[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	bindings1[1].pImmutableSamplers = nullptr;
+	// lights
+	bindings1[2].binding = 2;
+	bindings1[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	bindings1[2].descriptorCount = 1;
+	bindings1[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	bindings1[2].pImmutableSamplers = nullptr;
+
 	renderDescriptor.layout = createDescriptorSetLayout(bindings1);
 
-	// bindings for 2nd subpass (no inputs)
-	std::vector<VkDescriptorSetLayoutBinding> bindings2{};
-	bindings2.push_back({
-		// position
-		.binding = 0,
-		.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-		.descriptorCount = 1,
-		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-	});
-	bindings2.push_back({
-		// albedos
-		.binding = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-		.descriptorCount = 1,
-		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-	});
-	bindings2.push_back({
-		// normals
-		.binding = 2,
-		.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-		.descriptorCount = 1,
-		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-	});
+	// bindings for 2nd subpass
+	std::array<VkDescriptorSetLayoutBinding, 3> bindings2{};
+	// position
+	bindings2[0].binding = 0,
+	bindings2[0].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+	bindings2[0].descriptorCount = 1,
+	bindings2[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+	// albedos
+	bindings2[1].binding = 1,
+	bindings2[1].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+	bindings2[1].descriptorCount = 1,
+	bindings2[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+	// normals
+	bindings2[2].binding = 2,
+	bindings2[2].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+	bindings2[2].descriptorCount = 1,
+	bindings2[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+
 	attachDescriptor.layout = createDescriptorSetLayout(bindings2);
 }
 
-VkDescriptorSetLayout VulkanRenderer::createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding> bindings) const
+template<size_t Size>
+VkDescriptorSetLayout VulkanRenderer::createDescriptorSetLayout(const std::array<VkDescriptorSetLayoutBinding, Size> bindings) const
 {
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
