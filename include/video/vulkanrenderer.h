@@ -114,10 +114,11 @@ class VulkanRenderer : public Boiler::Renderer
 
 	VkShaderModule createShaderModule(const std::vector<char> &contents) const;
 	VkRenderPass createRenderPass();
-	VkPipelineLayout createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout) const;
+	template<size_t Size>
+	VkPipelineLayout createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout, const std::array<VkPushConstantRange, Size> &pushConstantRanges) const;
 	VkPipeline createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
 									  const VkVertexInputBindingDescription *inputBind, const std::vector<VkVertexInputAttributeDescription> *attrDescs,
-									  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex) const;
+									  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex, VkCullModeFlags cullMode) const;
 	void createGraphicsPipelines();
 
 	void createFramebuffers();

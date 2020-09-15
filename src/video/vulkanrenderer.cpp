@@ -848,21 +848,17 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	return renderPass;
 }
 
-VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout) const
+template<size_t Size>
+VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout, const std::array<VkPushConstantRange, Size> &pushConstantRanges) const
 {
-	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-
-	std::array<VkPushConstantRange, 1> pushConstantRanges;
-    pushConstantRanges[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	pushConstantRanges[0].offset = 0;
-
 	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
 	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutCreateInfo.setLayoutCount = 1;
 	pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
-	pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
-	pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+	pipelineLayoutCreateInfo.pushConstantRangeCount = pushConstantRanges.size();
+	pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
 
+	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 	if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Error creating pipeline layout");
@@ -873,8 +869,13 @@ VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLay
 
 void VulkanRenderer::createGraphicsPipelines()
 {
-	gBuffersPipelineLayout = createGraphicsPipelineLayout(renderDescriptor.layout);
-	deferredPipelineLayout = createGraphicsPipelineLayout(attachDescriptor.layout);
+	std::array<VkPushConstantRange, 1> pushConstantRanges{};
+	pushConstantRanges[0].stageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	pushConstantRanges[0].offset = 0;
+	pushConstantRanges[0].size = sizeof(glm::vec3);
+	
+	gBuffersPipelineLayout = createGraphicsPipelineLayout(renderDescriptor.layout, pushConstantRanges);
+	deferredPipelineLayout = createGraphicsPipelineLayout(attachDescriptor.layout, pushConstantRanges);
 
 	// Vertex input stage
 	VkVertexInputBindingDescription standardInputBind = {};
@@ -909,15 +910,15 @@ void VulkanRenderer::createGraphicsPipelines()
 	});
 
 	// pipeline for g-buffer
-	gBufferPipeline = createGraphicsPipeline(renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind, &standardAttrDesc, 3, gBufferModules, 0);
+	gBufferPipeline = createGraphicsPipeline(renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind, &standardAttrDesc, 3, gBufferModules, 0, VK_CULL_MODE_BACK_BIT);
 	// pipeline for deferred final output
-	deferredPipeline = createGraphicsPipeline(renderPass, deferredPipelineLayout, swapChainExtent, nullptr, nullptr, 1, deferredModules, 1);
+	deferredPipeline = createGraphicsPipeline(renderPass, deferredPipelineLayout, swapChainExtent, nullptr, nullptr, 1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT);
 }
 
 
 VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
 												  const VkVertexInputBindingDescription *inputBind, const std::vector<VkVertexInputAttributeDescription> *attrDescs,
-												  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex) const
+												  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex, VkCullModeFlags cullMode) const
 {
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
 	vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -959,7 +960,7 @@ VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPip
 	rasterizerCreateInfo.rasterizerDiscardEnable = VK_FALSE;
 	rasterizerCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizerCreateInfo.lineWidth = 1.0f;
-	rasterizerCreateInfo.cullMode = VK_CULL_MODE_NONE;
+	rasterizerCreateInfo.cullMode = cullMode;
 	rasterizerCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizerCreateInfo.depthBiasEnable = VK_FALSE;
 	rasterizerCreateInfo.depthBiasConstantFactor = 0.0f;
