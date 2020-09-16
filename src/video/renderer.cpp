@@ -23,11 +23,6 @@ AssetId Renderer::nextAssetId()
 	return assetId++;
 }
 
-void Renderer::addLightSource(const LightSource &lightSource)
-{
-	lightSources[frameLightIdx++] = lightSource;
-}
-
 void Renderer::beginRender()
 {
 	frameLightIdx = 0;

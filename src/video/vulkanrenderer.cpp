@@ -1336,8 +1336,6 @@ void VulkanRenderer::createDepthResources()
 
 void VulkanRenderer::createLightBuffer(int lightCount)
 {
-	lightSources.resize(lightCount);
-
 	VkDeviceSize bufferSize = sizeof(LightSource) * lightCount;
 	auto buffPair = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 								 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -1856,7 +1854,7 @@ void VulkanRenderer::beginRender()
 	}
 }
 
-void VulkanRenderer::updateLights()
+void VulkanRenderer::updateLights(const std::vector<LightSource> &lightSources)
 {
 	// copy light source data
 	void *lightData = nullptr;

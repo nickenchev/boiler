@@ -177,7 +177,7 @@ public:
 
 	void beginRender() override;
 	void endRender() override;
-	void updateLights() override;
+	void updateLights(const std::vector<LightSource> &lightSources) override;
 	void render(const mat4 modelMatrix, const Primitive &primitive, const Texture &sourceTexture, const vec4 &colour) override;
 
 	// TODO: This needs to be improved

@@ -5,12 +5,13 @@
 
 using namespace Boiler;
 
-void LightingSystem::update(Boiler::ComponentStore &store, const double delta)
+void LightingSystem::update(Boiler::ComponentStore &store, const double)
 {
+	std::vector<LightSource> lightSources{};
 	for (unsigned int i = 0; i < getEntities().size(); ++i)
 	{
 		LightingComponent &lightComp = store.retrieve<LightingComponent>(getEntities()[i]);
-		renderer.addLightSource(lightComp.source);
-		lightComp.source.position.y += 3.0f * delta;
+		lightSources.push_back(lightComp.source);
 	}
+	renderer.updateLights(lightSources);
 }
