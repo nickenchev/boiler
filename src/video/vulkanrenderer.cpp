@@ -870,9 +870,9 @@ VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLay
 void VulkanRenderer::createGraphicsPipelines()
 {
 	std::array<VkPushConstantRange, 1> pushConstantRanges{};
-	pushConstantRanges[0].stageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	pushConstantRanges[0].stageFlags = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	pushConstantRanges[0].offset = 0;
-	pushConstantRanges[0].size = sizeof(glm::vec3);
+	pushConstantRanges[0].size = sizeof(ModelViewProjection);
 	
 	gBuffersPipelineLayout = createGraphicsPipelineLayout(renderDescriptor.layout, pushConstantRanges);
 	deferredPipelineLayout = createGraphicsPipelineLayout(attachDescriptor.layout, pushConstantRanges);
@@ -1094,7 +1094,7 @@ void VulkanRenderer::createFramebuffers()
 void VulkanRenderer::createDescriptorSetLayouts()
 {
 	// bindings for 1st subpass
-	std::array<VkDescriptorSetLayoutBinding, 3> bindings1{};
+	std::array<VkDescriptorSetLayoutBinding, 2> bindings1{};
 	// UBO
 	bindings1[0].binding = 0;
 	bindings1[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1107,17 +1107,11 @@ void VulkanRenderer::createDescriptorSetLayouts()
 	bindings1[1].descriptorCount = 1;
 	bindings1[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	bindings1[1].pImmutableSamplers = nullptr;
-	// lights
-	bindings1[2].binding = 2;
-	bindings1[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	bindings1[2].descriptorCount = 1;
-	bindings1[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	bindings1[2].pImmutableSamplers = nullptr;
 
 	renderDescriptor.layout = createDescriptorSetLayout(bindings1);
 
 	// bindings for 2nd subpass
-	std::array<VkDescriptorSetLayoutBinding, 3> bindings2{};
+	std::array<VkDescriptorSetLayoutBinding, 4> bindings2{};
 	// position
 	bindings2[0].binding = 0,
 	bindings2[0].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
@@ -1133,6 +1127,12 @@ void VulkanRenderer::createDescriptorSetLayouts()
 	bindings2[2].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
 	bindings2[2].descriptorCount = 1,
 	bindings2[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+	// lights
+	bindings2[3].binding = 3;
+	bindings2[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	bindings2[3].descriptorCount = 1;
+	bindings2[3].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	bindings2[3].pImmutableSamplers = nullptr;
 
 	attachDescriptor.layout = createDescriptorSetLayout(bindings2);
 }
@@ -1197,24 +1197,24 @@ void VulkanRenderer::createDescriptorSets()
 	createDescriptorSetLayouts();
 
 	renderDescriptor.setCount(swapChainImages.size() * maxObjects);
-	std::array<VkDescriptorPoolSize, 3> renderPoolSizes{};
+	std::array<VkDescriptorPoolSize, 2> renderPoolSizes{};
 	renderPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	renderPoolSizes[0].descriptorCount = renderDescriptor.count;
 	renderPoolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	renderPoolSizes[1].descriptorCount = renderDescriptor.count;
-	renderPoolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[2].descriptorCount = renderDescriptor.count;
 	renderDescriptor.pool = createDescriptorPool(renderDescriptor.count, renderPoolSizes);
 	allocateDescriptorSets(renderDescriptor);
 
 	attachDescriptor.setCount(swapChainImages.size());
-	std::array<VkDescriptorPoolSize, 3> attachPoolSizes{};
+	std::array<VkDescriptorPoolSize, 4> attachPoolSizes{};
 	attachPoolSizes[0].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
 	attachPoolSizes[0].descriptorCount = attachDescriptor.count;
 	attachPoolSizes[1].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
 	attachPoolSizes[1].descriptorCount = attachDescriptor.count;
 	attachPoolSizes[2].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
 	attachPoolSizes[2].descriptorCount = attachDescriptor.count;
+	attachPoolSizes[3].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	attachPoolSizes[3].descriptorCount = attachDescriptor.count;
 	attachDescriptor.pool = createDescriptorPool(attachDescriptor.count, attachPoolSizes);
 	allocateDescriptorSets(attachDescriptor);
 }
@@ -1901,12 +1901,7 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	imageInfo.imageView = textureResourceSet.imageViews[0];
 	imageInfo.sampler = textureSampler;
 
-	VkDescriptorBufferInfo lightsBuffInfo = {};
-	lightsBuffInfo.buffer = lightsBuffer;
-	lightsBuffInfo.offset = 0;
-	lightsBuffInfo.range = sizeof(LightSource) * maxLights;
-
-	std::array<VkWriteDescriptorSet, 3> descriptorWrites = {};
+	std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
 	// MVP uniform
 	descriptorWrites[0].dstBinding = 0;
 	descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1924,15 +1919,6 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	descriptorWrites[1].descriptorCount = 1;
 	descriptorWrites[1].pImageInfo = &imageInfo;
-
-	// lights
-	descriptorWrites[2].dstBinding = 2;
-	descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[2].dstSet = descriptorSet;
-	descriptorWrites[2].dstArrayElement = 0;
-	descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descriptorWrites[2].descriptorCount = 1;
-	descriptorWrites[2].pBufferInfo = &lightsBuffInfo;
 
 	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
@@ -1954,6 +1940,11 @@ void VulkanRenderer::endRender()
 {
 	if (nextImageResult == VK_SUCCESS)
 	{
+		VkDescriptorBufferInfo lightsBuffInfo = {};
+		lightsBuffInfo.buffer = lightsBuffer;
+		lightsBuffInfo.offset = 0;
+		lightsBuffInfo.range = sizeof(LightSource) * maxLights;
+
 		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 		// update input attachments
 		std::array<VkDescriptorImageInfo, 3> descriptorImages{};
@@ -1968,7 +1959,7 @@ void VulkanRenderer::endRender()
 		descriptorImages[2].sampler = VK_NULL_HANDLE;
 
 		const VkDescriptorSet descriptorSet = attachDescriptor.sets[currentFrame];
-		std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
+		std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
 		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrites[0].dstBinding = 0;
 		descriptorWrites[0].dstSet = descriptorSet;
@@ -1987,6 +1978,14 @@ void VulkanRenderer::endRender()
 		descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
 		descriptorWrites[2].descriptorCount = 1;
 		descriptorWrites[2].pImageInfo = &descriptorImages[2];
+		// lights
+		descriptorWrites[3].dstBinding = 3;
+		descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[3].dstSet = descriptorSet;
+		descriptorWrites[3].dstArrayElement = 0;
+		descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrites[3].descriptorCount = 1;
+		descriptorWrites[3].pBufferInfo = &lightsBuffInfo;
 
 		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
