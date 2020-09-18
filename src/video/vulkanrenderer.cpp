@@ -870,9 +870,9 @@ VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLay
 void VulkanRenderer::createGraphicsPipelines()
 {
 	std::array<VkPushConstantRange, 1> pushConstantRanges{};
-	pushConstantRanges[0].stageFlags = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	pushConstantRanges[0].stageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	pushConstantRanges[0].offset = 0;
-	pushConstantRanges[0].size = sizeof(ModelViewProjection);
+	pushConstantRanges[0].size = sizeof(vec3);
 	
 	gBuffersPipelineLayout = createGraphicsPipelineLayout(renderDescriptor.layout, pushConstantRanges);
 	deferredPipelineLayout = createGraphicsPipelineLayout(attachDescriptor.layout, pushConstantRanges);
@@ -1938,12 +1938,15 @@ void VulkanRenderer::endRender()
 {
 	if (nextImageResult == VK_SUCCESS)
 	{
+		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+
 		VkDescriptorBufferInfo lightsBuffInfo = {};
 		lightsBuffInfo.buffer = lightsBuffer;
 		lightsBuffInfo.offset = 0;
 		lightsBuffInfo.range = sizeof(LightSource) * maxLights;
 
-		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+		vkCmdPushConstants(commandBuffer, deferredPipelineLayout, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, sizeof(vec3), &cameraPosition);
+
 		// update input attachments
 		std::array<VkDescriptorImageInfo, 3> descriptorImages{};
 		descriptorImages[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

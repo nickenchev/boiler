@@ -30,6 +30,7 @@ class Renderer
 protected:
 	Logger logger;
     Size screenSize;
+	vec3 cameraPosition;
 	glm::mat4 viewMatrix;
 	unsigned int frameLightIdx;
 
@@ -51,6 +52,7 @@ public:
     void setGlobalScale(const vec2 &scale) { this->globalScale = scale; }
     const vec3 &getClearColor() const { return clearColor; }
     void setClearColor(const vec3 &color) { clearColor = color; }
+	void setCameraPosition(const vec3 &cameraPosition) { this->cameraPosition = cameraPosition; }
 	void setViewMatrix(const glm::mat4 &viewMatrix) { this->viewMatrix = viewMatrix; }
 
     virtual Texture loadTexture(const std::string &filePath, const ImageData &imageData) = 0;
