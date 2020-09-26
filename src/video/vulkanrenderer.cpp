@@ -88,7 +88,7 @@ VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtension
 			if (std::strcmp(extension, instProps[i].extensionName) == 0)
 			{
 				supported = true;
-				logger.log("{} will be deleted", instProps[i].extensionName);
+                logger.log("{} will be enabled", instProps[i].extensionName);
 			}
 		}
 		if (!supported)
@@ -294,11 +294,11 @@ VulkanRenderer::~VulkanRenderer()
 		vkDestroyDevice(device, nullptr);
 		logger.log("Device destroyed");
 	}
-	if (surface != VK_NULL_HANDLE)
-	{
-		vkDestroySurfaceKHR(instance, surface, nullptr);
-		logger.log("Surface destroyed");
-	}
+    if (surface != VK_NULL_HANDLE)
+    {
+        vkDestroySurfaceKHR(instance, surface, nullptr);
+        logger.log("Surface destroyed");
+    }
 	if (instance != VK_NULL_HANDLE)
 	{
 		vkDestroyInstance(instance, nullptr);

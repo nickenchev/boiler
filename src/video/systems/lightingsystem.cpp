@@ -13,5 +13,8 @@ void LightingSystem::update(Boiler::ComponentStore &store, const double)
 		LightingComponent &lightComp = store.retrieve<LightingComponent>(getEntities()[i]);
 		lightSources.push_back(lightComp.source);
 	}
-	renderer.updateLights(lightSources);
+	if (lightSources.size())
+	{
+		renderer.updateLights(lightSources);
+	}
 }
