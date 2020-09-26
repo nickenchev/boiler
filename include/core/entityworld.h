@@ -21,7 +21,9 @@ public:
 	EntityWorld(const EntityWorld &) = delete;
 	void operator=(const EntityWorld &) = delete;
 
+    auto &getEntities() const { return entities; }
 	Entity createEntity();
+    unsigned long count() const { return entityCount; }
 	void removeEntity(const Entity &entity);
 	bool exists(const Entity &entity) const;
 };
