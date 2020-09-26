@@ -100,6 +100,7 @@ void Engine::run()
 	running = true;
 	while(running)
 	{
+		processEvents();
 		step();
 	}
 	// wait for any renderer commands to finish before destructors kick in
@@ -114,8 +115,6 @@ void Engine::step()
 	double frameDelta = (currentTime - prevTime) / 1000.0f;
 	prevTime = currentTime;
 	frameLag += frameDelta;
-
-	processEvents();
 
 	// frame update / catchup phase if lagging
 	while (frameLag >= frameInterval)
