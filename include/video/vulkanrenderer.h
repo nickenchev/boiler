@@ -169,6 +169,7 @@ public:
 	// overrides
 	std::string getVersion() const override;
 	void initialize(const Boiler::Size &size) override;
+	void shutdown() override;
 	void prepareShutdown() override;
 	void resize(const Boiler::Size &size) override;
 
@@ -185,6 +186,10 @@ public:
 	void setSurface(VkSurfaceKHR surface)
 	{
 		this->surface = surface;
+	}
+	void setInstance(VkInstance instance)
+	{
+		this->instance = instance;
 	}
 };
 

@@ -193,7 +193,7 @@ void VulkanRenderer::prepareShutdown()
 	vkDeviceWaitIdle(device);
 }
 
-VulkanRenderer::~VulkanRenderer()
+void VulkanRenderer::shutdown()
 {
 	cleanupSwapchain();
 
@@ -304,6 +304,10 @@ VulkanRenderer::~VulkanRenderer()
 		vkDestroyInstance(instance, nullptr);
 		logger.log("Instance destroyed");
 	}
+}
+
+VulkanRenderer::~VulkanRenderer()
+{
 }
 
 void VulkanRenderer::initialize(const Size &size)
