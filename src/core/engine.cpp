@@ -105,6 +105,7 @@ void Engine::run()
 	}
 	// wait for any renderer commands to finish before destructors kick in
 	renderer->prepareShutdown();
+	renderer->shutdown();
 }
 
 void Engine::step()
