@@ -49,6 +49,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkFormat positionFormat, albedoFormat, normalFormat;
 	std::vector<GBuffer> gBuffers;
 
+	bool cleanedUp;
 	SDL_Window *win;
 	bool resizeOccured;
 	VkInstance instance;

@@ -58,6 +58,7 @@ Function getFunctionPointer(VkInstance instance, std::string funcName)
 
 VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtensions) : Renderer("Vulkan Renderer")
 {
+	cleanedUp = false;
 	currentFrame = 0;
 	resizeOccured = false;
 	commandPool = VK_NULL_HANDLE;
@@ -304,10 +305,16 @@ void VulkanRenderer::shutdown()
 		vkDestroyInstance(instance, nullptr);
 		logger.log("Instance destroyed");
 	}
+	cleanedUp = true;
 }
 
 VulkanRenderer::~VulkanRenderer()
 {
+	// in case shutdown is explicitly called
+	if (!cleanedUp)
+	{
+		shutdown();
+	}
 }
 
 void VulkanRenderer::initialize(const Size &size)

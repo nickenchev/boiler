@@ -46,6 +46,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/video/renderer.h
   ${INCLUDE_BASE}/video/lightsource.h
   ${INCLUDE_BASE}/video/texture.h
+  ${INCLUDE_BASE}/assets/gltfimporter.h
 )
 
 # Engine related sources
@@ -91,7 +92,8 @@ set(BOILER_SOURCES
   ${SRC_BASE}/camera/pancamera.cpp
   ${SRC_BASE}/containers/gridposition.cpp
   ${SRC_BASE}/util/filemanager.cpp
-  ${SRC_BASE}/util/tinyxml2.cpp)
+  ${SRC_BASE}/util/tinyxml2.cpp
+  ${SRC_BASE}/assets/gltfimporter.cpp)
 
 add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
