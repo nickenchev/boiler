@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include "core/engine.h"
@@ -41,12 +42,13 @@ ImageData ImageLoader::load(const std::string &filePath)
 
 	const int dstColorChannels = STBI_rgb_alpha;
 	int width, height, channels;
-
 	unsigned char *pixelData = stbi_load(filePath.c_str(), &width, &height, &channels, dstColorChannels);
+
 	ImageData imageData(pixelData, Size(width, height), dstColorChannels, channels > 3);
 	stbi_image_free(pixelData);
 
-	logger.log("{} ({}x{} {}bit)", filePath, width, height, channels * 8);
+	std::string fileName = std::filesystem::path{filePath}.filename();
+	logger.log("{} ({}x{} {}bit)", fileName, width, height, channels * 8);
 	return imageData;
 }
 

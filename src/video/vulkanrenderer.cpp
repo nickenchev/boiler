@@ -2,6 +2,7 @@
 #include "video/renderer.h"
 #include "video/vulkan/resourceset.h"
 
+#include <filesystem>
 #include <array>
 #include <chrono>
 #include <cstring>
@@ -1545,7 +1546,9 @@ Texture VulkanRenderer::loadTexture(const std::string &filePath, const ImageData
 						  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	VkImageView imageView = createImageView(imagePair.first, format, VK_IMAGE_ASPECT_COLOR_BIT);
-	logger.log("Loaded texture data for {}", filePath);
+
+	std::string fileName = std::filesystem::path{filePath}.filename();
+	logger.log("Loaded texture data for {}", fileName);
 
 	resourceSet.images.push_back(imagePair.first);
 	resourceSet.imageViews.push_back(imageView);
