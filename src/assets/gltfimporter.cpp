@@ -99,7 +99,6 @@ auto GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &mod
 	{
 		assert(primitive.mode == 4);
 	}
-	EntityComponentSystem &ecs = engine.getEcs();
 	using namespace gltf::attributes;
 
 	// get the primitive's position data
