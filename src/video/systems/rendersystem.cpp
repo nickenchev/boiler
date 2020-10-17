@@ -33,10 +33,10 @@ void RenderSystem::update(ComponentStore &store, const double)
 		for (const auto &primitive : render.mesh.primitives)
 		{
 			unsigned int matIndex = primitive.materialId - 1;
-			const Material &material = materials[matIndex];
+			assert(matIndex >= 0 && matIndex < materials.size());
 
-			assert(material.baseTexture.has_value());
-			renderer.render(modelMatrix, primitive, material.baseTexture.value(), material.color);
+			const Material &material = materials[matIndex];
+			renderer.render(modelMatrix, primitive, material);
 		}
 	}
 }

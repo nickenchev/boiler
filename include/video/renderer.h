@@ -14,6 +14,7 @@ namespace Boiler
 {
 
 class Primitive;
+class Material;
 class VertexData;
 class TextureInfo;
 struct PositionComponent;
@@ -62,7 +63,7 @@ public:
 	virtual void beginRender();
 	virtual void endRender() = 0;
 	virtual void updateLights(const std::vector<LightSource> &lightSources) = 0;
-	virtual void render(const mat4 modelMatrix, const Primitive &primitive, const Texture &sourceTexture, const vec4 &colour) = 0;
+	virtual void render(const mat4 modelMatrix, const Primitive &primitive, const Material &material) = 0;
 };
 
 }

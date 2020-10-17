@@ -27,6 +27,7 @@
 #include "video/vertexdata.h"
 #include "video/primitive.h"
 #include "util/filemanager.h"
+#include "video/material.h"
 
 using namespace Boiler;
 using namespace Boiler::Vulkan;
@@ -881,13 +882,19 @@ VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLay
 
 void VulkanRenderer::createGraphicsPipelines()
 {
-	std::array<VkPushConstantRange, 1> pushConstantRanges{};
-	pushConstantRanges[0].stageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	pushConstantRanges[0].offset = 0;
-	pushConstantRanges[0].size = sizeof(vec3);
+	std::array<VkPushConstantRange, 1> gBufferPushConsts{};
+	gBufferPushConsts[0].stageFlags = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	gBufferPushConsts[0].offset = 0;
+	gBufferPushConsts[0].size = sizeof(GBufferPushConstants);
+
+	gBuffersPipelineLayout = createGraphicsPipelineLayout(renderDescriptor.layout, gBufferPushConsts);
 	
-	gBuffersPipelineLayout = createGraphicsPipelineLayout(renderDescriptor.layout, pushConstantRanges);
-	deferredPipelineLayout = createGraphicsPipelineLayout(attachDescriptor.layout, pushConstantRanges);
+	std::array<VkPushConstantRange, 1> deferredPushConsts{};
+	deferredPushConsts[0].stageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	deferredPushConsts[0].offset = sizeof(GBufferPushConstants);
+	deferredPushConsts[0].size = sizeof(vec3);
+	
+	deferredPipelineLayout = createGraphicsPipelineLayout(attachDescriptor.layout, deferredPushConsts);
 
 	// Vertex input stage
 	VkVertexInputBindingDescription standardInputBind = {};
@@ -1878,9 +1885,17 @@ void VulkanRenderer::updateLights(const std::vector<LightSource> &lightSources)
 	vkUnmapMemory(device, lightsMemory);
 }
 
-void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, const Texture &sourceTexture, const vec4 &colour)
+void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, const Material &material)
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+
+	// setup push constants
+	GBufferPushConstants consts;
+	consts.hasBaseTexture = material.baseTexture.has_value();
+
+	logger.log("Texture: {}", consts.hasBaseTexture);
+	vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+					0, sizeof(GBufferPushConstants), &consts);
 
 	// setup uniforms
 	ModelViewProjection mvp {
@@ -1890,9 +1905,7 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	};
 
 	const size_t modelResIndex = primitive.getAssetId() - 1;
-	const size_t textureResIndex = sourceTexture.getAssetId() - 1;
 	const ResourceSet &resourceSet = resourceSets[modelResIndex];
-	const ResourceSet &textureResourceSet = resourceSets[textureResIndex];
 	const unsigned int descriptorIndex = (currentFrame * maxObjects) + modelResIndex;
 	const VkDescriptorSet descriptorSet = renderDescriptor.sets[descriptorIndex];
 
@@ -1908,29 +1921,38 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	mvpBufferInfo.offset = 0;
 	mvpBufferInfo.range = sizeof(ModelViewProjection);
 
-	VkDescriptorImageInfo imageInfo = {};
-	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imageInfo.imageView = textureResourceSet.imageViews[0];
-	imageInfo.sampler = textureSampler;
+	std::vector<VkWriteDescriptorSet> descriptorWrites;
+	descriptorWrites.push_back({
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = descriptorSet,
+		.dstBinding = 0,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		.pBufferInfo = &mvpBufferInfo,
+	});
 
-	std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
-	// MVP uniform
-	descriptorWrites[0].dstBinding = 0;
-	descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[0].dstSet = descriptorSet;
-	descriptorWrites[0].dstArrayElement = 0;
-	descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descriptorWrites[0].descriptorCount = 1;
-	descriptorWrites[0].pBufferInfo = &mvpBufferInfo;
+	if (material.baseTexture.has_value())
+	{
+		// setup texture
+		const size_t textureResIndex = material.baseTexture.value().getAssetId() - 1;
+		const ResourceSet &textureResourceSet = resourceSets[textureResIndex];
 
-	// texture
-	descriptorWrites[1].dstBinding = 1;
-	descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[1].dstSet = descriptorSet;
-	descriptorWrites[1].dstArrayElement = 0;
-	descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	descriptorWrites[1].descriptorCount = 1;
-	descriptorWrites[1].pImageInfo = &imageInfo;
+		VkDescriptorImageInfo imageInfo = {};
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.imageView = textureResourceSet.imageViews[0];
+		imageInfo.sampler = textureSampler;
+
+		descriptorWrites.push_back({
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.dstSet = descriptorSet,
+			.dstBinding = 1,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.pImageInfo = &imageInfo,
+		});
+	}
 
 	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
@@ -1954,12 +1976,7 @@ void VulkanRenderer::endRender()
 	{
 		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 
-		VkDescriptorBufferInfo lightsBuffInfo = {};
-		lightsBuffInfo.buffer = lightsBuffer;
-		lightsBuffInfo.offset = 0;
-		lightsBuffInfo.range = sizeof(LightSource) * maxLights;
-
-		vkCmdPushConstants(commandBuffer, deferredPipelineLayout, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, sizeof(vec3), &cameraPosition);
+		vkCmdPushConstants(commandBuffer, deferredPipelineLayout, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, sizeof(GBufferPushConstants), sizeof(vec3), &cameraPosition);
 
 		// update input attachments
 		std::array<VkDescriptorImageInfo, 3> descriptorImages{};
@@ -1993,7 +2010,13 @@ void VulkanRenderer::endRender()
 		descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
 		descriptorWrites[2].descriptorCount = 1;
 		descriptorWrites[2].pImageInfo = &descriptorImages[2];
+
 		// lights
+		VkDescriptorBufferInfo lightsBuffInfo = {};
+		lightsBuffInfo.buffer = lightsBuffer;
+		lightsBuffInfo.offset = 0;
+		lightsBuffInfo.range = sizeof(LightSource) * maxLights;
+
 		descriptorWrites[3].dstBinding = 3;
 		descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrites[3].dstSet = descriptorSet;

@@ -30,6 +30,16 @@ struct ShaderStageModules
 	VkShaderModule fragment;
 };
 
+struct GBufferPushConstants
+{
+	VkBool32 hasBaseTexture;
+
+	GBufferPushConstants()
+	{
+		hasBaseTexture = VK_FALSE;
+	}
+};
+
 class VulkanRenderer : public Boiler::Renderer
 {
 	static const std::string SHADER_ENTRY;
@@ -86,8 +96,8 @@ class VulkanRenderer : public Boiler::Renderer
 	};
 	Descriptor renderDescriptor, attachDescriptor;
 
-	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout;
-	VkPipeline gBufferPipeline, deferredPipeline;
+	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout, noTexPipelineLayout;
+	VkPipeline gBufferPipeline, deferredPipeline, noTexPipeline;
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;
 	std::vector<VkCommandBuffer> commandBuffers;
@@ -97,7 +107,7 @@ class VulkanRenderer : public Boiler::Renderer
 	// resource management
 	std::vector<ResourceSet> resourceSets;
 
-	ShaderStageModules gBufferModules, deferredModules;
+	ShaderStageModules gBufferModules, deferredModules, noTexModules;
 	short currentFrame;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
@@ -180,7 +190,7 @@ public:
 	void beginRender() override;
 	void endRender() override;
 	void updateLights(const std::vector<LightSource> &lightSources) override;
-	void render(const mat4 modelMatrix, const Primitive &primitive, const Texture &sourceTexture, const vec4 &colour) override;
+	void render(const mat4 modelMatrix, const Primitive &primitive, const Material &material) override;
 
 	// TODO: This needs to be improved
 	VkInstance getVulkanInstance() const { return instance; }

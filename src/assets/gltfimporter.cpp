@@ -53,16 +53,13 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 			const gltf::Texture &texture = model.textures[matTexture.index.value()];
 			const gltf::Image &image = model.images[texture.source.value()];
 
-			if (image.uri.length() > 0)
-			{
-				filesystem::path imagePath = basePath;
-				imagePath.append(image.uri);
-				const ImageData imageData = ImageLoader::load(imagePath.string());
+			assert(image.uri.length() > 0);
+			filesystem::path imagePath = basePath;
+			imagePath.append(image.uri);
+			const ImageData imageData = ImageLoader::load(imagePath.string());
 
-				// load the texture into GPU mem
-				auto texture = engine.getRenderer().loadTexture(imagePath, imageData);
-				newMaterial.baseTexture = texture;
-			}
+			// load the texture into GPU mem
+			newMaterial.baseTexture = engine.getRenderer().loadTexture(imagePath, imageData); 
 		}
 		if (material.alphaMode == "BLEND")
 		{
@@ -98,6 +95,7 @@ auto GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &mod
 	if (primitive.mode.has_value())
 	{
 		assert(primitive.mode == 4);
+		// TODO: Add support for other modes
 	}
 	using namespace gltf::attributes;
 
@@ -122,6 +120,7 @@ auto GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &mod
 
 	// load the primitive indices
 	std::vector<uint32_t> indices;
+	assert(primitive.indices.has_value());
 	if (primitive.indices.has_value())
 	{
 		const auto &indexAccessor = modelAccess.getModel().accessors[primitive.indices.value()];
@@ -152,9 +151,10 @@ auto GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &mod
 	}
 
 	// load texture coordinates
-	if (primitive.attributes.find(TEXCOORD_0) != primitive.attributes.end())
+	const auto &texCoordAttr = primitive.attributes.find(TEXCOORD_0);
+	if (texCoordAttr != primitive.attributes.end())
 	{
-		const auto &accessor = modelAccess.getModel().accessors[primitive.attributes.find(TEXCOORD_0)->second];
+		const auto &accessor = modelAccess.getModel().accessors[texCoordAttr->second];
 		auto texCoordAccess = modelAccess.getTypedAccessor<float, 2>(accessor);
 
 		long vertexIdx = 0;
