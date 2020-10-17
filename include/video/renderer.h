@@ -7,6 +7,7 @@
 #include "core/component.h"
 #include "core/rect.h"
 #include "core/math.h"
+#include "video/material.h"
 #include "lightsource.h"
 #include "texture.h"
 
@@ -30,10 +31,14 @@ class Renderer
 
 protected:
 	Logger logger;
+
     Size screenSize;
 	vec3 cameraPosition;
 	glm::mat4 viewMatrix;
 	unsigned int frameLightIdx;
+
+	// material management
+	std::vector<Material> materials;
 
 	AssetId nextAssetId();
 
@@ -59,6 +64,10 @@ public:
 
     virtual Texture loadTexture(const std::string &filePath, const ImageData &imageData) = 0;
     virtual Primitive loadPrimitive(const VertexData &data) = 0;
+
+	virtual Material &createMaterial();
+	std::vector<Boiler::Material> &getMaterials() { return materials; }
+	Material &getMaterial(AssetId assetId);
 
 	virtual void beginRender();
 	virtual void endRender() = 0;

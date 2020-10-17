@@ -33,6 +33,8 @@ struct ShaderStageModules
 struct GBufferPushConstants
 {
 	VkBool32 hasBaseTexture;
+	vec4 color;
+	vec3 cameraPosition;
 
 	GBufferPushConstants()
 	{
@@ -186,6 +188,7 @@ public:
 
     Texture loadTexture(const std::string &filePath, const ImageData &imageData) override;
     Primitive loadPrimitive(const VertexData &data) override;
+	Material &createMaterial() override;
 
 	void beginRender() override;
 	void endRender() override;

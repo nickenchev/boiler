@@ -14,6 +14,11 @@ public:
     Asset(const AssetId assetId) : assetId(assetId) {}
     virtual ~Asset() { }
 
+	bool operator==(const AssetId &assetId)
+	{
+		return getAssetId() == assetId;
+	}
+
 	AssetId getAssetId() const { return assetId; }
 };
 

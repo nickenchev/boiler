@@ -32,24 +32,8 @@ void RenderSystem::update(ComponentStore &store, const double)
 
 		for (const auto &primitive : render.mesh.primitives)
 		{
-			unsigned int matIndex = primitive.materialId - 1;
-			assert(matIndex >= 0 && matIndex < materials.size());
-
-			const Material &material = materials[matIndex];
+			const Material &material = renderer.getMaterial(primitive.materialId);
 			renderer.render(modelMatrix, primitive, material);
 		}
 	}
-}
-
-MaterialId RenderSystem::addMaterial(const Material &material)
-{
-	materials.push_back(material);
-	MaterialId newId = materialId++;
-
-	logger.log("Added material with ID: {}", newId);
-	return newId;
-}
-Material &RenderSystem::getMaterial(MaterialId materialId)
-{
-	return materials[materialId - 1];
 }

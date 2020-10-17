@@ -2,7 +2,6 @@
 #define PRIMITIVE_H
 
 #include "core/asset.h"
-#include "core/materialid.h"
 
 namespace Boiler
 {
@@ -13,7 +12,7 @@ class Primitive : public Asset
     unsigned int indexCount;
 
 public:
-	MaterialId materialId;
+	AssetId materialId;
 
     Primitive(const AssetId assetId, unsigned int vertexCount, unsigned int indexCount);
 

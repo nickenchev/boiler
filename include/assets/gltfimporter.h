@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "core/materialid.h"
+#include "core/asset.h"
 #include "core/logger.h"
 
 namespace Boiler
@@ -22,7 +22,7 @@ namespace Boiler
 	class GLTFImporter
 	{
 		Logger logger;
-		std::vector<Boiler::MaterialId> materialIds;
+		std::vector<Boiler::AssetId> assetIds;
 
 	public:
 		GLTFImporter() : logger("GLTF Importer") { }

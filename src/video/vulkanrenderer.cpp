@@ -861,40 +861,15 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	return renderPass;
 }
 
-template<size_t Size>
-VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout, const std::array<VkPushConstantRange, Size> &pushConstantRanges) const
-{
-	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
-	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutCreateInfo.setLayoutCount = 1;
-	pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
-	pipelineLayoutCreateInfo.pushConstantRangeCount = pushConstantRanges.size();
-	pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
-
-	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-	if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Error creating pipeline layout");
-	}
-
-	return pipelineLayout;
-}
-
 void VulkanRenderer::createGraphicsPipelines()
 {
 	std::array<VkPushConstantRange, 1> gBufferPushConsts{};
-	gBufferPushConsts[0].stageFlags = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	gBufferPushConsts[0].stageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	gBufferPushConsts[0].offset = 0;
 	gBufferPushConsts[0].size = sizeof(GBufferPushConstants);
 
 	gBuffersPipelineLayout = createGraphicsPipelineLayout(renderDescriptor.layout, gBufferPushConsts);
-	
-	std::array<VkPushConstantRange, 1> deferredPushConsts{};
-	deferredPushConsts[0].stageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	deferredPushConsts[0].offset = sizeof(GBufferPushConstants);
-	deferredPushConsts[0].size = sizeof(vec3);
-	
-	deferredPipelineLayout = createGraphicsPipelineLayout(attachDescriptor.layout, deferredPushConsts);
+	deferredPipelineLayout = createGraphicsPipelineLayout(attachDescriptor.layout, gBufferPushConsts);
 
 	// Vertex input stage
 	VkVertexInputBindingDescription standardInputBind = {};
@@ -934,6 +909,24 @@ void VulkanRenderer::createGraphicsPipelines()
 	deferredPipeline = createGraphicsPipeline(renderPass, deferredPipelineLayout, swapChainExtent, nullptr, nullptr, 1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT);
 }
 
+template<size_t Size>
+VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout, const std::array<VkPushConstantRange, Size> &pushConstantRanges) const
+{
+	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
+	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutCreateInfo.setLayoutCount = 1;
+	pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
+	pipelineLayoutCreateInfo.pushConstantRangeCount = pushConstantRanges.size();
+	pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
+
+	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+	if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error creating pipeline layout");
+	}
+
+	return pipelineLayout;
+}
 
 VkPipeline VulkanRenderer::createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
 												  const VkVertexInputBindingDescription *inputBind, const std::vector<VkVertexInputAttributeDescription> *attrDescs,
@@ -1808,6 +1801,14 @@ Primitive VulkanRenderer::loadPrimitive(const VertexData &data)
 	return Primitive(assetId, data.vertexArray().size(), data.indexArray().size());
 }
 
+Material &VulkanRenderer::createMaterial()
+{
+	Material &material = Renderer::createMaterial();
+	ResourceSet resourceSet(material.getAssetId());
+	resourceSets.push_back(resourceSet);
+	return material;
+}
+
 void VulkanRenderer::beginRender()
 {
 	Renderer::beginRender();
@@ -1885,6 +1886,7 @@ void VulkanRenderer::updateLights(const std::vector<LightSource> &lightSources)
 	vkUnmapMemory(device, lightsMemory);
 }
 
+
 void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, const Material &material)
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
@@ -1892,10 +1894,10 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	// setup push constants
 	GBufferPushConstants consts;
 	consts.hasBaseTexture = material.baseTexture.has_value();
+	consts.color = vec4(0, 1, 0, 1);
+	consts.cameraPosition = cameraPosition;
 
-	logger.log("Texture: {}", consts.hasBaseTexture);
-	vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-					0, sizeof(GBufferPushConstants), &consts);
+	vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, sizeof(GBufferPushConstants), &consts);
 
 	// setup uniforms
 	ModelViewProjection mvp {
@@ -1976,8 +1978,6 @@ void VulkanRenderer::endRender()
 	{
 		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 
-		vkCmdPushConstants(commandBuffer, deferredPipelineLayout, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, sizeof(GBufferPushConstants), sizeof(vec3), &cameraPosition);
-
 		// update input attachments
 		std::array<VkDescriptorImageInfo, 3> descriptorImages{};
 		descriptorImages[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -2029,6 +2029,7 @@ void VulkanRenderer::endRender()
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipeline);
+
 		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 		vkCmdEndRenderPass(commandBuffer);

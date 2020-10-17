@@ -27,3 +27,18 @@ void Renderer::beginRender()
 {
 	frameLightIdx = 0;
 }
+
+Material &Renderer::createMaterial()
+{
+	materials.push_back(Material(nextAssetId()));
+	Material &material = materials[materials.size() - 1];
+
+	logger.log("Added material with asset ID: {}", material.getAssetId());
+	return material;
+}
+Material &Renderer::getMaterial(AssetId assetId)
+{
+	auto material = std::find(materials.begin(), materials.end(), assetId);
+	assert(material != materials.end());
+	return *material;
+}

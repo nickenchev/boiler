@@ -45,7 +45,7 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 	// load materials
 	for (size_t i = 0; i < model.materials.size(); ++i)
 	{
-		Material newMaterial;
+		Material &newMaterial = engine.getRenderer().createMaterial();
 		const gltf::Material &material = model.materials[i];
 		if (material.pbrMetallicRoughness.value().baseColorTexture.has_value())
 		{
@@ -61,6 +61,13 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 			// load the texture into GPU mem
 			newMaterial.baseTexture = engine.getRenderer().loadTexture(imagePath, imageData); 
 		}
+
+		newMaterial.color = vec4(1, 1, 1, 1);
+		if (material.pbrMetallicRoughness->baseColorFactor.has_value())
+		{
+			auto colorFactor = material.pbrMetallicRoughness->baseColorFactor.value();
+			newMaterial.color = {colorFactor[0], colorFactor[1], colorFactor[2], colorFactor[3]};
+		}
 		if (material.alphaMode == "BLEND")
 		{
 			newMaterial.alphaMode = AlphaMode::BLEND;
@@ -73,9 +80,7 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 		{
 			newMaterial.alphaMode = AlphaMode::OPAQUE;
 		}
-		newMaterial.color = vec4(1, 1, 1, 1);
-		MaterialId materialId = engine.getRenderSystem().addMaterial(newMaterial);
-		materialIds.push_back(materialId);
+		assetIds.push_back(newMaterial.getAssetId());
 	}
 
 	// Model accessors which are used for typed access into buffers
@@ -189,7 +194,7 @@ Entity GLTFImporter::loadNode(Engine &engine, const gltf::Model &model, const gl
 			// setup material if any
 			if (gltfPrimitive.material.has_value())
 			{
-				const MaterialId materialId = materialIds[gltfPrimitive.material.value()];
+				const AssetId materialId = assetIds[gltfPrimitive.material.value()];
 				meshPrimitive.materialId = materialId;
 			}
 			renderComp->mesh.primitives.push_back(meshPrimitive);
