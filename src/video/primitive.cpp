@@ -7,4 +7,5 @@ Primitive::Primitive(AssetId assetId, unsigned int vertexCount, unsigned int ind
 {
 	this->vertexCount = vertexCount;
 	this->indexCount = indexCount;
+	this->materialId = 0;
 }

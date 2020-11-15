@@ -32,13 +32,16 @@ struct ShaderStageModules
 
 struct GBufferPushConstants
 {
-	VkBool32 hasBaseTexture;
-	vec4 color;
 	vec3 cameraPosition;
+};
 
-	GBufferPushConstants()
+struct ShaderMaterial
+{
+	bool useBaseTexture;
+
+	ShaderMaterial()
 	{
-		hasBaseTexture = VK_FALSE;
+		useBaseTexture = false;
 	}
 };
 
@@ -124,6 +127,7 @@ class VulkanRenderer : public Boiler::Renderer
 
 	void createSwapChain();
 	void createGBuffers();
+	void createRenderBuffers();
 
 	VkShaderModule createShaderModule(const std::vector<char> &contents) const;
 	VkRenderPass createRenderPass();

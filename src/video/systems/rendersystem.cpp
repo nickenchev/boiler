@@ -30,10 +30,15 @@ void RenderSystem::update(ComponentStore &store, const double)
 			currentEntity = parentComp.entity;
 		}
 
+		const Material defaultMaterial(0);
 		for (const auto &primitive : render.mesh.primitives)
 		{
-			const Material &material = renderer.getMaterial(primitive.materialId);
-			renderer.render(modelMatrix, primitive, material);
+			const Material &material = primitive.materialId != 0
+				? renderer.getMaterial(primitive.materialId) : defaultMaterial;
+			if (material.baseTexture.has_value())
+			{
+				renderer.render(modelMatrix, primitive, material);
+			}
 		}
 	}
 }

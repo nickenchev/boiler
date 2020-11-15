@@ -611,6 +611,10 @@ void VulkanRenderer::createGBuffers()
 	}
 }
 
+void VulkanRenderer::createRenderBuffers()
+{
+}
+
 void VulkanRenderer::createSwapChain()
 {
 	// swap chain and presentation details
@@ -1119,6 +1123,12 @@ void VulkanRenderer::createDescriptorSetLayouts()
 	bindings1[1].descriptorCount = 1;
 	bindings1[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	bindings1[1].pImmutableSamplers = nullptr;
+	// material
+	bindings1[2].binding = 2;
+	bindings1[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	bindings1[2].descriptorCount = 1;
+	bindings1[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	bindings1[2].pImmutableSamplers = nullptr;
 
 	renderDescriptor.layout = createDescriptorSetLayout(bindings1);
 
@@ -1209,11 +1219,13 @@ void VulkanRenderer::createDescriptorSets()
 	createDescriptorSetLayouts();
 
 	renderDescriptor.setCount(swapChainImages.size() * maxObjects);
-	std::array<VkDescriptorPoolSize, 2> renderPoolSizes{};
+	std::array<VkDescriptorPoolSize, 3> renderPoolSizes{};
 	renderPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	renderPoolSizes[0].descriptorCount = renderDescriptor.count;
 	renderPoolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	renderPoolSizes[1].descriptorCount = renderDescriptor.count;
+	renderPoolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	renderPoolSizes[2].descriptorCount = renderDescriptor.count;
 	renderDescriptor.pool = createDescriptorPool(renderDescriptor.count, renderPoolSizes);
 	allocateDescriptorSets(renderDescriptor);
 
@@ -1795,6 +1807,13 @@ Primitive VulkanRenderer::loadPrimitive(const VertexData &data)
 	resourceSet.buffers.push_back(mvpPair.first);
 	resourceSet.deviceMemory.push_back(mvpPair.second);
 
+	// material buffer
+	// TODO: Don't store materials per object, handle differently
+	auto materialPair = createBuffer(sizeof(ShaderMaterial), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+								VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	resourceSet.buffers.push_back(materialPair.first);
+	resourceSet.deviceMemory.push_back(materialPair.second);
+
 	resourceSets.push_back(resourceSet);
 	logger.log("Loaded primitive with asset-id: {}", assetId);
 
@@ -1858,6 +1877,12 @@ void VulkanRenderer::beginRender()
 		// perform the render pass
 		vkCmdBeginRenderPass(commandBuffer, &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBufferPipeline);
+
+		GBufferPushConstants consts;
+		consts.cameraPosition = cameraPosition;
+
+		vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, sizeof(GBufferPushConstants), &consts);
+
 	}
 	else if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR || resizeOccured)
 	{
@@ -1886,18 +1911,18 @@ void VulkanRenderer::updateLights(const std::vector<LightSource> &lightSources)
 	vkUnmapMemory(device, lightsMemory);
 }
 
+template<class T>
+void updateMemory(VkDevice device, VkDeviceMemory memory, const T &object)
+{
+	void *data = nullptr;
+	vkMapMemory(device, memory, 0, sizeof(T), 0, &data);
+	memcpy(data, &object, sizeof(T));
+	vkUnmapMemory(device, memory);
+}
 
 void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, const Material &material)
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
-
-	// setup push constants
-	GBufferPushConstants consts;
-	consts.hasBaseTexture = material.baseTexture.has_value();
-	consts.color = vec4(0, 1, 0, 1);
-	consts.cameraPosition = cameraPosition;
-
-	vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, sizeof(GBufferPushConstants), &consts);
 
 	// setup uniforms
 	ModelViewProjection mvp {
@@ -1912,10 +1937,7 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	const VkDescriptorSet descriptorSet = renderDescriptor.sets[descriptorIndex];
 
 	// map uniform buffer and copy
-	void *data = nullptr;
-	vkMapMemory(device, resourceSet.deviceMemory[2], 0, sizeof(mvp), 0, &data);
-	memcpy(data, &mvp, sizeof(mvp));
-	vkUnmapMemory(device, resourceSet.deviceMemory[2]);
+	updateMemory(device, resourceSet.deviceMemory[2], mvp);
 
 	// setup descriptor sets
 	VkDescriptorBufferInfo mvpBufferInfo = {};
@@ -1934,14 +1956,13 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 		.pBufferInfo = &mvpBufferInfo,
 	});
 
+	// setup base texture
+	VkDescriptorImageInfo imageInfo = {};
+	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	if (material.baseTexture.has_value())
 	{
-		// setup texture
 		const size_t textureResIndex = material.baseTexture.value().getAssetId() - 1;
 		const ResourceSet &textureResourceSet = resourceSets[textureResIndex];
-
-		VkDescriptorImageInfo imageInfo = {};
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imageInfo.imageView = textureResourceSet.imageViews[0];
 		imageInfo.sampler = textureSampler;
 
