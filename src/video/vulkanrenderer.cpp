@@ -1110,7 +1110,7 @@ void VulkanRenderer::createFramebuffers()
 void VulkanRenderer::createDescriptorSetLayouts()
 {
 	// bindings for 1st subpass
-	std::array<VkDescriptorSetLayoutBinding, 2> bindings1{};
+	std::array<VkDescriptorSetLayoutBinding, 3> bindings1{};
 	// UBO
 	bindings1[0].binding = 0;
 	bindings1[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1956,11 +1956,14 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 		.pBufferInfo = &mvpBufferInfo,
 	});
 
-	// setup base texture
+	// setup material details
+	ShaderMaterial shaderMaterial;
 	VkDescriptorImageInfo imageInfo = {};
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	if (material.baseTexture.has_value())
 	{
+		shaderMaterial.useBaseTexture = true;
+
 		const size_t textureResIndex = material.baseTexture.value().getAssetId() - 1;
 		const ResourceSet &textureResourceSet = resourceSets[textureResIndex];
 		imageInfo.imageView = textureResourceSet.imageViews[0];
@@ -1976,6 +1979,24 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 			.pImageInfo = &imageInfo,
 		});
 	}
+
+
+	updateMemory(device, resourceSet.deviceMemory[3], shaderMaterial);
+
+	VkDescriptorBufferInfo materialBufferInfo = {};
+	materialBufferInfo.buffer = resourceSet.buffers[3];
+	materialBufferInfo.offset = 0;
+	materialBufferInfo.range = sizeof(ShaderMaterial);
+
+	descriptorWrites.push_back({
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = descriptorSet,
+		.dstBinding = 2,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		.pBufferInfo = &materialBufferInfo,
+	});
 
 	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
