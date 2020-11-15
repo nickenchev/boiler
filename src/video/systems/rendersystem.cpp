@@ -35,10 +35,7 @@ void RenderSystem::update(ComponentStore &store, const double)
 		{
 			const Material &material = primitive.materialId != 0
 				? renderer.getMaterial(primitive.materialId) : defaultMaterial;
-			if (material.baseTexture.has_value())
-			{
-				renderer.render(modelMatrix, primitive, material);
-			}
+			renderer.render(modelMatrix, primitive, material);
 		}
 	}
 }
