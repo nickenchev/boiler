@@ -176,83 +176,88 @@ auto GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &mod
 Entity GLTFImporter::loadNode(Engine &engine, const gltf::Model &model, const gltf::ModelAccessors &modelAccess,
 							  std::unordered_map<int, Entity> &nodeEntities, int nodeIndex)
 {
-	EntityComponentSystem &ecs = engine.getEcs();
-	Entity nodeEntity = ecs.newEntity();
-
-	const gltf::Node &node = model.nodes[nodeIndex];
-	logger.log("Loading node: {}", node.name);
-
-	if (node.mesh.has_value())
+	Entity nodeEntity = Entity::NO_ENTITY;
+	
+	if (!nodeEntities.contains(nodeIndex))
 	{
-		const auto &mesh = model.meshes[node.mesh.value()];
-		logger.log("Loading mesh: {}", mesh.name);
+		EntityComponentSystem &ecs = engine.getEcs();
+		nodeEntity = ecs.newEntity();
+		nodeEntities[nodeIndex] = nodeEntity;
 
-		auto renderComp = ecs.createComponent<RenderComponent>(nodeEntity);
-		for (auto &gltfPrimitive : mesh.primitives)
+		const gltf::Node &node = model.nodes[nodeIndex];
+		logger.log("Loading node: {}", node.name);
+
+		if (node.mesh.has_value())
 		{
-			Primitive meshPrimitive = loadPrimitive(engine, modelAccess, gltfPrimitive);
-			// setup material if any
-			if (gltfPrimitive.material.has_value())
+			const auto &mesh = model.meshes[node.mesh.value()];
+			logger.log("Loading mesh: {}", mesh.name);
+
+			auto renderComp = ecs.createComponent<RenderComponent>(nodeEntity);
+			for (auto &gltfPrimitive : mesh.primitives)
 			{
-				const AssetId materialId = assetIds[gltfPrimitive.material.value()];
-				meshPrimitive.materialId = materialId;
+				Primitive meshPrimitive = loadPrimitive(engine, modelAccess, gltfPrimitive);
+				// setup material if any
+				if (gltfPrimitive.material.has_value())
+				{
+					const AssetId materialId = assetIds[gltfPrimitive.material.value()];
+					meshPrimitive.materialId = materialId;
+				}
+				renderComp->mesh.primitives.push_back(meshPrimitive);
 			}
-			renderComp->mesh.primitives.push_back(meshPrimitive);
+		}
+		auto renderPos = ecs.createComponent<PositionComponent>(nodeEntity, Rect(0, 0, 0, 0));
+
+		// decompose a matrix if available, otherwise try to load transformations directly
+		if (node.matrix.has_value())
+		{
+			const auto &matrixArray = node.matrix.value();
+			mat4 matrix = glm::make_mat4(matrixArray.data());
+			vec3 scale, skew, position;
+			glm::quat orientation;
+			vec4 perspective;
+
+			glm::decompose(matrix, scale, orientation, position, skew, perspective);
+			renderPos->frame.position = position;
+			renderPos->scale = scale;
+			renderPos->orientation = glm::conjugate(orientation); // TODO: https://stackoverflow.com/questions/17918033/glm-decompose-mat4-into-translation-and-rotation
+		}
+		else
+		{
+			// otherwise load transformation directly
+			if (node.scale.has_value())
+			{
+				renderPos->scale = {
+					node.scale.value()[0],
+					node.scale.value()[1],
+					node.scale.value()[2]
+				};
+			}
+			if (node.translation.has_value())
+			{
+				renderPos->frame.position = {
+					node.translation.value()[0],
+					-node.translation.value()[1],
+					node.translation.value()[2]
+				};
+			}
+			if (node.rotation.has_value())
+			{
+				renderPos->orientation.x = node.rotation.value()[3];
+				renderPos->orientation.y = node.rotation.value()[0];
+				renderPos->orientation.z = node.rotation.value()[1];
+				renderPos->orientation.w = node.rotation.value()[2];
+			}
+		}
+
+		// if this node has children, create them and assign the current node as parent
+		if (node.children.size() > 0)
+		{
+			for (int childIndex : node.children)
+			{
+				Entity childEntity = loadNode(engine, model, modelAccess, nodeEntities, childIndex);
+				ecs.createComponent<ParentComponent>(childEntity, nodeEntity);
+			}
 		}
 	}
-	auto renderPos = ecs.createComponent<PositionComponent>(nodeEntity, Rect(0, 0, 0, 0));
-
-	// decompose a matrix if available, otherwise try to load transformations directly
-	if (node.matrix.has_value())
-	{
-		const auto &matrixArray = node.matrix.value();
-		mat4 matrix = glm::make_mat4(matrixArray.data());
-		vec3 scale, skew, position;
-		glm::quat orientation;
-		vec4 perspective;
-
-		glm::decompose(matrix, scale, orientation, position, skew, perspective);
-		renderPos->frame.position = position;
-		renderPos->scale = scale;
-		renderPos->orientation = glm::conjugate(orientation); // TODO: https://stackoverflow.com/questions/17918033/glm-decompose-mat4-into-translation-and-rotation
-	}
-	else
-	{
-		// otherwise load transformation directly
-		if (node.scale.has_value())
-		{
-			renderPos->scale = {
-				node.scale.value()[0],
-				node.scale.value()[1],
-				node.scale.value()[2]
-			};
-		}
-		if (node.translation.has_value())
-		{
-			renderPos->frame.position = {
-				node.translation.value()[0],
-				-node.translation.value()[1],
-				node.translation.value()[2]
-			};
-		}
-		if (node.rotation.has_value())
-		{
-			renderPos->orientation.x = node.rotation.value()[0];
-			renderPos->orientation.y = node.rotation.value()[1];
-			renderPos->orientation.z = node.rotation.value()[2];
-			renderPos->orientation.w = node.rotation.value()[3];
-		}
-	}
-
-	// if this node has children, create them and assign the current node as parent
-	if (node.children.size() > 0)
-	{
-		for (int childIndex : node.children)
-		{
-			Entity childEntity = loadNode(engine, model, modelAccess, nodeEntities, childIndex);
-			ecs.createComponent<ParentComponent>(childEntity, nodeEntity);
-		}
-	}
-
 	return nodeEntity;
 }

@@ -53,6 +53,7 @@ set(BOILER_HEADERS
 set(SRC_BASE ${CMAKE_CURRENT_LIST_DIR}/src)
 set(BOILER_SOURCES
   ${SRC_BASE}/core/engine.cpp
+  ${SRC_BASE}/core/entity.cpp
   ${SRC_BASE}/core/entityworld.cpp
   ${SRC_BASE}/core/tmxloader.cpp
   ${SRC_BASE}/core/spritesheet.cpp
@@ -107,4 +108,4 @@ target_include_directories(boiler
 
 target_link_libraries(boiler boiler_deps)
 
-target_compile_options(boiler PRIVATE -Wall -Wextra)
+#target_compile_options(boiler PRIVATE -Wall -Wextra)

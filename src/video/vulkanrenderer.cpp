@@ -1958,6 +1958,8 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 
 	// setup material details
 	ShaderMaterial shaderMaterial;
+	shaderMaterial.baseColorFactor = material.color;
+
 	VkDescriptorImageInfo imageInfo = {};
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	if (material.baseTexture.has_value())
@@ -1979,7 +1981,6 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 			.pImageInfo = &imageInfo,
 		});
 	}
-
 
 	updateMemory(device, resourceSet.deviceMemory[3], shaderMaterial);
 

@@ -15,13 +15,17 @@ public:
 	Entity(EntityId id) : id{id} { }
 	Entity(const Entity &entity) : Entity(entity.getId()) { }
 
+	static EntityId NO_ENTITY;
+
 	void operator=(const Entity &entity)
 	{
 		this->id = entity.id;
 	}
 	bool operator==(const Entity &entity) const { return entity.getId() == this->getId(); }
 	bool operator!=(const Entity &entity) const { return !(entity == *this); }
+	bool operator!=(const EntityId &entityId) const { return !(entityId == getId()); }
 	bool operator<(const Entity &entity) const { return getId() < entity.getId(); }
+	operator bool() const { return getId() != 0; }
 	EntityId getId() const { return id; }
 };
 

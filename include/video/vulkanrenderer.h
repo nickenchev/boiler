@@ -37,7 +37,8 @@ struct GBufferPushConstants
 
 struct ShaderMaterial
 {
-	bool useBaseTexture;
+	vec4 baseColorFactor;
+	VkBool32 useBaseTexture;
 
 	ShaderMaterial()
 	{
