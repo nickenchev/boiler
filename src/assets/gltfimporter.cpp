@@ -219,8 +219,7 @@ Entity GLTFImporter::loadNode(Engine &engine, const gltf::Model &model, const gl
 			glm::decompose(matrix, scale, orientation, position, skew, perspective);
 			renderPos->frame.position = position;
 			renderPos->scale = scale;
-			renderPos->orientation = glm::conjugate(orientation); // TODO: https://stackoverflow.com/questions/17918033/glm-decompose-mat4-into-translation-and-rotation
-			renderPos->orientation.w = -renderPos->orientation.w;
+			renderPos->orientation = orientation;
 		}
 		else
 		{
