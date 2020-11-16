@@ -19,24 +19,16 @@ void RenderSystem::update(ComponentStore &store, const double)
 		// calculate model matrix
 		glm::mat4 modelMatrix = pos.getMatrix();
 		Entity currentEntity = entity;
-
-		do
+		while (store.hasComponent<ParentComponent>(currentEntity))
 		{
-			if (store.hasComponent<ParentComponent>(currentEntity))
+			ParentComponent &parentComp = store.retrieve<ParentComponent>(currentEntity);
+			if (store.hasComponent<PositionComponent>(parentComp.entity))
 			{
-				ParentComponent &parentComp = store.retrieve<ParentComponent>(currentEntity);
-				currentEntity = parentComp.entity;
-			}
-			else
-			{
-				currentEntity = Entity::NO_ENTITY;
-			}
-			if (currentEntity)
-			{
-				PositionComponent &parentPos = store.retrieve<PositionComponent>(currentEntity);
+				PositionComponent &parentPos = store.retrieve<PositionComponent>(parentComp.entity);
 				modelMatrix = parentPos.getMatrix() * modelMatrix;
 			}
-		} while (currentEntity);
+			currentEntity = parentComp.entity;
+		}
 
 		const static Material defaultMaterial(0);
 		for (const auto &primitive : render.mesh.primitives)

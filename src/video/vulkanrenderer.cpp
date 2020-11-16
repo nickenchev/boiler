@@ -908,7 +908,7 @@ void VulkanRenderer::createGraphicsPipelines()
 	});
 
 	// pipeline for g-buffer
-	gBufferPipeline = createGraphicsPipeline(renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind, &standardAttrDesc, 3, gBufferModules, 0, VK_CULL_MODE_BACK_BIT);
+	gBufferPipeline = createGraphicsPipeline(renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind, &standardAttrDesc, 3, gBufferModules, 0, VK_CULL_MODE_FRONT_BIT);
 	// pipeline for deferred final output
 	deferredPipeline = createGraphicsPipeline(renderPass, deferredPipelineLayout, swapChainExtent, nullptr, nullptr, 1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT);
 }

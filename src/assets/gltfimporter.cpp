@@ -109,7 +109,7 @@ auto GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &mod
 	auto positionAccess = modelAccess.getTypedAccessor<float, 3>(primitive, POSITION);
 	for (auto values : positionAccess)
 	{
-		Vertex vertex({values[0], -values[1], values[2]});
+		Vertex vertex({values[0], values[1], values[2]});
 		vertex.colour = {1, 1, 1, 1};
 		vertices.push_back(vertex);
 	}
@@ -220,6 +220,7 @@ Entity GLTFImporter::loadNode(Engine &engine, const gltf::Model &model, const gl
 			renderPos->frame.position = position;
 			renderPos->scale = scale;
 			renderPos->orientation = glm::conjugate(orientation); // TODO: https://stackoverflow.com/questions/17918033/glm-decompose-mat4-into-translation-and-rotation
+			renderPos->orientation.w = -renderPos->orientation.w;
 		}
 		else
 		{
@@ -242,10 +243,10 @@ Entity GLTFImporter::loadNode(Engine &engine, const gltf::Model &model, const gl
 			}
 			if (node.rotation.has_value())
 			{
-				renderPos->orientation.x = node.rotation.value()[3];
-				renderPos->orientation.y = node.rotation.value()[0];
-				renderPos->orientation.z = node.rotation.value()[1];
-				renderPos->orientation.w = node.rotation.value()[2];
+				renderPos->orientation.x = node.rotation.value()[0];
+				renderPos->orientation.y = node.rotation.value()[1];
+				renderPos->orientation.z = node.rotation.value()[2];
+				renderPos->orientation.w = -node.rotation.value()[3];
 			}
 		}
 
