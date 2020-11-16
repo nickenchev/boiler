@@ -237,7 +237,7 @@ Entity GLTFImporter::loadNode(Engine &engine, const gltf::Model &model, const gl
 			{
 				renderPos->frame.position = {
 					node.translation.value()[0],
-					-node.translation.value()[1],
+					node.translation.value()[1],
 					node.translation.value()[2]
 				};
 			}
