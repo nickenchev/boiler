@@ -246,7 +246,7 @@ Entity GLTFImporter::loadNode(Engine &engine, const gltf::Model &model, const gl
 				renderPos->orientation.x = node.rotation.value()[0];
 				renderPos->orientation.y = node.rotation.value()[1];
 				renderPos->orientation.z = node.rotation.value()[2];
-				renderPos->orientation.w = -node.rotation.value()[3];
+				renderPos->orientation.w = node.rotation.value()[3];
 			}
 		}
 
