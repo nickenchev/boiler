@@ -1531,8 +1531,8 @@ Texture VulkanRenderer::loadTexture(const std::string &filePath, const ImageData
 	AssetId assetId = nextAssetId();
 	ResourceSet resourceSet(assetId);
 
-	const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
-	//const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+	//const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+	const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
 
 	const size_t bytesPerPixel = imageData.colorComponents;
 	if (imageData.colorComponents < 4)
