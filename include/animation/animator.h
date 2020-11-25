@@ -2,6 +2,7 @@
 #define ANIMATOR_H
 
 #include <vector>
+
 #include "core/math.h"
 #include "core/logger.h"
 #include "animation/animation.h"
@@ -42,15 +43,17 @@ public:
 				{
 					pos.frame.position = sampler.sample<vec3>(totalTime);
 				}
-				if (channel.getPath() == "rotation")
+				else if (channel.getPath() == "rotation")
 				{
 					const auto value = sampler.sample<vec4>(totalTime);
-					pos.orientation = quat(value.w, value.x, value.y, value.z);
+					pos.orientation.x = value.x;
+					pos.orientation.y = value.y;
+					pos.orientation.z = value.z;
+					pos.orientation.w = value.w;
 				}
 			}
 		}
 		totalTime += delta;
-		//if (totalTime > 2) totalTime -= 2;
 	}
 };
 

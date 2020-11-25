@@ -63,11 +63,9 @@ public:
 			float prevTime = keyFrameTimes[prevIdx];
 			float nextTime = keyFrameTimes[nextIdx];
 			float interp = (time - prevTime) / (nextTime - prevTime);
-			logger.log("Interpolate {}-{} > {}", prevTime, nextTime, interp);
 
 			const ValueType *prevPtr = reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * prevIdx));
 			const ValueType *nextPtr = reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * nextIdx));
-
 			result = *prevPtr + interp * (*nextPtr - *prevPtr);
 		}
 		return result;
