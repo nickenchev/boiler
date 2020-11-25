@@ -42,11 +42,11 @@ public:
 
 				float time = fmod(totalTime, sampler.getMaxTime()); // loop time
 				
-				if (channel.getPath() == "translation")
+				if (channel.getPath() == Path::TRANSLATION)
 				{
 					pos.frame.position = sampler.sample<vec3>(time);
 				}
-				else if (channel.getPath() == "rotation")
+				else if (channel.getPath() == Path::ROTATION)
 				{
 					const auto value = sampler.sample<vec4>(time);
 					pos.orientation.x = value.x;

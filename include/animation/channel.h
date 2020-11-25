@@ -9,22 +9,45 @@
 namespace Boiler
 {
 
+enum class Path
+{
+	TRANSLATION,
+	ROTATION,
+	SCALE,
+};
+
 class Channel
 {
 	Entity entity;
-	std::string path;
+	Path path;
 	unsigned int samplerIndex;
 
 public:
 	Channel(Entity entity, const std::string &path, unsigned int samplerIndex)
 	{
 		this->entity = entity;
-		this->path = path;
 		this->samplerIndex = samplerIndex;
+
+		if (path == "translation")
+		{
+			this->path = Path::TRANSLATION;
+		}
+		else if (path == "rotation")
+		{
+			this->path = Path::ROTATION;
+		}
+		else if (path == "scale")
+		{
+			this->path = Path::SCALE;
+		}
+		else
+		{
+			exit(1);
+		}
 	}
 
 	Entity getEntity() const { return entity; }
-	std::string getPath() const { return path; }
+	Path getPath() const { return path; }
 	unsigned int getSamplerIndex() const { return samplerIndex; }
 };
 
