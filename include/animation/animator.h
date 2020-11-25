@@ -2,9 +2,11 @@
 #define ANIMATOR_H
 
 #include <vector>
+#include "core/math.h"
 #include "core/logger.h"
 #include "animation/animation.h"
 #include "core/entitycomponentsystem.h"
+#include "core/components/positioncomponent.h"
 
 namespace Boiler
 {
@@ -28,19 +30,27 @@ public:
 
 	}
 
-	void animate(double delta)
+	void animate(float delta)
 	{
-		totalTime += delta;
-		logger.log("Total time: {}", totalTime);
-
 		for (const auto &animation : animations)
 		{
 			for (const auto &channel : animation.getChannels())
 			{
+				PositionComponent &pos = ecs.getComponentStore().retrieve<PositionComponent>(channel.getEntity());
 				const AnimationSampler &sampler = animation.getSampler(channel.getSamplerIndex());
-				sampler.sample<float>(totalTime);
+				if (channel.getPath() == "translation")
+				{
+					pos.frame.position = sampler.sample<vec3>(totalTime);
+				}
+				if (channel.getPath() == "rotation")
+				{
+					const auto value = sampler.sample<vec4>(totalTime);
+					pos.orientation = quat(value.w, value.x, value.y, value.z);
+				}
 			}
 		}
+		totalTime += delta;
+		//if (totalTime > 2) totalTime -= 2;
 	}
 };
 

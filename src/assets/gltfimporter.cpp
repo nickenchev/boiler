@@ -109,23 +109,24 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 		Animation animation;
 		for (const gltf::Sampler &gltfSamp : gltfAnim.samplers)
 		{
-			// load keyframe time values
-			const auto &timeAccessor = modelAccess.getTypedAccessor<float, 1>(model.accessors[gltfSamp.input]);
-
 			// load key frame times
 			std::vector<float> keyFrameTimes;
+
+			const auto &timeAccessor = modelAccess.getTypedAccessor<float, 1>(model.accessors[gltfSamp.input]);
 			keyFrameTimes.reserve(timeAccessor.size());
 			for (const float *values : timeAccessor)
 			{
 				keyFrameTimes.push_back(values[0]);
 			}
 
+			// load key frame values
 			const gltf::Accessor &access = model.accessors[gltfSamp.output];
 			const gltf::BufferView &buffView = model.bufferViews[access.bufferView.value()];
-			const size_t bufferOffset = access.byteOffset + buffView.byteOffset;
-			std::vector<std::byte> animData;
-			animData.resize(buffView.byteLength.value());
 
+			assert(buffView.byteLength.has_value());
+			std::vector<std::byte> animData(buffView.byteLength.value());
+
+			assert(buffView.byteLength.value() == animData.size());
 			std::memcpy(animData.data(), modelAccess.getPointer(access), animData.size());
 			animation.addSampler(AnimationSampler(std::move(keyFrameTimes), std::move(animData)));
 		}

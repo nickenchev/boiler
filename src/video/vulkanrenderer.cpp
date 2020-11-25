@@ -33,7 +33,7 @@ using namespace Boiler;
 using namespace Boiler::Vulkan;
 
 const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
-constexpr bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = false;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
@@ -908,7 +908,7 @@ void VulkanRenderer::createGraphicsPipelines()
 	});
 
 	// pipeline for g-buffer
-	gBufferPipeline = createGraphicsPipeline(renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind, &standardAttrDesc, 3, gBufferModules, 0, VK_CULL_MODE_BACK_BIT, true);
+	gBufferPipeline = createGraphicsPipeline(renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind, &standardAttrDesc, 3, gBufferModules, 0, VK_CULL_MODE_NONE, true);
 	// pipeline for deferred final output
 	deferredPipeline = createGraphicsPipeline(renderPass, deferredPipelineLayout, swapChainExtent, nullptr, nullptr, 1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT);
 }

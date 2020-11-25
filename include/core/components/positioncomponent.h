@@ -2,8 +2,6 @@
 #define POSITIONCOMPONENT_H
 
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
 #include "core/componenttype.h"
 #include "core/rect.h"
 #include "core/math.h"
@@ -15,7 +13,7 @@ struct PositionComponent : public ComponentType<PositionComponent>
 {
     Rect frame;
     vec3 scale;
-	glm::quat orientation;
+	quat orientation;
     bool absolute;
 
 	PositionComponent(Rect frame) : frame(frame)
