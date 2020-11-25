@@ -18,6 +18,8 @@ public:
     AnimationSampler(const std::vector<float> &&keyFrameTimes, const std::vector<std::byte> &&data)
 		: keyFrameTimes(keyFrameTimes), data(data) {}
 
+	float getMaxTime() const { return keyFrameTimes[keyFrameTimes.size() - 1]; }
+
 	template<typename ValueType>
 	ValueType sample(float time) const
 	{

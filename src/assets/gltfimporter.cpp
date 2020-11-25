@@ -123,6 +123,7 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 			const gltf::Accessor &access = model.accessors[gltfSamp.output];
 			const gltf::BufferView &buffView = model.bufferViews[access.bufferView.value()];
 
+			// copy animation data bytes
 			assert(buffView.byteLength.has_value());
 			std::vector<std::byte> animData(buffView.byteLength.value());
 

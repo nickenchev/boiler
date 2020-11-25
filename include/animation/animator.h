@@ -39,13 +39,16 @@ public:
 			{
 				PositionComponent &pos = ecs.getComponentStore().retrieve<PositionComponent>(channel.getEntity());
 				const AnimationSampler &sampler = animation.getSampler(channel.getSamplerIndex());
+
+				float time = fmod(totalTime, sampler.getMaxTime()); // loop time
+				
 				if (channel.getPath() == "translation")
 				{
-					pos.frame.position = sampler.sample<vec3>(totalTime);
+					pos.frame.position = sampler.sample<vec3>(time);
 				}
 				else if (channel.getPath() == "rotation")
 				{
-					const auto value = sampler.sample<vec4>(totalTime);
+					const auto value = sampler.sample<vec4>(time);
 					pos.orientation.x = value.x;
 					pos.orientation.y = value.y;
 					pos.orientation.z = value.z;
