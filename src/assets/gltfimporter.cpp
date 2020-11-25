@@ -123,12 +123,15 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 			const gltf::Accessor &access = model.accessors[gltfSamp.output];
 			const gltf::BufferView &buffView = model.bufferViews[access.bufferView.value()];
 
+			assert(access.componentType == gltf::ComponentType::FLOAT);
+			
 			// copy animation data bytes
 			assert(buffView.byteLength.has_value());
 			std::vector<std::byte> animData(buffView.byteLength.value());
 
 			assert(buffView.byteLength.value() == animData.size());
 			std::memcpy(animData.data(), modelAccess.getPointer(access), animData.size());
+
 			animation.addSampler(AnimationSampler(std::move(keyFrameTimes), std::move(animData)));
 		}
 

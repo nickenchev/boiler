@@ -18,6 +18,7 @@ public:
     AnimationSampler(const std::vector<float> &&keyFrameTimes, const std::vector<std::byte> &&data)
 		: keyFrameTimes(keyFrameTimes), data(data) {}
 
+	float getMinTime() const { return keyFrameTimes[0]; }
 	float getMaxTime() const { return keyFrameTimes[keyFrameTimes.size() - 1]; }
 
 	template<typename ValueType>
@@ -32,43 +33,54 @@ public:
 		unsigned int prevIdx = 0;
 		unsigned int nextIdx = 0;
 
-		do
+		if (time < getMinTime())
 		{
-			int mid = (begin + end) / 2;
-			if (time > keyFrameTimes[mid])
-			{
-				// check upper half
-				if (mid < keyFrameTimes.size() - 1 &&
-					time < keyFrameTimes[mid + 1])
-				{
-					found = true;
-					prevIdx = mid;
-					nextIdx = mid + 1;
-				}
-				begin = mid;
-			}
-			else
-			{
-				// check lower half
-				if (mid > 0 && time > keyFrameTimes[mid - 1])
-				{
-					found = true;
-					prevIdx = mid - 1;
-					nextIdx = mid;
-				}
-				end = mid;
-			}
-		} while (end - begin > 1 && !found);
-
-		if (found)
+			result = *reinterpret_cast<const ValueType *>(data.data());
+		}
+		else if (time > getMaxTime())
 		{
-			float prevTime = keyFrameTimes[prevIdx];
-			float nextTime = keyFrameTimes[nextIdx];
-			float interp = (time - prevTime) / (nextTime - prevTime);
+			result = *reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * keyFrameTimes.size() - 1));
+		}
+		else
+		{
+			do
+			{
+				int mid = (begin + end) / 2;
+				if (time > keyFrameTimes[mid])
+				{
+					// check upper half
+					if (mid < keyFrameTimes.size() - 1 &&
+						time < keyFrameTimes[mid + 1])
+					{
+						found = true;
+						prevIdx = mid;
+						nextIdx = mid + 1;
+					}
+					begin = mid;
+				}
+				else
+				{
+					// check lower half
+					if (mid > 0 && time > keyFrameTimes[mid - 1])
+					{
+						found = true;
+						prevIdx = mid - 1;
+						nextIdx = mid;
+					}
+					end = mid;
+				}
+			} while (end - begin > 1 && !found);
 
-			const ValueType *prevPtr = reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * prevIdx));
-			const ValueType *nextPtr = reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * nextIdx));
-			result = *prevPtr + interp * (*nextPtr - *prevPtr);
+			if (found)
+			{
+				float prevTime = keyFrameTimes[prevIdx];
+				float nextTime = keyFrameTimes[nextIdx];
+				float interp = (time - prevTime) / (nextTime - prevTime);
+
+				const ValueType *prevPtr = reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * prevIdx));
+				const ValueType *nextPtr = reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * nextIdx));
+				result = *prevPtr + interp * (*nextPtr - *prevPtr);
+			}
 		}
 		return result;
 	}

@@ -31,17 +31,18 @@ public:
 
 	}
 
+	void resetTime() { totalTime = 0; }
+
 	void animate(float delta)
 	{
 		for (const auto &animation : animations)
 		{
+			float time = totalTime;
 			for (const auto &channel : animation.getChannels())
 			{
 				PositionComponent &pos = ecs.getComponentStore().retrieve<PositionComponent>(channel.getEntity());
 				const AnimationSampler &sampler = animation.getSampler(channel.getSamplerIndex());
 
-				float time = fmod(totalTime, sampler.getMaxTime()); // loop time
-				
 				if (channel.getPath() == Path::TRANSLATION)
 				{
 					pos.frame.position = sampler.sample<vec3>(time);
@@ -53,6 +54,10 @@ public:
 					pos.orientation.y = value.y;
 					pos.orientation.z = value.z;
 					pos.orientation.w = value.w;
+				}
+				else if (channel.getPath() == Path::SCALE)
+				{
+					pos.scale = sampler.sample<vec3>(time);
 				}
 			}
 		}

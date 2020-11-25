@@ -40,10 +40,6 @@ public:
 		{
 			this->path = Path::SCALE;
 		}
-		else
-		{
-			exit(1);
-		}
 	}
 
 	Entity getEntity() const { return entity; }
