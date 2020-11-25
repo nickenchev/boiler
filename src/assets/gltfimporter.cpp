@@ -2,11 +2,15 @@
 #include <fstream>
 #include <sstream>
 
+#include "animation/animation.h"
+#include "animation/channel.h"
 #include "core/engine.h"
 #include "core/components/rendercomponent.h"
 #include "core/components/positioncomponent.h"
 #include "video/vertexdata.h"
 #include "assets/gltfimporter.h"
+
+#include "animation/animation.h"
 
 #include "gltf.h"
 #include "typedaccessor.h"
@@ -30,7 +34,7 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 	auto model = gltf::load(jsonString);
 
 	using namespace std;
-	logger.log("Loading model");
+	logger.log("Loading model: {}", gltfPath);
 
 	filesystem::path filePath(gltfPath);
 	filesystem::path basePath = filePath.parent_path();
@@ -88,10 +92,51 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 
 	// grab the default scene and load the node heirarchy
 	const gltf::Scene &scene = model.scenes[model.scene];
+
+	// used to map between node indexes (glTF) and entity system IDs
 	std::unordered_map<int, Entity> nodeEntities;
+
+	// load each node
 	for (auto &nodeIndex : scene.nodes)
 	{
 		loadNode(engine, model, modelAccess, nodeEntities, nodeIndex);
+	}
+
+	// load all animations
+	Animator &animator = engine.getAnimator();
+	for (const gltf::Animation &gltfAnim : model.animations)
+	{
+		Animation animation;
+		for (const gltf::Sampler &gltfSamp : gltfAnim.samplers)
+		{
+			// load keyframe time values
+			const auto &timeAccessor = modelAccess.getTypedAccessor<float, 1>(model.accessors[gltfSamp.input]);
+
+			// load key frame times
+			std::vector<float> keyFrameTimes;
+			keyFrameTimes.reserve(timeAccessor.size());
+			for (const float *values : timeAccessor)
+			{
+				keyFrameTimes.push_back(values[0]);
+			}
+
+			const gltf::Accessor &access = model.accessors[gltfSamp.output];
+			const gltf::BufferView &buffView = model.bufferViews[access.bufferView.value()];
+			const size_t bufferOffset = access.byteOffset + buffView.byteOffset;
+			std::vector<std::byte> animData;
+			animData.resize(buffView.byteLength.value());
+
+			std::memcpy(animData.data(), modelAccess.getPointer(access), animData.size());
+			animation.addSampler(AnimationSampler(std::move(keyFrameTimes), std::move(animData)));
+		}
+
+		for (const gltf::Channel &gltfChan : gltfAnim.channels)
+		{
+			Entity entity = nodeEntities[gltfChan.target.node.value()];
+			animation.addChannel(Channel(entity, gltfChan.target.path, gltfChan.sampler));
+		}
+
+		animator.addAnimation(std::move(animation));
 	}
 }
 
@@ -129,17 +174,17 @@ auto GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &mod
 	if (primitive.indices.has_value())
 	{
 		const auto &indexAccessor = modelAccess.getModel().accessors[primitive.indices.value()];
-		if (indexAccessor.componentType == 5123)
+		if (indexAccessor.componentType == gltf::ComponentType::UNSIGNED_SHORT)
 		{
-			auto indexAccess = modelAccess.getTypedAccessor<unsigned short, 1>(primitive, primitive.indices.value());
+			auto indexAccess = modelAccess.getTypedAccessor<unsigned short, 1>(primitive.indices.value());
 			for (auto values : indexAccess)
 			{
 				indices.push_back(values[0]);
 			}
 		}
-		else if (indexAccessor.componentType == 5125)
+		else if (indexAccessor.componentType == gltf::ComponentType::UNSIGNED_INT)
 		{
-			auto indexAccess = modelAccess.getTypedAccessor<unsigned int, 1>(primitive, primitive.indices.value());
+			auto indexAccess = modelAccess.getTypedAccessor<unsigned int, 1>(primitive.indices.value());
 			for (auto values : indexAccess)
 			{
 				indices.push_back(values[0]);

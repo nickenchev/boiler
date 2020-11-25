@@ -87,6 +87,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/video/systems/glyphsystem.cpp
   ${SRC_BASE}/video/systems/guisystem.cpp
   ${SRC_BASE}/video/systems/lightingsystem.cpp
+  ${SRC_BASE}/animation/systems/animationsystem.cpp
   ${SRC_BASE}/video/glyphmap.cpp
   ${SRC_BASE}/camera/camera.cpp
   # src/camera/platformercamera.cpp

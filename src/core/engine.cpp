@@ -19,12 +19,15 @@
 #include "core/components/lightingcomponent.h"
 #include "video/systems/guisystem.h"
 #include "video/systems/lightingsystem.h"
+#include "animation/components/animationcomponent.h"
+#include "animation/systems/animationsystem.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
 using namespace Boiler;
 
-Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer), baseDataPath("")
+Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
+									 baseDataPath(""), animator(ecs)
 {
 	guiSystem = nullptr;
 	logger.log("Engine instance created");
@@ -56,6 +59,10 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	// initialize basic engine stuff
 	frameInterval = 1.0f / 60.0f; // 60fps
 	renderer->initialize(initialSize);
+
+	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>()
+		.expects<AnimationComponent>();
+	this->animationSystem = &animationSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer)
 		.expects<LightingComponent>();
@@ -249,5 +256,6 @@ void Engine::processEvents()
 
 void Engine::update(const double delta)
 {
+	animator.animate(delta);
 	ecs.update(delta);
 }

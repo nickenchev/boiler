@@ -18,6 +18,7 @@
 #include "video/systems/guisystem.h"
 #include "video/guihandler.h"
 #include "logger.h"
+#include "animation/animator.h"
 
 namespace Boiler
 {
@@ -40,7 +41,8 @@ class Engine
 	Renderer *renderer;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
-	System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem;
+	System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem, *animationSystem;
+	Animator animator;
 
     std::vector<TouchMotionListener> touchMotionListeners;
     std::vector<TouchTapEventListener> touchTapEventListeners;
@@ -76,6 +78,8 @@ public:
 
 	Renderer &getRenderer() { return *renderer; }
 	EntityComponentSystem &getEcs() { return ecs; }
+	Animator &getAnimator() { return animator; }
+
     std::shared_ptr<Part> getPart() const { return part; }
     void setPart(std::shared_ptr<Part> part)
 	{
