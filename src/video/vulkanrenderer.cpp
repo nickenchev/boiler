@@ -1897,11 +1897,6 @@ void VulkanRenderer::beginRender()
 		vkCmdBeginRenderPass(commandBuffer, &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBufferPipeline);
 
-		GBufferPushConstants consts;
-		consts.cameraPosition = cameraPosition;
-
-		vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, sizeof(GBufferPushConstants), &consts);
-
 	}
 	else if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR || resizeOccured)
 	{
@@ -2093,6 +2088,11 @@ void VulkanRenderer::endRender()
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipeline);
 
 		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
+
+		GBufferPushConstants consts;
+		consts.cameraPosition = cameraPosition;
+		vkCmdPushConstants(commandBuffer, deferredPipelineLayout, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, sizeof(GBufferPushConstants), &consts);
+
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 		vkCmdEndRenderPass(commandBuffer);
 
