@@ -854,13 +854,26 @@ VkRenderPass VulkanRenderer::createRenderPass()
 
 void VulkanRenderer::createGraphicsPipelines()
 {
-	std::array<VkPushConstantRange, 1> gBufferPushConsts{};
-	gBufferPushConsts[0].stageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	gBufferPushConsts[0].offset = 0;
-	gBufferPushConsts[0].size = sizeof(GBufferPushConstants);
+	VkPipelineLayoutCreateInfo gBuffPipeLayoutCreateInfo{};
+	gBuffPipeLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	gBuffPipeLayoutCreateInfo.setLayoutCount = 1;
+	gBuffPipeLayoutCreateInfo.pSetLayouts = &renderDescriptor.layout;
 
-	gBuffersPipelineLayout = createGraphicsPipelineLayout(renderDescriptor.layout, gBufferPushConsts);
-	deferredPipelineLayout = createGraphicsPipelineLayout(attachDescriptor.layout, gBufferPushConsts);
+    gBuffersPipelineLayout = createGraphicsPipelineLayout(gBuffPipeLayoutCreateInfo);
+	
+    std::array<VkPushConstantRange, 1> deferredPushConsts{};
+    deferredPushConsts[0].stageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    deferredPushConsts[0].offset = 0;
+    deferredPushConsts[0].size = sizeof(GBufferPushConstants);
+	
+	VkPipelineLayoutCreateInfo defPipeLayoutCreateInfo{};
+	defPipeLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	defPipeLayoutCreateInfo.setLayoutCount = 1;
+	defPipeLayoutCreateInfo.pSetLayouts = &attachDescriptor.layout;
+	defPipeLayoutCreateInfo.pushConstantRangeCount = deferredPushConsts.size();
+	defPipeLayoutCreateInfo.pPushConstantRanges = deferredPushConsts.data();
+
+	deferredPipelineLayout = createGraphicsPipelineLayout(defPipeLayoutCreateInfo);
 
 	// Vertex input stage
 	VkVertexInputBindingDescription standardInputBind = {};
@@ -900,18 +913,10 @@ void VulkanRenderer::createGraphicsPipelines()
 	deferredPipeline = createGraphicsPipeline(renderPass, deferredPipelineLayout, swapChainExtent, nullptr, nullptr, 1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT);
 }
 
-template<size_t Size>
-VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(VkDescriptorSetLayout descriptorSetLayout, const std::array<VkPushConstantRange, Size> &pushConstantRanges) const
+VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(const VkPipelineLayoutCreateInfo &createInfo) const
 {
-	VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
-	pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutCreateInfo.setLayoutCount = 1;
-	pipelineLayoutCreateInfo.pSetLayouts = &descriptorSetLayout;
-	pipelineLayoutCreateInfo.pushConstantRangeCount = pushConstantRanges.size();
-	pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
-
 	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-	if (vkCreatePipelineLayout(device, &pipelineLayoutCreateInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
+	if (vkCreatePipelineLayout(device, &createInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Error creating pipeline layout");
 	}
