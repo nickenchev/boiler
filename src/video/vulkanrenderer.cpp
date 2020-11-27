@@ -233,6 +233,7 @@ void VulkanRenderer::shutdown()
 	}
 	vkDestroyBuffer(device, lightsBuffer, nullptr);
 	vkFreeMemory(device, lightsMemory, nullptr);
+
 	logger.log("Cleaned up buffers and memory");
 
 	vkDestroyDescriptorSetLayout(device, renderDescriptor.layout, nullptr);

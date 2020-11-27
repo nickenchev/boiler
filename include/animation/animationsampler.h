@@ -33,54 +33,34 @@ public:
 		unsigned int prevIdx = 0;
 		unsigned int nextIdx = 0;
 
-		if (time < getMinTime())
+		if (time <= getMinTime())
 		{
 			result = *reinterpret_cast<const ValueType *>(data.data());
 		}
-		else if (time > getMaxTime())
+		else if (time >= getMaxTime())
 		{
-			result = *reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * keyFrameTimes.size() - 1));
+			result = *reinterpret_cast<const ValueType *>(data.data() + sizeof(ValueType) * (keyFrameTimes.size() - 1));
 		}
 		else
 		{
-			do
+			int i = 0;
+			while (time > keyFrameTimes[i])
 			{
-				int mid = (begin + end) / 2;
-				if (time > keyFrameTimes[mid])
-				{
-					// check upper half
-					if (mid < keyFrameTimes.size() - 1 &&
-						time < keyFrameTimes[mid + 1])
-					{
-						found = true;
-						prevIdx = mid;
-						nextIdx = mid + 1;
-					}
-					begin = mid;
-				}
-				else
-				{
-					// check lower half
-					if (mid > 0 && time > keyFrameTimes[mid - 1])
-					{
-						found = true;
-						prevIdx = mid - 1;
-						nextIdx = mid;
-					}
-					end = mid;
-				}
-			} while (end - begin > 1 && !found);
-
-			if (found)
-			{
-				float prevTime = keyFrameTimes[prevIdx];
-				float nextTime = keyFrameTimes[nextIdx];
-				float interp = (time - prevTime) / (nextTime - prevTime);
-
-				const ValueType *prevPtr = reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * prevIdx));
-				const ValueType *nextPtr = reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * nextIdx));
-				result = *prevPtr + interp * (*nextPtr - *prevPtr);
+				i++;
 			}
+			prevIdx = i - 1;
+			nextIdx = prevIdx;
+
+			logger.log("frame: {}, {}", time, keyFrameTimes[prevIdx]);
+
+			float prevTime = keyFrameTimes[prevIdx];
+			float nextTime = keyFrameTimes[nextIdx];
+			float interp = (time - prevTime) / (nextTime - prevTime);
+
+			const ValueType *prevPtr = reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * prevIdx));
+			const ValueType *nextPtr = reinterpret_cast<const ValueType *>(data.data() + (sizeof(ValueType) * nextIdx));
+			//result = *prevPtr + interp * (*nextPtr - *prevPtr);
+			result = *prevPtr;
 		}
 		return result;
 	}

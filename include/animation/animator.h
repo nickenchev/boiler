@@ -12,6 +12,25 @@
 namespace Boiler
 {
 
+using AnimationId = size_t;
+
+class AnimationRunner
+{
+	const Animation &animation;
+	float time;
+
+public:
+	AnimationRunner(const Animation &animation) : animation(animation)
+	{
+		time = 0;
+	}
+
+	void step(float delta)
+	{
+		time += delta;
+	}
+};
+
 class Animator
 {
 	Logger logger;
@@ -25,10 +44,11 @@ public:
 		totalTime = 0;
 	}
 
-	void addAnimation(const Animation &&animation)
+    AnimationId addAnimation(const Animation &&animation)
 	{
 		animations.push_back(animation);
-
+        size_t newIndex = animations.size() - 1;
+        return newIndex;
 	}
 
 	void resetTime() { totalTime = 0; }

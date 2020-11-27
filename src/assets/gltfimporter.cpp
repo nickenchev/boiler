@@ -9,6 +9,7 @@
 #include "core/components/positioncomponent.h"
 #include "video/vertexdata.h"
 #include "assets/gltfimporter.h"
+#include "assets/importresult.h"
 
 #include "animation/animation.h"
 
@@ -23,7 +24,7 @@
 
 using namespace Boiler;
 
-void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
+ImportResult GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 {
 	std::ifstream infile(gltfPath);
 	std::stringstream buffer;
@@ -45,6 +46,8 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 	{
 		buffers.push_back(loadBuffer(basePath.string(), buffer));
 	}
+
+    ImportResult result;
 
 	// load materials
 	for (size_t i = 0; i < model.materials.size(); ++i)
@@ -103,10 +106,10 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 	}
 
 	// load all animations
-	Animator &animator = engine.getAnimator();
+    Animator &animator = engine.getAnimator();
 	for (const gltf::Animation &gltfAnim : model.animations)
 	{
-		Animation animation;
+		Animation animation(gltfAnim.name);
 		for (const gltf::Sampler &gltfSamp : gltfAnim.samplers)
 		{
 			// load key frame times
@@ -140,9 +143,9 @@ void GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 			Entity entity = nodeEntities[gltfChan.target.node.value()];
 			animation.addChannel(Channel(entity, gltfChan.target.path, gltfChan.sampler));
 		}
-
-		animator.addAnimation(std::move(animation));
+        result.animations.push_back(animator.addAnimation(std::move(animation)));
 	}
+    return result;
 }
 
 auto GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive)

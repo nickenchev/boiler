@@ -6,6 +6,7 @@
 
 #include "core/asset.h"
 #include "core/logger.h"
+#include "assets/importresult.h"
 
 namespace Boiler
 {
@@ -27,7 +28,7 @@ namespace Boiler
 	public:
 		GLTFImporter() : logger("GLTF Importer") { }
 
-		void import(Boiler::Engine &engine, std::string gltfPath);
+        ImportResult import(Boiler::Engine &engine, std::string gltfPath);
 
 		Entity loadNode(Engine &engine, const gltf::Model &model, const gltf::ModelAccessors &modelAccess,
 						std::unordered_map<int, Entity> &nodeEntities, int nodeIndex);
