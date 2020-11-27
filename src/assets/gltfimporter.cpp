@@ -54,38 +54,41 @@ ImportResult GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 	{
 		Material &newMaterial = engine.getRenderer().createMaterial();
 		const gltf::Material &material = model.materials[i];
-		if (material.pbrMetallicRoughness.value().baseColorTexture.has_value())
+		if (material.pbrMetallicRoughness.has_value())
 		{
-			const gltf::MaterialTexture &matTexture = material.pbrMetallicRoughness.value().baseColorTexture.value();
-			const gltf::Texture &texture = model.textures[matTexture.index.value()];
-			const gltf::Image &image = model.images[texture.source.value()];
+			if (material.pbrMetallicRoughness.value().baseColorTexture.has_value())
+			{
+				const gltf::MaterialTexture &matTexture = material.pbrMetallicRoughness.value().baseColorTexture.value();
+				const gltf::Texture &texture = model.textures[matTexture.index.value()];
+				const gltf::Image &image = model.images[texture.source.value()];
 
-			assert(image.uri.length() > 0);
-			filesystem::path imagePath = basePath;
-			imagePath.append(image.uri);
-			const ImageData imageData = ImageLoader::load(imagePath.string());
+				assert(image.uri.length() > 0);
+				filesystem::path imagePath = basePath;
+				imagePath.append(image.uri);
+				const ImageData imageData = ImageLoader::load(imagePath.string());
 
-			// load the texture into GPU mem
-			newMaterial.baseTexture = engine.getRenderer().loadTexture(imagePath, imageData); 
-		}
+				// load the texture into GPU mem
+				newMaterial.baseTexture = engine.getRenderer().loadTexture(imagePath, imageData); 
+			}
 
-		newMaterial.color = vec4(1, 1, 1, 1);
-		if (material.pbrMetallicRoughness->baseColorFactor.has_value())
-		{
-			auto colorFactor = material.pbrMetallicRoughness->baseColorFactor.value();
-			newMaterial.color = {colorFactor[0], colorFactor[1], colorFactor[2], colorFactor[3]};
-		}
-		if (material.alphaMode == "BLEND")
-		{
-			newMaterial.alphaMode = AlphaMode::BLEND;
-		}
-		else if (material.alphaMode == "MASK")
-		{
-			newMaterial.alphaMode = AlphaMode::MASK;
-		}
-		else
-		{
-			newMaterial.alphaMode = AlphaMode::OPAQUE;
+			newMaterial.color = vec4(1, 1, 1, 1);
+			if (material.pbrMetallicRoughness->baseColorFactor.has_value())
+			{
+				auto colorFactor = material.pbrMetallicRoughness->baseColorFactor.value();
+				newMaterial.color = {colorFactor[0], colorFactor[1], colorFactor[2], colorFactor[3]};
+			}
+			if (material.alphaMode == "BLEND")
+			{
+				newMaterial.alphaMode = AlphaMode::BLEND;
+			}
+			else if (material.alphaMode == "MASK")
+			{
+				newMaterial.alphaMode = AlphaMode::MASK;
+			}
+			else
+			{
+				newMaterial.alphaMode = AlphaMode::OPAQUE;
+			}
 		}
 		assetIds.push_back(newMaterial.getAssetId());
 	}
