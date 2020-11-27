@@ -33,7 +33,7 @@ using namespace Boiler;
 using namespace Boiler::Vulkan;
 
 const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
-constexpr bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
@@ -238,20 +238,6 @@ void VulkanRenderer::shutdown()
 
 	vkDestroyDescriptorSetLayout(device, renderDescriptor.layout, nullptr);
 	vkDestroyDescriptorSetLayout(device, attachDescriptor.layout, nullptr);
-
-	// clean up g buffers
-	for (size_t i = 0; i < swapChainImages.size(); ++i)
-	{
-		auto destroyGBuffer = [this](const OffscreenBuffer offscreenBuffer)
-		{
-			vkDestroyImageView(device, offscreenBuffer.imageView, nullptr);
-			vkFreeMemory(device, offscreenBuffer.imageMemory, nullptr);
-			vkDestroyImage(device, offscreenBuffer.image, nullptr);
-		};
-		destroyGBuffer(gBuffers[i].positions);
-		destroyGBuffer(gBuffers[i].albedo);
-		destroyGBuffer(gBuffers[i].normals);
-	}
 
 	// delete the shader module
 	vkDestroyShaderModule(device, gBufferModules.vertex, nullptr);
@@ -1385,6 +1371,7 @@ void VulkanRenderer::recreateSwapchain()
 	// recreate swapchain
 	cleanupSwapchain();
 	createSwapChain();
+	createGBuffers();
 	createCommandBuffers();
 
 	// recreate pipelines due to swapchain changes
@@ -1443,11 +1430,27 @@ void VulkanRenderer::cleanupSwapchain()
 	vkDestroyPipelineLayout(device, gBuffersPipelineLayout, nullptr);
 	vkDestroyPipelineLayout(device, deferredPipelineLayout, nullptr);
 	logger.log("Pipeline layouts destroyed");
+
+	// clean up g buffers
+	for (size_t i = 0; i < swapChainImages.size(); ++i)
+	{
+		auto destroyGBuffer = [this](const OffscreenBuffer offscreenBuffer)
+		{
+			vkDestroyImageView(device, offscreenBuffer.imageView, nullptr);
+			vkFreeMemory(device, offscreenBuffer.imageMemory, nullptr);
+			vkDestroyImage(device, offscreenBuffer.image, nullptr);
+		};
+		destroyGBuffer(gBuffers[i].positions);
+		destroyGBuffer(gBuffers[i].albedo);
+		destroyGBuffer(gBuffers[i].normals);
+	}
+	logger.log("Destroyed g-buffers");
 }
 
 void VulkanRenderer::resize(const Boiler::Size &size)
 {
 	Renderer::resize(size);
+	logger.log("Resizing to {}x{}", size.width, size.height);
 	resizeOccured = true;
 }
 
