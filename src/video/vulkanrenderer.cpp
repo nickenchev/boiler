@@ -1578,7 +1578,7 @@ Texture VulkanRenderer::loadTexture(const std::string &filePath, const ImageData
 
 	VkImageView imageView = createImageView(imagePair.first, format, VK_IMAGE_ASPECT_COLOR_BIT);
 
-	std::string fileName = std::filesystem::path{filePath}.filename();
+	std::string fileName = std::filesystem::path{ filePath }.filename().string();
 	logger.log("Loaded texture data for {}", fileName);
 
 	resourceSet.images.push_back(imagePair.first);
