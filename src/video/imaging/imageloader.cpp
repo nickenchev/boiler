@@ -47,7 +47,7 @@ ImageData ImageLoader::load(const std::string &filePath)
 	ImageData imageData(pixelData, Size(width, height), dstColorChannels, channels > 3);
 	stbi_image_free(pixelData);
 
-	std::string fileName = std::filesystem::path{filePath}.filename();
+	std::string fileName = std::filesystem::path{ filePath }.filename().string();
 	logger.log("{} ({}x{} {}bit)", fileName, width, height, channels * 8);
 	return imageData;
 }
