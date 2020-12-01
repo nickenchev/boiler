@@ -68,7 +68,7 @@ ImportResult GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 				const ImageData imageData = ImageLoader::load(imagePath.string());
 
 				// load the texture into GPU mem
-				newMaterial.baseTexture = engine.getRenderer().loadTexture(imagePath, imageData); 
+				newMaterial.baseTexture = engine.getRenderer().loadTexture(imagePath.string(), imageData); 
 			}
 
 			newMaterial.color = vec4(1, 1, 1, 1);
