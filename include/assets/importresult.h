@@ -8,6 +8,7 @@ namespace Boiler {
 
 struct ImportResult
 {
+    std::vector<Entity> entities;
     std::vector<AnimationId> animations;
 };
 
