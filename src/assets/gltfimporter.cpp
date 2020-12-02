@@ -26,12 +26,15 @@ using namespace Boiler;
 
 ImportResult GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 {
+	assetIds.clear();
+	
 	std::ifstream infile(gltfPath);
 	std::stringstream buffer;
 	buffer << infile.rdbuf();
 	const std::string jsonString = buffer.str();
 	infile.close();
 
+	logger.log("Importing: {}", gltfPath);
 	auto model = gltf::load(jsonString);
 
 	using namespace std;
@@ -105,7 +108,8 @@ ImportResult GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 	// load each node
 	for (auto &nodeIndex : scene.nodes)
 	{
-		loadNode(engine, model, modelAccess, nodeEntities, nodeIndex);
+		Entity entity = loadNode(engine, model, modelAccess, nodeEntities, nodeIndex);
+		result.entities.push_back(entity);
 	}
 
 	// load all animations
