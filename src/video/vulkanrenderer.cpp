@@ -33,7 +33,7 @@ using namespace Boiler;
 using namespace Boiler::Vulkan;
 
 const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
-constexpr bool enableValidationLayers = true;
+constexpr bool enableValidationLayers = false;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
@@ -908,7 +908,7 @@ void VulkanRenderer::createGraphicsPipelines()
 	});
 
 	// pipeline for g-buffer
-	gBufferPipeline = createGraphicsPipeline(renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind, &standardAttrDesc, 3, gBufferModules, 0, VK_CULL_MODE_BACK_BIT, true);
+	gBufferPipeline = createGraphicsPipeline(renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind, &standardAttrDesc, 3, gBufferModules, 0, VK_CULL_MODE_NONE, true);
 	// pipeline for deferred final output
 	deferredPipeline = createGraphicsPipeline(renderPass, deferredPipelineLayout, swapChainExtent, nullptr, nullptr, 1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT);
 }
@@ -1959,8 +1959,8 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	mvpBufferInfo.offset = 0;
 	mvpBufferInfo.range = sizeof(ModelViewProjection);
 
-	std::vector<VkWriteDescriptorSet> descriptorWrites;
-	descriptorWrites.push_back({
+	std::array<VkWriteDescriptorSet, 3> descriptorWrites;
+	descriptorWrites[0] = {
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.dstSet = descriptorSet,
 		.dstBinding = 0,
@@ -1968,12 +1968,29 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 		.descriptorCount = 1,
 		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 		.pBufferInfo = &mvpBufferInfo,
-	});
+	};
 
 	// setup material details
 	ShaderMaterial shaderMaterial;
 	shaderMaterial.baseColorFactor = material.color;
 
+	VkDescriptorBufferInfo materialBufferInfo = {};
+	materialBufferInfo.buffer = resourceSet.buffers[3];
+	materialBufferInfo.offset = 0;
+	materialBufferInfo.range = sizeof(ShaderMaterial);
+
+	descriptorWrites[1] = {
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = descriptorSet,
+		.dstBinding = 2,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		.pBufferInfo = &materialBufferInfo,
+	};
+
+
+	int numWrites = descriptorWrites.size();
 	VkDescriptorImageInfo imageInfo = {};
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	if (material.baseTexture.has_value())
@@ -1985,7 +2002,7 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 		imageInfo.imageView = textureResourceSet.imageViews[0];
 		imageInfo.sampler = textureSampler;
 
-		descriptorWrites.push_back({
+		descriptorWrites[2] = {
 			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 			.dstSet = descriptorSet,
 			.dstBinding = 1,
@@ -1993,27 +2010,16 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 			.descriptorCount = 1,
 			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 			.pImageInfo = &imageInfo,
-		});
+		};
+	}
+	else
+	{
+		numWrites--;
 	}
 
 	updateMemory(device, resourceSet.deviceMemory[3], shaderMaterial);
 
-	VkDescriptorBufferInfo materialBufferInfo = {};
-	materialBufferInfo.buffer = resourceSet.buffers[3];
-	materialBufferInfo.offset = 0;
-	materialBufferInfo.range = sizeof(ShaderMaterial);
-
-	descriptorWrites.push_back({
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.dstSet = descriptorSet,
-		.dstBinding = 2,
-		.dstArrayElement = 0,
-		.descriptorCount = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		.pBufferInfo = &materialBufferInfo,
-	});
-
-	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+	vkUpdateDescriptorSets(device, numWrites, descriptorWrites.data(), 0, nullptr);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
 	// required buffers for rendering
