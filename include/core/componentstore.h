@@ -12,12 +12,14 @@
 namespace Boiler
 {
 
-typedef std::unordered_map<ComponentMask, std::shared_ptr<Component>> ComponentMap;
+constexpr unsigned short MAX_COMPONENTS = 50;
+constexpr unsigned int MAX_ENTITIES = 1000;
 
 class ComponentStore
 {
 	Logger logger;
-	std::unordered_map<EntityId, ComponentMap> entityComponents;
+	using Components = std::array<std::shared_ptr<Component>, MAX_COMPONENTS>;
+	std::array<Components, MAX_ENTITIES> entityComponents;
 
 public:
 	ComponentStore() : logger("Component Store")
@@ -29,7 +31,7 @@ public:
 	{
 		// construct and store the new compnent for this entity
 		auto component = std::make_shared<T>(std::forward<Args>(args)...);
-		entityComponents[entity.getId()][T::mask] = component;
+		entityComponents[entity.getId()][T::mask.to_ulong()] = component;
 
 		return component;
 	}
@@ -37,24 +39,26 @@ public:
 	template<typename T>
 	void remove(const Entity &entity)
 	{
-		entityComponents[entity.getId()][T::mask] = nullptr;
+		entityComponents[entity.getId()][T::mask.to_ulong()] = nullptr;
 	}
 
 	void removeAll(const Entity &entity)
 	{
 		// remove all components first and then the entity
+		/*
 		ComponentMap &compMap = entityComponents[entity.getId()];
 		for (auto pair : compMap)
 		{
 			compMap.erase(pair.first);
 		}
 		entityComponents.erase(entity.getId());
+		*/
 	}
 
 	template<typename T>
 	T &retrieve(const Entity &entity)
 	{
-		auto component = entityComponents[entity.getId()][T::mask];
+		auto component = entityComponents[entity.getId()][T::mask.to_ulong()];
 
 		assert(component != nullptr);
 		return *std::static_pointer_cast<T>(component);
@@ -63,13 +67,13 @@ public:
 	template<typename T>
 	bool hasComponent(const Entity &entity)
 	{
-		bool exists = entityComponents[entity.getId()].find(T::mask) != entityComponents[entity.getId()].end();
-		return exists;
+		return entityComponents[entity.getId()][T::mask.to_ulong()] != nullptr;
 	}
 
 	template<typename T>
 	auto find()
 	{
+		/*
 		std::vector<Entity> list;
 		for (auto pair : entityComponents)
 		{
@@ -80,6 +84,7 @@ public:
 			}
 		}
 		return list;
+		*/
 	}
 };
 
