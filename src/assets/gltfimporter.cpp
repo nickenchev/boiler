@@ -6,7 +6,7 @@
 #include "animation/channel.h"
 #include "core/engine.h"
 #include "core/components/rendercomponent.h"
-#include "core/components/positioncomponent.h"
+#include "core/components/transformcomponent.h"
 #include "video/vertexdata.h"
 #include "assets/gltfimporter.h"
 #include "assets/importresult.h"
@@ -265,7 +265,7 @@ Entity GLTFImporter::loadNode(Engine &engine, const gltf::Model &model, const gl
 				renderComp->mesh.primitives.push_back(meshPrimitive);
 			}
 		}
-		auto renderPos = ecs.createComponent<PositionComponent>(nodeEntity, Rect(0, 0, 0, 0));
+		auto transform = ecs.createComponent<TransformComponent>(nodeEntity, Rect(0, 0, 0, 0));
 
 		// decompose a matrix if available, otherwise try to load transformations directly
 		if (node.matrix.has_value())
@@ -277,35 +277,37 @@ Entity GLTFImporter::loadNode(Engine &engine, const gltf::Model &model, const gl
 			vec4 perspective;
 
 			glm::decompose(matrix, scale, orientation, position, skew, perspective);
-			renderPos->frame.position = position;
-			renderPos->scale = scale;
-			renderPos->orientation = orientation;
+			transform->setPosition(position);
+			transform->setScale(scale);
+			transform->setOrientation(orientation);
 		}
 		else
 		{
 			// otherwise load transformation directly
 			if (node.scale.has_value())
 			{
-				renderPos->scale = {
+				transform->setScale({
 					node.scale.value()[0],
 					node.scale.value()[1],
 					node.scale.value()[2]
-				};
+				});
 			}
 			if (node.translation.has_value())
 			{
-				renderPos->frame.position = {
+				transform->setPosition({
 					node.translation.value()[0],
 					node.translation.value()[1],
 					node.translation.value()[2]
-				};
+				});
 			}
 			if (node.rotation.has_value())
 			{
-				renderPos->orientation.x = node.rotation.value()[0];
-				renderPos->orientation.y = node.rotation.value()[1];
-				renderPos->orientation.z = node.rotation.value()[2];
-				renderPos->orientation.w = node.rotation.value()[3];
+				transform->setOrientation(quat{
+					node.rotation.value()[3],
+					node.rotation.value()[0],
+					node.rotation.value()[1],
+					node.rotation.value()[2]
+				});
 			}
 		}
 

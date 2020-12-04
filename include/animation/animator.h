@@ -7,7 +7,7 @@
 #include "core/logger.h"
 #include "animation/animation.h"
 #include "core/entitycomponentsystem.h"
-#include "core/components/positioncomponent.h"
+#include "core/components/transformcomponent.h"
 
 namespace Boiler
 {
@@ -60,24 +60,21 @@ public:
 			float time = totalTime;
 			for (const auto &channel : animation.getChannels())
 			{
-				PositionComponent &pos = ecs.getComponentStore().retrieve<PositionComponent>(channel.getEntity());
+				TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(channel.getEntity());
 				const AnimationSampler &sampler = animation.getSampler(channel.getSamplerIndex());
 
 				if (channel.getPath() == Path::TRANSLATION)
 				{
-					pos.frame.position = sampler.sample<vec3>(time);
+					transform.setPosition(sampler.sample<vec3>(time));
 				}
 				else if (channel.getPath() == Path::ROTATION)
 				{
 					const auto value = sampler.sample<vec4>(time);
-					pos.orientation.x = value.x;
-					pos.orientation.y = value.y;
-					pos.orientation.z = value.z;
-					pos.orientation.w = value.w;
+					transform.setOrientation(quat(value.w, value.x, value.y, value.z));
 				}
 				else if (channel.getPath() == Path::SCALE)
 				{
-					pos.scale = sampler.sample<vec3>(time);
+					transform.setScale(sampler.sample<vec3>(time));
 				}
 			}
 		}

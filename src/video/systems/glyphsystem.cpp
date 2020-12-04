@@ -1,5 +1,5 @@
 #include "video/systems/glyphsystem.h"
-#include "core/components/positioncomponent.h"
+#include "core/components/transformcomponent.h"
 #include "core/components/textcomponent.h"
 #include "core/components/parentcomponent.h"
 #include "video/renderer.h"
@@ -11,19 +11,19 @@ void GlyphSystem::update(ComponentStore &store, const double delta)
 {
 	for (auto &entity : getEntities())
 	{
-		PositionComponent &pos = store.retrieve<PositionComponent>(entity);
+		TransformComponent &transform = store.retrieve<TransformComponent>(entity);
 		TextComponent &text = store.retrieve<TextComponent>(entity);
 
 		assert(text.glyphMap != nullptr);
 
-		glm::mat4 modelMatrix = pos.getMatrix();
+		glm::mat4 modelMatrix = transform.getMatrix();
 
 		Entity currentEntity = entity;
 		while (store.hasComponent<ParentComponent>(currentEntity))
 		{
 			ParentComponent &parentComp = store.retrieve<ParentComponent>(currentEntity);
-			PositionComponent &parentPos = store.retrieve<PositionComponent>(parentComp.entity);
-			modelMatrix = parentPos.getMatrix() * modelMatrix;
+			TransformComponent &parentTransform = store.retrieve<TransformComponent>(parentComp.entity);
+			modelMatrix = parentTransform.getMatrix() * modelMatrix;
 			currentEntity = parentComp.entity;
 		}
 

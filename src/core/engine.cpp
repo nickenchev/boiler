@@ -12,7 +12,7 @@
 #include "core/entity.h"
 #include "input/mousebuttonevent.h"
 #include "input/keyinputevent.h"
-#include "core/components/positioncomponent.h"
+#include "core/components/transformcomponent.h"
 #include "core/components/rendercomponent.h"
 #include "core/components/textcomponent.h"
 #include "core/components/guicomponent.h"
@@ -70,13 +70,13 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	this->lightingSystem = &lightingSys;
 
 	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*renderer)
-		.expects<PositionComponent>()
+		.expects<TransformComponent>()
 		.expects<RenderComponent>();
 	ecs.getComponentSystems().removeUpdate(renderSys);
 	this->renderSystem = &renderSys;
 
 	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*renderer)
-		.expects<PositionComponent>()
+		.expects<TransformComponent>()
 		.expects<TextComponent>();
 	ecs.getComponentSystems().removeUpdate(glyphSys);
 	this->glyphSystem = &glyphSys;
@@ -104,6 +104,7 @@ void Engine::start(std::shared_ptr<Part> part)
 
 void Engine::run()
 {
+	frameInterval = 1.0f / 60;
 	running = true;
 	while(running)
 	{
@@ -117,7 +118,6 @@ void Engine::run()
 
 void Engine::step()
 {
-	frameInterval = 1.0f / 60;
 	//get the delta time
 	double currentTime = SDL_GetTicks();
 	double frameDelta = (currentTime - prevTime) / 1000.0f;
