@@ -11,7 +11,10 @@ struct SDL_Window;
 #include "core/rect.h"
 #include "video/vulkan.h"
 #include "video/renderer.h"
+
 #include "video/vulkan/resourceset.h"
+#include "video/vulkan/shaderstagemodules.h"
+#include "video/vulkan/graphicspipeline.h"
 
 namespace Boiler { namespace Vulkan {
 
@@ -22,12 +25,6 @@ struct QueueFamilyIndices
 	std::optional<uint32_t> graphics;
 	std::optional<uint32_t> presentation;
 	std::optional<uint32_t> transfer;
-};
-
-struct ShaderStageModules
-{
-	VkShaderModule vertex;
-	VkShaderModule fragment;
 };
 
 struct GBufferPushConstants
@@ -48,8 +45,6 @@ struct ShaderMaterial
 
 class VulkanRenderer : public Boiler::Renderer
 {
-	static const std::string SHADER_ENTRY;
-
 	struct OffscreenBuffer
 	{
 		VkImage image;
@@ -103,7 +98,9 @@ class VulkanRenderer : public Boiler::Renderer
 	Descriptor renderDescriptor, attachDescriptor;
 
 	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout, noTexPipelineLayout;
-	VkPipeline gBufferPipeline, deferredPipeline, noTexPipeline;
+	//VkPipeline gBufferPipeline, deferredPipeline;
+	GraphicsPipeline gBufferPipeline, deferredPipeline;
+
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;
 	std::vector<VkCommandBuffer> commandBuffers;
@@ -133,9 +130,6 @@ class VulkanRenderer : public Boiler::Renderer
 	VkShaderModule createShaderModule(const std::vector<char> &contents) const;
 	VkRenderPass createRenderPass();
     VkPipelineLayout createGraphicsPipelineLayout(const VkPipelineLayoutCreateInfo &createInfo) const;
-    VkPipeline createGraphicsPipeline(VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
-									  const VkVertexInputBindingDescription *inputBind, const std::vector<VkVertexInputAttributeDescription> *attrDescs,
-									  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex, VkCullModeFlags cullMode, bool flipViewport = false) const;
 	void createGraphicsPipelines();
 
 	void createFramebuffers();

@@ -32,7 +32,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/core/components/materialcomponent.h
   ${INCLUDE_BASE}/core/components/rendercomponent.h
   ${INCLUDE_BASE}/core/components/parentcomponent.h
-  ${INCLUDE_BASE}/core/components/positioncomponent.h
+  ${INCLUDE_BASE}/core/components/transformcomponent.h
   ${INCLUDE_BASE}/core/components/rendercomponent.h
   ${INCLUDE_BASE}/core/components/spritecomponent.h
   ${INCLUDE_BASE}/core/components/textcomponent.h
@@ -47,6 +47,9 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/video/lightsource.h
   ${INCLUDE_BASE}/video/texture.h
   ${INCLUDE_BASE}/assets/gltfimporter.h
+  ${INCLUDE_BASE}/video/vulkan/resourceset.h
+  ${INCLUDE_BASE}/video/vulkan/graphicspipeline.h
+  ${INCLUDE_BASE}/video/vulkan/shaderstagemodules.h
 )
 
 # Engine related sources
@@ -72,6 +75,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/video/primitive.cpp
   # Vulkan Rendering
   ${SRC_BASE}/video/vulkanrenderer.cpp
+  ${SRC_BASE}/video/vulkan/graphicspipeline.cpp
 
   # Platform Support
   ${SRC_BASE}/platform/sdlwindow.cpp
