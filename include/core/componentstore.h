@@ -12,7 +12,7 @@
 namespace Boiler
 {
 
-constexpr unsigned short MAX_COMPONENTS = 50;
+constexpr unsigned short MAX_COMPONENTS = 128;
 constexpr unsigned int MAX_ENTITIES = 1000;
 
 class ComponentStore
@@ -26,12 +26,17 @@ public:
 	{
 	}
 
+	inline size_t index(const Entity entity) const
+	{
+		return entity.getId() - 1;
+	}
+
 	template<typename T, typename... Args>
 	std::shared_ptr<T> store(const Entity &entity, Args&&... args)
 	{
 		// construct and store the new compnent for this entity
 		auto component = std::make_shared<T>(std::forward<Args>(args)...);
-		entityComponents[entity.getId()][T::mask.to_ulong()] = component;
+		entityComponents[index(entity)][T::mask.to_ulong()] = component;
 
 		return component;
 	}
@@ -39,7 +44,7 @@ public:
 	template<typename T>
 	void remove(const Entity &entity)
 	{
-		entityComponents[entity.getId()][T::mask.to_ulong()] = nullptr;
+		entityComponents[index(entity)][T::mask.to_ulong()] = nullptr;
 	}
 
 	void removeAll(const Entity &entity)
@@ -58,7 +63,7 @@ public:
 	template<typename T>
 	T &retrieve(const Entity &entity)
 	{
-		auto component = entityComponents[entity.getId()][T::mask.to_ulong()];
+		auto component = entityComponents[index(entity)][T::mask.to_ulong()];
 
 		assert(component != nullptr);
 		return *std::static_pointer_cast<T>(component);
@@ -67,7 +72,7 @@ public:
 	template<typename T>
 	bool hasComponent(const Entity &entity)
 	{
-		return entityComponents[entity.getId()][T::mask.to_ulong()] != nullptr;
+		return entityComponents[index(entity)][T::mask.to_ulong()] != nullptr;
 	}
 
 	template<typename T>
@@ -85,6 +90,20 @@ public:
 		}
 		return list;
 		*/
+	}
+
+	auto &copyComponents(const Entity source, const Entity destination)
+	{
+		for (auto &component : entityComponents[index(source)])
+		{
+			if (component != nullptr)
+			{
+				logger.log("Component with mask: {}", component->getMask().to_string());
+				auto newComponent = std::shared_ptr<Component>(component->clone());
+				entityComponents[index(destination)][component->getMask().to_ulong()] = newComponent;
+			}
+		}
+		return entityComponents[index(destination)];
 	}
 };
 

@@ -19,6 +19,7 @@ struct TextComponent : public ComponentType<TextComponent>
 	const GlyphMap *glyphMap;
 
 	TextComponent(const std::string &text, const vec4 &colour, const GlyphMap *glyphMap)
+		: ComponentType(this)
 	{
 		this->text = text;
 		this->colour = colour;

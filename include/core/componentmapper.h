@@ -23,12 +23,26 @@ public:
 	void operator=(const ComponentMapper &) = delete;
 
 	template<typename T>
-	const ComponentMask & add(const Entity &entity)
+	const ComponentMask &add(const Entity &entity)
 	{
 		// update the entity mask
 		ComponentMask &entMask = componentMap[entity.getId()];
 		entMask = entMask | T::mask;
 		return entMask;
+	}
+
+	const ComponentMask &add(const Entity &entity, ComponentMask componentMask)
+	{
+		// update the entity mask
+		ComponentMask &entMask = componentMap[entity.getId()];
+		entMask = entMask | componentMask;
+		return entMask;
+	}
+
+
+	const ComponentMask &getMask(const Entity entity)
+	{
+		return componentMap[entity.getId()];
 	}
 
 	template<typename T>

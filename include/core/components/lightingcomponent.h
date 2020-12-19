@@ -11,7 +11,7 @@ struct LightingComponent : public ComponentType<LightingComponent>
 {
 	LightSource source;
 
-	LightingComponent(const LightSource &source) : source(source)
+	LightingComponent(const LightSource &source) : ComponentType(this), source(source)
 	{
 	}
 };

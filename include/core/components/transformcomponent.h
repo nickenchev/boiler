@@ -20,7 +20,7 @@ class TransformComponent : public ComponentType<TransformComponent>
 	bool dirty;
 
 public:
-	TransformComponent(Rect frame) : frame(frame)
+	TransformComponent(Rect frame) : ComponentType(this), frame(frame)
 	{
 		scale = {1.0f, 1.0f, 1.0f};
 		orientation = {0, 0, 0, 0};
@@ -52,6 +52,7 @@ public:
 	bool isDirty() const { return dirty; }
 
 	vec3 getPosition() const { return frame.position; }
+	void setPosition(float x, float y, float z) { setPosition(vec3(x, y, z)); }
 	void setPosition(const vec3 &position)
 	{
 		frame.position = position;

@@ -8,7 +8,7 @@ struct ParentComponent : Boiler::ComponentType<ParentComponent>
 {
 	Boiler::Entity entity;
 
-	ParentComponent(const Boiler::Entity parentEntity)
+	ParentComponent(const Boiler::Entity parentEntity) : ComponentType(this)
 	{
 		this->entity = parentEntity;
 	}

@@ -13,6 +13,8 @@ namespace Boiler
 struct RenderComponent : public ComponentType<RenderComponent>
 {
 	Mesh mesh;
+
+	RenderComponent() : ComponentType(this) { }
 };
 
 }

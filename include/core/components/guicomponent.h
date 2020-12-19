@@ -11,7 +11,7 @@ struct GUIComponent : public ComponentType<GUIComponent>
 {
 	const std::function<void()> guiRender;
 	
-	GUIComponent(std::function<void()> guiRender) : guiRender(guiRender)
+	GUIComponent(std::function<void()> guiRender) : guiRender(guiRender), ComponentType(this)
 	{
 	}
 };

@@ -10,11 +10,21 @@ namespace Boiler
 template <typename T>
 class ComponentType : public Component
 {
+	const T *component;
 public:
 	static int storageIndex;
 	static ComponentMask mask;
 
-	const ComponentMask &getMask() const { return T::mask; }
+	ComponentType(const T *component) : component(component)
+	{
+	}
+
+	const ComponentMask &getMask() const override { return T::mask; }
+
+	Component *clone() override
+	{
+		return new T(*component);
+	}
 };
 
 inline ComponentMask componentMask()

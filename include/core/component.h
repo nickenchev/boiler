@@ -10,6 +10,7 @@ class Component
 {
 public:
 	virtual const ComponentMask &getMask() const = 0;
+	virtual Component *clone() = 0;
 };
 
 }
