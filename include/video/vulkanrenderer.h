@@ -9,8 +9,13 @@
 struct SDL_Window;
 
 #include "core/rect.h"
+#include "core/assetmanager.h"
 #include "video/vulkan.h"
 #include "video/renderer.h"
+#include "video/modelviewprojection.h"
+
+#include "video/vulkan/bufferinfo.h"
+#include "video/vulkan/primitivebuffers.h"
 
 #include "video/vulkan/resourceset.h"
 #include "video/vulkan/shaderstagemodules.h"
@@ -30,17 +35,6 @@ struct QueueFamilyIndices
 struct GBufferPushConstants
 {
 	vec3 cameraPosition;
-};
-
-struct ShaderMaterial
-{
-	vec4 baseColorFactor;
-	VkBool32 useBaseTexture;
-
-	ShaderMaterial()
-	{
-		useBaseTexture = false;
-	}
 };
 
 class VulkanRenderer : public Boiler::Renderer
@@ -108,6 +102,23 @@ class VulkanRenderer : public Boiler::Renderer
 	std::vector<VkFence> frameFences;
 
 	// resource management
+	AssetManager<PrimitiveBuffers, 512> primitives;
+	BufferInfo matrixBuffer, lightsBuffer, materialBuffer;
+
+	void freeBuffer(const BufferInfo &bufferInfo) const;
+	// matrices
+	void createMatrixBuffer();
+	void updateMatrices(const std::vector<mat4> &matrices) const override;
+	// lights
+	void createLightBuffer(int lightCount);
+	void updateLights(const std::vector<LightSource> &lightSources) override;
+	// materials
+	void createMaterialBuffer();
+	void updateMaterials(const std::vector<ShaderMaterial> &materials) const override;
+
+	void test();
+	
+	
 	std::vector<ResourceSet> resourceSets;
 
 	ShaderStageModules gBufferModules, deferredModules, noTexModules;
@@ -119,9 +130,6 @@ class VulkanRenderer : public Boiler::Renderer
 	VkImage depthImage;
 	VkDeviceMemory depthImageMemory;
 	VkImageView depthImageView;
-
-	VkBuffer lightsBuffer;
-	VkDeviceMemory lightsMemory;
 
 	void createSwapChain();
 	void createGBuffers();
@@ -143,18 +151,14 @@ class VulkanRenderer : public Boiler::Renderer
 	VkCommandPool createCommandPools(const QueueFamilyIndices &queueFamilyIndices, const VkQueue &graphicsQueue, const VkQueue &transferQueue);
 	void createCommandBuffers();
 	void createSynchronization();
-	void createMvpBuffers();
 	void recreateSwapchain();
 	void cleanupSwapchain();
 	void createTextureSampler();
 	void createDepthResources();
-	void createLightBuffer();
-	void createLightBuffer(int lightCount);
 
 	// memory/buffer operations
 	uint32_t findMemoryType(uint32_t filter, VkMemoryPropertyFlags flags) const;
-	std::pair<VkBuffer, VkDeviceMemory> createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
-													 VkMemoryPropertyFlags memoryProperties) const;
+	BufferInfo createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperties) const;
 
 	VkCommandBuffer beginSingleTimeCommands(const VkCommandPool &pool) const;
 	void endSingleTimeCommands(const VkQueue &queue, const VkCommandPool &pool, const VkCommandBuffer &buffer) const;
@@ -171,7 +175,7 @@ class VulkanRenderer : public Boiler::Renderer
 								 VkFormatFeatureFlags features) const;
 	VkFormat findDepthFormat() const;
 	bool hasStencilComponent(VkFormat format) const;
-	std::pair<VkBuffer, VkDeviceMemory> createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const;
+	BufferInfo createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const;
 
 public:
     VulkanRenderer(const std::vector<const char *> requiredExtensions);
@@ -184,13 +188,12 @@ public:
 	void prepareShutdown() override;
 	void resize(const Boiler::Size &size) override;
 
-    Texture loadTexture(const std::string &filePath, const ImageData &imageData) override;
+    Texture loadTexture(const ImageData &imageData) override;
     Primitive loadPrimitive(const VertexData &data) override;
 	Material &createMaterial() override;
 
 	void beginRender() override;
 	void endRender() override;
-	void updateLights(const std::vector<LightSource> &lightSources) override;
 	void render(const mat4 modelMatrix, const Primitive &primitive, const Material &material) override;
 
 	// TODO: This needs to be improved

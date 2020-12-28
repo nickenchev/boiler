@@ -13,9 +13,7 @@
 
 #include "animation/animation.h"
 
-#include "gltf.h"
 #include "typedaccessor.h"
-#include "modelaccessors.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -24,10 +22,8 @@
 
 using namespace Boiler;
 
-ImportResult GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
+GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) : logger("GLTF Importer"), engine(engine)
 {
-	assetIds.clear();
-	
 	std::ifstream infile(gltfPath);
 	std::stringstream buffer;
 	buffer << infile.rdbuf();
@@ -35,7 +31,7 @@ ImportResult GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 	infile.close();
 
 	logger.log("Importing: {}", gltfPath);
-	auto model = gltf::load(jsonString);
+	model = gltf::load(jsonString);
 
 	using namespace std;
 	logger.log("Loading model: {}", gltfPath);
@@ -44,13 +40,10 @@ ImportResult GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 	filesystem::path basePath = filePath.parent_path();
 
 	// load all of the buffers
-	std::vector<std::vector<std::byte>> buffers;
 	for (const auto &buffer : model.buffers)
 	{
 		buffers.push_back(loadBuffer(basePath.string(), buffer));
 	}
-
-    ImportResult result;
 
 	// load materials
 	for (size_t i = 0; i < model.materials.size(); ++i)
@@ -71,7 +64,7 @@ ImportResult GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 				const ImageData imageData = ImageLoader::load(imagePath.string());
 
 				// load the texture into GPU mem
-				newMaterial.baseTexture = engine.getRenderer().loadTexture(imagePath.string(), imageData); 
+				newMaterial.baseTexture = engine.getRenderer().loadTexture(imageData); 
 			}
 
 			newMaterial.color = vec4(1, 1, 1, 1);
@@ -93,25 +86,31 @@ ImportResult GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 				newMaterial.alphaMode = AlphaMode::OPAQUE;
 			}
 		}
-		assetIds.push_back(newMaterial.getAssetId());
+		result.materials.push_back(newMaterial);
 	}
 
 	// Model accessors which are used for typed access into buffers
-	gltf::ModelAccessors modelAccess(model, std::move(buffers));
+	gltf::ModelAccessors modelAccess(model, buffers);
 
-	// grab the default scene and load the node heirarchy
-	const gltf::Scene &scene = model.scenes[model.scene];
-
-	// used to map between node indexes (glTF) and entity system IDs
-	std::unordered_map<int, Entity> nodeEntities;
-
-	// load each node
-	for (auto &nodeIndex : scene.nodes)
+	for (const auto &mesh : model.meshes)
 	{
-		Entity entity = loadNode(engine, model, modelAccess, nodeEntities, nodeIndex);
-		result.entities.push_back(entity);
+		logger.log("Loading mesh: {}", mesh.name);
+		Mesh newMesh;
+		for (auto &gltfPrimitive : mesh.primitives)
+		{
+			Primitive meshPrimitive = loadPrimitive(engine, modelAccess, gltfPrimitive);
+			// setup material if any
+			if (gltfPrimitive.material.has_value())
+			{
+				const Material &material = result.materials[gltfPrimitive.material.value()];
+				meshPrimitive.materialId = material.getAssetId();
+			}
+			newMesh.primitives.push_back(meshPrimitive);
+		}
+		result.meshes.push_back(newMesh);
 	}
 
+	/*
 	// load all animations
     Animator &animator = engine.getAnimator();
 	for (const gltf::Animation &gltfAnim : model.animations)
@@ -152,15 +151,17 @@ ImportResult GLTFImporter::import(Boiler::Engine &engine, std::string gltfPath)
 		}
         result.animations.push_back(animator.addAnimation(std::move(animation)));
 	}
-    return result;
+	*/
+	logger.log("Imported {} materials", result.materials.size());
+	logger.log("Imported {} meshes", result.meshes.size());
 }
 
-auto GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive)
+Primitive GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive)
 {
 	if (primitive.mode.has_value())
 	{
-		assert(primitive.mode == 4);
 		// TODO: Add support for other modes
+		assert(primitive.mode == 4);
 	}
 	using namespace gltf::attributes;
 
@@ -233,40 +234,30 @@ auto GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &mod
 	return engine.getRenderer().loadPrimitive(vertData);
 }
 
-Entity GLTFImporter::loadNode(Engine &engine, const gltf::Model &model, const gltf::ModelAccessors &modelAccess,
-							  std::unordered_map<int, Entity> &nodeEntities, int nodeIndex)
+Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const
 {
-	Entity nodeEntity = Entity::NO_ENTITY;
-	
-	if (!nodeEntities.contains(nodeIndex))
+	if (!nodeEntities[nodeIndex] != Entity::NO_ENTITY)
 	{
 		EntityComponentSystem &ecs = engine.getEcs();
-		nodeEntity = ecs.newEntity();
 		nodeEntities[nodeIndex] = nodeEntity;
 
-		const gltf::Node &node = model.nodes[nodeIndex];
-		logger.log("Loading node: {}", node.name);
+		// set parent entity if provided
+		if (parentEntity != Entity::NO_ENTITY)
+		{
+			ecs.createComponent<ParentComponent>(nodeEntity, parentEntity);
+		}
 
+		const gltf::Node &node = model.nodes[nodeIndex];
+		logger.log("Processing node: {}", node.name);
+
+		// assign mesh
 		if (node.mesh.has_value())
 		{
-			const auto &mesh = model.meshes[node.mesh.value()];
-			logger.log("Loading mesh: {}", mesh.name);
-
-			auto renderComp = ecs.createComponent<RenderComponent>(nodeEntity);
-			for (auto &gltfPrimitive : mesh.primitives)
-			{
-				Primitive meshPrimitive = loadPrimitive(engine, modelAccess, gltfPrimitive);
-				// setup material if any
-				if (gltfPrimitive.material.has_value())
-				{
-					const AssetId materialId = assetIds[gltfPrimitive.material.value()];
-					meshPrimitive.materialId = materialId;
-				}
-				renderComp->mesh.primitives.push_back(meshPrimitive);
-			}
+			auto render = ecs.createComponent<RenderComponent>(nodeEntity);
+			render->mesh = result.meshes[node.mesh.value()]; // use mesh-id instead of copying
 		}
-		auto transform = ecs.createComponent<TransformComponent>(nodeEntity, Rect(0, 0, 0, 0));
 
+		auto transform = ecs.createComponent<TransformComponent>(nodeEntity, Rect(0, 0, 0, 0));
 		// decompose a matrix if available, otherwise try to load transformations directly
 		if (node.matrix.has_value())
 		{
@@ -311,15 +302,35 @@ Entity GLTFImporter::loadNode(Engine &engine, const gltf::Model &model, const gl
 			}
 		}
 
-		// if this node has children, create them and assign the current node as parent
+		// create child nodes, setting current node as parent
 		if (node.children.size() > 0)
 		{
 			for (int childIndex : node.children)
 			{
-				Entity childEntity = loadNode(engine, model, modelAccess, nodeEntities, childIndex);
-				ecs.createComponent<ParentComponent>(childEntity, nodeEntity);
+				loadNode(nodeEntities, ecs.newEntity(), childIndex, nodeEntity);
 			}
 		}
 	}
 	return nodeEntity;
+}
+
+void GLTFImporter::createInstance(const Entity &rootEntity) const
+{
+	// grab the default scene and load the node heirarchy
+	const gltf::Scene &scene = model.scenes[model.scene];
+
+	// used to map between node indexes (glTF) and entity system IDs
+	std::vector<Entity> nodeEntities(model.nodes.size(), Entity::NO_ENTITY);
+
+	if (scene.nodes.size() == 1)
+	{
+		loadNode(nodeEntities, rootEntity, 0, Entity::NO_ENTITY);
+	}
+	else
+	{
+		for (auto &nodeIndex : scene.nodes)
+		{
+			loadNode(nodeEntities, engine.getEcs().newEntity(), nodeIndex, rootEntity);
+		}
+	}
 }

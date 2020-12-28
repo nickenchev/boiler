@@ -20,6 +20,8 @@ class TransformComponent : public ComponentType<TransformComponent>
 	bool dirty;
 
 public:
+	TransformComponent() : TransformComponent(Rect(0, 0, 0, 0)) { }
+	
 	TransformComponent(Rect frame) : ComponentType(this), frame(frame)
 	{
 		scale = {1.0f, 1.0f, 1.0f};

@@ -9,12 +9,8 @@ namespace Boiler
 
 class Texture : public Asset
 {
-    std::string filePath;
-
 public:
-    Texture(const AssetId assetId, const std::string filePath) : Asset(assetId), filePath(filePath) { }
-
-    const std::string &getFilePath() const { return filePath; }
+    Texture(const AssetId assetId) : Asset(assetId) { }
 };
 
 }

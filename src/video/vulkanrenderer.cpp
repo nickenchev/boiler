@@ -22,7 +22,6 @@
 
 #include "core/logger.h"
 #include "core/math.h"
-#include "video/modelviewprojection.h"
 #include "video/lightsource.h"
 #include "video/imaging/imagedata.h"
 #include "video/vertexdata.h"
@@ -34,12 +33,13 @@ using namespace Boiler;
 using namespace Boiler::Vulkan;
 
 const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
-constexpr bool enableValidationLayers = false;
+constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
 constexpr int maxObjects = 1000;
 constexpr int maxLights = 64;
+constexpr int maxMaterials = 64;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -230,8 +230,16 @@ void VulkanRenderer::shutdown()
 			vkDestroyImage(device, image, nullptr);
 		}
 	}
-	vkDestroyBuffer(device, lightsBuffer, nullptr);
-	vkFreeMemory(device, lightsMemory, nullptr);
+
+	for (const PrimitiveBuffers &pb : primitives.getAssets())
+	{
+		freeBuffer(pb.getVertexBuffer());
+		freeBuffer(pb.getIndexBuffer());
+	}
+
+	freeBuffer(matrixBuffer);
+	freeBuffer(lightsBuffer);
+	freeBuffer(materialBuffer);
 
 	logger.log("Cleaned up buffers and memory");
 
@@ -544,7 +552,11 @@ void VulkanRenderer::initialize(const Size &size)
 		createFramebuffers();
 		createDescriptorSets();
 		createGraphicsPipelines();
+
+		createMatrixBuffer();
 		createLightBuffer(maxLights);
+		createMaterialBuffer();
+
 		commandPool = createCommandPools(queueFamilyIndices, graphicsQueue, transferQueue);
 		createCommandBuffers();
 		createSynchronization();
@@ -961,22 +973,22 @@ void VulkanRenderer::createDescriptorSetLayouts()
 {
 	// bindings for 1st subpass
 	std::array<VkDescriptorSetLayoutBinding, 3> bindings1{};
-	// UBO
+	// matrices
 	bindings1[0].binding = 0;
 	bindings1[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	bindings1[0].descriptorCount = 1;
+	bindings1[0].descriptorCount = maxObjects;
 	bindings1[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	bindings1[0].pImmutableSamplers = nullptr;
-	// sampler
+	// samplers
 	bindings1[1].binding = 1;
 	bindings1[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	bindings1[1].descriptorCount = 1;
 	bindings1[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	bindings1[1].pImmutableSamplers = nullptr;
-	// material
+	// materials
 	bindings1[2].binding = 2;
 	bindings1[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	bindings1[2].descriptorCount = 1;
+	bindings1[2].descriptorCount = maxMaterials;
 	bindings1[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	bindings1[2].pImmutableSamplers = nullptr;
 
@@ -1067,15 +1079,15 @@ void VulkanRenderer::allocateDescriptorSets(Descriptor &descriptor)
 void VulkanRenderer::createDescriptorSets()
 {
 	createDescriptorSetLayouts();
+	renderDescriptor.setCount(swapChainImages.size());
 
-	renderDescriptor.setCount(swapChainImages.size() * maxObjects);
 	std::array<VkDescriptorPoolSize, 3> renderPoolSizes{};
 	renderPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[0].descriptorCount = renderDescriptor.count;
+	renderPoolSizes[0].descriptorCount = maxObjects * swapChainImages.size();
 	renderPoolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	renderPoolSizes[1].descriptorCount = renderDescriptor.count;
+	renderPoolSizes[1].descriptorCount = 1 * swapChainImages.size();
 	renderPoolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[2].descriptorCount = renderDescriptor.count;
+	renderPoolSizes[2].descriptorCount = maxMaterials * swapChainImages.size();
 	renderDescriptor.pool = createDescriptorPool(renderDescriptor.count, renderPoolSizes);
 	allocateDescriptorSets(renderDescriptor);
 
@@ -1208,13 +1220,25 @@ void VulkanRenderer::createDepthResources()
 	depthImageView = createImageView(imagePair.first, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 
+void VulkanRenderer::createMatrixBuffer()
+{
+	const VkDeviceSize size = maxObjects * sizeof(mat4);
+	matrixBuffer = createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+								 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+}
+
 void VulkanRenderer::createLightBuffer(int lightCount)
 {
 	VkDeviceSize bufferSize = sizeof(LightSource) * lightCount;
-	auto buffPair = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-								 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	lightsBuffer = buffPair.first;
-	lightsMemory = buffPair.second;
+	lightsBuffer = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+								VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+}
+
+void VulkanRenderer::createMaterialBuffer()
+{
+	VkDeviceSize bufferSize = sizeof(ShaderMaterial) * maxMaterials;
+	materialBuffer = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+								  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
 
 void VulkanRenderer::recreateSwapchain()
@@ -1383,7 +1407,7 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 	return imageView;
 }
 
-Texture VulkanRenderer::loadTexture(const std::string &filePath, const ImageData &imageData)
+Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 {
 	AssetId assetId = nextAssetId();
 	ResourceSet resourceSet(assetId);
@@ -1398,14 +1422,14 @@ Texture VulkanRenderer::loadTexture(const std::string &filePath, const ImageData
 	}
 
 	const VkDeviceSize bytesSize = imageData.size.width * imageData.size.height * bytesPerPixel;
-	auto bufferPair = createBuffer(bytesSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+	auto bufferInfo = createBuffer(bytesSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 								   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 	logger.log("Staging {} bytes of data", bytesSize);
 	void *data = nullptr;
-	vkMapMemory(device, bufferPair.second, 0, static_cast<size_t>(bytesSize), 0, &data);
+	vkMapMemory(device, bufferInfo.memory, 0, static_cast<size_t>(bytesSize), 0, &data);
 	memcpy(data, imageData.pixelData, static_cast<size_t>(bytesSize));
-	vkUnmapMemory(device, bufferPair.second);
+	vkUnmapMemory(device, bufferInfo.memory);
 
 	auto imagePair = createImage(imageData.size, format, VK_IMAGE_TILING_OPTIMAL,
 								 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -1414,11 +1438,11 @@ Texture VulkanRenderer::loadTexture(const std::string &filePath, const ImageData
 	// transition the image to transfer layout, copy the buffer pixel data to the image
 	transitionImageLayout(imagePair.first, format, VK_IMAGE_LAYOUT_UNDEFINED,
 						  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	copyBufferToImage(bufferPair.first, imagePair.first, imageData.size);
+	copyBufferToImage(bufferInfo.buffer, imagePair.first, imageData.size);
 	
 	// cleanup buffer and memory
-	vkDestroyBuffer(device, bufferPair.first, nullptr);
-	vkFreeMemory(device, bufferPair.second, nullptr);
+	vkDestroyBuffer(device, bufferInfo.buffer, nullptr);
+	vkFreeMemory(device, bufferInfo.memory, nullptr);
 
 	// transition the image to a layout optimal for shader sampling
 	transitionImageLayout(imagePair.first, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -1426,8 +1450,7 @@ Texture VulkanRenderer::loadTexture(const std::string &filePath, const ImageData
 
 	VkImageView imageView = createImageView(imagePair.first, format, VK_IMAGE_ASPECT_COLOR_BIT);
 
-	std::string fileName = std::filesystem::path{ filePath }.filename().string();
-	logger.log("Loaded texture data for {}", fileName);
+	logger.log("Texture data loaded");
 
 	resourceSet.images.push_back(imagePair.first);
 	resourceSet.imageViews.push_back(imageView);
@@ -1435,11 +1458,10 @@ Texture VulkanRenderer::loadTexture(const std::string &filePath, const ImageData
 
 	resourceSets.push_back(resourceSet);
 
-	return Texture(assetId, filePath);
+	return Texture(assetId);
 }
 
-std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage,
-																 VkMemoryPropertyFlags memoryProperties) const
+BufferInfo VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperties) const
 {
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1470,7 +1492,7 @@ std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createBuffer(VkDeviceSize si
 	// bind the memory to the buffer and map it
 	vkBindBufferMemory(device, buffer, bufferMemory, 0);
 
-	return std::make_pair(buffer, bufferMemory);
+	return BufferInfo(buffer, bufferMemory, size);
 }
 
 VkCommandBuffer VulkanRenderer::beginSingleTimeCommands(const VkCommandPool &pool) const
@@ -1628,49 +1650,43 @@ bool VulkanRenderer::hasStencilComponent(VkFormat format) const
 	return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-std::pair<VkBuffer, VkDeviceMemory> VulkanRenderer::createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const
+BufferInfo VulkanRenderer::createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const
 {
 	VkDeviceSize bufferSize = size;
 	// create a staging buffer (host), map memory and copy
-	auto stageBufferPair = createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+	auto stageBufferInfo = createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
 	void *mappedMem = nullptr;
-	vkMapMemory(device, stageBufferPair.second, 0, bufferSize, 0, &mappedMem);
+	vkMapMemory(device, stageBufferInfo.memory, 0, bufferSize, 0, &mappedMem);
 	memcpy(mappedMem, data, bufferSize);
-	vkUnmapMemory(device, stageBufferPair.second);
+	vkUnmapMemory(device, stageBufferInfo.memory);
 
 	// create a device-local buffer
-	auto bufferPair = createBuffer(bufferSize, usageFlags | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+	auto bufferInfo = createBuffer(bufferSize, usageFlags | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 								   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	copyBuffer(stageBufferPair.first, bufferPair.first, bufferSize);
+	copyBuffer(stageBufferInfo.buffer, bufferInfo.buffer, bufferInfo.size);
 
-	vkDestroyBuffer(device, stageBufferPair.first, nullptr);
-	vkFreeMemory(device, stageBufferPair.second, nullptr);
+	vkDestroyBuffer(device, stageBufferInfo.buffer, nullptr);
+	vkFreeMemory(device, stageBufferInfo.memory, nullptr);
 
-	return bufferPair;
+	return bufferInfo;
 }
 
 Primitive VulkanRenderer::loadPrimitive(const VertexData &data)
 {
-	AssetId assetId = nextAssetId();
-	ResourceSet resourceSet(assetId);
+	// primitive buffers
+	auto vertexBuffer = createGPUBuffer((void *)data.vertexBegin(), data.vertexSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+	auto indexBuffer = createGPUBuffer((void *)data.indexBegin(), data.indexSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+	AssetId primitiveId = primitives.add(PrimitiveBuffers(vertexBuffer, indexBuffer));
 
-	// vertex buffer
-	auto vertexPair = createGPUBuffer((void *)data.vertexBegin(), data.vertexSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-	resourceSet.buffers.push_back(vertexPair.first);
-	resourceSet.deviceMemory.push_back(vertexPair.second);
-
-	// index buffer
-	auto indexPair = createGPUBuffer((void *)data.indexBegin(), data.indexSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-	resourceSet.buffers.push_back(indexPair.first);
-	resourceSet.deviceMemory.push_back(indexPair.second);
-
+	logger.log("Loaded primitive with asset-id: {}", primitiveId);
+	/*
 	// MVP buffer
 	VkDeviceSize bufferSize = sizeof(ModelViewProjection);
-	auto mvpPair = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-								VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	auto mvpPair = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+								VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	resourceSet.buffers.push_back(mvpPair.first);
 	resourceSet.deviceMemory.push_back(mvpPair.second);
 
@@ -1682,9 +1698,8 @@ Primitive VulkanRenderer::loadPrimitive(const VertexData &data)
 	resourceSet.deviceMemory.push_back(materialPair.second);
 
 	resourceSets.push_back(resourceSet);
-	logger.log("Loaded primitive with asset-id: {}", assetId);
-
-	return Primitive(assetId, data.vertexArray().size(), data.indexArray().size());
+	*/
+	return Primitive(primitiveId, data.vertexArray().size(), data.indexArray().size());
 }
 
 Material &VulkanRenderer::createMaterial()
@@ -1769,9 +1784,36 @@ void VulkanRenderer::updateLights(const std::vector<LightSource> &lightSources)
 	// copy light source data
 	void *lightData = nullptr;
 	VkDeviceSize lightsMemSize = maxLights * sizeof(LightSource);
-	vkMapMemory(device, lightsMemory, 0, lightsMemSize, 0, &lightData);
+	vkMapMemory(device, lightsBuffer.memory, 0, lightsMemSize, 0, &lightData);
 	memcpy(lightData, lightSources.data(), lightsMemSize);
-	vkUnmapMemory(device, lightsMemory);
+	vkUnmapMemory(device, lightsBuffer.memory);
+}
+
+void VulkanRenderer::updateMatrices(const std::vector<mat4> &matrices) const
+{
+	assert(matrices.size() < maxObjects);
+	const VkDeviceSize size = matrices.size() * sizeof(mat4);
+
+	void *data = nullptr;
+	vkMapMemory(device, matrixBuffer.memory, 0, size, 0, &data);
+	memcpy(data, matrices.data(), size);
+	vkUnmapMemory(device, matrixBuffer.memory);
+}
+void VulkanRenderer::updateMaterials(const std::vector<ShaderMaterial> &materials) const
+{
+	assert(materials.size() < maxMaterials);
+	const VkDeviceSize size = materials.size() * sizeof(Material);
+
+	void *data = nullptr;
+	vkMapMemory(device, materialBuffer.memory, 0, size, 0, &data);
+	memcpy(data, materials.data(), size);
+	vkUnmapMemory(device, materialBuffer.memory);
+}
+
+void VulkanRenderer::freeBuffer(const BufferInfo &bufferInfo) const
+{
+	vkDestroyBuffer(device, bufferInfo.buffer, nullptr);
+	vkFreeMemory(device, bufferInfo.memory, nullptr);
 }
 
 template<class T>
@@ -1796,6 +1838,7 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 
 	const size_t modelResIndex = primitive.getAssetId() - 1;
 	const ResourceSet &resourceSet = resourceSets[modelResIndex];
+
 	const unsigned int descriptorIndex = (currentFrame * maxObjects) + modelResIndex;
 	const VkDescriptorSet descriptorSet = renderDescriptor.sets[descriptorIndex];
 
@@ -1804,9 +1847,9 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 
 	// setup descriptor sets
 	VkDescriptorBufferInfo mvpBufferInfo = {};
-	mvpBufferInfo.buffer = resourceSet.buffers[2];
+	mvpBufferInfo.buffer = matrixBuffer.buffer;
 	mvpBufferInfo.offset = 0;
-	mvpBufferInfo.range = sizeof(ModelViewProjection);
+	mvpBufferInfo.range = matrixBuffer.size;
 
 	std::array<VkWriteDescriptorSet, 3> descriptorWrites;
 	descriptorWrites[0] = {
@@ -1872,15 +1915,19 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
 	// required buffers for rendering
+	/*
 	VkBuffer vertexBuffer = resourceSet.buffers[0];
 	VkBuffer indexBuffer = resourceSet.buffers[1];
+	*/
 
 	// draw the vertex data
-	const std::array<VkBuffer, 1> buffers = {vertexBuffer};
+	// TODO: Add support for instancing
+	const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(primitive.getAssetId());
+	const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
 	const std::array<VkDeviceSize, buffers.size()> offsets = {0};
 
 	vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
-	vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.getIndexCount()), 1, 0, 0, 0);
 }
 
@@ -1925,7 +1972,7 @@ void VulkanRenderer::endRender()
 
 		// lights
 		VkDescriptorBufferInfo lightsBuffInfo = {};
-		lightsBuffInfo.buffer = lightsBuffer;
+		lightsBuffInfo.buffer = lightsBuffer.buffer;
 		lightsBuffInfo.offset = 0;
 		lightsBuffInfo.range = sizeof(LightSource) * maxLights;
 

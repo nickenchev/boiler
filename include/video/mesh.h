@@ -3,7 +3,6 @@
 
 #include <vector>
 #include "video/primitive.h"
-#include "core/spriteframe.h"
 
 namespace Boiler
 {

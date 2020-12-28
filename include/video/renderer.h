@@ -10,6 +10,7 @@
 #include "video/material.h"
 #include "lightsource.h"
 #include "texture.h"
+#include "shadermaterial.h"
 
 namespace Boiler
 {
@@ -62,8 +63,12 @@ public:
 	void setCameraPosition(const vec3 &cameraPosition) { this->cameraPosition = cameraPosition; }
 	void setViewMatrix(const glm::mat4 &viewMatrix) { this->viewMatrix = viewMatrix; }
 
-    virtual Texture loadTexture(const std::string &filePath, const ImageData &imageData) = 0;
+    virtual Texture loadTexture(const ImageData &imageData) = 0;
     virtual Primitive loadPrimitive(const VertexData &data) = 0;
+
+	virtual void updateMatrices(const std::vector<mat4> &matrices) const = 0;
+	virtual void updateLights(const std::vector<LightSource> &lightSources) = 0;
+	virtual void updateMaterials(const std::vector<ShaderMaterial> &materials) const = 0;
 
 	virtual Material &createMaterial();
 	std::vector<Boiler::Material> &getMaterials() { return materials; }
@@ -71,7 +76,6 @@ public:
 
 	virtual void beginRender();
 	virtual void endRender() = 0;
-	virtual void updateLights(const std::vector<LightSource> &lightSources) = 0;
 	virtual void render(const mat4 modelMatrix, const Primitive &primitive, const Material &material) = 0;
 };
 

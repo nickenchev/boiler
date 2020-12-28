@@ -1,38 +1,38 @@
 #ifndef GLTFIMPORTER_H
 #define GLTFIMPORTER_H
 
+#include <vector>
 #include <string>
-#include <unordered_map>
 
 #include "core/asset.h"
 #include "core/logger.h"
 #include "assets/importresult.h"
+
+#include "gltf.h"
+#include "modelaccessors.h"
 
 namespace Boiler
 {
 	class Engine;
 	struct Entity;
 
-	namespace gltf
-	{
-		struct Model;
-		struct Primitive;
-		class ModelAccessors;
-	}
-
 	class GLTFImporter
 	{
+		Engine &engine;
 		Logger logger;
-		std::vector<Boiler::AssetId> assetIds;
+		std::vector<std::vector<std::byte>> buffers;
+		gltf::Model model;
+		ImportResult result;
+
+		Entity loadNode(std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const;
+		Primitive loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive);
 
 	public:
-		GLTFImporter() : logger("GLTF Importer") { }
+		GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath);
 
-        ImportResult import(Boiler::Engine &engine, std::string gltfPath);
+        ImportResult import(const std::string &gltfPath);
 
-		Entity loadNode(Engine &engine, const gltf::Model &model, const gltf::ModelAccessors &modelAccess,
-						std::unordered_map<int, Entity> &nodeEntities, int nodeIndex);
-		auto loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive);
+		void createInstance(const Entity &rootEntity) const;
 	};
 }
 #endif /* GLTFIMPORTER_H */

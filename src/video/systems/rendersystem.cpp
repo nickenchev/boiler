@@ -10,17 +10,21 @@
 
 using namespace Boiler;
 
-
 void RenderSystem::update(ComponentStore &store, const double)
 {
-	for (const Entity &entity : getEntities())
+	std::vector<mat4> matrices(getEntities().size());
+
+	// calculate matrices
+	for (int i = 0; i < getEntities().size(); ++i)
 	{
+		const Entity &entity = getEntities()[i];
 		TransformComponent &transform = store.retrieve<TransformComponent>(entity);
 		RenderComponent &render = store.retrieve<RenderComponent>(entity);
 
 		// calculate model matrix
 		glm::mat4 modelMatrix = transform.getMatrix();
 		Entity currentEntity = entity;
+
 		while (store.hasComponent<ParentComponent>(currentEntity))
 		{
 			ParentComponent &parentComp = store.retrieve<ParentComponent>(currentEntity);
@@ -31,7 +35,9 @@ void RenderSystem::update(ComponentStore &store, const double)
 			}
 			currentEntity = parentComp.entity;
 		}
+		matrices[i] = modelMatrix;
 
+		/*
 		const static Material defaultMaterial(0);
 		for (const auto &primitive : render.mesh.primitives)
 		{
@@ -40,5 +46,7 @@ void RenderSystem::update(ComponentStore &store, const double)
 
 			renderer.render(modelMatrix, primitive, material);
 		}
+		*/
 	}
+	renderer.updateMatrices(matrices);
 }
