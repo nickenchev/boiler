@@ -51,6 +51,8 @@ class VulkanRenderer : public Boiler::Renderer
 		OffscreenBuffer positions, albedo, normals;
 	};
 
+	VkPhysicalDeviceProperties deviceProperties;
+	VkPhysicalDeviceFeatures deviceFeatures;
 	VkFormat positionFormat, albedoFormat, normalFormat;
 	std::vector<GBuffer> gBuffers;
 

@@ -379,6 +379,8 @@ void VulkanRenderer::initialize(const Size &size)
 			if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
 				&& devFeats.samplerAnisotropy)
 			{
+				deviceProperties = devProps;
+				deviceFeatures = devFeats;
 				logger.log("Using: " + std::string(devProps.deviceName));
 				physicalDevice = device;
 				break;
@@ -1737,6 +1739,27 @@ void VulkanRenderer::beginRender()
 		{
 			throw std::runtime_error("Could not begin command buffer");
 		}
+
+
+		// setup descriptor sets
+		VkDescriptorSet descriptorSet = renderDescriptor.sets[currentFrame];
+		VkDescriptorBufferInfo matrixBuffInfo = {};
+		matrixBuffInfo.buffer = matrixBuffer.buffer;
+		matrixBuffInfo.offset = 0;
+		matrixBuffInfo.range = VK_WHOLE_SIZE;
+
+		std::array<VkWriteDescriptorSet, 1> descriptorWrites;
+		descriptorWrites[0] = {
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.dstSet = descriptorSet,
+			.dstBinding = 0,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.pBufferInfo = &matrixBuffInfo
+		};
+
+		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 
 		// clear colour
 		std::array<VkClearValue, 5> clearValues = {};
