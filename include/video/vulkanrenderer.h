@@ -12,7 +12,7 @@ struct SDL_Window;
 #include "core/assetmanager.h"
 #include "video/vulkan.h"
 #include "video/renderer.h"
-#include "video/modelviewprojection.h"
+#include "video/viewprojection.h"
 
 #include "video/vulkan/bufferinfo.h"
 #include "video/vulkan/primitivebuffers.h"
