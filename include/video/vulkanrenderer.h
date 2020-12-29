@@ -21,10 +21,12 @@ struct SDL_Window;
 #include "video/vulkan/shaderstagemodules.h"
 #include "video/vulkan/graphicspipeline.h"
 
-namespace Boiler { namespace Vulkan {
+namespace Boiler {
+	struct MaterialGroup;
+
+	namespace Vulkan {
 
 class SPVShaderProgram;
-class MaterialGroup;
 
 struct QueueFamilyIndices
 {
@@ -198,8 +200,7 @@ public:
 
 	void beginRender() override;
 	void endRender() override;
-	void render(const MaterialGroup &materialGroup) const;
-	void render(const mat4 modelMatrix, const Primitive &primitive, const Material &material) override;
+	void render(AssetId materialId, const MaterialGroup &materialGroup) override;
 
 	// TODO: This needs to be improved
 	VkInstance getVulkanInstance() const { return instance; }

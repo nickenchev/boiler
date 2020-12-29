@@ -851,24 +851,30 @@ VkRenderPass VulkanRenderer::createRenderPass()
 
 void VulkanRenderer::createGraphicsPipelines()
 {
+    std::array<VkPushConstantRange, 2> pushConsts{};
+    pushConsts[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    pushConsts[0].offset = 0;
+    pushConsts[0].size = sizeof(RenderConstants);
+
 	VkPipelineLayoutCreateInfo gBuffPipeLayoutCreateInfo{};
 	gBuffPipeLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	gBuffPipeLayoutCreateInfo.setLayoutCount = 1;
 	gBuffPipeLayoutCreateInfo.pSetLayouts = &renderDescriptor.layout;
+	//gBuffPipeLayoutCreateInfo.pushConstantRangeCount = 0;
+	//gBuffPipeLayoutCreateInfo.pPushConstantRanges = &pushConsts[0];
 
     gBuffersPipelineLayout = createGraphicsPipelineLayout(gBuffPipeLayoutCreateInfo);
 	
-    std::array<VkPushConstantRange, 1> deferredPushConsts{};
-    deferredPushConsts[0].stageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    deferredPushConsts[0].offset = 0;
-    deferredPushConsts[0].size = sizeof(GBufferPushConstants);
+    pushConsts[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    pushConsts[1].offset = 0;
+    pushConsts[1].size = sizeof(GBufferPushConstants);
 	
 	VkPipelineLayoutCreateInfo defPipeLayoutCreateInfo{};
 	defPipeLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	defPipeLayoutCreateInfo.setLayoutCount = 1;
 	defPipeLayoutCreateInfo.pSetLayouts = &attachDescriptor.layout;
-	defPipeLayoutCreateInfo.pushConstantRangeCount = deferredPushConsts.size();
-	defPipeLayoutCreateInfo.pPushConstantRanges = deferredPushConsts.data();
+	defPipeLayoutCreateInfo.pushConstantRangeCount = 1;
+	defPipeLayoutCreateInfo.pPushConstantRanges = &pushConsts[1];
 
 	deferredPipelineLayout = createGraphicsPipelineLayout(defPipeLayoutCreateInfo);
 
@@ -1864,31 +1870,33 @@ void VulkanRenderer::beginRender()
 		throw std::runtime_error("Error during image aquire");
 	}
 }
-void VulkanRenderer::render(const MaterialGroup &materialGroup) const
+void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGroup)
 {
-	/*
+	std::array<VkWriteDescriptorSet, 1> descriptorWrites;
+	Material &material = getMaterial(materialId);
+	VkDescriptorSet descriptorSet = renderDescriptor.sets[currentFrame];
+
 	if (material.baseTexture.has_value())
 	{
-		shaderMaterial.useBaseTexture = true;
-
-		const size_t textureResIndex = material.baseTexture.value().getAssetId() - 1;
-		const ResourceSet &textureResourceSet = resourceSets[textureResIndex];
-		imageInfo.imageView = textureResourceSet.imageViews[0];
+		VkDescriptorImageInfo imageInfo = {};
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
 		imageInfo.sampler = textureSampler;
 
-		descriptorWrites[2] = {
+		descriptorWrites[0] = {
 			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 			.dstSet = descriptorSet,
-			.dstBinding = 1,
+			.dstBinding = 2,
 			.dstArrayElement = 0,
 			.descriptorCount = 1,
 			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 			.pImageInfo = &imageInfo,
 		};
+		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 	}
-	*/
 }
 
+/*
 void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, const Material &material)
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
@@ -1967,10 +1975,8 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
 	// required buffers for rendering
-	/*
 	VkBuffer vertexBuffer = resourceSet.buffers[0];
 	VkBuffer indexBuffer = resourceSet.buffers[1];
-	*/
 
 	// draw the vertex data
 	// TODO: Add support for instancing
@@ -1982,6 +1988,7 @@ void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, 
 	vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.getIndexCount()), 1, 0, 0, 0);
 }
+*/
 
 void VulkanRenderer::endRender()
 {
@@ -2046,7 +2053,7 @@ void VulkanRenderer::endRender()
 
 		GBufferPushConstants consts;
 		consts.cameraPosition = cameraPosition;
-		vkCmdPushConstants(commandBuffer, deferredPipelineLayout, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, sizeof(GBufferPushConstants), &consts);
+		vkCmdPushConstants(commandBuffer, deferredPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GBufferPushConstants), &consts);
 
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 		vkCmdEndRenderPass(commandBuffer);

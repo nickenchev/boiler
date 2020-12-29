@@ -9,14 +9,16 @@
 
 #include <thread>
 
+constexpr size_t maxMaterials = 128;
+
 using namespace Boiler;
 
 void RenderSystem::update(ComponentStore &store, const double)
 {
-	std::array<MaterialGroup, 128> materialGroups;
+	std::array<MaterialGroup, maxMaterials> materialGroups;
 	std::vector<mat4> matrices(getEntities().size());
 
-	// calculate matrices
+	// calculate matrices and setup material groups
 	for (int i = 0; i < getEntities().size(); ++i)
 	{
 		const Entity &entity = getEntities()[i];
@@ -52,11 +54,12 @@ void RenderSystem::update(ComponentStore &store, const double)
 			}
 		}
 	}
-
+	// update GPU buffer
 	renderer.updateMatrices(matrices);
-	//renderer.updateMaterials(const std::vector<ShaderMaterial> &materials)
 
-	for (const MaterialGroup &matGroup : materialGroups)
+	// iterate over materials, and render each group of primitives
+	for (const auto &material : renderer.getMaterials())
 	{
+		renderer.render(material.getAssetId(), materialGroups[material.getAssetId()]);
 	}
 }

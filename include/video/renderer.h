@@ -11,6 +11,7 @@
 #include "lightsource.h"
 #include "texture.h"
 #include "shadermaterial.h"
+#include "video/materialgroup.h"
 
 namespace Boiler
 {
@@ -76,7 +77,7 @@ public:
 
 	virtual void beginRender();
 	virtual void endRender() = 0;
-	virtual void render(const mat4 modelMatrix, const Primitive &primitive, const Material &material) = 0;
+	virtual void render(AssetId materialId, const MaterialGroup &materialGroup) = 0;
 };
 
 }
