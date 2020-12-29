@@ -860,8 +860,8 @@ void VulkanRenderer::createGraphicsPipelines()
 	gBuffPipeLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	gBuffPipeLayoutCreateInfo.setLayoutCount = 1;
 	gBuffPipeLayoutCreateInfo.pSetLayouts = &renderDescriptor.layout;
-	//gBuffPipeLayoutCreateInfo.pushConstantRangeCount = 0;
-	//gBuffPipeLayoutCreateInfo.pPushConstantRanges = &pushConsts[0];
+	gBuffPipeLayoutCreateInfo.pushConstantRangeCount = 1;
+	gBuffPipeLayoutCreateInfo.pPushConstantRanges = &pushConsts[0];
 
     gBuffersPipelineLayout = createGraphicsPipelineLayout(gBuffPipeLayoutCreateInfo);
 	
@@ -1872,6 +1872,13 @@ void VulkanRenderer::beginRender()
 }
 void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGroup)
 {
+	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+	
+	RenderConstants constants;
+	constants.materialId = materialId;
+	constants.matrixId = materialGroup.matrixId;
+	vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(RenderConstants), &constants);
+
 	std::array<VkWriteDescriptorSet, 1> descriptorWrites;
 	Material &material = getMaterial(materialId);
 	VkDescriptorSet descriptorSet = renderDescriptor.sets[currentFrame];

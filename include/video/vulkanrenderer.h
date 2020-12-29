@@ -37,7 +37,7 @@ struct QueueFamilyIndices
 
 struct RenderConstants
 {
-	int objectIndex;
+	int matrixId, materialId;
 };
 
 struct GBufferPushConstants
