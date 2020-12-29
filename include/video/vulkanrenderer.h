@@ -16,20 +16,26 @@ struct SDL_Window;
 
 #include "video/vulkan/bufferinfo.h"
 #include "video/vulkan/primitivebuffers.h"
+#include "video/vulkan/textureimage.h"
 
-#include "video/vulkan/resourceset.h"
 #include "video/vulkan/shaderstagemodules.h"
 #include "video/vulkan/graphicspipeline.h"
 
 namespace Boiler { namespace Vulkan {
 
 class SPVShaderProgram;
+class MaterialGroup;
 
 struct QueueFamilyIndices
 {
 	std::optional<uint32_t> graphics;
 	std::optional<uint32_t> presentation;
 	std::optional<uint32_t> transfer;
+};
+
+struct RenderConstants
+{
+	int objectIndex;
 };
 
 struct GBufferPushConstants
@@ -105,6 +111,7 @@ class VulkanRenderer : public Boiler::Renderer
 
 	// resource management
 	AssetManager<PrimitiveBuffers, 512> primitives;
+	AssetManager<TextureImage, 128> textures;
 	BufferInfo matrixBuffer, lightsBuffer, materialBuffer;
 
 	void freeBuffer(const BufferInfo &bufferInfo) const;
@@ -117,11 +124,6 @@ class VulkanRenderer : public Boiler::Renderer
 	// materials
 	void createMaterialBuffer();
 	void updateMaterials(const std::vector<ShaderMaterial> &materials) const override;
-
-	void test();
-	
-	
-	std::vector<ResourceSet> resourceSets;
 
 	ShaderStageModules gBufferModules, deferredModules, noTexModules;
 	short currentFrame;
@@ -196,6 +198,7 @@ public:
 
 	void beginRender() override;
 	void endRender() override;
+	void render(const MaterialGroup &materialGroup) const;
 	void render(const mat4 modelMatrix, const Primitive &primitive, const Material &material) override;
 
 	// TODO: This needs to be improved

@@ -15,7 +15,7 @@ public:
 	Entity(EntityId id) : id{id} { }
 	Entity(const Entity &entity) : Entity(entity.getId()) { }
 
-	static EntityId NO_ENTITY;
+	static constexpr EntityId NO_ENTITY = 0;
 
 	void operator=(const Entity &entity)
 	{

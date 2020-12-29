@@ -1,6 +1,5 @@
 #include "video/vulkanrenderer.h"
 #include "video/renderer.h"
-#include "video/vulkan/resourceset.h"
 
 #include <filesystem>
 #include <array>
@@ -28,6 +27,7 @@
 #include "video/primitive.h"
 #include "util/filemanager.h"
 #include "video/material.h"
+#include "video/materialgroup.h"
 
 using namespace Boiler;
 using namespace Boiler::Vulkan;
@@ -211,36 +211,20 @@ void VulkanRenderer::shutdown()
 	logger.log("Destroyed descriptor pools");
 
 	// Cleanup all resources allocated for various assets
-	for (const auto &resourceSet : resourceSets)
+	for (const TextureImage &ti : textures.getAssets())
 	{
-		for (const auto &buffer : resourceSet.buffers)
-		{
-			vkDestroyBuffer(device, buffer, nullptr);
-		}
-		for (const auto &imageView : resourceSet.imageViews)
-		{
-			vkDestroyImageView(device, imageView, nullptr);
-		}
-		for (const auto &memory : resourceSet.deviceMemory)
-		{
-			vkFreeMemory(device, memory, nullptr);
-		}
-		for (const auto &image : resourceSet.images)
-		{
-			vkDestroyImage(device, image, nullptr);
-		}
+		vkFreeMemory(device, ti.memory, nullptr);
+		vkDestroyImage(device, ti.image, nullptr);
+		vkDestroyImageView(device, ti.imageView, nullptr);
 	}
-
 	for (const PrimitiveBuffers &pb : primitives.getAssets())
 	{
 		freeBuffer(pb.getVertexBuffer());
 		freeBuffer(pb.getIndexBuffer());
 	}
-
 	freeBuffer(matrixBuffer);
 	freeBuffer(lightsBuffer);
 	freeBuffer(materialBuffer);
-
 	logger.log("Cleaned up buffers and memory");
 
 	vkDestroyDescriptorSetLayout(device, renderDescriptor.layout, nullptr);
@@ -1419,9 +1403,6 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 
 Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 {
-	AssetId assetId = nextAssetId();
-	ResourceSet resourceSet(assetId);
-
 	//const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
 	const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
 
@@ -1451,8 +1432,7 @@ Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 	copyBufferToImage(bufferInfo.buffer, imagePair.first, imageData.size);
 	
 	// cleanup buffer and memory
-	vkDestroyBuffer(device, bufferInfo.buffer, nullptr);
-	vkFreeMemory(device, bufferInfo.memory, nullptr);
+	freeBuffer(bufferInfo);
 
 	// transition the image to a layout optimal for shader sampling
 	transitionImageLayout(imagePair.first, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -1462,13 +1442,11 @@ Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 
 	logger.log("Texture data loaded");
 
-	resourceSet.images.push_back(imagePair.first);
-	resourceSet.imageViews.push_back(imageView);
-	resourceSet.deviceMemory.push_back(imagePair.second);
-
-	resourceSets.push_back(resourceSet);
-
-	return Texture(assetId);
+	TextureImage texImage;
+	texImage.image = imagePair.first;
+	texImage.memory = imagePair.second;
+	texImage.imageView = imageView;
+	return textures.add(texImage);
 }
 
 BufferInfo VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperties) const
@@ -1715,8 +1693,6 @@ Primitive VulkanRenderer::loadPrimitive(const VertexData &data)
 Material &VulkanRenderer::createMaterial()
 {
 	Material &material = Renderer::createMaterial();
-	ResourceSet resourceSet(material.getAssetId());
-	resourceSets.push_back(resourceSet);
 	return material;
 }
 
@@ -1794,7 +1770,6 @@ void VulkanRenderer::beginRender()
 			throw std::runtime_error("Could not begin command buffer");
 		}
 
-
 		ViewProjection viewProjection {
 			.view = viewMatrix,
 			.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f)
@@ -1833,6 +1808,19 @@ void VulkanRenderer::beginRender()
 			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 			.pBufferInfo = &matrixBuffInfo
 		};
+
+		// update shader material data
+		std::vector<ShaderMaterial> shaderMaterials(getMaterials().size());
+		for (int i = 0; i < getMaterials().size(); ++i)
+		{
+			const Material &material = getMaterials()[i];
+			shaderMaterials[i].baseColorFactor = material.color;
+			if (material.baseTexture.has_value())
+			{
+				shaderMaterials[i].useBaseTexture = true;
+			}
+		}
+		updateMaterials(shaderMaterials);
 
 		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 
@@ -1876,19 +1864,40 @@ void VulkanRenderer::beginRender()
 		throw std::runtime_error("Error during image aquire");
 	}
 }
+void VulkanRenderer::render(const MaterialGroup &materialGroup) const
+{
+	/*
+	if (material.baseTexture.has_value())
+	{
+		shaderMaterial.useBaseTexture = true;
+
+		const size_t textureResIndex = material.baseTexture.value().getAssetId() - 1;
+		const ResourceSet &textureResourceSet = resourceSets[textureResIndex];
+		imageInfo.imageView = textureResourceSet.imageViews[0];
+		imageInfo.sampler = textureSampler;
+
+		descriptorWrites[2] = {
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.dstSet = descriptorSet,
+			.dstBinding = 1,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.pImageInfo = &imageInfo,
+		};
+	}
+	*/
+}
 
 void VulkanRenderer::render(const mat4 modelMatrix, const Primitive &primitive, const Material &material)
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 
 	// setup uniforms
-	const size_t modelResIndex = primitive.getAssetId() - 1;
-	const ResourceSet &resourceSet = resourceSets[modelResIndex];
-
-	const unsigned int descriptorIndex = (currentFrame * maxObjects) + modelResIndex;
-	const VkDescriptorSet descriptorSet = renderDescriptor.sets[descriptorIndex];
+	const VkDescriptorSet descriptorSet = renderDescriptor.sets[currentFrame];
 
 	// setup descriptor sets
+	/*
 	VkDescriptorBufferInfo mvpBufferInfo = {};
 	mvpBufferInfo.buffer = matrixBuffer.buffer;
 	mvpBufferInfo.offset = 0;

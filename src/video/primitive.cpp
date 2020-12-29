@@ -1,4 +1,5 @@
 #include "video/primitive.h"
+#include "video/material.h"
 
 using namespace Boiler;
 
@@ -7,5 +8,5 @@ Primitive::Primitive(AssetId assetId, unsigned int vertexCount, unsigned int ind
 {
 	this->vertexCount = vertexCount;
 	this->indexCount = indexCount;
-	this->materialId = 0;
+	this->materialId = Material::NO_MATERIAL;
 }

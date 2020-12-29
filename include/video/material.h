@@ -9,8 +9,10 @@
 
 namespace Boiler {
 
-	struct Material : public Asset
+struct Material : public Asset
 {
+	static constexpr int NO_MATERIAL = -1;
+
     vec4 color;
 	std::optional<Texture> baseTexture;
 	AlphaMode alphaMode;

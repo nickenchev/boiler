@@ -47,7 +47,6 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/video/lightsource.h
   ${INCLUDE_BASE}/video/texture.h
   ${INCLUDE_BASE}/assets/gltfimporter.h
-  ${INCLUDE_BASE}/video/vulkan/resourceset.h
   ${INCLUDE_BASE}/video/vulkan/graphicspipeline.h
   ${INCLUDE_BASE}/video/vulkan/shaderstagemodules.h
 )
@@ -56,7 +55,6 @@ set(BOILER_HEADERS
 set(SRC_BASE ${CMAKE_CURRENT_LIST_DIR}/src)
 set(BOILER_SOURCES
   ${SRC_BASE}/core/engine.cpp
-  ${SRC_BASE}/core/entity.cpp
   ${SRC_BASE}/core/entityworld.cpp
   ${SRC_BASE}/core/tmxloader.cpp
   ${SRC_BASE}/core/spritesheet.cpp

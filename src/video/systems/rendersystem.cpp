@@ -5,6 +5,7 @@
 #include "core/components/parentcomponent.h"
 #include "core/componentstore.h"
 #include "video/systems/rendersystem.h"
+#include "video/materialgroup.h"
 
 #include <thread>
 
@@ -12,6 +13,7 @@ using namespace Boiler;
 
 void RenderSystem::update(ComponentStore &store, const double)
 {
+	std::array<MaterialGroup, 128> materialGroups;
 	std::vector<mat4> matrices(getEntities().size());
 
 	// calculate matrices
@@ -37,16 +39,24 @@ void RenderSystem::update(ComponentStore &store, const double)
 		}
 		matrices[i] = modelMatrix;
 
-		/*
 		const static Material defaultMaterial(0);
+
 		for (const auto &primitive : render.mesh.primitives)
 		{
-			const Material &material = primitive.materialId != 0
-				? renderer.getMaterial(primitive.materialId) : defaultMaterial;
+			auto &matGroup = materialGroups[primitive.materialId];
+			matGroup.matrixId = i;
 
-			renderer.render(modelMatrix, primitive, material);
+			if (primitive.materialId != Material::NO_MATERIAL)
+			{
+				matGroup.primitives.push_back(primitive.getAssetId());
+			}
 		}
-		*/
 	}
+
 	renderer.updateMatrices(matrices);
+	//renderer.updateMaterials(const std::vector<ShaderMaterial> &materials)
+
+	for (const MaterialGroup &matGroup : materialGroups)
+	{
+	}
 }
