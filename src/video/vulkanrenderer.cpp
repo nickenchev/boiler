@@ -1735,6 +1735,7 @@ void VulkanRenderer::beginRender()
 		VkDescriptorSet descriptorSet = renderDescriptors.getSet(currentFrame);
 		std::array<VkWriteDescriptorSet, 2> descriptorWrites;
 
+		// view and projection matrices
 		VkDescriptorBufferInfo viewProjBuffInfo = {};
 		viewProjBuffInfo.buffer = matrixBuffer.buffer;
 		viewProjBuffInfo.offset = 0;
@@ -1750,10 +1751,11 @@ void VulkanRenderer::beginRender()
 			.pBufferInfo = &viewProjBuffInfo
 		};
 
+		// all matrices
 		VkDescriptorBufferInfo matrixBuffInfo = {};
 		matrixBuffInfo.buffer = matrixBuffer.buffer;
 		matrixBuffInfo.offset = sizeof(ViewProjection);
-		matrixBuffInfo.range = VK_WHOLE_SIZE;
+		matrixBuffInfo.range = sizeof(mat4) * maxObjects;
 
 		descriptorWrites[1] = {
 			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -1778,7 +1780,25 @@ void VulkanRenderer::beginRender()
 		}
 		updateMaterials(shaderMaterials);
 
+		/*
+		VkDescriptorBufferInfo materialsBuffInfo = {};
+		materialsBuffInfo.buffer = materialBuffer.buffer;
+		materialsBuffInfo.offset = 0;
+		materialsBuffInfo.range = sizeof(ShaderMaterial) * maxMaterials;
+
+		descriptorWrites[2] = {
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.dstSet = descriptorSet,
+			.dstBinding = 2,
+			.dstArrayElement = 0,
+			.descriptorCount = maxMaterials,
+			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.pBufferInfo = &materialsBuffInfo
+		};
+		*/
+
 		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
 		// clear colour
 		std::array<VkClearValue, 5> clearValues = {};
@@ -1825,11 +1845,6 @@ void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGro
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 
-    RenderConstants constants;
-	constants.materialId = materialId;
-	constants.matrixId = materialGroup.matrixId;
-	vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(RenderConstants), &constants);
-
 	std::array<VkWriteDescriptorSet, 1> descriptorWrites;
 	Material &material = getMaterial(materialId);
 	VkDescriptorSet descriptorSet = materialDescriptors.getSet((currentFrame * maxMaterials) + materialId);
@@ -1854,7 +1869,10 @@ void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGro
 	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 1, 1, &descriptorSet, 0, nullptr);
 
-	/*
+    RenderConstants constants;
+	constants.materialId = materialId;
+	constants.matrixId = materialGroup.matrixId;
+	vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(RenderConstants), &constants);
 	for (const Primitive &primitive : materialGroup.primitives)
 	{
 		// draw the vertex data
@@ -1865,9 +1883,8 @@ void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGro
 
 		vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
 		vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.getIndexCount()), 1, 0, 0, 0);
+		//vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.getIndexCount()), 1, 0, 0, 0);
 	}
-	*/
 }
 
 /*
