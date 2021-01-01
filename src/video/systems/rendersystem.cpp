@@ -60,6 +60,6 @@ void RenderSystem::update(ComponentStore &store, const double)
 	// iterate over materials, and render each group of primitives
 	for (const auto &material : renderer.getMaterials())
 	{
-		//renderer.render(material.getAssetId(), materialGroups[material.getAssetId()]);
+		renderer.render(material.getAssetId(), materialGroups[material.getAssetId()]);
 	}
 }

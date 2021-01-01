@@ -26,7 +26,7 @@ public:
 		sets.resize(maxSets);
 		this->maxSets = maxSets;
 	}
-
+	unsigned int getMaxSets() const { return maxSets; }
 
 	const VkDescriptorSetLayout &getLayout() const { return layout; }
 

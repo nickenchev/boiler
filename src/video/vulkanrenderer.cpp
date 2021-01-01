@@ -856,10 +856,16 @@ void VulkanRenderer::createGraphicsPipelines()
     pushConsts[0].offset = 0;
     pushConsts[0].size = sizeof(RenderConstants);
 
+
+	std::array<VkDescriptorSetLayout, 2> descriptorLayouts{
+		renderDescriptors.getLayout(),
+		primitiveDescriptors.getLayout()
+	};
+
 	VkPipelineLayoutCreateInfo gBuffPipeLayoutCreateInfo{};
 	gBuffPipeLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	gBuffPipeLayoutCreateInfo.setLayoutCount = 1;
-	gBuffPipeLayoutCreateInfo.pSetLayouts = &renderDescriptors.getLayout();
+	gBuffPipeLayoutCreateInfo.setLayoutCount = descriptorLayouts.size();
+	gBuffPipeLayoutCreateInfo.pSetLayouts = descriptorLayouts.data();
 	gBuffPipeLayoutCreateInfo.pushConstantRangeCount = 1;
 	gBuffPipeLayoutCreateInfo.pPushConstantRanges = &pushConsts[0];
 
@@ -964,7 +970,8 @@ void VulkanRenderer::createFramebuffers()
 void VulkanRenderer::createDescriptorSets()
 {
 	// render pass - per frame
-	std::array<VkDescriptorSetLayoutBinding, 4> renderBindings{};
+	renderDescriptors.setMaxSets(swapChainImages.size());
+	std::array<VkDescriptorSetLayoutBinding, 3> renderBindings{};
 	renderBindings[0].binding = 0; // general info
 	renderBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	renderBindings[0].descriptorCount = maxObjects;
@@ -975,40 +982,40 @@ void VulkanRenderer::createDescriptorSets()
 	renderBindings[1].descriptorCount = 1;
 	renderBindings[1].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	renderBindings[1].pImmutableSamplers = nullptr;
-	renderBindings[2].binding = 2; // samplers
-	renderBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	renderBindings[2].descriptorCount = 1;
+	renderBindings[2].binding = 2; // materials
+	renderBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	renderBindings[2].descriptorCount = maxMaterials;
 	renderBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	renderBindings[2].pImmutableSamplers = nullptr;
-	renderBindings[3].binding = 3; // materials
-	renderBindings[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderBindings[3].descriptorCount = maxMaterials;
-	renderBindings[3].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	renderBindings[3].pImmutableSamplers = nullptr;
 
-	std::array<VkDescriptorPoolSize, 4> renderPoolSizes{};
+	std::array<VkDescriptorPoolSize, 3> renderPoolSizes{};
 	renderPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[0].descriptorCount = maxObjects * swapChainImages.size();
+	renderPoolSizes[0].descriptorCount = maxObjects * renderDescriptors.getMaxSets();
 	renderPoolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[1].descriptorCount = swapChainImages.size();
-	renderPoolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	renderPoolSizes[2].descriptorCount = 1 * swapChainImages.size();
-	renderPoolSizes[3].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[3].descriptorCount = maxMaterials * swapChainImages.size();
+	renderPoolSizes[1].descriptorCount = renderDescriptors.getMaxSets();
+	renderPoolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	renderPoolSizes[2].descriptorCount = maxMaterials * renderDescriptors.getMaxSets();
 
-	renderDescriptors.setMaxSets(swapChainImages.size());
 	renderDescriptors.createLayout(device, renderBindings);
 	renderDescriptors.createPool(device, renderPoolSizes);
 	renderDescriptors.allocate(device);
 
 	// render pass - per object
+	primitiveDescriptors.setMaxSets(swapChainImages.size());
 	std::array<VkDescriptorSetLayoutBinding, 1> primitiveBindings;
-	primitiveBindings[0].binding = 0;
-	primitiveBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	primitiveBindings[0].descriptorCount = maxMaterials;
+	primitiveBindings[0].binding = 0; // samplers
+	primitiveBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	primitiveBindings[0].descriptorCount = 1;
 	primitiveBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	primitiveBindings[0].pImmutableSamplers = nullptr;
+
+	std::array<VkDescriptorPoolSize, 1> primitivePoolSizes{};
+	primitivePoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	primitivePoolSizes[0].descriptorCount = maxMaterials * primitiveDescriptors.getMaxSets();
+
 	primitiveDescriptors.createLayout(device, primitiveBindings);
+	primitiveDescriptors.createPool(device, primitivePoolSizes);
+	primitiveDescriptors.allocate(device);
 	
 	// deferred render pass
 	std::array<VkDescriptorSetLayoutBinding, 4> deferredBindings{};
@@ -1822,6 +1829,7 @@ void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGro
 	constants.matrixId = materialGroup.matrixId;
 	vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(RenderConstants), &constants);
 
+	/*
 	std::array<VkWriteDescriptorSet, 1> descriptorWrites;
 	Material &material = getMaterial(materialId);
 	VkDescriptorSet descriptorSet = renderDescriptors.getSet((currentFrame * maxObjects) + entityNumber++);
@@ -1858,6 +1866,7 @@ void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGro
 		vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.getIndexCount()), 1, 0, 0, 0);
 	}
+	*/
 }
 
 /*
