@@ -2,14 +2,14 @@
 #define MATERIALGROUP_H
 
 #include <vector>
-#include "core/asset.h"
+#include "video/primitive.h"
 
 namespace Boiler {
 
 struct MaterialGroup
 {
 	AssetId matrixId;
-	std::vector<AssetId> primitives;
+	std::vector<Primitive> primitives;
 };
 
 }

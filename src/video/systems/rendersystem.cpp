@@ -50,7 +50,7 @@ void RenderSystem::update(ComponentStore &store, const double)
 
 			if (primitive.materialId != Material::NO_MATERIAL)
 			{
-				matGroup.primitives.push_back(primitive.getAssetId());
+				matGroup.primitives.push_back(primitive);
 			}
 		}
 	}
@@ -60,6 +60,6 @@ void RenderSystem::update(ComponentStore &store, const double)
 	// iterate over materials, and render each group of primitives
 	for (const auto &material : renderer.getMaterials())
 	{
-		renderer.render(material.getAssetId(), materialGroups[material.getAssetId()]);
+		//renderer.render(material.getAssetId(), materialGroups[material.getAssetId()]);
 	}
 }

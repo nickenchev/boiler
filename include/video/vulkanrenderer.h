@@ -17,9 +17,9 @@ struct SDL_Window;
 #include "video/vulkan/bufferinfo.h"
 #include "video/vulkan/primitivebuffers.h"
 #include "video/vulkan/textureimage.h"
-
 #include "video/vulkan/shaderstagemodules.h"
 #include "video/vulkan/graphicspipeline.h"
+#include "video/vulkan/descriptorset.h"
 
 namespace Boiler {
 	struct MaterialGroup;
@@ -86,20 +86,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkRenderPass renderPass;
 
 	// descriptor related
-	struct Descriptor
-	{
-		VkDescriptorSetLayout layout;
-		VkDescriptorPool pool;
-		unsigned int count;
-		std::vector<VkDescriptorSet> sets;
-
-		void setCount(unsigned int count)
-		{
-			sets.resize(count);
-			this->count = count;
-		}
-	};
-	Descriptor renderDescriptor, attachDescriptor;
+	DescriptorSet renderDescriptors, primitiveDescriptors, deferredDescriptors;
 
 	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout, noTexPipelineLayout;
 	//VkPipeline gBufferPipeline, deferredPipeline;
@@ -145,15 +132,11 @@ class VulkanRenderer : public Boiler::Renderer
 	VkRenderPass createRenderPass();
     VkPipelineLayout createGraphicsPipelineLayout(const VkPipelineLayoutCreateInfo &createInfo) const;
 	void createGraphicsPipelines();
-
 	void createFramebuffers();
-	void createDescriptorSetLayouts();
-	template<size_t Size>
-	VkDescriptorSetLayout createDescriptorSetLayout(const std::array<VkDescriptorSetLayoutBinding, Size> bindings) const;
-	template<size_t Size>
-	VkDescriptorPool createDescriptorPool(unsigned int count, const std::array<VkDescriptorPoolSize, Size> &poolSizes) const;
-	void allocateDescriptorSets(Descriptor &descriptor);
+
+	// descriptor set related
 	void createDescriptorSets();
+
 	VkCommandPool createCommandPools(const QueueFamilyIndices &queueFamilyIndices, const VkQueue &graphicsQueue, const VkQueue &transferQueue);
 	void createCommandBuffers();
 	void createSynchronization();

@@ -41,6 +41,8 @@ constexpr int maxObjects = 1000;
 constexpr int maxLights = 64;
 constexpr int maxMaterials = 64;
 
+int entityNumber = 0;
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
 													const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
@@ -206,9 +208,10 @@ void VulkanRenderer::shutdown()
 	vkDestroyRenderPass(device, renderPass, nullptr);
 	logger.log("Render passes destroyed");
 
-	vkDestroyDescriptorPool(device, renderDescriptor.pool, nullptr);
-	vkDestroyDescriptorPool(device, attachDescriptor.pool, nullptr);
-	logger.log("Destroyed descriptor pools");
+	renderDescriptors.cleanup(device);
+	primitiveDescriptors.cleanup(device);
+	deferredDescriptors.cleanup(device);
+	logger.log("Destroyed descriptors");
 
 	// Cleanup all resources allocated for various assets
 	for (const TextureImage &ti : textures.getAssets())
@@ -226,9 +229,6 @@ void VulkanRenderer::shutdown()
 	freeBuffer(lightsBuffer);
 	freeBuffer(materialBuffer);
 	logger.log("Cleaned up buffers and memory");
-
-	vkDestroyDescriptorSetLayout(device, renderDescriptor.layout, nullptr);
-	vkDestroyDescriptorSetLayout(device, attachDescriptor.layout, nullptr);
 
 	// delete the shader module
 	vkDestroyShaderModule(device, gBufferModules.vertex, nullptr);
@@ -859,7 +859,7 @@ void VulkanRenderer::createGraphicsPipelines()
 	VkPipelineLayoutCreateInfo gBuffPipeLayoutCreateInfo{};
 	gBuffPipeLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	gBuffPipeLayoutCreateInfo.setLayoutCount = 1;
-	gBuffPipeLayoutCreateInfo.pSetLayouts = &renderDescriptor.layout;
+	gBuffPipeLayoutCreateInfo.pSetLayouts = &renderDescriptors.getLayout();
 	gBuffPipeLayoutCreateInfo.pushConstantRangeCount = 1;
 	gBuffPipeLayoutCreateInfo.pPushConstantRanges = &pushConsts[0];
 
@@ -872,7 +872,7 @@ void VulkanRenderer::createGraphicsPipelines()
 	VkPipelineLayoutCreateInfo defPipeLayoutCreateInfo{};
 	defPipeLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	defPipeLayoutCreateInfo.setLayoutCount = 1;
-	defPipeLayoutCreateInfo.pSetLayouts = &attachDescriptor.layout;
+	defPipeLayoutCreateInfo.pSetLayouts = &deferredDescriptors.getLayout();
 	defPipeLayoutCreateInfo.pushConstantRangeCount = 1;
 	defPipeLayoutCreateInfo.pPushConstantRanges = &pushConsts[1];
 
@@ -961,123 +961,30 @@ void VulkanRenderer::createFramebuffers()
 	logger.log("Created framebuffers");
 }
 
-void VulkanRenderer::createDescriptorSetLayouts()
-{
-	// bindings for 1st subpass
-	std::array<VkDescriptorSetLayoutBinding, 4> bindings1{};
-	// general render info
-	bindings1[0].binding = 0;
-	bindings1[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	bindings1[0].descriptorCount = maxObjects;
-	bindings1[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	bindings1[0].pImmutableSamplers = nullptr;
-	//matrices
-	bindings1[1].binding = 1;
-	bindings1[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	bindings1[1].descriptorCount = 1;
-	bindings1[1].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	bindings1[1].pImmutableSamplers = nullptr;
-	// samplers
-	bindings1[2].binding = 2;
-	bindings1[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	bindings1[2].descriptorCount = 1;
-	bindings1[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	bindings1[2].pImmutableSamplers = nullptr;
-	// materials
-	bindings1[3].binding = 3;
-	bindings1[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	bindings1[3].descriptorCount = maxMaterials;
-	bindings1[3].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	bindings1[3].pImmutableSamplers = nullptr;
-
-	renderDescriptor.layout = createDescriptorSetLayout(bindings1);
-
-	// bindings for 2nd subpass
-	std::array<VkDescriptorSetLayoutBinding, 4> bindings2{};
-	// position
-	bindings2[0].binding = 0,
-	bindings2[0].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-	bindings2[0].descriptorCount = 1,
-	bindings2[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-	// albedos
-	bindings2[1].binding = 1,
-	bindings2[1].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-	bindings2[1].descriptorCount = 1,
-	bindings2[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-	// normals
-	bindings2[2].binding = 2,
-	bindings2[2].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-	bindings2[2].descriptorCount = 1,
-	bindings2[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-	// lights
-	bindings2[3].binding = 3;
-	bindings2[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	bindings2[3].descriptorCount = 1;
-	bindings2[3].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	bindings2[3].pImmutableSamplers = nullptr;
-
-	attachDescriptor.layout = createDescriptorSetLayout(bindings2);
-}
-
-template<size_t Size>
-VkDescriptorSetLayout VulkanRenderer::createDescriptorSetLayout(const std::array<VkDescriptorSetLayoutBinding, Size> bindings) const
-{
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = bindings.size();
-	layoutInfo.pBindings = bindings.data();
-
-	VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
-	if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Error creating descriptor set layout");
-	}
-	logger.log("Created {} descriptor set layouts", bindings.size());
-
-	return descriptorSetLayout;
-}
-
-template<size_t Size>
-VkDescriptorPool VulkanRenderer::createDescriptorPool(unsigned int count, const std::array<VkDescriptorPoolSize, Size> &poolSizes) const
-{
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = poolSizes.size();
-	createInfo.pPoolSizes = poolSizes.data();
-	createInfo.maxSets = count;
-
-	VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-	if (vkCreateDescriptorPool(device, &createInfo, nullptr, &descriptorPool) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create descriptor pool");
-	}
-
-	logger.log("Created descriptor pool");
-	return descriptorPool;
-}
-
-void VulkanRenderer::allocateDescriptorSets(Descriptor &descriptor)
-{
-	// need to copy layout into array of layouts since create call expects array
-	std::vector<VkDescriptorSetLayout> layouts(descriptor.count, descriptor.layout);
-
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = descriptor.pool;
-	allocInfo.descriptorSetCount = descriptor.count;
-	allocInfo.pSetLayouts = layouts.data();
-
-	if (vkAllocateDescriptorSets(device, &allocInfo, descriptor.sets.data()) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to allocate descriptor sets");
-	}
-	logger.log("Allocated {} descriptor sets", descriptor.count);
-}
-
 void VulkanRenderer::createDescriptorSets()
 {
-	createDescriptorSetLayouts();
-	renderDescriptor.setCount(swapChainImages.size());
+	// render pass - per frame
+	std::array<VkDescriptorSetLayoutBinding, 4> renderBindings{};
+	renderBindings[0].binding = 0; // general info
+	renderBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	renderBindings[0].descriptorCount = maxObjects;
+	renderBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	renderBindings[0].pImmutableSamplers = nullptr;
+	renderBindings[1].binding = 1; // matrices
+	renderBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	renderBindings[1].descriptorCount = 1;
+	renderBindings[1].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	renderBindings[1].pImmutableSamplers = nullptr;
+	renderBindings[2].binding = 2; // samplers
+	renderBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	renderBindings[2].descriptorCount = 1;
+	renderBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	renderBindings[2].pImmutableSamplers = nullptr;
+	renderBindings[3].binding = 3; // materials
+	renderBindings[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	renderBindings[3].descriptorCount = maxMaterials;
+	renderBindings[3].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	renderBindings[3].pImmutableSamplers = nullptr;
 
 	std::array<VkDescriptorPoolSize, 4> renderPoolSizes{};
 	renderPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1088,21 +995,55 @@ void VulkanRenderer::createDescriptorSets()
 	renderPoolSizes[2].descriptorCount = 1 * swapChainImages.size();
 	renderPoolSizes[3].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	renderPoolSizes[3].descriptorCount = maxMaterials * swapChainImages.size();
-	renderDescriptor.pool = createDescriptorPool(renderDescriptor.count, renderPoolSizes);
-	allocateDescriptorSets(renderDescriptor);
 
-	attachDescriptor.setCount(swapChainImages.size());
+	renderDescriptors.setMaxSets(swapChainImages.size());
+	renderDescriptors.createLayout(device, renderBindings);
+	renderDescriptors.createPool(device, renderPoolSizes);
+	renderDescriptors.allocate(device);
+
+	// render pass - per object
+	std::array<VkDescriptorSetLayoutBinding, 1> primitiveBindings;
+	primitiveBindings[0].binding = 0;
+	primitiveBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	primitiveBindings[0].descriptorCount = maxMaterials;
+	primitiveBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	primitiveBindings[0].pImmutableSamplers = nullptr;
+	primitiveDescriptors.createLayout(device, primitiveBindings);
+	
+	// deferred render pass
+	std::array<VkDescriptorSetLayoutBinding, 4> deferredBindings{};
+	deferredBindings[0].binding = 0; // position
+	deferredBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	deferredBindings[0].descriptorCount = 1;
+	deferredBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	deferredBindings[1].binding = 1; // albedos
+	deferredBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	deferredBindings[1].descriptorCount = 1;
+	deferredBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	deferredBindings[2].binding = 2; // normals
+	deferredBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	deferredBindings[2].descriptorCount = 1;
+	deferredBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	deferredBindings[3].binding = 3; // lights
+	deferredBindings[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	deferredBindings[3].descriptorCount = 1;
+	deferredBindings[3].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	deferredBindings[3].pImmutableSamplers = nullptr;
+
 	std::array<VkDescriptorPoolSize, 4> attachPoolSizes{};
 	attachPoolSizes[0].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	attachPoolSizes[0].descriptorCount = attachDescriptor.count;
+	attachPoolSizes[0].descriptorCount = swapChainImages.size();
 	attachPoolSizes[1].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	attachPoolSizes[1].descriptorCount = attachDescriptor.count;
+	attachPoolSizes[1].descriptorCount = swapChainImages.size();
 	attachPoolSizes[2].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	attachPoolSizes[2].descriptorCount = attachDescriptor.count;
+	attachPoolSizes[2].descriptorCount = swapChainImages.size();
 	attachPoolSizes[3].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	attachPoolSizes[3].descriptorCount = attachDescriptor.count;
-	attachDescriptor.pool = createDescriptorPool(attachDescriptor.count, attachPoolSizes);
-	allocateDescriptorSets(attachDescriptor);
+	attachPoolSizes[3].descriptorCount = swapChainImages.size();
+
+	deferredDescriptors.setMaxSets(swapChainImages.size());
+	deferredDescriptors.createLayout(device, deferredBindings);
+	deferredDescriptors.createPool(device, attachPoolSizes);
+	deferredDescriptors.allocate(device);
 }
 
 VkCommandPool VulkanRenderer::createCommandPools(const QueueFamilyIndices &queueFamilyIndices, const VkQueue &graphicsQueue, const VkQueue &transferQueue)
@@ -1757,6 +1698,7 @@ void VulkanRenderer::beginRender()
 
 	if (nextImageResult == VK_SUCCESS)
 	{
+		entityNumber = 0;
 		// ensure current command buffer has finished executing before attempting to reuse it
 		vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
 		vkResetFences(device, 1, &frameFences[currentFrame]);
@@ -1782,7 +1724,7 @@ void VulkanRenderer::beginRender()
 		};
 
 		// setup descriptor sets
-		VkDescriptorSet descriptorSet = renderDescriptor.sets[currentFrame];
+		VkDescriptorSet descriptorSet = renderDescriptors.getSet(currentFrame);
 		std::array<VkWriteDescriptorSet, 2> descriptorWrites;
 
 		VkDescriptorBufferInfo viewProjBuffInfo = {};
@@ -1870,18 +1812,19 @@ void VulkanRenderer::beginRender()
 		throw std::runtime_error("Error during image aquire");
 	}
 }
+
 void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGroup)
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 	
-	RenderConstants constants;
+    RenderConstants constants;
 	constants.materialId = materialId;
 	constants.matrixId = materialGroup.matrixId;
 	vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(RenderConstants), &constants);
 
 	std::array<VkWriteDescriptorSet, 1> descriptorWrites;
 	Material &material = getMaterial(materialId);
-	VkDescriptorSet descriptorSet = renderDescriptor.sets[currentFrame];
+	VkDescriptorSet descriptorSet = renderDescriptors.getSet((currentFrame * maxObjects) + entityNumber++);
 
 	if (material.baseTexture.has_value())
 	{
@@ -1899,7 +1842,21 @@ void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGro
 			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 			.pImageInfo = &imageInfo,
 		};
-		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+	}
+	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+
+	for (const Primitive &primitive : materialGroup.primitives)
+	{
+		// draw the vertex data
+		// TODO: Add support for instancing
+		const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(primitive.getAssetId());
+		const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
+		const std::array<VkDeviceSize, buffers.size()> offsets = {0};
+
+		vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
+		vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.getIndexCount()), 1, 0, 0, 0);
 	}
 }
 
@@ -2015,7 +1972,7 @@ void VulkanRenderer::endRender()
 		descriptorImages[2].imageView = gBuffers[currentFrame].normals.imageView;
 		descriptorImages[2].sampler = VK_NULL_HANDLE;
 
-		const VkDescriptorSet descriptorSet = attachDescriptor.sets[currentFrame];
+		const VkDescriptorSet descriptorSet = deferredDescriptors.getSet(currentFrame);
 		std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
 		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrites[0].dstBinding = 0;
