@@ -11,6 +11,8 @@ class Asset
 	AssetId assetId;
 	
 public:
+	static constexpr int NO_ASSET = -1;
+
     Asset(const AssetId assetId) : assetId(assetId) {}
     virtual ~Asset() { }
 

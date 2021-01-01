@@ -980,7 +980,7 @@ void VulkanRenderer::createDescriptorSets()
 	renderBindings[0].pImmutableSamplers = nullptr;
 	renderBindings[1].binding = 1; // matrices
 	renderBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderBindings[1].descriptorCount = 1;
+	renderBindings[1].descriptorCount = maxObjects;
 	renderBindings[1].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	renderBindings[1].pImmutableSamplers = nullptr;
 	renderBindings[2].binding = 2; // materials
@@ -993,7 +993,7 @@ void VulkanRenderer::createDescriptorSets()
 	renderPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	renderPoolSizes[0].descriptorCount = maxObjects * renderDescriptors.getMaxSets();
 	renderPoolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[1].descriptorCount = renderDescriptors.getMaxSets();
+	renderPoolSizes[1].descriptorCount = maxObjects * renderDescriptors.getMaxSets();
 	renderPoolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	renderPoolSizes[2].descriptorCount = maxMaterials * renderDescriptors.getMaxSets();
 
@@ -1839,49 +1839,58 @@ void VulkanRenderer::beginRender()
 	}
 }
 
-void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGroup)
+void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups)
 {
-	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+	updateMatrices(matrices);
 
-	std::array<VkWriteDescriptorSet, 1> descriptorWrites;
-	Material &material = getMaterial(materialId);
-	VkDescriptorSet descriptorSet = materialDescriptors.getSet((currentFrame * maxMaterials) + materialId);
-
-	if (material.baseTexture.has_value())
+	for (int i = 0; i < materialGroups.size(); ++i)
 	{
-		VkDescriptorImageInfo imageInfo = {};
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
-		imageInfo.sampler = textureSampler;
+		const MaterialGroup &group = materialGroups[i];
+		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 
-		descriptorWrites[0] = {
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.dstSet = descriptorSet,
-			.dstBinding = 0,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			.pImageInfo = &imageInfo,
-		};
-	}
-	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 1, 1, &descriptorSet, 0, nullptr);
+		if (group.materialId != Asset::NO_ASSET)
+		{
+			std::array<VkWriteDescriptorSet, 1> descriptorWrites;
+			const Material &material = getMaterial(group.materialId);
+			VkDescriptorSet descriptorSet = materialDescriptors.getSet((currentFrame * maxMaterials) + group.materialId);
 
-    RenderConstants constants;
-	constants.materialId = materialId;
-	constants.matrixId = materialGroup.matrixId;
-	vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(RenderConstants), &constants);
-	for (const Primitive &primitive : materialGroup.primitives)
-	{
-		// draw the vertex data
-		// TODO: Add support for instancing
-		const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(primitive.getAssetId());
-		const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
-		const std::array<VkDeviceSize, buffers.size()> offsets = {0};
+			if (material.baseTexture.has_value())
+			{
+				VkDescriptorImageInfo imageInfo = {};
+				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
+				imageInfo.sampler = textureSampler;
 
-		vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
-		vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
-		//vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.getIndexCount()), 1, 0, 0, 0);
+				descriptorWrites[0] = {
+					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+					.dstSet = descriptorSet,
+					.dstBinding = 0,
+					.dstArrayElement = 0,
+					.descriptorCount = 1,
+					.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+					.pImageInfo = &imageInfo,
+				};
+			}
+			vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 1, 1, &descriptorSet, 0, nullptr);
+
+			RenderConstants constants;
+			constants.materialId = group.materialId;
+			constants.matrixId = group.matrixId;
+			vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(RenderConstants), &constants);
+			for (const Primitive &primitive : group.primitives)
+			{
+				// draw the vertex data
+				// TODO: Add support for instancing
+				const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(primitive.getAssetId());
+				const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
+				const std::array<VkDeviceSize, buffers.size()> offsets = {0};
+
+				vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
+				vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
+				vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.getIndexCount()), 1, 0, 0, 0);
+			}
+		}
 	}
 }
 
@@ -2018,7 +2027,7 @@ void VulkanRenderer::endRender()
 		descriptorWrites[2].descriptorCount = 1;
 		descriptorWrites[2].pImageInfo = &descriptorImages[2];
 
-		// lights
+		// update lights descriptor
 		VkDescriptorBufferInfo lightsBuffInfo = {};
 		lightsBuffInfo.buffer = lightsBuffer.buffer;
 		lightsBuffInfo.offset = 0;

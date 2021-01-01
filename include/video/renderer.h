@@ -77,7 +77,7 @@ public:
 
 	virtual void beginRender();
 	virtual void endRender() = 0;
-	virtual void render(AssetId materialId, const MaterialGroup &materialGroup) = 0;
+	virtual void render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups) = 0;
 };
 
 }

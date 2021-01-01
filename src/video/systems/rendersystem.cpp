@@ -15,7 +15,8 @@ using namespace Boiler;
 
 void RenderSystem::update(ComponentStore &store, const double)
 {
-	std::array<MaterialGroup, maxMaterials> materialGroups;
+	std::vector<MaterialGroup> materialGroups;
+	materialGroups.resize(128);
 	std::vector<mat4> matrices(getEntities().size());
 
 	// calculate matrices and setup material groups
@@ -47,19 +48,14 @@ void RenderSystem::update(ComponentStore &store, const double)
 		{
 			auto &matGroup = materialGroups[primitive.materialId];
 			matGroup.matrixId = i;
+			matGroup.materialId = primitive.materialId;
 
-			if (primitive.materialId != Material::NO_MATERIAL)
+			if (primitive.materialId != Asset::NO_ASSET)
 			{
 				matGroup.primitives.push_back(primitive);
 			}
 		}
 	}
-	// update GPU buffer
-	renderer.updateMatrices(matrices);
 
-	// iterate over materials, and render each group of primitives
-	for (const auto &material : renderer.getMaterials())
-	{
-		renderer.render(material.getAssetId(), materialGroups[material.getAssetId()]);
-	}
+	renderer.render(matrices, materialGroups);
 }

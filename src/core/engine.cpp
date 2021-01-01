@@ -134,7 +134,7 @@ void Engine::step()
 
 	// render related systems only run during render phase
 	// TODO: Handle GUI events differently
-	renderer->beginRender();
+	renderer->beginRender(); // this is called before updateMatrices, wrong descriptor data
 
 	lightingSystem->update(getEcs().getComponentStore(), frameDelta);
 
