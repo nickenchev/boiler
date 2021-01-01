@@ -1780,7 +1780,6 @@ void VulkanRenderer::beginRender()
 		}
 		updateMaterials(shaderMaterials);
 
-		/*
 		VkDescriptorBufferInfo materialsBuffInfo = {};
 		materialsBuffInfo.buffer = materialBuffer.buffer;
 		materialsBuffInfo.offset = 0;
@@ -1791,11 +1790,10 @@ void VulkanRenderer::beginRender()
 			.dstSet = descriptorSet,
 			.dstBinding = 2,
 			.dstArrayElement = 0,
-			.descriptorCount = maxMaterials,
+			.descriptorCount = 1,
 			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 			.pBufferInfo = &materialsBuffInfo
 		};
-		*/
 
 		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
