@@ -86,7 +86,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkRenderPass renderPass;
 
 	// descriptor related
-	DescriptorSet renderDescriptors, primitiveDescriptors, deferredDescriptors;
+	DescriptorSet renderDescriptors, materialDescriptors, deferredDescriptors;
 
 	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout, noTexPipelineLayout;
 	//VkPipeline gBufferPipeline, deferredPipeline;

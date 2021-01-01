@@ -40,6 +40,7 @@ constexpr int maxAnistrophy = 16;
 constexpr int maxObjects = 1000;
 constexpr int maxLights = 64;
 constexpr int maxMaterials = 64;
+constexpr int maxSamplers = 1;
 
 int entityNumber = 0;
 
@@ -209,7 +210,7 @@ void VulkanRenderer::shutdown()
 	logger.log("Render passes destroyed");
 
 	renderDescriptors.cleanup(device);
-	primitiveDescriptors.cleanup(device);
+	materialDescriptors.cleanup(device);
 	deferredDescriptors.cleanup(device);
 	logger.log("Destroyed descriptors");
 
@@ -859,7 +860,7 @@ void VulkanRenderer::createGraphicsPipelines()
 
 	std::array<VkDescriptorSetLayout, 2> descriptorLayouts{
 		renderDescriptors.getLayout(),
-		primitiveDescriptors.getLayout()
+		materialDescriptors.getLayout()
 	};
 
 	VkPipelineLayoutCreateInfo gBuffPipeLayoutCreateInfo{};
@@ -1000,22 +1001,22 @@ void VulkanRenderer::createDescriptorSets()
 	renderDescriptors.createPool(device, renderPoolSizes);
 	renderDescriptors.allocate(device);
 
-	// render pass - per object
-	primitiveDescriptors.setMaxSets(swapChainImages.size());
-	std::array<VkDescriptorSetLayoutBinding, 1> primitiveBindings;
-	primitiveBindings[0].binding = 0; // samplers
-	primitiveBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	primitiveBindings[0].descriptorCount = 1;
-	primitiveBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	primitiveBindings[0].pImmutableSamplers = nullptr;
+	// render pass - per material group
+	materialDescriptors.setMaxSets(maxMaterials * swapChainImages.size());
+	std::array<VkDescriptorSetLayoutBinding, 1> materialBindings;
+	materialBindings[0].binding = 0; // samplers
+	materialBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	materialBindings[0].descriptorCount = maxSamplers;
+	materialBindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	materialBindings[0].pImmutableSamplers = nullptr;
 
-	std::array<VkDescriptorPoolSize, 1> primitivePoolSizes{};
-	primitivePoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	primitivePoolSizes[0].descriptorCount = maxMaterials * primitiveDescriptors.getMaxSets();
+	std::array<VkDescriptorPoolSize, 1> materialPoolSizes{};
+	materialPoolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	materialPoolSizes[0].descriptorCount = maxMaterials * swapChainImages.size() * maxSamplers;
 
-	primitiveDescriptors.createLayout(device, primitiveBindings);
-	primitiveDescriptors.createPool(device, primitivePoolSizes);
-	primitiveDescriptors.allocate(device);
+	materialDescriptors.createLayout(device, materialBindings);
+	materialDescriptors.createPool(device, materialPoolSizes);
+	materialDescriptors.allocate(device);
 	
 	// deferred render pass
 	std::array<VkDescriptorSetLayoutBinding, 4> deferredBindings{};
@@ -1823,16 +1824,15 @@ void VulkanRenderer::beginRender()
 void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGroup)
 {
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
-	
+
     RenderConstants constants;
 	constants.materialId = materialId;
 	constants.matrixId = materialGroup.matrixId;
 	vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(RenderConstants), &constants);
 
-	/*
 	std::array<VkWriteDescriptorSet, 1> descriptorWrites;
 	Material &material = getMaterial(materialId);
-	VkDescriptorSet descriptorSet = renderDescriptors.getSet((currentFrame * maxObjects) + entityNumber++);
+	VkDescriptorSet descriptorSet = materialDescriptors.getSet((currentFrame * maxMaterials) + materialId);
 
 	if (material.baseTexture.has_value())
 	{
@@ -1844,7 +1844,7 @@ void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGro
 		descriptorWrites[0] = {
 			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 			.dstSet = descriptorSet,
-			.dstBinding = 2,
+			.dstBinding = 0,
 			.dstArrayElement = 0,
 			.descriptorCount = 1,
 			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
@@ -1852,8 +1852,9 @@ void VulkanRenderer::render(AssetId materialId, const MaterialGroup &materialGro
 		};
 	}
 	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 1, 1, &descriptorSet, 0, nullptr);
 
+	/*
 	for (const Primitive &primitive : materialGroup.primitives)
 	{
 		// draw the vertex data
