@@ -1778,16 +1778,17 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 
+	std::array<VkWriteDescriptorSet, 3> dsetWritesFrame{};
+
 	// matrix data updates
 	ViewProjection viewProjection {
 		.view = viewMatrix,
 		.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f)
 	};
 
+	// update matrix data
 	const VkDeviceSize size = matrices.size() * sizeof(mat4);
-	
 	void *data = nullptr;
-
 	vkMapMemory(device, matrixBuffer.memory, 0, sizeof(ViewProjection), 0, &data);
 	memcpy(data, &viewProjection, sizeof(ViewProjection));
 	vkUnmapMemory(device, matrixBuffer.memory);
@@ -1795,8 +1796,6 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	vkMapMemory(device, matrixBuffer.memory, sizeof(ViewProjection), size, 0, &data);
 	memcpy(data, matrices.data(), size);
 	vkUnmapMemory(device, matrixBuffer.memory);
-
-	std::array<VkWriteDescriptorSet, 3> dsetWritesFrame{};
 
 	// view and projection matrices
 	VkDescriptorBufferInfo viewProjBuffInfo = {};
@@ -1835,7 +1834,8 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	for (int i = 0; i < getMaterials().size(); ++i)
 	{
 		const Material &material = getMaterials()[i];
-		shaderMaterials[i].baseColorFactor = material.color;
+		//shaderMaterials[i].baseColorFactor = material.color;
+		shaderMaterials[i].baseColorFactor = vec4(1, 1, 1, 1);
 		if (material.baseTexture.has_value())
 		{
 			shaderMaterials[i].useBaseTexture = true;
@@ -1864,12 +1864,15 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	{
 		const MaterialGroup &group = materialGroups[i];
 
+		// TODO: Avoid looping over all material groups
+		// only loop over the ones that are actually being used
 		if (group.materialId != Asset::NO_ASSET)
 		{
 			std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
 			const Material &material = getMaterial(group.materialId);
 			descriptorSets[DSET_IDX_OBJ] = materialDescriptors.getSet((currentFrame * maxMaterials) + group.materialId);
 
+			assert(material.baseTexture.has_value());
 			if (material.baseTexture.has_value())
 			{
 				VkDescriptorImageInfo imageInfo = {};
