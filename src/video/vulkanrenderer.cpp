@@ -37,9 +37,9 @@ constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
-constexpr int maxObjects = 1000;
+constexpr int maxObjects = 100;
 constexpr int maxLights = 64;
-constexpr int maxMaterials = 64;
+constexpr int maxMaterials = 32;
 constexpr int maxSamplers = 1;
 
 int entityNumber = 0;
@@ -975,27 +975,27 @@ void VulkanRenderer::createDescriptorSets()
 	std::array<VkDescriptorSetLayoutBinding, 3> renderBindings{};
 	renderBindings[0].binding = 0; // general info
 	renderBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderBindings[0].descriptorCount = maxObjects;
+	renderBindings[0].descriptorCount = 1;
 	renderBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	renderBindings[0].pImmutableSamplers = nullptr;
 	renderBindings[1].binding = 1; // matrices
 	renderBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderBindings[1].descriptorCount = maxObjects;
+	renderBindings[1].descriptorCount = 1;
 	renderBindings[1].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	renderBindings[1].pImmutableSamplers = nullptr;
 	renderBindings[2].binding = 2; // materials
 	renderBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderBindings[2].descriptorCount = maxMaterials;
+	renderBindings[2].descriptorCount = 1;
 	renderBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	renderBindings[2].pImmutableSamplers = nullptr;
 
 	std::array<VkDescriptorPoolSize, 3> renderPoolSizes{};
 	renderPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[0].descriptorCount = maxObjects * renderDescriptors.getMaxSets();
+	renderPoolSizes[0].descriptorCount = renderBindings[0].descriptorCount * renderDescriptors.getMaxSets();
 	renderPoolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[1].descriptorCount = maxObjects * renderDescriptors.getMaxSets();
+	renderPoolSizes[1].descriptorCount = renderBindings[1].descriptorCount * renderDescriptors.getMaxSets();
 	renderPoolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[2].descriptorCount = maxMaterials * renderDescriptors.getMaxSets();
+	renderPoolSizes[2].descriptorCount = renderBindings[2].descriptorCount * renderDescriptors.getMaxSets();
 
 	renderDescriptors.createLayout(device, renderBindings);
 	renderDescriptors.createPool(device, renderPoolSizes);
@@ -1726,78 +1726,6 @@ void VulkanRenderer::beginRender()
 			throw std::runtime_error("Could not begin command buffer");
 		}
 
-		ViewProjection viewProjection {
-			.view = viewMatrix,
-			.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f)
-		};
-
-		// setup descriptor sets
-		VkDescriptorSet descriptorSet = renderDescriptors.getSet(currentFrame);
-		std::array<VkWriteDescriptorSet, 2> descriptorWrites;
-
-		// view and projection matrices
-		VkDescriptorBufferInfo viewProjBuffInfo = {};
-		viewProjBuffInfo.buffer = matrixBuffer.buffer;
-		viewProjBuffInfo.offset = 0;
-		viewProjBuffInfo.range = sizeof(ViewProjection);
-
-		descriptorWrites[0] = {
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.dstSet = descriptorSet,
-			.dstBinding = 0,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.pBufferInfo = &viewProjBuffInfo
-		};
-
-		// all matrices
-		VkDescriptorBufferInfo matrixBuffInfo = {};
-		matrixBuffInfo.buffer = matrixBuffer.buffer;
-		matrixBuffInfo.offset = sizeof(ViewProjection);
-		matrixBuffInfo.range = sizeof(mat4) * maxObjects;
-
-		descriptorWrites[1] = {
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.dstSet = descriptorSet,
-			.dstBinding = 1,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.pBufferInfo = &matrixBuffInfo
-		};
-
-		// update shader material data
-		std::vector<ShaderMaterial> shaderMaterials(getMaterials().size());
-		for (int i = 0; i < getMaterials().size(); ++i)
-		{
-			const Material &material = getMaterials()[i];
-			shaderMaterials[i].baseColorFactor = material.color;
-			if (material.baseTexture.has_value())
-			{
-				shaderMaterials[i].useBaseTexture = true;
-			}
-		}
-		updateMaterials(shaderMaterials);
-
-		VkDescriptorBufferInfo materialsBuffInfo = {};
-		materialsBuffInfo.buffer = materialBuffer.buffer;
-		materialsBuffInfo.offset = 0;
-		materialsBuffInfo.range = sizeof(ShaderMaterial) * maxMaterials;
-
-		descriptorWrites[2] = {
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.dstSet = descriptorSet,
-			.dstBinding = 2,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.pBufferInfo = &materialsBuffInfo
-		};
-
-		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-
 		// clear colour
 		std::array<VkClearValue, 5> clearValues = {};
         clearValues[0].color = {{getClearColor().r, getClearColor().g, getClearColor().b, 1.0f}};
@@ -1841,18 +1769,95 @@ void VulkanRenderer::beginRender()
 
 void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups)
 {
+	constexpr size_t DSET_IDX_FRAME = 0;
+	constexpr size_t DSET_IDX_OBJ = 1;
+
+	// setup descriptor sets
+	static std::array<VkDescriptorSet, 2> descriptorSets{};
+	descriptorSets[DSET_IDX_FRAME] = renderDescriptors.getSet(currentFrame);
+
+	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+
+	// matrix data updates
 	updateMatrices(matrices);
+	ViewProjection viewProjection {
+		.view = viewMatrix,
+		.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f)
+	};
+
+	std::array<VkWriteDescriptorSet, 3> dsetWritesFrame{};
+
+	// view and projection matrices
+	VkDescriptorBufferInfo viewProjBuffInfo = {};
+	viewProjBuffInfo.buffer = matrixBuffer.buffer;
+	viewProjBuffInfo.offset = 0;
+	viewProjBuffInfo.range = sizeof(ViewProjection);
+
+	dsetWritesFrame[0] = {
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = descriptorSets[DSET_IDX_FRAME],
+		.dstBinding = 0,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		.pBufferInfo = &viewProjBuffInfo
+	};
+
+	// all matrices
+	VkDescriptorBufferInfo matrixBuffInfo = {};
+	matrixBuffInfo.buffer = matrixBuffer.buffer;
+	matrixBuffInfo.offset = sizeof(ViewProjection);
+	matrixBuffInfo.range = sizeof(mat4) * maxObjects;
+
+	dsetWritesFrame[1] = {
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = descriptorSets[DSET_IDX_FRAME],
+		.dstBinding = 1,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		.pBufferInfo = &matrixBuffInfo
+	};
+
+	// update shader material data
+	std::vector<ShaderMaterial> shaderMaterials(getMaterials().size());
+	for (int i = 0; i < getMaterials().size(); ++i)
+	{
+		const Material &material = getMaterials()[i];
+		shaderMaterials[i].baseColorFactor = material.color;
+		if (material.baseTexture.has_value())
+		{
+			shaderMaterials[i].useBaseTexture = true;
+		}
+	}
+	updateMaterials(shaderMaterials);
+
+	VkDescriptorBufferInfo materialsBuffInfo = {};
+	materialsBuffInfo.buffer = materialBuffer.buffer;
+	materialsBuffInfo.offset = 0;
+	materialsBuffInfo.range = sizeof(ShaderMaterial) * maxMaterials;
+
+	dsetWritesFrame[2] = {
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = descriptorSets[DSET_IDX_FRAME],
+		.dstBinding = 2,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		.pBufferInfo = &materialsBuffInfo
+	};
+
+	vkUpdateDescriptorSets(device, dsetWritesFrame.size(), dsetWritesFrame.data(), 0, nullptr);
 
 	for (int i = 0; i < materialGroups.size(); ++i)
 	{
 		const MaterialGroup &group = materialGroups[i];
-		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 
 		if (group.materialId != Asset::NO_ASSET)
 		{
-			std::array<VkWriteDescriptorSet, 1> descriptorWrites;
+			std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
 			const Material &material = getMaterial(group.materialId);
-			VkDescriptorSet descriptorSet = materialDescriptors.getSet((currentFrame * maxMaterials) + group.materialId);
+			descriptorSets[DSET_IDX_OBJ] = materialDescriptors.getSet((currentFrame * maxMaterials) + group.materialId);
 
 			if (material.baseTexture.has_value())
 			{
@@ -1861,9 +1866,9 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 				imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
 				imageInfo.sampler = textureSampler;
 
-				descriptorWrites[0] = {
+				dsetObjWrites[0] = {
 					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-					.dstSet = descriptorSet,
+					.dstSet = descriptorSets[DSET_IDX_OBJ],
 					.dstBinding = 0,
 					.dstArrayElement = 0,
 					.descriptorCount = 1,
@@ -1871,8 +1876,9 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 					.pImageInfo = &imageInfo,
 				};
 			}
-			vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 1, 1, &descriptorSet, 0, nullptr);
+
+			vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 
 			RenderConstants constants;
 			constants.materialId = group.materialId;
