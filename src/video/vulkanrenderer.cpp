@@ -853,7 +853,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 void VulkanRenderer::createGraphicsPipelines()
 {
     std::array<VkPushConstantRange, 2> pushConsts{};
-    pushConsts[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    pushConsts[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
     pushConsts[0].offset = 0;
     pushConsts[0].size = sizeof(RenderConstants);
 
@@ -1779,11 +1779,22 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 
 	// matrix data updates
-	updateMatrices(matrices);
 	ViewProjection viewProjection {
 		.view = viewMatrix,
 		.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f)
 	};
+
+	const VkDeviceSize size = matrices.size() * sizeof(mat4);
+	
+	void *data = nullptr;
+
+	vkMapMemory(device, matrixBuffer.memory, 0, sizeof(ViewProjection), 0, &data);
+	memcpy(data, &viewProjection, sizeof(ViewProjection));
+	vkUnmapMemory(device, matrixBuffer.memory);
+
+	vkMapMemory(device, matrixBuffer.memory, sizeof(ViewProjection), size, 0, &data);
+	memcpy(data, matrices.data(), size);
+	vkUnmapMemory(device, matrixBuffer.memory);
 
 	std::array<VkWriteDescriptorSet, 3> dsetWritesFrame{};
 
@@ -1883,7 +1894,7 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 			RenderConstants constants;
 			constants.materialId = group.materialId;
 			constants.matrixId = group.matrixId;
-			vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(RenderConstants), &constants);
+			vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(RenderConstants), &constants);
 			for (const Primitive &primitive : group.primitives)
 			{
 				// draw the vertex data
