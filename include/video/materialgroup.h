@@ -8,14 +8,23 @@ namespace Boiler {
 
 struct MaterialGroup
 {
+	struct PrimitiveInstance
+	{
+		const Primitive primitive;
+		AssetId matrixId;
+
+		PrimitiveInstance(const Primitive &primitive, AssetId matrixId) : primitive(primitive)
+		{
+			this->matrixId = matrixId;
+		}
+	};
+	
 	AssetId materialId;
-	AssetId matrixId;
-	std::vector<Primitive> primitives;
+	std::vector<PrimitiveInstance> primitives;
 
 	MaterialGroup()
 	{
 		materialId = Asset::NO_ASSET;
-		matrixId = Asset::NO_ASSET;
 	}
 };
 

@@ -47,12 +47,11 @@ void RenderSystem::update(ComponentStore &store, const double)
 		for (const auto &primitive : render.mesh.primitives)
 		{
 			auto &matGroup = materialGroups[primitive.materialId];
-			matGroup.matrixId = i;
 			matGroup.materialId = primitive.materialId;
 
 			if (primitive.materialId != Asset::NO_ASSET)
 			{
-				matGroup.primitives.push_back(primitive);
+				matGroup.primitives.push_back(MaterialGroup::PrimitiveInstance(primitive, i));
 			}
 		}
 	}
