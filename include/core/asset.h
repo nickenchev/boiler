@@ -4,7 +4,7 @@
 namespace Boiler
 {
 	
-using AssetId = unsigned int;
+using AssetId = int;
 
 class Asset
 {
