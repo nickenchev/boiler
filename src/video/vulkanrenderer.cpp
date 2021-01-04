@@ -37,12 +37,10 @@ constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
-constexpr int maxObjects = 512;
+constexpr int maxObjects = 1000;
 constexpr int maxLights = 64;
-constexpr int maxMaterials = 64;
+constexpr int maxMaterials = 128;
 constexpr int maxSamplers = 1;
-
-int entityNumber = 0;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -970,8 +968,9 @@ void VulkanRenderer::createFramebuffers()
 
 void VulkanRenderer::createDescriptorSets()
 {
+	const int frames = maxFramesInFlight;
 	// render pass - per frame
-	renderDescriptors.setMaxSets(swapChainImages.size());
+	renderDescriptors.setMaxSets(frames);
 	std::array<VkDescriptorSetLayoutBinding, 3> renderBindings{};
 	renderBindings[0].binding = 0; // general info
 	renderBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1002,7 +1001,7 @@ void VulkanRenderer::createDescriptorSets()
 	renderDescriptors.allocate(device);
 
 	// render pass - per material group
-	materialDescriptors.setMaxSets(maxMaterials * swapChainImages.size());
+	materialDescriptors.setMaxSets(maxMaterials * frames);
 	std::array<VkDescriptorSetLayoutBinding, 1> materialBindings;
 	materialBindings[0].binding = 0; // samplers
 	materialBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -1012,7 +1011,7 @@ void VulkanRenderer::createDescriptorSets()
 
 	std::array<VkDescriptorPoolSize, 1> materialPoolSizes{};
 	materialPoolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	materialPoolSizes[0].descriptorCount = maxMaterials * swapChainImages.size() * maxSamplers;
+	materialPoolSizes[0].descriptorCount = maxMaterials * frames * maxSamplers;
 
 	materialDescriptors.createLayout(device, materialBindings);
 	materialDescriptors.createPool(device, materialPoolSizes);
@@ -1040,15 +1039,15 @@ void VulkanRenderer::createDescriptorSets()
 
 	std::array<VkDescriptorPoolSize, 4> attachPoolSizes{};
 	attachPoolSizes[0].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	attachPoolSizes[0].descriptorCount = swapChainImages.size();
+	attachPoolSizes[0].descriptorCount = frames;
 	attachPoolSizes[1].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	attachPoolSizes[1].descriptorCount = swapChainImages.size();
+	attachPoolSizes[1].descriptorCount = frames;
 	attachPoolSizes[2].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	attachPoolSizes[2].descriptorCount = swapChainImages.size();
+	attachPoolSizes[2].descriptorCount = frames;
 	attachPoolSizes[3].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	attachPoolSizes[3].descriptorCount = swapChainImages.size();
+	attachPoolSizes[3].descriptorCount = frames;
 
-	deferredDescriptors.setMaxSets(swapChainImages.size());
+	deferredDescriptors.setMaxSets(frames);
 	deferredDescriptors.createLayout(device, deferredBindings);
 	deferredDescriptors.createPool(device, attachPoolSizes);
 	deferredDescriptors.allocate(device);
@@ -1706,7 +1705,6 @@ void VulkanRenderer::beginRender()
 
 	if (nextImageResult == VK_SUCCESS)
 	{
-		entityNumber = 0;
 		// ensure current command buffer has finished executing before attempting to reuse it
 		vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
 		vkResetFences(device, 1, &frameFences[currentFrame]);
@@ -1772,12 +1770,11 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	constexpr size_t DSET_IDX_FRAME = 0;
 	constexpr size_t DSET_IDX_MATERIAL = 1;
 
+	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+
 	// setup descriptor sets
 	static std::array<VkDescriptorSet, 2> descriptorSets{};
 	descriptorSets[DSET_IDX_FRAME] = renderDescriptors.getSet(currentFrame);
-
-	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
-
 	std::array<VkWriteDescriptorSet, 3> dsetWritesFrame{};
 
 	// matrix data updates
@@ -1868,49 +1865,53 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 		if (group.materialId != Asset::NO_ASSET)
 		{
 			const Material &material = getMaterial(group.materialId);
+			std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
+			const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
+			descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
+			int bindDescCount = descriptorSets.size();
+
 			if (material.baseTexture.has_value())
 			{
-				std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
-				descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet((currentFrame * maxMaterials) + group.materialId);
+				VkDescriptorImageInfo imageInfo = {};
+				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
+				imageInfo.sampler = textureSampler;
 
-				if (material.baseTexture.has_value())
-				{
-					VkDescriptorImageInfo imageInfo = {};
-					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
-					imageInfo.sampler = textureSampler;
-
-					dsetObjWrites[0] = {
-						.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-						.dstSet = descriptorSets[DSET_IDX_MATERIAL],
-						.dstBinding = 0,
-						.dstArrayElement = 0,
-						.descriptorCount = 1,
-						.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-						.pImageInfo = &imageInfo,
-					};
-				}
-
+				dsetObjWrites[0] = {
+					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+					.dstSet = descriptorSets[DSET_IDX_MATERIAL],
+					.dstBinding = 0,
+					.dstArrayElement = 0,
+					.descriptorCount = 1,
+					.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+					.pImageInfo = &imageInfo,
+				};
 				vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
-				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
+			}
+			else
+			{
+				descriptorSets[DSET_IDX_MATERIAL] = VK_NULL_HANDLE;
+				bindDescCount = 1;
+			}
 
-				for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
-				{
-					RenderConstants constants;
-					constants.materialId = group.materialId;
-					constants.matrixId = instance.matrixId;
-					vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-									0, sizeof(RenderConstants), &constants);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, bindDescCount, descriptorSets.data(), 0, nullptr);
 
-					// draw the vertex data
-					const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(instance.primitive.getAssetId());
-					const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
-					const std::array<VkDeviceSize, buffers.size()> offsets = {0};
+			for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
+			{
+				RenderConstants constants;
+				constants.materialId = group.materialId;
+				constants.matrixId = instance.matrixId;
+				vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+								0, sizeof(RenderConstants), &constants);
 
-					vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
-					vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
-					vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(instance.primitive.getIndexCount()), 1, 0, 0, 0);
-				}
+				// draw the vertex data
+				const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(instance.primitive.getAssetId());
+				const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
+				const std::array<VkDeviceSize, buffers.size()> offsets = {0};
+
+				vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
+				vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
+				vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(instance.primitive.getIndexCount()), 1, 0, 0, 0);
 			}
 		}
 	}
