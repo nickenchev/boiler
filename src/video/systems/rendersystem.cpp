@@ -13,6 +13,10 @@ constexpr size_t maxMaterials = 128;
 
 using namespace Boiler;
 
+RenderSystem::RenderSystem(Renderer &renderer) : System("Render System"), renderer(renderer)
+{
+}
+
 void RenderSystem::update(ComponentStore &store, const double)
 {
 	std::vector<MaterialGroup> materialGroups;

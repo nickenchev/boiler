@@ -16,9 +16,7 @@ class RenderSystem : public System
 	Renderer &renderer;
 
 public:
-	RenderSystem(Renderer &renderer) : System("Render System"), renderer(renderer)
-	{
-	}
+	RenderSystem(Renderer &renderer);
 
 	void update(ComponentStore &store, const double delta) override;
 };
