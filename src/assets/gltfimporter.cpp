@@ -116,7 +116,7 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 	for (const gltf::Animation &gltfAnim : model.animations)
 	{
 		Animation animation(gltfAnim.name);
-		for (const gltf::Sampler &gltfSamp : gltfAnim.samplers)
+		auto loadSampler = [this, &animator, &modelAccess](const gltf::Sampler &gltfSamp)
 		{
 			// load key frame times
 			std::vector<float> keyFrameTimes;
@@ -133,26 +133,27 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 			const gltf::BufferView &buffView = model.bufferViews[access.bufferView.value()];
 
 			assert(access.componentType == gltf::ComponentType::FLOAT);
-			
+
 			// copy animation data bytes
 			assert(buffView.byteLength.has_value());
 			const size_t dataSize = buffView.byteLength.value() - access.byteOffset;
 			std::vector<std::byte> animData(dataSize);
 			std::memcpy(animData.data(), modelAccess.getPointer(access), animData.size());
 
-			animation.addSampler(AnimationSampler(std::move(keyFrameTimes), std::move(animData)));
-		}
+			return animator.addSampler(AnimationSampler(std::move(keyFrameTimes), std::move(animData)));
+		};
 
 		for (const gltf::Channel &gltfChan : gltfAnim.channels)
 		{
-			animation.addChannel(Channel(gltfChan.target.node.value(), gltfChan.target.path,
-										 gltfChan.sampler));
+			SamplerId samplerId = loadSampler(gltfAnim.samplers[gltfChan.sampler]);
+			animation.addChannel(Channel(gltfChan.target.node.value(), gltfChan.target.path, samplerId));
 		}
         result.animations.push_back(animator.addAnimation(std::move(animation)));
 	}
 
 	logger.log("Imported {} materials", result.materials.size());
 	logger.log("Imported {} meshes", result.meshes.size());
+	logger.log("Imported {} animations", result.animations.size());
 }
 
 Primitive GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive)

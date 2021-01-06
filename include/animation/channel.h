@@ -22,13 +22,13 @@ class Channel
 {
 	ChannelTarget target;
 	Path path;
-	unsigned int samplerIndex;
+	SamplerId samplerId;
 
 public:
-	Channel(ChannelTarget target, const std::string &path, unsigned int samplerIndex)
+	Channel(ChannelTarget target, const std::string &path, SamplerId samplerId)
 	{
 		this->target = target;
-		this->samplerIndex = samplerIndex;
+		this->samplerId = samplerId;
 
 		if (path == "translation")
 		{
@@ -46,7 +46,7 @@ public:
 
 	ChannelTarget getTarget() const { return target; }
 	Path getPath() const { return path; }
-	unsigned int getSamplerIndex() const { return samplerIndex; }
+	SamplerId getSamplerId() const { return samplerId; }
 };
 
 };

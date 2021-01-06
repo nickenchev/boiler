@@ -6,11 +6,15 @@
 namespace Boiler
 {
 
+class Animator;
+
 class AnimationSystem : public System
 {
+	Animator &animator;
 	double totalTime;
+
 public:
-	AnimationSystem() : System("Animation System")
+	AnimationSystem(Animator &animator) : System("Animation System"), animator(animator)
 	{
 		totalTime = 0;
 	}

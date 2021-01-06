@@ -7,6 +7,7 @@
 
 namespace Boiler {
 
+using SamplerId = size_t;
 static Logger logger("Animation Sampler");
 
 class AnimationSampler

@@ -14,6 +14,8 @@ class AnimationComponent : public ComponentType<AnimationComponent>
 public:
 	AnimationComponent() : ComponentType(this) { }
 	AnimationComponent(const std::vector<Entity> &targets) : ComponentType(this), targets(targets) { }
+
+	const auto &getTargets() const { return targets; }
 };
 
 };

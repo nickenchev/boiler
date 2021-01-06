@@ -60,8 +60,9 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	frameInterval = 1.0f / 60.0f; // 60fps
 	renderer->initialize(initialSize);
 
-	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>()
-		.expects<AnimationComponent>();
+	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(animator)
+		.expects<AnimationComponent>()
+		.expects<TransformComponent>();
 	this->animationSystem = &animationSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer)
@@ -256,6 +257,5 @@ void Engine::processEvents()
 
 void Engine::update(const double delta)
 {
-	animator.animate(delta);
 	ecs.update(delta);
 }

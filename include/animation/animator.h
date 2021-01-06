@@ -6,6 +6,8 @@
 #include "core/math.h"
 #include "core/logger.h"
 #include "animation/animation.h"
+#include "animation/animationsampler.h"
+#include "animation/components/animationcomponent.h"
 #include "core/entitycomponentsystem.h"
 #include "core/components/transformcomponent.h"
 
@@ -35,7 +37,10 @@ class Animator
 {
 	Logger logger;
 	float totalTime;
+
+	std::vector<AnimationSampler> samplers;
 	std::vector<Animation> animations;
+
 	EntityComponentSystem &ecs;
 
 public:
@@ -44,25 +49,32 @@ public:
 		totalTime = 0;
 	}
 
+	SamplerId addSampler(const AnimationSampler &&sampler)
+	{
+		samplers.push_back(sampler);
+		SamplerId newIdx = samplers.size() - 1;
+		return newIdx;
+	}
+
     AnimationId addAnimation(const Animation &&animation)
 	{
 		animations.push_back(animation);
-        size_t newIndex = animations.size() - 1;
+        AnimationId newIndex = animations.size() - 1;
         return newIndex;
 	}
 
 	void resetTime() { totalTime = 0; }
 
-	void animate(float delta)
+	void animate(float delta, const AnimationComponent &animationComponent)
 	{
-		/*
+		const auto &targets = animationComponent.getTargets();
 		for (const auto &animation : animations)
 		{
 			float time = totalTime;
 			for (const auto &channel : animation.getChannels())
 			{
-				TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(channel.getEntity());
-				const AnimationSampler &sampler = animation.getSampler(channel.getSamplerIndex());
+				TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(targets[channel.getTarget()]);
+				const AnimationSampler &sampler = samplers[channel.getSamplerId()]; // TODO: Change this so not using index
 
 				if (channel.getPath() == Path::TRANSLATION)
 				{
@@ -80,7 +92,6 @@ public:
 			}
 		}
 		totalTime += delta;
-		*/
 	}
 };
 
