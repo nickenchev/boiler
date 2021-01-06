@@ -20,7 +20,7 @@ RenderSystem::RenderSystem(Renderer &renderer) : System("Render System"), render
 void RenderSystem::update(ComponentStore &store, const double)
 {
 	std::vector<MaterialGroup> materialGroups;
-	materialGroups.resize(128);
+	materialGroups.resize(256);
 	std::vector<mat4> matrices(getEntities().size());
 
 	// calculate matrices and setup material groups

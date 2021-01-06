@@ -32,15 +32,16 @@
 using namespace Boiler;
 using namespace Boiler::Vulkan;
 
-const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
 constexpr int maxObjects = 1000;
 constexpr int maxLights = 64;
-constexpr int maxMaterials = 128;
+constexpr int maxMaterials = 256;
 constexpr int maxSamplers = 1;
+
+const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 													VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -1673,7 +1674,7 @@ void VulkanRenderer::updateMatrices(const std::vector<mat4> &matrices) const
 void VulkanRenderer::updateMaterials(const std::vector<ShaderMaterial> &materials) const
 {
 	assert(materials.size() < maxMaterials);
-	const VkDeviceSize size = materials.size() * sizeof(Material);
+	const VkDeviceSize size = materials.size() * sizeof(ShaderMaterial);
 
 	void *data = nullptr;
 	vkMapMemory(device, materialBuffer.memory, 0, size, 0, &data);
@@ -1868,7 +1869,7 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 			std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
 			const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
 			descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
-			int bindDescCount = descriptorSets.size();
+			const int bindDescCount = descriptorSets.size();
 
 			if (material.baseTexture.has_value())
 			{
@@ -1887,11 +1888,6 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 					.pImageInfo = &imageInfo,
 				};
 				vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
-			}
-			else
-			{
-				descriptorSets[DSET_IDX_MATERIAL] = VK_NULL_HANDLE;
-				bindDescCount = 1;
 			}
 
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, bindDescCount, descriptorSets.data(), 0, nullptr);
