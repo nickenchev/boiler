@@ -110,7 +110,6 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 		result.meshes.push_back(newMesh);
 	}
 
-	/*
 	// load all animations
     Animator &animator = engine.getAnimator();
 	for (const gltf::Animation &gltfAnim : model.animations)
@@ -136,9 +135,8 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 			
 			// copy animation data bytes
 			assert(buffView.byteLength.has_value());
-			std::vector<std::byte> animData(buffView.byteLength.value());
-
-			assert(buffView.byteLength.value() == animData.size());
+			const size_t dataSize = buffView.byteLength.value() - access.byteOffset;
+			std::vector<std::byte> animData(dataSize);
 			std::memcpy(animData.data(), modelAccess.getPointer(access), animData.size());
 
 			animation.addSampler(AnimationSampler(std::move(keyFrameTimes), std::move(animData)));
@@ -146,12 +144,12 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 
 		for (const gltf::Channel &gltfChan : gltfAnim.channels)
 		{
-			Entity entity = nodeEntities[gltfChan.target.node.value()];
-			animation.addChannel(Channel(entity, gltfChan.target.path, gltfChan.sampler));
+			animation.addChannel(Channel(gltfChan.target.node.value(), gltfChan.target.path,
+										 gltfChan.sampler));
 		}
         result.animations.push_back(animator.addAnimation(std::move(animation)));
 	}
-	*/
+
 	logger.log("Imported {} materials", result.materials.size());
 	logger.log("Imported {} meshes", result.meshes.size());
 }
