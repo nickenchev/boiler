@@ -9,6 +9,8 @@
 namespace Boiler
 {
 
+using ChannelTarget = unsigned int;
+
 enum class Path
 {
 	TRANSLATION,
@@ -18,14 +20,14 @@ enum class Path
 
 class Channel
 {
-	Entity entity;
+	ChannelTarget target;
 	Path path;
 	unsigned int samplerIndex;
 
 public:
-	Channel(Entity entity, const std::string &path, unsigned int samplerIndex)
+	Channel(ChannelTarget target, const std::string &path, unsigned int samplerIndex)
 	{
-		this->entity = entity;
+		this->target = target;
 		this->samplerIndex = samplerIndex;
 
 		if (path == "translation")
@@ -42,7 +44,7 @@ public:
 		}
 	}
 
-	Entity getEntity() const { return entity; }
+	ChannelTarget getTarget() const { return target; }
 	Path getPath() const { return path; }
 	unsigned int getSamplerIndex() const { return samplerIndex; }
 };

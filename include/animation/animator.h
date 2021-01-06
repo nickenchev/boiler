@@ -55,6 +55,7 @@ public:
 
 	void animate(float delta)
 	{
+		/*
 		for (const auto &animation : animations)
 		{
 			float time = totalTime;
@@ -79,6 +80,7 @@ public:
 			}
 		}
 		totalTime += delta;
+		*/
 	}
 };
 

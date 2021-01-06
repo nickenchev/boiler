@@ -7,6 +7,7 @@
 #include "core/engine.h"
 #include "core/components/rendercomponent.h"
 #include "core/components/transformcomponent.h"
+#include "animation/components/animationcomponent.h"
 #include "video/vertexdata.h"
 #include "assets/gltfimporter.h"
 #include "assets/importresult.h"
@@ -331,4 +332,7 @@ void GLTFImporter::createInstance(const Entity &rootEntity) const
 			loadNode(nodeEntities, engine.getEcs().newEntity(), nodeIndex, rootEntity);
 		}
 	}
+
+	// target -> entity mapping needed for animations
+	engine.getEcs().createComponent<AnimationComponent>(rootEntity, nodeEntities);
 }
