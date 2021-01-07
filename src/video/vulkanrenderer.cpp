@@ -32,7 +32,6 @@
 using namespace Boiler;
 using namespace Boiler::Vulkan;
 
-constexpr bool enableValidationLayers = true;
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
 constexpr int maxAnistrophy = 16;
@@ -59,8 +58,9 @@ Function getFunctionPointer(VkInstance instance, std::string funcName)
 	return func;
 }
 
-VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtensions) : Renderer("Vulkan Renderer")
+VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtensions, bool enableValidationLayers) : Renderer("Vulkan Renderer")
 {
+	this->enableValidationLayers = enableValidationLayers;
 	cleanedUp = false;
 	currentFrame = 0;
 	resizeOccured = false;
@@ -126,7 +126,7 @@ VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtension
 	std::vector<VkLayerProperties> layers(layerCount);
 	vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
 
-	if constexpr (enableValidationLayers)
+	if (enableValidationLayers)
 	{
 		// check that requested layers are supported
 		bool layersOk = true;
@@ -477,7 +477,7 @@ void VulkanRenderer::initialize(const Size &size)
 		deviceCreateInfo.enabledExtensionCount = requestedDeviceExtensions.size();
 		deviceCreateInfo.ppEnabledExtensionNames = requestedDeviceExtensions.data();
 
-		if constexpr(enableValidationLayers)
+		if (enableValidationLayers)
 		{
 			deviceCreateInfo.enabledLayerCount = validationLayers.size();
 			deviceCreateInfo.ppEnabledLayerNames = validationLayers.data();

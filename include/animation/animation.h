@@ -9,8 +9,6 @@
 namespace Boiler
 {
 
-using AnimationId = size_t;
-
 class Animation
 {
 	std::string name;

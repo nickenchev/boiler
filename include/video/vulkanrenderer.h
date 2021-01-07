@@ -64,7 +64,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkFormat positionFormat, albedoFormat, normalFormat;
 	std::vector<GBuffer> gBuffers;
 
-	bool cleanedUp;
+	bool enableValidationLayers, cleanedUp;
 	SDL_Window *win;
 	bool resizeOccured;
 	VkInstance instance;
@@ -167,7 +167,7 @@ class VulkanRenderer : public Boiler::Renderer
 	BufferInfo createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const;
 
 public:
-    VulkanRenderer(const std::vector<const char *> requiredExtensions);
+    VulkanRenderer(const std::vector<const char *> requiredExtensions, bool enableValidationLayers = false);
 	~VulkanRenderer();
 
 	// overrides

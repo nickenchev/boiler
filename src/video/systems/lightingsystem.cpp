@@ -5,7 +5,7 @@
 
 using namespace Boiler;
 
-void LightingSystem::update(Boiler::ComponentStore &store, const Time)
+void LightingSystem::update(ComponentStore &store, const Time deltaTime, const Time globalTime)
 {
 	std::vector<LightSource> lightSources{};
 	for (unsigned int i = 0; i < getEntities().size(); ++i)

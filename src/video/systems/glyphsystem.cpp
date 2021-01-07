@@ -8,7 +8,7 @@
 
 using namespace Boiler;
 
-void GlyphSystem::update(ComponentStore &store, const Time delta)
+void GlyphSystem::update(ComponentStore &store, const Time deltaTime, const Time globalTime)
 {
 	for (auto &entity : getEntities())
 	{

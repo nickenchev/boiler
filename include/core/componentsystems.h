@@ -23,11 +23,11 @@ public:
     ComponentSystems() : logger{"ComponentSystems"} { }
     virtual ~ComponentSystems() { }
 
-	void update(ComponentStore &store, const Time delta)
+	void update(ComponentStore &store, const Time deltaTime, const Time globalTime)
 	{
 		for (auto &system : updateSystems)
 		{
-			system->update(store, delta);
+			system->update(store, deltaTime, globalTime);
 		}
 	}
 

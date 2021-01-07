@@ -5,7 +5,9 @@
 
 #include "core/math.h"
 #include "core/logger.h"
+#include "core/common.h"
 #include "animation/common.h"
+#include "animation/clip.h"
 #include "animation/animation.h"
 #include "animation/animationsampler.h"
 #include "animation/components/animationcomponent.h"
@@ -18,8 +20,8 @@ namespace Boiler
 class Animator
 {
 	Logger logger;
-	Time totalTime;
 
+	std::vector<Clip> clips;
 	std::vector<AnimationSampler> samplers;
 	std::vector<Animation> animations;
 
@@ -28,7 +30,11 @@ class Animator
 public:
     Animator(EntityComponentSystem &ecs) : logger("Animator"), ecs(ecs)
 	{
-		totalTime = 0;
+	}
+
+	void scheduleClip(const Clip &clip)
+	{
+		clips.push_back(clip);
 	}
 
 	SamplerId addSampler(const AnimationSampler &&sampler)
@@ -45,35 +51,32 @@ public:
         return newIndex;
 	}
 
-	void resetTime() { totalTime = 0; }
-
-	void animate(float delta, const AnimationComponent &animationComponent)
+	void animate(Time globalTime, Time deltaTime, const AnimationComponent &animationComponent)
 	{
-		const auto &targets = animationComponent.getTargets();
-		for (const auto &animation : animations)
-		{
-			float time = totalTime;
-			for (const auto &channel : animation.getChannels())
-			{
-				TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(targets[channel.getTarget()]);
-				const AnimationSampler &sampler = samplers[channel.getSamplerId()]; // TODO: Change this so not using index
+		// const auto &targets = animationComponent.getTargets();
+		// for (const auto &animation : animations)
+		// {
+		// 	for (const auto &channel : animation.getChannels())
+		// 	{
+		// 		TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(targets[channel.getTarget()]);
+		// 		const AnimationSampler &sampler = samplers[channel.getSamplerId()]; // TODO: Change this so not using index
 
-				if (channel.getPath() == Path::TRANSLATION)
-				{
-					transform.setPosition(sampler.sample<vec3>(time));
-				}
-				else if (channel.getPath() == Path::ROTATION)
-				{
-					const auto value = sampler.sample<vec4>(time);
-					transform.setOrientation(quat(value.w, value.x, value.y, value.z));
-				}
-				else if (channel.getPath() == Path::SCALE)
-				{
-					transform.setScale(sampler.sample<vec3>(time));
-				}
-			}
-		}
-		totalTime += delta;
+		// 		if (channel.getPath() == Path::TRANSLATION)
+		// 		{
+		// 			transform.setPosition(sampler.sample<vec3>(time));
+		// 		}
+		// 		else if (channel.getPath() == Path::ROTATION)
+		// 		{
+		// 			const auto value = sampler.sample<vec4>(time);
+		// 			transform.setOrientation(quat(value.w, value.x, value.y, value.z));
+		// 		}
+		// 		else if (channel.getPath() == Path::SCALE)
+		// 		{
+		// 			transform.setScale(sampler.sample<vec3>(time));
+		// 		}
+		// 	}
+		// }
+		// totalTime += delta;
 	}
 };
 

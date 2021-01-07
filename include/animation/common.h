@@ -1,9 +1,9 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef ANIM_COMMON_H
+#define ANIM_COMMON_H
 
 namespace Boiler
 {
-	using AnimationId = size_t;
+	using AnimationId = unsigned int;
 };
 
-#endif /* COMMON_H */
+#endif /* ANIM_COMMON_H */

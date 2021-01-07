@@ -19,7 +19,7 @@ class RenderSystem : public System
 public:
 	RenderSystem(Renderer &renderer);
 
-	void update(ComponentStore &store, const Time delta) override;
+	void update(ComponentStore &store, const Time deltaTime, const Time globalTime) override;
 };
 
 }

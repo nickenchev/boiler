@@ -64,7 +64,7 @@ public:
 		return matchingMask;
 	}
 
-	virtual void update(ComponentStore &store, const Time delta) = 0;
+	virtual void update(ComponentStore &store, const Time deltaTime, const Time globalTime) = 0;
 	const std::vector<Entity> &getEntities() const { return entities; }
 	const std::string &getName() const { return name; }
 	void removeEntity(const Entity &entity)

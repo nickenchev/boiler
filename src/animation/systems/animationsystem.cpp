@@ -4,13 +4,11 @@
 #include "animation/components/animationcomponent.h"
 #include "core/componentstore.h"
 
-void Boiler::AnimationSystem::update(ComponentStore &store, const Time delta)
+void Boiler::AnimationSystem::update(ComponentStore &store, const Time deltaTime, const Time globalTime)
 {
-	totalTime += delta;
-
 	for (const Entity &entity : getEntities())
 	{
 		const auto &animationComp = store.retrieve<AnimationComponent>(entity);
-		animator.animate(delta, animationComp);
+		animator.animate(deltaTime, globalTime, animationComp);
 	}
 }

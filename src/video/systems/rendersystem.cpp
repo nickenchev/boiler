@@ -17,7 +17,7 @@ RenderSystem::RenderSystem(Renderer &renderer) : System("Render System"), render
 {
 }
 
-void RenderSystem::update(ComponentStore &store, const Time)
+void RenderSystem::update(ComponentStore &store, const Time deltaTime, const Time globalTime)
 {
 	std::vector<MaterialGroup> materialGroups;
 	materialGroups.resize(256);

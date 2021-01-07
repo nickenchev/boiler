@@ -1,7 +1,11 @@
 #ifndef CLIP_H
 #define CLIP_H
 
+#include "core/common.h"
 #include "animation/common.h"
+
+namespace Boiler
+{
 
 class Clip
 {
@@ -25,4 +29,5 @@ public:
 	}
 };
 
+};
 #endif /* CLIP_H */

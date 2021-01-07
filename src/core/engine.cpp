@@ -129,7 +129,7 @@ void Engine::step()
 	while (frameLag >= frameInterval)
 	{
 		update(frameInterval);
-		part->update(frameInterval);
+		globalTime += frameInterval;
 		frameLag -= frameInterval;
 	} 
 
@@ -137,11 +137,11 @@ void Engine::step()
 	// TODO: Handle GUI events differently
 	renderer->beginRender(); // this is called before updateMatrices, wrong descriptor data
 
-	lightingSystem->update(getEcs().getComponentStore(), frameDelta);
+	lightingSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
 
-	renderSystem->update(getEcs().getComponentStore(), frameDelta);
-	glyphSystem->update(getEcs().getComponentStore(), frameDelta);
-	if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta);
+	renderSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
+	glyphSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
+	if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
 
 	renderer->endRender();
 }
@@ -255,7 +255,8 @@ void Engine::processEvents()
 	}
 }
 
-void Engine::update(const Time delta)
+void Engine::update(const Time deltaTime)
 {
-	ecs.update(delta);
+	ecs.update(deltaTime, globalTime);
+	part->update(frameInterval);
 }
