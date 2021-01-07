@@ -1,9 +1,10 @@
+#include "core/common.h"
 #include "animation/animator.h"
 #include "animation/systems/animationsystem.h"
 #include "animation/components/animationcomponent.h"
 #include "core/componentstore.h"
 
-void Boiler::AnimationSystem::update(ComponentStore &store, const double delta)
+void Boiler::AnimationSystem::update(ComponentStore &store, const Time delta)
 {
 	totalTime += delta;
 

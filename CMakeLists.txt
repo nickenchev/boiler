@@ -27,6 +27,7 @@ set(SHADER_FILES data/shaders/basic.vert data/shaders/basic.frag)
 set(INCLUDE_BASE ${CMAKE_CURRENT_LIST_DIR}/include)
 set(BOILER_HEADERS
   ${INCLUDE_BASE}/boiler.h
+  ${INCLUDE_BASE}/core/common.h
   ${INCLUDE_BASE}/core/components/guicomponent.h
   ${INCLUDE_BASE}/core/components/lightingcomponent.h
   ${INCLUDE_BASE}/core/components/materialcomponent.h
@@ -49,6 +50,15 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/assets/gltfimporter.h
   ${INCLUDE_BASE}/video/vulkan/graphicspipeline.h
   ${INCLUDE_BASE}/video/vulkan/shaderstagemodules.h
+  # Animation related
+  ${INCLUDE_BASE}/animation/animation.h
+  ${INCLUDE_BASE}/animation/animationsampler.h
+  ${INCLUDE_BASE}/animation/animator.h
+  ${INCLUDE_BASE}/animation/channel.h
+  ${INCLUDE_BASE}/animation/clip.h
+  ${INCLUDE_BASE}/animation/common.h
+  ${INCLUDE_BASE}/animation/components/animationcomponent.h
+  ${INCLUDE_BASE}/animation/systems/animationsystem.h
 )
 
 # Engine related sources

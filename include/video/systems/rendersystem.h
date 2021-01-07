@@ -1,6 +1,7 @@
 #ifndef RENDERSYSTEM_H
 #define RENDERSYSTEM_H
 
+#include "core/common.h"
 #include "core/system.h"
 #include "core/lightsourceid.h"
 #include "video/material.h"
@@ -18,7 +19,7 @@ class RenderSystem : public System
 public:
 	RenderSystem(Renderer &renderer);
 
-	void update(ComponentStore &store, const double delta) override;
+	void update(ComponentStore &store, const Time delta) override;
 };
 
 }

@@ -1,6 +1,7 @@
 #ifndef ANIMATIONSYSTEM_H
 #define ANIMATIONSYSTEM_H
 
+#include "core/common.h"
 #include "core/system.h"
 
 namespace Boiler
@@ -11,7 +12,7 @@ class Animator;
 class AnimationSystem : public System
 {
 	Animator &animator;
-	double totalTime;
+	Time totalTime;
 
 public:
 	AnimationSystem(Animator &animator) : System("Animation System"), animator(animator)
@@ -19,7 +20,7 @@ public:
 		totalTime = 0;
 	}
 
-	void update(ComponentStore &store, const double delta) override;
+	void update(ComponentStore &store, const Time delta) override;
 };
 
 };

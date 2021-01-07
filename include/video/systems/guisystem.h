@@ -2,6 +2,7 @@
 #define GUISYSTEM_H
 
 #include <memory>
+#include "core/common.h"
 #include <core/system.h>
 #include <video/guihandler.h>
 
@@ -32,7 +33,7 @@ public:
 		guiHandler->cleanup();
 	}
 
-	void update(ComponentStore &store, const double delta) override;
+	void update(ComponentStore &store, const Time delta) override;
 	void processEvent(const SDL_Event &event) const
 	{
 		guiHandler->processEvent(event);

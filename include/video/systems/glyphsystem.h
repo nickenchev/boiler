@@ -1,6 +1,7 @@
 #ifndef GLYPHSYSTEM_H
 #define GLYPHSYSTEM_H
 
+#include "core/common.h"
 #include "core/system.h"
 
 namespace Boiler
@@ -14,7 +15,7 @@ class GlyphSystem : public System
 public:
 	GlyphSystem(Renderer &renderer) : System("Glyph System"), renderer(renderer) { }
 
-	void update(ComponentStore &store, const double delta) override;
+	void update(ComponentStore &store, const Time delta) override;
 };
 
 }

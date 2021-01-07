@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <functional>
+#include "core/common.h"
 #include "spriteloader.h"
 #include "video/imaging/imageloader.h"
 #include "video/fontloader.h"
@@ -18,6 +19,7 @@
 #include "video/systems/guisystem.h"
 #include "video/guihandler.h"
 #include "logger.h"
+#include "animation/common.h"
 #include "animation/animator.h"
 
 namespace Boiler
@@ -34,8 +36,7 @@ typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 
 class Engine
 {
-	double prevTime;
-	double frameLag;
+	Time globalTime, prevTime, frameLag;
 
 	Logger logger;
 	Renderer *renderer;
@@ -50,10 +51,10 @@ class Engine
     std::vector<KeyInputListener> keyInputListeners;
 
     bool running = true;
-    double frameInterval;
+    Time frameInterval;
 
     void processEvents();
-    void update(const double delta);
+    void update(const Time delta);
 
     std::shared_ptr<Part> part;
 

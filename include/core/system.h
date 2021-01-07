@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include "core/common.h"
 #include "core/entity.h"
 #include "core/componentmapper.h"
 #include "core/logger.h"
@@ -63,7 +64,7 @@ public:
 		return matchingMask;
 	}
 
-	virtual void update(ComponentStore &store, const double delta) = 0;
+	virtual void update(ComponentStore &store, const Time delta) = 0;
 	const std::vector<Entity> &getEntities() const { return entities; }
 	const std::string &getName() const { return name; }
 	void removeEntity(const Entity &entity)

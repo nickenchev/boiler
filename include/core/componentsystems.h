@@ -23,7 +23,7 @@ public:
     ComponentSystems() : logger{"ComponentSystems"} { }
     virtual ~ComponentSystems() { }
 
-	void update(ComponentStore &store, const double delta)
+	void update(ComponentStore &store, const Time delta)
 	{
 		for (auto &system : updateSystems)
 		{

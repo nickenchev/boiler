@@ -25,7 +25,7 @@ public:
     virtual ~Part() { }
 
     virtual void onStart() = 0;
-    virtual void update(double deltaTime) = 0;
+    virtual void update(Time deltaTime) = 0;
 };
 
 }

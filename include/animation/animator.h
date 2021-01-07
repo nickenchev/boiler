@@ -5,6 +5,7 @@
 
 #include "core/math.h"
 #include "core/logger.h"
+#include "animation/common.h"
 #include "animation/animation.h"
 #include "animation/animationsampler.h"
 #include "animation/components/animationcomponent.h"
@@ -14,29 +15,10 @@
 namespace Boiler
 {
 
-using AnimationId = size_t;
-
-class AnimationRunner
-{
-	const Animation &animation;
-	float time;
-
-public:
-	AnimationRunner(const Animation &animation) : animation(animation)
-	{
-		time = 0;
-	}
-
-	void step(float delta)
-	{
-		time += delta;
-	}
-};
-
 class Animator
 {
 	Logger logger;
-	float totalTime;
+	Time totalTime;
 
 	std::vector<AnimationSampler> samplers;
 	std::vector<Animation> animations;

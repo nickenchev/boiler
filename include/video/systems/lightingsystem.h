@@ -18,7 +18,7 @@ public:
 		logger.log("Setting up lighting system.");
 	}
 
-	void update(Boiler::ComponentStore &store, const double delta) override;
+	void update(Boiler::ComponentStore &store, const Time delta) override;
 };
 
 }

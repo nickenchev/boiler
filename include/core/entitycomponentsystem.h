@@ -2,6 +2,7 @@
 #define ENTITYCOMPONENTSYSTEM_H
 
 #include <string>
+#include "core/common.h"
 #include "core/entityworld.h"
 #include "core/componentmapper.h"
 #include "core/componentsystems.h"
@@ -26,7 +27,7 @@ public:
 	EntityComponentSystem(const EntityComponentSystem &ecs) = delete;
 	EntityComponentSystem &operator=(const EntityComponentSystem &) = delete;
 
-	void update(const double delta)
+	void update(const Time delta)
 	{
 		systems.update(componentStore, delta);
 	}

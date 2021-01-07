@@ -9,7 +9,7 @@ namespace Boiler
 class InputSystem : public System
 {
 public:
-	void update(ComponentStore &store, const double delta) const override
+	void update(ComponentStore &store, const Time delta) const override
 	{
 	}
 };

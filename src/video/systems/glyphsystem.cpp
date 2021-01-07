@@ -1,3 +1,4 @@
+#include "core/common.h"
 #include "video/systems/glyphsystem.h"
 #include "core/components/transformcomponent.h"
 #include "core/components/textcomponent.h"
@@ -7,7 +8,7 @@
 
 using namespace Boiler;
 
-void GlyphSystem::update(ComponentStore &store, const double delta)
+void GlyphSystem::update(ComponentStore &store, const Time delta)
 {
 	for (auto &entity : getEntities())
 	{

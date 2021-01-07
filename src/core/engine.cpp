@@ -120,8 +120,8 @@ void Engine::run()
 void Engine::step()
 {
 	//get the delta time
-	double currentTime = SDL_GetTicks();
-	double frameDelta = (currentTime - prevTime) / 1000.0f;
+	Time currentTime = SDL_GetTicks();
+	Time frameDelta = (currentTime - prevTime) / 1000.0f;
 	prevTime = currentTime;
 	frameLag += frameDelta;
 
@@ -255,7 +255,7 @@ void Engine::processEvents()
 	}
 }
 
-void Engine::update(const double delta)
+void Engine::update(const Time delta)
 {
 	ecs.update(delta);
 }
