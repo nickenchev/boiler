@@ -8,7 +8,7 @@ void Boiler::AnimationSystem::update(ComponentStore &store, const Time deltaTime
 {
 	for (const Entity &entity : getEntities())
 	{
-		const auto &animationComp = store.retrieve<AnimationComponent>(entity);
-		animator.animate(deltaTime, globalTime, animationComp);
+		auto &animationComp = store.retrieve<AnimationComponent>(entity);
+		animator.animate(globalTime, deltaTime, animationComp);
 	}
 }

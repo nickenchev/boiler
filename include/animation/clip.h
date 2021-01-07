@@ -27,6 +27,8 @@ public:
 	{
 		localTime += deltaTime;
 	}
+
+	AnimationId getAnimationId() const { return animationId; }
 };
 
 };

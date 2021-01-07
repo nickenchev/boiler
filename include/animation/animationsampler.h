@@ -3,7 +3,9 @@
 
 #include <vector>
 #include <iostream>
-#include <core/logger.h>
+
+#include "core/common.h"
+#include "core/logger.h"
 
 namespace Boiler {
 
@@ -23,7 +25,7 @@ public:
 	float getMaxTime() const { return keyFrameTimes[keyFrameTimes.size() - 1]; }
 
 	template<typename ValueType>
-	ValueType sample(float time) const
+	ValueType sample(Time time) const
 	{
 		ValueType result;
 		

@@ -33,6 +33,8 @@ namespace Boiler
         ImportResult import(const std::string &gltfPath);
 
 		void createInstance(const Entity &rootEntity) const;
+
+		const ImportResult &getImportResult() const { return result; }
 	};
 }
 #endif /* GLTFIMPORTER_H */

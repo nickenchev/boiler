@@ -38,7 +38,8 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 		throw std::runtime_error("Error initializing timer");
 	}
 	prevTime = SDL_GetTicks();
-	frameLag = 0.0f;
+	frameLag = 0;
+	globalTime = 0;
 }
 
 Engine::~Engine()

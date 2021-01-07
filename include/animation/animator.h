@@ -21,7 +21,6 @@ class Animator
 {
 	Logger logger;
 
-	std::vector<Clip> clips;
 	std::vector<AnimationSampler> samplers;
 	std::vector<Animation> animations;
 
@@ -30,11 +29,6 @@ class Animator
 public:
     Animator(EntityComponentSystem &ecs) : logger("Animator"), ecs(ecs)
 	{
-	}
-
-	void scheduleClip(const Clip &clip)
-	{
-		clips.push_back(clip);
 	}
 
 	SamplerId addSampler(const AnimationSampler &&sampler)
@@ -51,32 +45,35 @@ public:
         return newIndex;
 	}
 
-	void animate(Time globalTime, Time deltaTime, const AnimationComponent &animationComponent)
+	void animate(Time globalTime, Time deltaTime, AnimationComponent &animationComponent)
 	{
-		// const auto &targets = animationComponent.getTargets();
-		// for (const auto &animation : animations)
-		// {
-		// 	for (const auto &channel : animation.getChannels())
-		// 	{
-		// 		TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(targets[channel.getTarget()]);
-		// 		const AnimationSampler &sampler = samplers[channel.getSamplerId()]; // TODO: Change this so not using index
+		for (const Clip &clip : animationComponent.getClips())
+		{
+			if (clip.getGlobalStart() <= globalTime)
+			{
+				const Animation &animation = animations[clip.getAnimationId()];
+				const auto &targets = animationComponent.getTargets();
+				for (const auto &channel : animation.getChannels())
+				{
+					TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(targets[channel.getTarget()]);
+					const AnimationSampler &sampler = samplers[channel.getSamplerId()]; // TODO: Change this so not using index
 
-		// 		if (channel.getPath() == Path::TRANSLATION)
-		// 		{
-		// 			transform.setPosition(sampler.sample<vec3>(time));
-		// 		}
-		// 		else if (channel.getPath() == Path::ROTATION)
-		// 		{
-		// 			const auto value = sampler.sample<vec4>(time);
-		// 			transform.setOrientation(quat(value.w, value.x, value.y, value.z));
-		// 		}
-		// 		else if (channel.getPath() == Path::SCALE)
-		// 		{
-		// 			transform.setScale(sampler.sample<vec3>(time));
-		// 		}
-		// 	}
-		// }
-		// totalTime += delta;
+					if (channel.getPath() == Path::TRANSLATION)
+					{
+						transform.setPosition(sampler.sample<vec3>(globalTime));
+					}
+					else if (channel.getPath() == Path::ROTATION)
+					{
+						const auto value = sampler.sample<vec4>(globalTime);
+						transform.setOrientation(quat(value.w, value.x, value.y, value.z));
+					}
+					else if (channel.getPath() == Path::SCALE)
+					{
+						transform.setScale(sampler.sample<vec3>(globalTime));
+					}
+				}
+			}
+		}
 	}
 };
 

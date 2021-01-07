@@ -116,7 +116,7 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 	for (const gltf::Animation &gltfAnim : model.animations)
 	{
 		Animation animation(gltfAnim.name);
-		auto loadSampler = [this, &animator, &modelAccess](const gltf::Sampler &gltfSamp)
+		const auto loadSampler = [this, &animator, &modelAccess](const gltf::Sampler &gltfSamp)
 		{
 			// load key frame times
 			std::vector<float> keyFrameTimes;
