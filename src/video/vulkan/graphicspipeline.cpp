@@ -18,9 +18,9 @@ GraphicsPipeline::GraphicsPipeline(VkPipeline pipeline)
 	this->pipeline = pipeline;
 }
 
-GraphicsPipeline GraphicsPipeline::create(VkDevice device, VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
-										  const VkVertexInputBindingDescription *inputBind, const std::vector<VkVertexInputAttributeDescription> *attrDescs,
-										  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex, VkCullModeFlags cullMode, bool flipViewport)
+GraphicsPipeline GraphicsPipeline::create(VkDevice device, VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent, const VkVertexInputBindingDescription *inputBind,
+										  const std::vector<VkVertexInputAttributeDescription> *attrDescs, const int attachmentCount, const ShaderStageModules &shaderModules,
+										  int subpassIndex, VkCullModeFlags cullMode, bool enableDepth, bool flipViewport)
 {
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
 	vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -120,8 +120,8 @@ GraphicsPipeline GraphicsPipeline::create(VkDevice device, VkRenderPass renderPa
 	// depth/stencil buffer setup
 	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
 	depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilInfo.depthTestEnable = VK_TRUE;
-	depthStencilInfo.depthWriteEnable = VK_TRUE;
+	depthStencilInfo.depthTestEnable = (enableDepth) ? VK_TRUE : VK_FALSE;
+	depthStencilInfo.depthWriteEnable = (enableDepth) ? VK_TRUE : VK_FALSE;
 	depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
 	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
 	depthStencilInfo.stencilTestEnable = VK_FALSE;

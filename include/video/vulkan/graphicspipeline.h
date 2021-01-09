@@ -17,9 +17,9 @@ class GraphicsPipeline
 	VkPipeline pipeline;
 
 public:
-	static GraphicsPipeline create(VkDevice device, VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
-								   const VkVertexInputBindingDescription *inputBind, const std::vector<VkVertexInputAttributeDescription> *attrDescs,
-								   const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex, VkCullModeFlags cullMode, bool flipViewport = false);
+	static GraphicsPipeline create(VkDevice device, VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent, const VkVertexInputBindingDescription *inputBind,
+								   const std::vector<VkVertexInputAttributeDescription> *attrDescs, const int attachmentCount, const ShaderStageModules &shaderModules,
+								   int subpassIndex, VkCullModeFlags cullMode, bool enableDepth, bool flipViewport = false);
 
 	static void destroy(VkDevice device, const GraphicsPipeline &pipeline);
 
