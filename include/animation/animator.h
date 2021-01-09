@@ -31,6 +31,17 @@ public:
 	{
 	}
 
+	const Animation &getAnimation(AnimationId animationId) const
+	{
+		return animations[animationId];
+	}
+
+	Clip createClip(Time globalStart, AnimationId animationId, bool continuous = false) const
+	{
+		const Animation &animation = getAnimation(animationId);
+		return Clip(globalStart, animationId, continuous);
+	}
+
 	SamplerId addSampler(const AnimationSampler &&sampler)
 	{
 		samplers.push_back(sampler);
@@ -47,12 +58,14 @@ public:
 
 	void animate(Time globalTime, Time deltaTime, AnimationComponent &animationComponent)
 	{
-		for (const Clip &clip : animationComponent.getClips())
+		for (Clip &clip : animationComponent.getClips())
 		{
+			clip.advance(deltaTime);
 			if (clip.getGlobalStart() <= globalTime)
 			{
-				const Animation &animation = animations[clip.getAnimationId()];
+				const Animation &animation = getAnimation(clip.getAnimationId());
 				const auto &targets = animationComponent.getTargets();
+
 				for (const auto &channel : animation.getChannels())
 				{
 					TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(targets[channel.getTarget()]);
