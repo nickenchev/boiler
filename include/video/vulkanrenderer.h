@@ -27,6 +27,7 @@ namespace Boiler {
 	namespace Vulkan {
 
 class SPVShaderProgram;
+class TextureRequest;
 
 struct QueueFamilyIndices
 {
@@ -154,8 +155,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const;
 
 	// image operations
-	std::pair<VkImage, VkDeviceMemory> createImage(const Size &imageSize, VkFormat format, VkImageTiling tiling,
-												   VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties) const;
+	std::pair<VkImage, VkDeviceMemory> createImage(const TextureRequest &request) const;
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const;
 	void transitionImageLayout(VkImage image, VkFormat format,
 							   VkImageLayout oldLayout, VkImageLayout newLayout) const;

@@ -28,6 +28,7 @@
 #include "util/filemanager.h"
 #include "video/material.h"
 #include "video/materialgroup.h"
+#include "video/vulkan/texturerequest.h"
 
 using namespace Boiler;
 using namespace Boiler::Vulkan;
@@ -579,9 +580,9 @@ void VulkanRenderer::createGBuffers()
 
 	auto createBuffers = [this, imageSize](OffscreenBuffer &offscreenBuffer, VkFormat imageFormat)
 	{
-		auto imagePair = createImage(imageSize, imageFormat, VK_IMAGE_TILING_OPTIMAL,
-								VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
-									 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		TextureRequest request(imageSize, imageFormat);
+		request.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+		auto imagePair = createImage(request);
 		offscreenBuffer.image = imagePair.first;
 		offscreenBuffer.imageMemory = imagePair.second;
 		offscreenBuffer.imageView = createImageView(imagePair.first, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
@@ -1164,9 +1165,18 @@ void VulkanRenderer::createTextureSampler()
 void VulkanRenderer::createDepthResources()
 {
 	VkFormat depthFormat = findDepthFormat();
+	/*
 	auto imagePair = createImage(Size(swapChainExtent.width, swapChainExtent.height), depthFormat,
 								 VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
 								 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	*/
+
+	TextureRequest request(Size(swapChainExtent.width, swapChainExtent.height), depthFormat);
+	request.tiling = VK_IMAGE_TILING_OPTIMAL;
+	request.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	request.memProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	auto imagePair = createImage(request);
+
 	depthImage = imagePair.first;
 	depthImageMemory = imagePair.second;
 	depthImageView = createImageView(imagePair.first, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
@@ -1289,28 +1299,12 @@ std::string VulkanRenderer::getVersion() const
 	return "Boiler Vulkan 1.0";
 }
 
-std::pair<VkImage, VkDeviceMemory> VulkanRenderer::createImage(const Size &imageSize, VkFormat format, VkImageTiling tiling,
-															   VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties) const
+std::pair<VkImage, VkDeviceMemory> VulkanRenderer::createImage(const TextureRequest &request) const
 {
 	VkImage textureImage;
 	VkDeviceMemory textureMemory;
 
-	VkImageCreateInfo imageInfo = {};
-	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	imageInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageInfo.extent.width = imageSize.width;
-	imageInfo.extent.height = imageSize.height;
-	imageInfo.extent.depth = 1;
-	imageInfo.mipLevels = 1;
-	imageInfo.arrayLayers = 1;
-	imageInfo.format = format;
-	imageInfo.tiling = tiling;
-	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.usage = usage;
-	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	imageInfo.flags = 0;
-
+	VkImageCreateInfo imageInfo = request.createInfo();
 	if (vkCreateImage(device, &imageInfo, nullptr, &textureImage) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Error creating image");
@@ -1322,7 +1316,7 @@ std::pair<VkImage, VkDeviceMemory> VulkanRenderer::createImage(const Size &image
 	VkMemoryAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, memProperties);
+	allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, request.memProperties);
 
 	if (vkAllocateMemory(device, &allocInfo, nullptr, &textureMemory) != VK_SUCCESS)
 	{
@@ -1381,9 +1375,9 @@ Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 	memcpy(data, imageData.pixelData, static_cast<size_t>(bytesSize));
 	vkUnmapMemory(device, bufferInfo.memory);
 
-	auto imagePair = createImage(imageData.size, format, VK_IMAGE_TILING_OPTIMAL,
-								 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-								 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	TextureRequest request(imageData.size, format);
+	request.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	auto imagePair = createImage(request);
 
 	// transition the image to transfer layout, copy the buffer pixel data to the image
 	transitionImageLayout(imagePair.first, format, VK_IMAGE_LAYOUT_UNDEFINED,
@@ -1749,9 +1743,6 @@ void VulkanRenderer::beginRender()
 
 		// perform the render pass
 		vkCmdBeginRenderPass(commandBuffer, &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-						  gBufferPipeline.vulkanPipeline());
-
 	}
 	else if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR || resizeOccured)
 	{
@@ -1870,6 +1861,11 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 		if (group.materialId != Asset::NO_ASSET)
 		{
 			const Material &material = getMaterial(group.materialId);
+
+			// bind the appropriate pipeline for this material
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+							gBufferPipeline.vulkanPipeline());
+
 			std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
 			const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
 			descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);

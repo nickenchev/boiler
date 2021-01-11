@@ -1,20 +1,11 @@
 #ifndef RECT
 #define RECT
 
+#include "core/size.h"
 #include "core/math.h"
 
 namespace Boiler
 {
-
-using cgfloat = float;
-
-struct Size
-{
-	cgfloat width, height;
-
-	Size() { width = 0; height = 0; }
-	Size(cgfloat width, cgfloat height) : width(width), height(height) { }
-};
 
 struct Rect
 {

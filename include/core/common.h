@@ -3,7 +3,8 @@
 
 namespace Boiler
 {
-	using Time = float;
+	using cgfloat = float;
+	using Time = cgfloat;
 };
 
 #endif /* COMMON_H */

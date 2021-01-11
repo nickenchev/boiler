@@ -3,23 +3,11 @@
 
 #include <vector>
 #include <array>
-#include "core/math.h"
+
+#include "core/vertex.h"
 
 namespace Boiler
 {
-
-struct Vertex
-{
-	glm::vec3 position;
-	glm::vec4 colour;
-	glm::vec2 textureCoordinate;
-	glm::vec3 normal;
-
-	Vertex(glm::vec3 position)
-	{
-		this->position = position;
-	}
-};
 
 class VertexData
 {
