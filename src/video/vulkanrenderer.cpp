@@ -40,6 +40,9 @@ constexpr int maxObjects = 1000;
 constexpr int maxLights = 64;
 constexpr int maxMaterials = 256;
 constexpr int maxSamplers = 1;
+//constexpr VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+constexpr VkFormat textureFormat = VK_FORMAT_R8G8B8A8_SRGB;
+
 
 const std::vector<const char *> validationLayers = { "VK_LAYER_KHRONOS_validation" };
 
@@ -1354,11 +1357,12 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 	return imageView;
 }
 
+void VulkanRenderer::loadCubemap()
+{
+}
+
 Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 {
-	//const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
-	const VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
-
 	const size_t bytesPerPixel = imageData.colorComponents;
 	if (imageData.colorComponents < 4)
 	{
@@ -1375,12 +1379,12 @@ Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 	memcpy(data, imageData.pixelData, static_cast<size_t>(bytesSize));
 	vkUnmapMemory(device, bufferInfo.memory);
 
-	TextureRequest request(imageData.size, format);
+	TextureRequest request(imageData.size, textureFormat);
 	request.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	auto imagePair = createImage(request);
 
 	// transition the image to transfer layout, copy the buffer pixel data to the image
-	transitionImageLayout(imagePair.first, format, VK_IMAGE_LAYOUT_UNDEFINED,
+	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_UNDEFINED,
 						  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	copyBufferToImage(bufferInfo.buffer, imagePair.first, imageData.size);
 	
@@ -1388,10 +1392,10 @@ Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 	freeBuffer(bufferInfo);
 
 	// transition the image to a layout optimal for shader sampling
-	transitionImageLayout(imagePair.first, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 						  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	VkImageView imageView = createImageView(imagePair.first, format, VK_IMAGE_ASPECT_COLOR_BIT);
+	VkImageView imageView = createImageView(imagePair.first, textureFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 
 	logger.log("Texture data loaded");
 
