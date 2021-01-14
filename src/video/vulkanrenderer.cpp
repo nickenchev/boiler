@@ -1331,12 +1331,13 @@ std::pair<VkImage, VkDeviceMemory> VulkanRenderer::createImage(const TextureRequ
 	return std::make_pair(textureImage, textureMemory);
 }
 
-VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const
+VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
+											VkImageViewType viewType) const
 {
 	VkImageViewCreateInfo imageViewCreateInfo = {};
 	imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	imageViewCreateInfo.image = image;
-	imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	imageViewCreateInfo.viewType = viewType;
 	imageViewCreateInfo.format = format;
 	imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 	imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -1387,9 +1388,18 @@ Texture VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &im
 	request.layers = cubeMapSize;
 	auto imagePair = createImage(request);
 
-	// copy staged data to VkImage and set baseArrayLayer for each pixel data
-	// create an imageview with type cubemap
-	// create a cubemap sampler
+	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 6);
+	copyBufferToImage(buffInfo.buffer, 0, imagePair.first, images[0].size);
+	freeBuffer(buffInfo);
+	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 6);
+
+	VkImageView imageView = createImageView(imagePair.first, textureFormat, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_CUBE);
+
+	TextureImage texImage;
+	texImage.image = imagePair.first;
+	texImage.memory = imagePair.second;
+	texImage.imageView = imageView;
+	return textures.add(texImage);
 }
 
 Texture VulkanRenderer::loadTexture(const ImageData &imageData)
@@ -1417,7 +1427,7 @@ Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 	// transition the image to transfer layout, copy the buffer pixel data to the image
 	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_UNDEFINED,
 						  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	copyBufferToImage(bufferInfo.buffer, imagePair.first, imageData.size);
+	copyBufferToImage(bufferInfo.buffer, 0, imagePair.first, imageData.size);
 	
 	// cleanup buffer and memory
 	freeBuffer(bufferInfo);
@@ -1526,7 +1536,8 @@ void VulkanRenderer::copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDevic
 }
 
 void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format,
-										   VkImageLayout oldLayout, VkImageLayout newLayout) const
+										   VkImageLayout oldLayout, VkImageLayout newLayout,
+										   unsigned int arrayLayer, unsigned int layerCount) const
 {
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool);
 
@@ -1540,8 +1551,8 @@ void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format,
 	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	barrier.subresourceRange.baseMipLevel = 0;
 	barrier.subresourceRange.levelCount = 1;
-	barrier.subresourceRange.baseArrayLayer = 0;
-	barrier.subresourceRange.layerCount = 1;
+	barrier.subresourceRange.baseArrayLayer = arrayLayer;
+	barrier.subresourceRange.layerCount = layerCount;
 
 	// configure pipeline stages and access
 	VkPipelineStageFlags sourceStage;
@@ -1573,19 +1584,20 @@ void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format,
 	endSingleTimeCommands(graphicsQueue, commandPool, commandBuffer);
 }
 
-void VulkanRenderer::copyBufferToImage(VkBuffer buffer, VkImage image, const Size &imageSize) const
+void VulkanRenderer::copyBufferToImage(VkBuffer buffer, size_t bufferOffset, VkImage image, const Size &imageSize,
+									   unsigned int arrayLayer, unsigned int layerCount) const
 {
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands(transferPool);
 
 	VkBufferImageCopy region = {};
-	region.bufferOffset = 0;
+	region.bufferOffset = bufferOffset;
 	region.bufferRowLength = 0;
 	region.bufferImageHeight = 0;
 
 	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 	region.imageSubresource.mipLevel = 0;
-	region.imageSubresource.baseArrayLayer = 0;
-	region.imageSubresource.layerCount = 1;
+	region.imageSubresource.baseArrayLayer = arrayLayer;
+	region.imageSubresource.layerCount = layerCount;
 
 	region.imageOffset = {0, 0, 0};
 	region.imageExtent = {static_cast<uint32_t>(imageSize.width), static_cast<uint32_t>(imageSize.height), 1};

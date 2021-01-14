@@ -156,10 +156,13 @@ class VulkanRenderer : public Boiler::Renderer
 
 	// image operations
 	std::pair<VkImage, VkDeviceMemory> createImage(const TextureRequest &request) const;
-	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) const;
+	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
+								VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D) const;
 	void transitionImageLayout(VkImage image, VkFormat format,
-							   VkImageLayout oldLayout, VkImageLayout newLayout) const;
-	void copyBufferToImage(VkBuffer buffer, VkImage image, const Size &imageSize) const;
+							   VkImageLayout oldLayout, VkImageLayout newLayout,
+							   unsigned int arrayLayer = 0, unsigned int layerCount = 1) const;
+	void copyBufferToImage(VkBuffer buffer, size_t bufferOffset, VkImage image, const Size &imageSize,
+						   unsigned int arrayLayer = 0, unsigned int layerCount = 1) const;
 	VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling,
 								 VkFormatFeatureFlags features) const;
 	VkFormat findDepthFormat() const;

@@ -18,4 +18,6 @@ void SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 		ImageLoader::load(front),
 		ImageLoader::load(back)
 	};
+
+	renderer.loadCubemap(images);
 }
