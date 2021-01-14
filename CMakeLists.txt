@@ -47,9 +47,12 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/video/renderer.h
   ${INCLUDE_BASE}/video/lightsource.h
   ${INCLUDE_BASE}/video/texture.h
+  ${INCLUDE_BASE}/video/imaging/imagedata.h
+  ${INCLUDE_BASE}/video/imaging/skyboximages.h
   ${INCLUDE_BASE}/assets/gltfimporter.h
   ${INCLUDE_BASE}/video/vulkan/graphicspipeline.h
   ${INCLUDE_BASE}/video/vulkan/shaderstagemodules.h
+  ${INCLUDE_BASE}/video/skyboxloader.h
   # Animation related
   ${INCLUDE_BASE}/animation/animation.h
   ${INCLUDE_BASE}/animation/animationsampler.h
@@ -94,6 +97,7 @@ set(BOILER_SOURCES
   #${SRC_BASE}/video/openglmodel.cpp
   #${SRC_BASE}/video/glslshaderprogram.cpp
   ${SRC_BASE}/video/spvshaderprogram.cpp
+  ${SRC_BASE}/video/skyboxloader.cpp
   ${SRC_BASE}/video/imaging/imageloader.cpp
   ${SRC_BASE}/video/systems/rendersystem.cpp
   ${SRC_BASE}/video/systems/glyphsystem.cpp

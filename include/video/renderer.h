@@ -1,6 +1,8 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include <array>
+
 #include "core/logger.h"
 #include "core/entity.h"
 #include "core/asset.h"
@@ -65,6 +67,7 @@ public:
 	void setViewMatrix(const glm::mat4 &viewMatrix) { this->viewMatrix = viewMatrix; }
 
     virtual Texture loadTexture(const ImageData &imageData) = 0;
+	virtual Texture loadCubemap(const std::array<ImageData, 6> &images) = 0;
     virtual Primitive loadPrimitive(const VertexData &data) = 0;
 
 	virtual void updateMatrices(const std::vector<mat4> &matrices) const = 0;

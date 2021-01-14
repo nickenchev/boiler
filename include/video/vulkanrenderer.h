@@ -178,7 +178,7 @@ public:
 	void resize(const Boiler::Size &size) override;
 
     Texture loadTexture(const ImageData &imageData) override;
-	void loadCubemap();
+	Texture loadCubemap(const std::array<ImageData, 6> &images) override;
     Primitive loadPrimitive(const VertexData &data) override;
 	Material &createMaterial() override;
 

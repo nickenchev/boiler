@@ -1357,8 +1357,39 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 	return imageView;
 }
 
-void VulkanRenderer::loadCubemap()
+constexpr size_t cubeMapSize = 6;
+Texture VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &images)
 {
+	size_t totalSize = 0;
+
+	for (const ImageData &imageData : images)
+	{
+		totalSize += imageData.size.width * imageData.size.height * imageData.colorComponents;
+	}
+
+	// create a single image with 6 layers
+	BufferInfo buffInfo = createBuffer(totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+									   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	// stage data for all 6 images
+	void *data = nullptr;
+	vkMapMemory(device, buffInfo.memory, 0, totalSize, 0, &data);
+	size_t offset = 0;
+	for (auto &image : images)
+	{
+		const size_t size = image.size.width * image.size.height * image.colorComponents;
+		memcpy(data, image.pixelData, size);
+	}
+	vkUnmapMemory(device, buffInfo.memory);
+
+	// create a multi-layer texture
+	TextureRequest request(images[0].size, textureFormat);
+	request.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	request.layers = cubeMapSize;
+	auto imagePair = createImage(request);
+
+	// copy staged data to VkImage and set baseArrayLayer for each pixel data
+	// create an imageview with type cubemap
+	// create a cubemap sampler
 }
 
 Texture VulkanRenderer::loadTexture(const ImageData &imageData)
