@@ -2,6 +2,7 @@
 #define SKYBOXLOADER_H
 
 #include <string>
+#include "core/engine.h"
 
 namespace Boiler {
 
@@ -16,9 +17,9 @@ class SkyBoxLoader
 public:
 	SkyBoxLoader(Renderer &renderer, EntityComponentSystem &ecs) : renderer(renderer), ecs(ecs) {}
 
-	void load(const std::string &top, const std::string &bottom,
-			  const std::string &left, const std::string &right,
-			  const std::string &front, const std::string &back);
+	Entity load(const std::string &top, const std::string &bottom,
+				const std::string &left, const std::string &right,
+				const std::string &front, const std::string &back);
 };
 
 }

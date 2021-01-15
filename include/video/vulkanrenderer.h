@@ -20,6 +20,7 @@ struct SDL_Window;
 #include "video/vulkan/shaderstagemodules.h"
 #include "video/vulkan/graphicspipeline.h"
 #include "video/vulkan/descriptorset.h"
+#include "video/vulkan/sampler.h"
 
 namespace Boiler {
 	struct MaterialGroup;
@@ -119,7 +120,7 @@ class VulkanRenderer : public Boiler::Renderer
 	short currentFrame;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
-	VkSampler textureSampler;
+	Sampler textureSampler, cubemapSampler;
 
 	VkImage depthImage;
 	VkDeviceMemory depthImageMemory;
@@ -143,7 +144,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void createSynchronization();
 	void recreateSwapchain();
 	void cleanupSwapchain();
-	void createTextureSampler();
+	void createTextureSamplers();
 	void createDepthResources();
 
 	// memory/buffer operations

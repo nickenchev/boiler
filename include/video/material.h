@@ -14,9 +14,11 @@ struct Material : public Asset
     vec4 color;
 	std::optional<Texture> baseTexture;
 	AlphaMode alphaMode;
+	bool depth;
 	
     Material(const AssetId assetId) : Asset(assetId)
 	{
+		depth = true;
 		color = vec4(1, 1, 1, 1);
 	}
     virtual ~Material() { }

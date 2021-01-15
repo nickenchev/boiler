@@ -35,7 +35,6 @@ using namespace Boiler::Vulkan;
 
 constexpr bool enableDebugMessages = true;
 constexpr int maxFramesInFlight = 2;
-constexpr int maxAnistrophy = 16;
 constexpr int maxObjects = 1000;
 constexpr int maxLights = 64;
 constexpr int maxMaterials = 256;
@@ -267,11 +266,8 @@ void VulkanRenderer::shutdown()
 		destroyFunc(instance, debugMessenger, nullptr);
 	}
 
-	if (textureSampler != VK_NULL_HANDLE)
-	{
-		vkDestroySampler(device, textureSampler, nullptr);
-		logger.log("Destroyed sampler");
-	}
+	textureSampler.destroy(device);
+	cubemapSampler.destroy(device);
 
 	// cleanup Vulkan device and instance
 	if (device != VK_NULL_HANDLE)
@@ -550,7 +546,7 @@ void VulkanRenderer::initialize(const Size &size)
 		commandPool = createCommandPools(queueFamilyIndices, graphicsQueue, transferQueue);
 		createCommandBuffers();
 		createSynchronization();
-		createTextureSampler();
+		createTextureSamplers();
 	}
 }
 
@@ -1139,30 +1135,10 @@ void VulkanRenderer::createSynchronization()
 	}
 }
 
-void VulkanRenderer::createTextureSampler()
+void VulkanRenderer::createTextureSamplers()
 {
-	VkSamplerCreateInfo samplerInfo = {};
-	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	samplerInfo.minFilter = VK_FILTER_LINEAR;
-	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.anisotropyEnable = VK_TRUE;
-	samplerInfo.maxAnisotropy = maxAnistrophy;
-	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-	samplerInfo.unnormalizedCoordinates = VK_FALSE;
-	samplerInfo.compareEnable = VK_FALSE;
-	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	samplerInfo.mipLodBias = 0.0f;
-	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 0.0f;
-
-	if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Error creating sampler");
-	}
+	textureSampler = Sampler::create(device, VK_SAMPLER_ADDRESS_MODE_REPEAT);
+	cubemapSampler = Sampler::create(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
 }
 
 void VulkanRenderer::createDepthResources()
@@ -1910,8 +1886,8 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 			const Material &material = getMaterial(group.materialId);
 
 			// bind the appropriate pipeline for this material
-			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-							gBufferPipeline.vulkanPipeline());
+			VkPipeline pipeline = (material.depth) ? gBufferPipeline.vulkanPipeline() : depthlessPipeline.vulkanPipeline();
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
 			std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
 			const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
@@ -1923,7 +1899,7 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 				VkDescriptorImageInfo imageInfo = {};
 				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
-				imageInfo.sampler = textureSampler;
+				imageInfo.sampler = textureSampler.vkSampler();
 
 				dsetObjWrites[0] = {
 					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
