@@ -92,7 +92,7 @@ class VulkanRenderer : public Boiler::Renderer
 
 	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout, noTexPipelineLayout;
 	//VkPipeline gBufferPipeline, deferredPipeline;
-	GraphicsPipeline depthlessPipeline, gBufferPipeline, deferredPipeline;
+	GraphicsPipeline skyboxPipeline, gBufferPipeline, deferredPipeline;
 
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;
@@ -116,7 +116,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void createMaterialBuffer();
 	void updateMaterials(const std::vector<ShaderMaterial> &materials) const override;
 
-	ShaderStageModules gBufferModules, deferredModules, noTexModules;
+	ShaderStageModules gBufferModules, deferredModules, noTexModules, skyboxModules;
 	short currentFrame;
 	uint32_t imageIndex;
 	VkResult nextImageResult;

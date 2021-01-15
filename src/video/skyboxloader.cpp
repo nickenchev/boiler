@@ -14,10 +14,10 @@ Entity SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 						  const std::string &front, const std::string &back)
 {
 	std::array<ImageData, 6> images{
+		ImageLoader::load(right),
+		ImageLoader::load(left),
 		ImageLoader::load(top),
 		ImageLoader::load(bottom),
-		ImageLoader::load(left),
-		ImageLoader::load(right),
 		ImageLoader::load(front),
 		ImageLoader::load(back)
 	};
@@ -97,7 +97,7 @@ Entity SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 	}
 
 	Material &material = renderer.createMaterial();
-	//material.baseTexture = renderer.loadCubemap(images);
+	material.baseTexture = renderer.loadCubemap(images);
 	material.depth = false; // TODO: TEMP
 	material.color = vec4(1, 1, 1, 1);
 

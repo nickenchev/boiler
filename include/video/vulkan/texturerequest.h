@@ -19,6 +19,7 @@ struct TextureRequest
 	VkImageUsageFlags usage;
 	VkMemoryPropertyFlags memProperties;
 	int layers;
+	VkImageCreateFlags flags;
 
 	TextureRequest(const Size &size, VkFormat format)
 	{
@@ -28,6 +29,7 @@ struct TextureRequest
 		this->tiling = VK_IMAGE_TILING_OPTIMAL;
 		this->usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		this->memProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+		this->flags = 0;
 	}
 
 	VkImageCreateInfo createInfo() const
@@ -46,7 +48,7 @@ struct TextureRequest
 		imageInfo.usage = usage;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		imageInfo.flags = 0;
+		imageInfo.flags = flags;
 
 		return imageInfo;
 	}

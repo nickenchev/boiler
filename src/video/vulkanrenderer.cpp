@@ -236,6 +236,8 @@ void VulkanRenderer::shutdown()
 	// delete the shader module
 	vkDestroyShaderModule(device, gBufferModules.vertex, nullptr);
 	vkDestroyShaderModule(device, gBufferModules.fragment, nullptr);
+	vkDestroyShaderModule(device, skyboxModules.vertex, nullptr);
+	vkDestroyShaderModule(device, skyboxModules.fragment, nullptr);
 	vkDestroyShaderModule(device, deferredModules.vertex, nullptr);
 	vkDestroyShaderModule(device, deferredModules.fragment, nullptr);
 	logger.log("Destroyed shader modules");
@@ -523,6 +525,11 @@ void VulkanRenderer::initialize(const Size &size)
 		gBufferModules.vertex = createShaderModule(gBuffVertData);
 		auto gBuffFragData = FileManager::readBinaryFile("shaders/gbuffer.frag.spv");
 		gBufferModules.fragment = createShaderModule(gBuffFragData);
+		// skybox rendering shaders
+		auto skyboxVertData = FileManager::readBinaryFile("shaders/skybox.vert.spv");
+		skyboxModules.vertex = createShaderModule(skyboxVertData);
+		auto skyboxFragData = FileManager::readBinaryFile("shaders/skybox.frag.spv");
+		skyboxModules.fragment = createShaderModule(skyboxFragData);
 
 		// shader modules to compose final image
 		auto deferredVertData = FileManager::readBinaryFile("shaders/deferred.vert.spv");
@@ -920,8 +927,8 @@ void VulkanRenderer::createGraphicsPipelines()
 	gBufferPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind,
 											   &standardAttrDesc, 3, gBufferModules, 0, VK_CULL_MODE_BACK_BIT, true, true);
 	// depth disabled pipeline
-	depthlessPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind,
-												 &standardAttrDesc, 3, gBufferModules, 0, VK_CULL_MODE_BACK_BIT, false, true);
+	skyboxPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind,
+												 &standardAttrDesc, 3, skyboxModules, 0, VK_CULL_MODE_BACK_BIT, false, true);
 	// pipeline for deferred final output
 	deferredPipeline = GraphicsPipeline::create(device, renderPass, deferredPipelineLayout, swapChainExtent, nullptr, nullptr,
 												1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT, true);
@@ -1243,7 +1250,7 @@ void VulkanRenderer::cleanupSwapchain()
 
 	// clean up graphics pipeline
 	GraphicsPipeline::destroy(device, gBufferPipeline);
-	GraphicsPipeline::destroy(device, depthlessPipeline);
+	GraphicsPipeline::destroy(device, skyboxPipeline);
 	GraphicsPipeline::destroy(device, deferredPipeline);
 
 	vkDestroyPipelineLayout(device, gBuffersPipelineLayout, nullptr);
@@ -1323,7 +1330,7 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 	imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
 	imageViewCreateInfo.subresourceRange.levelCount = 1;
 	imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-	imageViewCreateInfo.subresourceRange.layerCount = 1;
+	imageViewCreateInfo.subresourceRange.layerCount = viewType == VK_IMAGE_VIEW_TYPE_CUBE ? 6 : 1;
 
 	VkImageView imageView;
 	if (vkCreateImageView(device, &imageViewCreateInfo, nullptr, &imageView) != VK_SUCCESS)
@@ -1348,13 +1355,14 @@ Texture VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &im
 	BufferInfo buffInfo = createBuffer(totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 									   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 	// stage data for all 6 images
-	void *data = nullptr;
-	vkMapMemory(device, buffInfo.memory, 0, totalSize, 0, &data);
+	char *data = nullptr;
+	vkMapMemory(device, buffInfo.memory, 0, totalSize, 0, (void **)&data);
 	size_t offset = 0;
 	for (auto &image : images)
 	{
 		const size_t size = image.size.width * image.size.height * image.colorComponents;
-		memcpy(data, image.pixelData, size);
+		memcpy(data + offset, image.pixelData, size);
+		offset += size;
 	}
 	vkUnmapMemory(device, buffInfo.memory);
 
@@ -1362,10 +1370,18 @@ Texture VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &im
 	TextureRequest request(images[0].size, textureFormat);
 	request.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	request.layers = cubeMapSize;
+	request.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 	auto imagePair = createImage(request);
 
 	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 6);
-	copyBufferToImage(buffInfo.buffer, 0, imagePair.first, images[0].size);
+
+	offset = 0;
+	for (int i = 0; i < cubeMapSize; ++i)
+	{
+		copyBufferToImage(buffInfo.buffer, offset, imagePair.first, images[i].size, i, 1);
+		offset += images[i].size.width * images[i].size.height * images[i].colorComponents;
+	}
+	//copyBufferToImage(buffInfo.buffer, offset, imagePair.first, images[0].size, 0, 6);
 	freeBuffer(buffInfo);
 	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 6);
 
@@ -1886,7 +1902,7 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 			const Material &material = getMaterial(group.materialId);
 
 			// bind the appropriate pipeline for this material
-			VkPipeline pipeline = (material.depth) ? gBufferPipeline.vulkanPipeline() : depthlessPipeline.vulkanPipeline();
+			VkPipeline pipeline = (material.depth) ? gBufferPipeline.vulkanPipeline() : skyboxPipeline.vulkanPipeline();
 			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
 			std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
