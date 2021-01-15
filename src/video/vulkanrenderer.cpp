@@ -1374,14 +1374,7 @@ Texture VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &im
 	auto imagePair = createImage(request);
 
 	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 6);
-
-	offset = 0;
-	for (int i = 0; i < cubeMapSize; ++i)
-	{
-		copyBufferToImage(buffInfo.buffer, offset, imagePair.first, images[i].size, i, 1);
-		offset += images[i].size.width * images[i].size.height * images[i].colorComponents;
-	}
-	//copyBufferToImage(buffInfo.buffer, offset, imagePair.first, images[0].size, 0, 6);
+	copyBufferToImage(buffInfo.buffer, 0, imagePair.first, images[0].size, 0, 6);
 	freeBuffer(buffInfo);
 	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 6);
 
