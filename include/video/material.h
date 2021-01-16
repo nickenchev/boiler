@@ -11,7 +11,11 @@ namespace Boiler {
 
 struct Material : public Asset
 {
-    vec4 color;
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
+    float shininess;
+
 	std::optional<Texture> baseTexture;
 	AlphaMode alphaMode;
 	bool depth;
@@ -19,7 +23,10 @@ struct Material : public Asset
     Material(const AssetId assetId) : Asset(assetId)
 	{
 		depth = true;
-		color = vec4(1, 1, 1, 1);
+		ambient = vec4(1, 1, 1, 1);
+		diffuse = vec4(1, 1, 1, 1);
+		specular = vec4(1, 1, 1, 1);
+		shininess = 0;
 	}
     virtual ~Material() { }
 };

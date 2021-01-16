@@ -99,7 +99,7 @@ Entity SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 	Material &material = renderer.createMaterial();
 	material.baseTexture = renderer.loadCubemap(images);
 	material.depth = false; // TODO: TEMP
-	material.color = vec4(1, 1, 1, 1);
+	material.diffuse = vec4(1, 1, 1, 1);
 
 	Primitive primitive = renderer.loadPrimitive(VertexData(vertices, indices));
 	primitive.materialId = material.getAssetId();

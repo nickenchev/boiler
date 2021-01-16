@@ -9,7 +9,7 @@ namespace Boiler
 struct ShaderMaterial
 {
 	alignas(16) vec4 baseColorFactor;
-	alignas(16) uint32_t useBaseTexture; // TODO: Why align this way?
+	uint32_t useBaseTexture; // TODO: Why align this way?
 
 	ShaderMaterial()
 	{

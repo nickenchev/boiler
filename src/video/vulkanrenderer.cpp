@@ -1859,7 +1859,7 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	for (int i = 0; i < getMaterials().size(); ++i)
 	{
 		const Material &material = getMaterials()[i];
-		shaderMaterials[i].baseColorFactor = material.color;
+		shaderMaterials[i].baseColorFactor = material.diffuse;
 		if (material.baseTexture.has_value())
 		{
 			shaderMaterials[i].useBaseTexture = true;

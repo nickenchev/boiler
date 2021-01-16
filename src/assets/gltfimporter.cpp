@@ -68,11 +68,11 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 				newMaterial.baseTexture = engine.getRenderer().loadTexture(imageData); 
 			}
 
-			newMaterial.color = vec4(1, 1, 1, 1);
+			newMaterial.diffuse = vec4(1, 1, 1, 1);
 			if (material.pbrMetallicRoughness->baseColorFactor.has_value())
 			{
 				auto colorFactor = material.pbrMetallicRoughness->baseColorFactor.value();
-				newMaterial.color = {colorFactor[0], colorFactor[1], colorFactor[2], colorFactor[3]};
+				newMaterial.diffuse = {colorFactor[0], colorFactor[1], colorFactor[2], colorFactor[3]};
 			}
 			if (material.alphaMode == "BLEND")
 			{
@@ -318,6 +318,7 @@ void GLTFImporter::createInstance(const Entity &rootEntity) const
 {
 	// grab the default scene and load the node heirarchy
 	const gltf::Scene &scene = model.scenes[model.scene];
+	engine.getEcs().createComponent<TransformComponent>(rootEntity);
 
 	// used to map between node indexes (glTF) and entity system IDs
 	std::vector<Entity> nodeEntities(model.nodes.size(), Entity::NO_ENTITY);
