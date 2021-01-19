@@ -120,9 +120,9 @@ GraphicsPipeline GraphicsPipeline::create(VkDevice device, VkRenderPass renderPa
 	// depth/stencil buffer setup
 	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
 	depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilInfo.depthTestEnable = (enableDepth) ? VK_TRUE : VK_FALSE;
-	depthStencilInfo.depthWriteEnable = (enableDepth) ? VK_TRUE : VK_FALSE;
-	depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+	depthStencilInfo.depthTestEnable = VK_TRUE;
+	depthStencilInfo.depthWriteEnable = VK_TRUE;
+	depthStencilInfo.depthCompareOp = (enableDepth) ? VK_COMPARE_OP_LESS : VK_COMPARE_OP_LESS_OR_EQUAL;
 	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
 	depthStencilInfo.stencilTestEnable = VK_FALSE;
 

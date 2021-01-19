@@ -19,8 +19,9 @@ RenderSystem::RenderSystem(Renderer &renderer) : System("Render System"), render
 
 void RenderSystem::update(ComponentStore &store, const Time deltaTime, const Time globalTime)
 {
-	std::vector<MaterialGroup> materialGroups;
+	std::vector<MaterialGroup> materialGroups, postLightGroups;
 	materialGroups.resize(256);
+	postLightGroups.resize(256);
 	std::vector<mat4> matrices(getEntities().size());
 
 	// calculate matrices and setup material groups
@@ -50,7 +51,8 @@ void RenderSystem::update(ComponentStore &store, const Time deltaTime, const Tim
 
 		for (const auto &primitive : render.mesh.primitives)
 		{
-			auto &matGroup = materialGroups[primitive.materialId];
+			const Material &material = renderer.getMaterial(primitive.materialId);
+			auto &matGroup = material.depth ? materialGroups[primitive.materialId] : postLightGroups[primitive.materialId];
 			matGroup.materialId = primitive.materialId;
 
 			if (primitive.materialId != Asset::NO_ASSET)
@@ -60,5 +62,5 @@ void RenderSystem::update(ComponentStore &store, const Time deltaTime, const Tim
 		}
 	}
 
-	renderer.render(matrices, materialGroups);
+	renderer.render(matrices, materialGroups, postLightGroups);
 }

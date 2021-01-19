@@ -794,18 +794,26 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	depthAttachRef.attachment = 1;
 	depthAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	std::array<VkSubpassDescription, 2> subpasses{};
+	std::array<VkSubpassDescription, 3> subpasses{};
 	// gbuffer subpasses
 	subpasses[0].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[0].colorAttachmentCount = colorAttachmentRefs.size();
 	subpasses[0].pColorAttachments = colorAttachmentRefs.data();
 	subpasses[0].pDepthStencilAttachment = &depthAttachRef;
 	// deferred subpass
+	std::array<uint32_t, 1> gbuffPreserve = {1};
 	subpasses[1].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[1].colorAttachmentCount = 1;
 	subpasses[1].pColorAttachments = &swapColorAttachRef;
 	subpasses[1].inputAttachmentCount = inputColorAttachRefs.size();
 	subpasses[1].pInputAttachments = inputColorAttachRefs.data();
+	subpasses[1].preserveAttachmentCount = gbuffPreserve.size();
+	subpasses[1].pPreserveAttachments = gbuffPreserve.data();
+	// skybox subpass
+	subpasses[2].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpasses[2].colorAttachmentCount = 1;
+	subpasses[2].pColorAttachments = &swapColorAttachRef;
+	subpasses[2].pDepthStencilAttachment = &depthAttachRef;
 
 	// subpass dependencies
 	std::array<VkSubpassDependency, 3> dependencies;
@@ -926,12 +934,12 @@ void VulkanRenderer::createGraphicsPipelines()
 	// pipeline for g-buffer
 	gBufferPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind,
 											   &standardAttrDesc, 3, gBufferModules, 0, VK_CULL_MODE_BACK_BIT, true, true);
-	// depth disabled pipeline
-	skyboxPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind,
-												 &standardAttrDesc, 3, skyboxModules, 0, VK_CULL_MODE_BACK_BIT, false, true);
 	// pipeline for deferred final output
 	deferredPipeline = GraphicsPipeline::create(device, renderPass, deferredPipelineLayout, swapChainExtent, nullptr, nullptr,
 												1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT, true);
+	// skybox pipeline
+	skyboxPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind,
+												 &standardAttrDesc, 3, skyboxModules, 2, VK_CULL_MODE_BACK_BIT, false, true);
 }
 
 VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(const VkPipelineLayoutCreateInfo &createInfo) const
@@ -1793,7 +1801,8 @@ void VulkanRenderer::beginRender()
 	}
 }
 
-void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups)
+void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups,
+							const std::vector<MaterialGroup> &postLightGroups)
 {
 	constexpr size_t DSET_IDX_FRAME = 0;
 	constexpr size_t DSET_IDX_MATERIAL = 1;
@@ -1884,66 +1893,71 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 
 	vkUpdateDescriptorSets(device, dsetWritesFrame.size(), dsetWritesFrame.data(), 0, nullptr);
 
-	for (int i = 0; i < materialGroups.size(); ++i)
+	const auto processGroups = [this, commandBuffer](const std::vector<MaterialGroup> &materialGroups, VkPipeline pipeline)
 	{
-		const MaterialGroup &group = materialGroups[i];
-
-		// TODO: Avoid looping over all material groups
-		// only loop over the ones that are actually being used
-		if (group.materialId != Asset::NO_ASSET)
+		for (int i = 0; i < materialGroups.size(); ++i)
 		{
-			const Material &material = getMaterial(group.materialId);
+			const MaterialGroup &group = materialGroups[i];
 
-			// bind the appropriate pipeline for this material
-			VkPipeline pipeline = (material.depth) ? gBufferPipeline.vulkanPipeline() : skyboxPipeline.vulkanPipeline();
-			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-			std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
-			const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
-			descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
-			const int bindDescCount = descriptorSets.size();
-
-			if (material.baseTexture.has_value())
+			// TODO: Avoid looping over all material groups
+			// only loop over the ones that are actually being used
+			if (group.materialId != Asset::NO_ASSET)
 			{
-				VkDescriptorImageInfo imageInfo = {};
-				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
-				imageInfo.sampler = textureSampler.vkSampler();
+				const Material &material = getMaterial(group.materialId);
 
-				dsetObjWrites[0] = {
-					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-					.dstSet = descriptorSets[DSET_IDX_MATERIAL],
-					.dstBinding = 0,
-					.dstArrayElement = 0,
-					.descriptorCount = 1,
-					.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-					.pImageInfo = &imageInfo,
-				};
-				vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
-			}
+				// bind the appropriate pipeline for this material
+				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, bindDescCount, descriptorSets.data(), 0, nullptr);
+				std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
+				const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
+				descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
+				const int bindDescCount = descriptorSets.size();
 
-			for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
-			{
-				RenderConstants constants;
-				constants.materialId = group.materialId;
-				constants.matrixId = instance.matrixId;
-				vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-								0, sizeof(RenderConstants), &constants);
+				if (material.baseTexture.has_value())
+				{
+					VkDescriptorImageInfo imageInfo = {};
+					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
+					imageInfo.sampler = textureSampler.vkSampler();
 
-				// draw the vertex data
-				const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(instance.primitive.getAssetId());
-				const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
-				const std::array<VkDeviceSize, buffers.size()> offsets = {0};
+					dsetObjWrites[0] = {
+						.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+						.dstSet = descriptorSets[DSET_IDX_MATERIAL],
+						.dstBinding = 0,
+						.dstArrayElement = 0,
+						.descriptorCount = 1,
+						.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+						.pImageInfo = &imageInfo,
+					};
+					vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
+				}
 
-				vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
-				vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
-				vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(instance.primitive.getIndexCount()), 1, 0, 0, 0);
+				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, bindDescCount, descriptorSets.data(), 0, nullptr);
+
+				for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
+				{
+					RenderConstants constants;
+					constants.materialId = group.materialId;
+					constants.matrixId = instance.matrixId;
+					vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+									0, sizeof(RenderConstants), &constants);
+
+					// draw the vertex data
+					const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(instance.primitive.getAssetId());
+					const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
+					const std::array<VkDeviceSize, buffers.size()> offsets = {0};
+
+					vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
+					vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
+					vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(instance.primitive.getIndexCount()), 1, 0, 0, 0);
+				}
 			}
 		}
-	}
+	};
 
+	// render all pre-deferred pass groups
+	processGroups(materialGroups, gBufferPipeline.vulkanPipeline());
+	
 	// perform deferred lighting pass
 	// update input attachments
 	std::array<VkDescriptorImageInfo, 3> descriptorImages{};
@@ -2000,19 +2014,15 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 						deferredPipeline.vulkanPipeline());
 
 	vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
 	GBufferPushConstants consts;
 	consts.cameraPosition = cameraPosition;
 	vkCmdPushConstants(commandBuffer, deferredPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GBufferPushConstants), &consts);
 
-	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
-	vkCmdEndRenderPass(commandBuffer);
-
-	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Error ending the command buffer");
-	}
-
+	// post deferred lighting pass
+	vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
+	processGroups(postLightGroups, skyboxPipeline.vulkanPipeline());
 }
 
 void VulkanRenderer::endRender()
@@ -2020,6 +2030,14 @@ void VulkanRenderer::endRender()
 	if (nextImageResult == VK_SUCCESS)
 	{
 		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+
+		vkCmdEndRenderPass(commandBuffer);
+
+		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Error ending the command buffer");
+		}
+
 		// semaphore is used to signal the end of a frame, so the next can start
 		// semaphore indexes match up with the stages at the respective array index
 		std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[currentFrame]};

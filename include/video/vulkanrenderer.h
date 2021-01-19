@@ -188,7 +188,8 @@ public:
 
 	void beginRender() override;
 	void endRender() override;
-	void render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups) override;
+	void render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups,
+				const std::vector<MaterialGroup> &postLightGroups) override;
 
 	// TODO: This needs to be improved
 	VkInstance getVulkanInstance() const { return instance; }
