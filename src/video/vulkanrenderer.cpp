@@ -939,7 +939,7 @@ void VulkanRenderer::createGraphicsPipelines()
 												1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT, true);
 	// skybox pipeline
 	skyboxPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind,
-												 &standardAttrDesc, 3, skyboxModules, 2, VK_CULL_MODE_BACK_BIT, false, true);
+											  &standardAttrDesc, 3, skyboxModules, 2, VK_CULL_MODE_BACK_BIT, false, true);
 }
 
 VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(const VkPipelineLayoutCreateInfo &createInfo) const
