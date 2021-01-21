@@ -795,7 +795,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	depthAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	std::array<VkSubpassDescription, 3> subpasses{};
-	// gbuffer subpasses
+	// gbuffer subpass
 	subpasses[0].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[0].colorAttachmentCount = colorAttachmentRefs.size();
 	subpasses[0].pColorAttachments = colorAttachmentRefs.data();
@@ -816,7 +816,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpasses[2].pDepthStencilAttachment = &depthAttachRef;
 
 	// subpass dependencies
-	std::array<VkSubpassDependency, 3> dependencies;
+	std::array<VkSubpassDependency, 4> dependencies;
 	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 	dependencies[0].dstSubpass = 0;
 	dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
@@ -834,13 +834,21 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 	dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-	dependencies[2].srcSubpass = 0;
-	dependencies[2].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[2].srcSubpass = 1;
+	dependencies[2].dstSubpass = 2;
 	dependencies[2].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependencies[2].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	dependencies[2].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	dependencies[2].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	dependencies[2].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[2].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	dependencies[2].dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
 	dependencies[2].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	dependencies[3].srcSubpass = 0;
+	dependencies[3].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[3].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[3].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependencies[3].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[3].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	dependencies[3].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 	// create the render pass
 	std::array<VkAttachmentDescription, 5> attachments = {
