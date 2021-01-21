@@ -23,9 +23,10 @@ AssetId Renderer::nextAssetId()
 	return assetId++;
 }
 
-void Renderer::beginRender()
+bool Renderer::beginRender()
 {
 	frameLightIdx = 0;
+	return true;
 }
 
 Material &Renderer::createMaterial()

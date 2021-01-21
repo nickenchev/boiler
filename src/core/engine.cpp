@@ -135,16 +135,18 @@ void Engine::step()
 	} 
 
 	// render related systems only run during render phase
+	// this is called before updateMatrices, wrong descriptor data
 	// TODO: Handle GUI events differently
-	renderer->beginRender(); // this is called before updateMatrices, wrong descriptor data
+	if (renderer->beginRender())
+	{
+		lightingSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
 
-	lightingSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
+		renderSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
+		glyphSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
+		if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
 
-	renderSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
-	glyphSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
-	if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
-
-	renderer->endRender();
+		renderer->endRender();
+	}
 }
 
 void Engine::processEvents()

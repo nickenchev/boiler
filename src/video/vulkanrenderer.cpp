@@ -1743,9 +1743,9 @@ void updateMemory(VkDevice device, VkDeviceMemory memory, const T &object)
 	vkUnmapMemory(device, memory);
 }
 
-void VulkanRenderer::beginRender()
+bool VulkanRenderer::beginRender()
 {
-	Renderer::beginRender();
+	bool shouldRender = Renderer::beginRender();
 
 	nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
 											VK_NULL_HANDLE, &imageIndex);
@@ -1760,7 +1760,6 @@ void VulkanRenderer::beginRender()
 		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 		vkResetCommandBuffer(commandBuffer, 0);
 
-		// submit data to command buffer
 		VkCommandBufferBeginInfo beginInfo = {};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = 0;
@@ -1800,13 +1799,15 @@ void VulkanRenderer::beginRender()
 		recreateSwapchain();
 
 		// once swapchain is recreated, try again
-		beginRender();
+		shouldRender = false;
 		logger.log("Swapchain recreated, command buffers reinitialized");
 	}
 	else
 	{
 		throw std::runtime_error("Error during image aquire");
 	}
+
+	return shouldRender;
 }
 
 void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups,

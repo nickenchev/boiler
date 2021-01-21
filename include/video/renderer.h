@@ -78,7 +78,7 @@ public:
 	std::vector<Boiler::Material> &getMaterials() { return materials; }
 	Material &getMaterial(AssetId assetId);
 
-	virtual void beginRender();
+	virtual bool beginRender();
 	virtual void endRender() = 0;
 	virtual void render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups, const std::vector<MaterialGroup> &postLightGroups) = 0;
 };

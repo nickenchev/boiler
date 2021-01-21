@@ -186,7 +186,7 @@ public:
     Primitive loadPrimitive(const VertexData &data) override;
 	Material &createMaterial() override;
 
-	void beginRender() override;
+	bool beginRender() override;
 	void endRender() override;
 	void render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups,
 				const std::vector<MaterialGroup> &postLightGroups) override;
