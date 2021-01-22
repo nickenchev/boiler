@@ -816,7 +816,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpasses[2].pDepthStencilAttachment = &depthAttachRef;
 
 	// subpass dependencies
-	std::array<VkSubpassDependency, 4> dependencies;
+	std::array<VkSubpassDependency, 5> dependencies;
 	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 	dependencies[0].dstSubpass = 0;
 	dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
@@ -824,7 +824,6 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 	dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
 	// This dependency transitions the input attachment from color attachment to shader read
 	dependencies[1].srcSubpass = 0;
 	dependencies[1].dstSubpass = 1;
@@ -833,22 +832,30 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 	dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-	dependencies[2].srcSubpass = 1;
+	// Ensure depth buffer is up-to-date before drawing skybox fragments
+	dependencies[2].srcSubpass = 0;
 	dependencies[2].dstSubpass = 2;
-	dependencies[2].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependencies[2].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	dependencies[2].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	dependencies[2].dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+	dependencies[2].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	dependencies[2].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	dependencies[2].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	dependencies[2].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 	dependencies[2].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-	dependencies[3].srcSubpass = 0;
-	dependencies[3].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[3].srcSubpass = 1;
+	dependencies[3].dstSubpass = 2;
 	dependencies[3].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependencies[3].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	dependencies[3].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	dependencies[3].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	dependencies[3].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[3].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	dependencies[3].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 	dependencies[3].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+	
+	dependencies[4].srcSubpass = 2;
+	dependencies[4].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependencies[4].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[4].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependencies[4].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependencies[4].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	dependencies[4].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 	// create the render pass
 	std::array<VkAttachmentDescription, 5> attachments = {
@@ -1167,11 +1174,6 @@ void VulkanRenderer::createTextureSamplers()
 void VulkanRenderer::createDepthResources()
 {
 	VkFormat depthFormat = findDepthFormat();
-	/*
-	auto imagePair = createImage(Size(swapChainExtent.width, swapChainExtent.height), depthFormat,
-								 VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-								 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-	*/
 
 	TextureRequest request(Size(swapChainExtent.width, swapChainExtent.height), depthFormat);
 	request.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -1750,7 +1752,7 @@ bool VulkanRenderer::beginRender()
 	nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
 											VK_NULL_HANDLE, &imageIndex);
 
-	if (nextImageResult == VK_SUCCESS)
+	if (nextImageResult == VK_SUCCESS && shouldRender)
 	{
 		// ensure current command buffer has finished executing before attempting to reuse it
 		vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
@@ -1913,52 +1915,54 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 			if (group.materialId != Asset::NO_ASSET)
 			{
 				const Material &material = getMaterial(group.materialId);
-
-				// bind the appropriate pipeline for this material
-				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-				std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
-				const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
-				descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
-				const int bindDescCount = descriptorSets.size();
-
 				if (material.baseTexture.has_value())
 				{
-					VkDescriptorImageInfo imageInfo = {};
-					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
-					imageInfo.sampler = textureSampler.vkSampler();
+					// bind the appropriate pipeline for this material
+					vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-					dsetObjWrites[0] = {
-						.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-						.dstSet = descriptorSets[DSET_IDX_MATERIAL],
-						.dstBinding = 0,
-						.dstArrayElement = 0,
-						.descriptorCount = 1,
-						.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-						.pImageInfo = &imageInfo,
-					};
-					vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
-				}
+					std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
+					const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
+					descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
+					const int bindDescCount = descriptorSets.size();
 
-				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, bindDescCount, descriptorSets.data(), 0, nullptr);
+					if (material.baseTexture.has_value()) // TODO: Add pipeline and descriptor layout without base texture sampler
+					{
+						VkDescriptorImageInfo imageInfo = {};
+						imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+						imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
+						imageInfo.sampler = textureSampler.vkSampler();
 
-				for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
-				{
-					RenderConstants constants;
-					constants.materialId = group.materialId;
-					constants.matrixId = instance.matrixId;
-					vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-									0, sizeof(RenderConstants), &constants);
+						dsetObjWrites[0] = {
+							.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+							.dstSet = descriptorSets[DSET_IDX_MATERIAL],
+							.dstBinding = 0,
+							.dstArrayElement = 0,
+							.descriptorCount = 1,
+							.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+							.pImageInfo = &imageInfo,
+						};
+						vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
+					}
 
-					// draw the vertex data
-					const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(instance.primitive.getAssetId());
-					const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
-					const std::array<VkDeviceSize, buffers.size()> offsets = {0};
+					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, bindDescCount, descriptorSets.data(), 0, nullptr);
 
-					vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
-					vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
-					vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(instance.primitive.getIndexCount()), 1, 0, 0, 0);
+					for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
+					{
+						RenderConstants constants;
+						constants.materialId = group.materialId;
+						constants.matrixId = instance.matrixId;
+						vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+										0, sizeof(RenderConstants), &constants);
+
+						// draw the vertex data
+						const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(instance.primitive.getAssetId());
+						const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
+						const std::array<VkDeviceSize, buffers.size()> offsets = {0};
+
+						vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
+						vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
+						vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(instance.primitive.getIndexCount()), 1, 0, 0, 0);
+					}
 				}
 			}
 		}
