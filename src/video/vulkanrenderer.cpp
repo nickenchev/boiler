@@ -1729,7 +1729,6 @@ bool VulkanRenderer::beginRender()
 
 	if (nextImageResult == VK_SUCCESS && shouldRender)
 	{
-		// ensure current command buffer has finished executing before attempting to reuse it
 		vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
 		vkResetFences(device, 1, &frameFences[currentFrame]);
 
@@ -1999,7 +1998,7 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 							deferredPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-						deferredPipeline.vulkanPipeline());
+					  deferredPipeline.vulkanPipeline());
 
 	vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
