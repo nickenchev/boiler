@@ -2001,13 +2001,13 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 					  deferredPipeline.vulkanPipeline());
 
 	vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
-	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
-
 	GBufferPushConstants consts;
 	consts.cameraPosition = cameraPosition;
-	vkCmdPushConstants(commandBuffer, deferredPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GBufferPushConstants), &consts);
+	vkCmdPushConstants(commandBuffer, deferredPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+					   sizeof(GBufferPushConstants), &consts);
 
-	// post deferred lighting pass
+	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
 	vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
 	processGroups(postLightGroups, skyboxPipeline.vulkanPipeline());
 }
