@@ -124,15 +124,18 @@ void Engine::step()
 	Time currentTime = SDL_GetTicks();
 	Time frameDelta = (currentTime - prevTime) / 1000.0f;
 	prevTime = currentTime;
-	frameLag += frameDelta;
+	//frameLag += frameDelta;
 
 	// frame update / catchup phase if lagging
+	/*
 	while (frameLag >= frameInterval)
 	{
 		update(frameInterval);
 		globalTime += frameInterval;
 		frameLag -= frameInterval;
 	} 
+	*/
+	update(frameDelta);
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data

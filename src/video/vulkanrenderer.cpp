@@ -34,7 +34,7 @@ using namespace Boiler;
 using namespace Boiler::Vulkan;
 
 constexpr bool enableDebugMessages = true;
-constexpr int maxFramesInFlight = 2;
+constexpr int maxFramesInFlight = 1;
 constexpr int maxObjects = 1000;
 constexpr int maxLights = 64;
 constexpr int maxMaterials = 256;
@@ -744,7 +744,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 		VkAttachmentDescription attachment = {};
 		attachment.format = format;
 		attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		attachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -755,10 +755,11 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	// framebuffer attachments
 	VkAttachmentDescription positionAttachment = createAttachment(positionFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	VkAttachmentDescription albedoAttachment = createAttachment(albedoFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	albedoAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	VkAttachmentDescription normalAttachment = createAttachment(normalFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	VkAttachmentDescription colorAttachment = createAttachment(swapChainFormat, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	VkAttachmentDescription depthAttachment = createAttachment(findDepthFormat(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 
 	std::array<VkAttachmentReference, 3> colorAttachmentRefs{};
 	colorAttachmentRefs[0].attachment = 2; // positions
@@ -807,31 +808,31 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpasses[2].pDepthStencilAttachment = &depthAttachRef;
 
 	// subpass dependencies
-	std::array<VkSubpassDependency, 3> dependencies{};
-	dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-	dependencies[0].dstSubpass = 0;
-	dependencies[0].srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	dependencies[0].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT|VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+    std::array<VkSubpassDependency, 3> dependencies{};
+    dependencies[0].srcSubpass = 0;
+    dependencies[0].dstSubpass = 1;
+    dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencies[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependencies[0].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dependencies[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    dependencies[0].dependencyFlags = 0;
 
-	dependencies[1].srcSubpass = 0;
-	dependencies[1].dstSubpass = 1;
-	dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-	dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-	dependencies[2].srcSubpass = 0;
-	dependencies[2].dstSubpass = 2;
-	dependencies[2].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	dependencies[2].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-	dependencies[2].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	dependencies[2].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-	dependencies[2].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
+    dependencies[1].srcSubpass = 1;
+    dependencies[1].dstSubpass = 2;
+    dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencies[1].dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    dependencies[1].dependencyFlags = 0;
+ 
+    dependencies[2].srcSubpass = 0;
+    dependencies[2].dstSubpass = 2;
+    dependencies[2].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+    dependencies[2].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dependencies[2].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependencies[2].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+    dependencies[2].dependencyFlags = 0;
+	
 	// create the render pass
 	std::array<VkAttachmentDescription, 5> attachments = {
 		colorAttachment, depthAttachment, positionAttachment, albedoAttachment, normalAttachment
@@ -861,8 +862,7 @@ void VulkanRenderer::createGraphicsPipelines()
     pushConsts[0].offset = 0;
     pushConsts[0].size = sizeof(RenderConstants);
 
-
-	std::array<VkDescriptorSetLayout, 2> descriptorLayouts{
+	std::array<VkDescriptorSetLayout, 2> descriptorLayouts {
 		renderDescriptors.getLayout(),
 		materialDescriptors.getLayout()
 	};
@@ -922,14 +922,17 @@ void VulkanRenderer::createGraphicsPipelines()
 	});
 
 	// pipeline for g-buffer
-	gBufferPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind,
-											   &standardAttrDesc, 3, gBufferModules, 0, VK_CULL_MODE_BACK_BIT, true, true);
+	gBufferPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
+											   &standardInputBind, &standardAttrDesc, 3, gBufferModules,
+											   0, VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS, true);
 	// pipeline for deferred final output
-	deferredPipeline = GraphicsPipeline::create(device, renderPass, deferredPipelineLayout, swapChainExtent, nullptr, nullptr,
-												1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT, true);
+	deferredPipeline = GraphicsPipeline::create(device, renderPass, deferredPipelineLayout, swapChainExtent,
+												nullptr, nullptr, 1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT,
+												false, VK_COMPARE_OP_LESS, false);
 	// skybox pipeline
-	skyboxPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent, &standardInputBind,
-											  &standardAttrDesc, 3, skyboxModules, 2, VK_CULL_MODE_BACK_BIT, false, true);
+	skyboxPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
+											  &standardInputBind, &standardAttrDesc, 1, skyboxModules, 2,
+											  VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS_OR_EQUAL, true);
 }
 
 VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(const VkPipelineLayoutCreateInfo &createInfo) const
@@ -951,7 +954,7 @@ void VulkanRenderer::createFramebuffers()
 	{
         std::array<VkImageView, 5> attachments = {
 			swapChainImageViews[i],
-			depthImageView,
+			depthImages[i].imageView,
 			gBuffers[i].positions.imageView,
 			gBuffers[i].albedo.imageView,
 			gBuffers[i].normals.imageView
@@ -1100,13 +1103,13 @@ VkCommandPool VulkanRenderer::createCommandPools(const QueueFamilyIndices &queue
 
 void VulkanRenderer::createCommandBuffers()
 {
-	commandBuffers.resize(framebuffers.size());
+	commandBuffers.resize(maxFramesInFlight);
 
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandPool = commandPool;
-	allocInfo.commandBufferCount = static_cast<uint32_t>(framebuffers.size());
+	allocInfo.commandBufferCount = static_cast<uint32_t>(maxFramesInFlight);
 
 	if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
 	{
@@ -1150,15 +1153,19 @@ void VulkanRenderer::createDepthResources()
 {
 	VkFormat depthFormat = findDepthFormat();
 
-	TextureRequest request(Size(swapChainExtent.width, swapChainExtent.height), depthFormat);
-	request.tiling = VK_IMAGE_TILING_OPTIMAL;
-	request.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-	request.memProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-	auto imagePair = createImage(request);
+	depthImages.resize(swapChainImages.size());
+	for (int i = 0; i < swapChainImages.size(); ++i)
+	{
+		TextureRequest request(Size(swapChainExtent.width, swapChainExtent.height), depthFormat);
+		request.tiling = VK_IMAGE_TILING_OPTIMAL;
+		request.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		request.memProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+		auto imagePair = createImage(request);
 
-	depthImage = imagePair.first;
-	depthImageMemory = imagePair.second;
-	depthImageView = createImageView(imagePair.first, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+		depthImages[i].image = imagePair.first;
+		depthImages[i].memory = imagePair.second;
+		depthImages[i].imageView = createImageView(imagePair.first, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+	}
 }
 
 void VulkanRenderer::createMatrixBuffer()
@@ -1221,9 +1228,12 @@ uint32_t VulkanRenderer::findMemoryType(uint32_t memoryTypeBits,
 void VulkanRenderer::cleanupSwapchain()
 {
 	// cleanup resources
-	vkDestroyImage(device, depthImage, nullptr);
-	vkFreeMemory(device, depthImageMemory, nullptr);
-	vkDestroyImageView(device, depthImageView, nullptr);
+	for (const auto &tex : depthImages)
+	{
+		vkDestroyImage(device, tex.image, nullptr);
+		vkFreeMemory(device, tex.memory, nullptr);
+		vkDestroyImageView(device, tex.imageView, nullptr);
+	}
 	logger.log("Cleaned up depth resources");
 
 	for (const auto &framebuffer : framebuffers)
@@ -1724,14 +1734,14 @@ bool VulkanRenderer::beginRender()
 {
 	bool shouldRender = Renderer::beginRender();
 
+	vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
+	vkResetFences(device, 1, &frameFences[currentFrame]);
+
 	nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
 											VK_NULL_HANDLE, &imageIndex);
 
 	if (nextImageResult == VK_SUCCESS && shouldRender)
 	{
-		vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
-		vkResetFences(device, 1, &frameFences[currentFrame]);
-
 		// setup the command buffers
 		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 		vkResetCommandBuffer(commandBuffer, 0);
@@ -1751,7 +1761,7 @@ bool VulkanRenderer::beginRender()
         clearValues[0].color = {{getClearColor().r, getClearColor().g, getClearColor().b, 1.0f}};
 		clearValues[1].depthStencil = {1.0f, 0};
         clearValues[2].color = {{0, 0, 0, 0}};
-        clearValues[3].color = {{0, 0, 0, 0}};
+        clearValues[3].color = {{1, 1, 1, 1}};
         clearValues[4].color = {{0, 0, 0, 0}};
 
 		// begin the render pass
@@ -1918,15 +1928,17 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 						vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
 					}
 
-					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0, bindDescCount, descriptorSets.data(), 0, nullptr);
+					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0,
+											bindDescCount, descriptorSets.data(), 0, nullptr);
 
 					for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
 					{
 						RenderConstants constants;
 						constants.materialId = group.materialId;
 						constants.matrixId = instance.matrixId;
-						vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-										0, sizeof(RenderConstants), &constants);
+						vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout,
+										   VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+										   0, sizeof(RenderConstants), &constants);
 
 						// draw the vertex data
 						const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(instance.primitive.getAssetId());
@@ -1942,20 +1954,16 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 		}
 	};
 
-	// render all pre-deferred pass groups
-	processGroups(materialGroups, gBufferPipeline.vulkanPipeline());
-	
-	// perform deferred lighting pass
 	// update input attachments
 	std::array<VkDescriptorImageInfo, 3> descriptorImages{};
 	descriptorImages[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	descriptorImages[0].imageView = gBuffers[currentFrame].positions.imageView;
+	descriptorImages[0].imageView = gBuffers[imageIndex].positions.imageView;
 	descriptorImages[0].sampler = VK_NULL_HANDLE;
 	descriptorImages[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	descriptorImages[1].imageView = gBuffers[currentFrame].albedo.imageView;
+	descriptorImages[1].imageView = gBuffers[imageIndex].albedo.imageView;
 	descriptorImages[1].sampler = VK_NULL_HANDLE;
 	descriptorImages[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	descriptorImages[2].imageView = gBuffers[currentFrame].normals.imageView;
+	descriptorImages[2].imageView = gBuffers[imageIndex].normals.imageView;
 	descriptorImages[2].sampler = VK_NULL_HANDLE;
 
 	const VkDescriptorSet descriptorSet = deferredDescriptors.getSet(currentFrame);
@@ -1994,6 +2002,10 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	descriptorWrites[3].pBufferInfo = &lightsBuffInfo;
 
 	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+
+	// render all pre-deferred pass groups
+	processGroups(materialGroups, gBufferPipeline.vulkanPipeline());
+	
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 							deferredPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
@@ -2017,8 +2029,43 @@ void VulkanRenderer::endRender()
 	if (nextImageResult == VK_SUCCESS)
 	{
 		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
-
 		vkCmdEndRenderPass(commandBuffer);
+
+		/*
+		VkMemoryBarrier memoryBarrier = {
+			.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+			.srcAccessMask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
+			VK_ACCESS_INDEX_READ_BIT |
+			VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
+			VK_ACCESS_UNIFORM_READ_BIT |
+			VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
+			VK_ACCESS_SHADER_READ_BIT |
+			VK_ACCESS_SHADER_WRITE_BIT |
+			VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+			VK_ACCESS_TRANSFER_READ_BIT |
+			VK_ACCESS_TRANSFER_WRITE_BIT |
+			VK_ACCESS_HOST_READ_BIT |
+			VK_ACCESS_HOST_WRITE_BIT,
+			.dstAccessMask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT |
+			VK_ACCESS_INDEX_READ_BIT |
+			VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT |
+			VK_ACCESS_UNIFORM_READ_BIT |
+			VK_ACCESS_INPUT_ATTACHMENT_READ_BIT |
+			VK_ACCESS_SHADER_READ_BIT |
+			VK_ACCESS_SHADER_WRITE_BIT |
+			VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+			VK_ACCESS_TRANSFER_READ_BIT |
+			VK_ACCESS_TRANSFER_WRITE_BIT |
+			VK_ACCESS_HOST_READ_BIT |
+			VK_ACCESS_HOST_WRITE_BIT};	// post deferred lighting pass
+		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 1, &memoryBarrier, 0, nullptr, 0, nullptr);
+		*/
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 		{

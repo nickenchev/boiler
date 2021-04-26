@@ -122,9 +122,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkResult nextImageResult;
 	Sampler textureSampler, cubemapSampler;
 
-	VkImage depthImage;
-	VkDeviceMemory depthImageMemory;
-	VkImageView depthImageView;
+	std::vector<TextureImage> depthImages;
 
 	void createSwapChain();
 	void createGBuffers();
