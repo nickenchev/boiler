@@ -34,7 +34,7 @@ using namespace Boiler;
 using namespace Boiler::Vulkan;
 
 constexpr bool enableDebugMessages = true;
-constexpr int maxFramesInFlight = 1;
+constexpr int maxFramesInFlight = 3;
 constexpr int maxObjects = 1000;
 constexpr int maxLights = 64;
 constexpr int maxMaterials = 256;
