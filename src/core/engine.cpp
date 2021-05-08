@@ -126,17 +126,17 @@ void Engine::step()
 	prevTime = currentTime;
 	//frameLag += frameDelta;
 
-	// frame update / catchup phase if lagging
 	/*
+	// frame update / catchup phase if lagging
 	while (frameLag >= frameInterval)
 	{
 		update(frameInterval);
 		globalTime += frameInterval;
 		frameLag -= frameInterval;
-	} 
-	*/
+	}*/
+
 	update(frameDelta);
-	globalTime += frameInterval;
+	globalTime += frameDelta;
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data

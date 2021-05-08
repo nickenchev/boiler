@@ -924,15 +924,18 @@ void VulkanRenderer::createGraphicsPipelines()
 	// pipeline for g-buffer
 	gBufferPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
 											   &standardInputBind, &standardAttrDesc, 3, gBufferModules,
-											   0, VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS, true);
+											   0, VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS, true, true);
+	gBufferNoTexPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
+													&standardInputBind, &standardAttrDesc, 3, gBufferModules,
+													0, VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS, true, false);
 	// pipeline for deferred final output
 	deferredPipeline = GraphicsPipeline::create(device, renderPass, deferredPipelineLayout, swapChainExtent,
 												nullptr, nullptr, 1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT,
-												false, VK_COMPARE_OP_LESS, false);
+												false, VK_COMPARE_OP_LESS, false, true);
 	// skybox pipeline
 	skyboxPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
 											  &standardInputBind, &standardAttrDesc, 1, skyboxModules, 2,
-											  VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS_OR_EQUAL, true);
+											  VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS_OR_EQUAL, true, true);
 }
 
 VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(const VkPipelineLayoutCreateInfo &createInfo) const
@@ -1253,6 +1256,7 @@ void VulkanRenderer::cleanupSwapchain()
 
 	// clean up graphics pipeline
 	GraphicsPipeline::destroy(device, gBufferPipeline);
+	GraphicsPipeline::destroy(device, gBufferNoTexPipeline);
 	GraphicsPipeline::destroy(device, skyboxPipeline);
 	GraphicsPipeline::destroy(device, deferredPipeline);
 
@@ -1864,10 +1868,6 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	{
 		const Material &material = getMaterials()[i];
 		shaderMaterials[i].baseColorFactor = material.diffuse;
-		if (material.baseTexture.has_value())
-		{
-			shaderMaterials[i].useBaseTexture = true;
-		}
 	}
 	updateMaterials(shaderMaterials);
 
@@ -1901,9 +1901,6 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 				const Material &material = getMaterial(group.materialId);
 				if (material.baseTexture.has_value())
 				{
-					// bind the appropriate pipeline for this material
-					vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
 					std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
 					const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
 					descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
@@ -1928,6 +1925,8 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 						vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
 					}
 
+					// bind the appropriate pipeline for this material
+					vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0,
 											bindDescCount, descriptorSets.data(), 0, nullptr);
 
@@ -1937,8 +1936,8 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 						constants.materialId = group.materialId;
 						constants.matrixId = instance.matrixId;
 						vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout,
-										   VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-										   0, sizeof(RenderConstants), &constants);
+											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+											0, sizeof(RenderConstants), &constants);
 
 						// draw the vertex data
 						const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(instance.primitive.getAssetId());

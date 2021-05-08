@@ -92,7 +92,7 @@ class VulkanRenderer : public Boiler::Renderer
 
 	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout, noTexPipelineLayout;
 	//VkPipeline gBufferPipeline, deferredPipeline;
-	GraphicsPipeline skyboxPipeline, gBufferPipeline, deferredPipeline;
+	GraphicsPipeline skyboxPipeline, gBufferPipeline, gBufferNoTexPipeline, deferredPipeline;
 
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;

@@ -21,7 +21,7 @@ GraphicsPipeline::GraphicsPipeline(VkPipeline pipeline)
 GraphicsPipeline GraphicsPipeline::create(VkDevice device, VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
 										  const VkVertexInputBindingDescription *inputBind, const std::vector<VkVertexInputAttributeDescription> *attrDescs,
 										  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex,
-										  VkCullModeFlags cullMode, bool enableDepth, VkCompareOp depthCompareOp, bool flipViewport)
+										  VkCullModeFlags cullMode, bool enableDepth, VkCompareOp depthCompareOp, bool flipViewport, bool useTexture)
 {
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
 	vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -127,19 +127,43 @@ GraphicsPipeline GraphicsPipeline::create(VkDevice device, VkRenderPass renderPa
 	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
 	depthStencilInfo.stencilTestEnable = VK_FALSE;
 
-	auto createStageInfo = [](VkShaderModule module, VkShaderStageFlagBits stage)
+	std::array<VkSpecializationMapEntry, 1> mapEntries
+	{
+		VkSpecializationMapEntry
+		{
+			.constantID = 0,
+			.offset = 0,
+			.size = sizeof(VkBool32),
+		}
+	};
+
+	size_t dataSize = 0;
+	for (const auto &entry : mapEntries)
+	{
+		dataSize += entry.size;
+	}
+
+	VkBool32 vkUseTexture = useTexture;
+	VkSpecializationInfo specializationCreateInfo = {};
+	specializationCreateInfo.dataSize = dataSize;
+	specializationCreateInfo.mapEntryCount = mapEntries.size();
+	specializationCreateInfo.pMapEntries = mapEntries.data();
+	specializationCreateInfo.pData = &vkUseTexture;
+
+	auto createStageInfo = [](VkShaderModule module, VkShaderStageFlagBits stage, VkSpecializationInfo *specializationInfo)
 	{
 		VkPipelineShaderStageCreateInfo stageInfo{};
 		stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		stageInfo.stage = stage;
 		stageInfo.module = module;
 		stageInfo.pName = SHADER_ENTRY.c_str();
+		stageInfo.pSpecializationInfo = specializationInfo;
 		return stageInfo;
 	};
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {
-		createStageInfo(shaderModules.vertex, VK_SHADER_STAGE_VERTEX_BIT),
-		createStageInfo(shaderModules.fragment, VK_SHADER_STAGE_FRAGMENT_BIT)
+		createStageInfo(shaderModules.vertex, VK_SHADER_STAGE_VERTEX_BIT, nullptr),
+		createStageInfo(shaderModules.fragment, VK_SHADER_STAGE_FRAGMENT_BIT, &specializationCreateInfo)
 	};
 
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
