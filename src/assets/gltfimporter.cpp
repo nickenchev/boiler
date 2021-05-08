@@ -46,6 +46,19 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 		buffers.push_back(loadBuffer(basePath.string(), buffer));
 	}
 
+	// load textures
+	std::vector<Texture> textures;
+	for (const gltf::Image &image : model.images)
+	{
+		assert(image.uri.length() > 0);
+		filesystem::path imagePath = basePath;
+		imagePath.append(image.uri);
+		const ImageData imageData = ImageLoader::load(imagePath.string());
+
+		// load the texture into GPU mem
+		textures.push_back(engine.getRenderer().loadTexture(imageData));
+	}
+
 	// load materials
 	for (size_t i = 0; i < model.materials.size(); ++i)
 	{
@@ -57,15 +70,7 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 			{
 				const gltf::MaterialTexture &matTexture = material.pbrMetallicRoughness.value().baseColorTexture.value();
 				const gltf::Texture &texture = model.textures[matTexture.index.value()];
-				const gltf::Image &image = model.images[texture.source.value()];
-
-				assert(image.uri.length() > 0);
-				filesystem::path imagePath = basePath;
-				imagePath.append(image.uri);
-				const ImageData imageData = ImageLoader::load(imagePath.string());
-
-				// load the texture into GPU mem
-				newMaterial.baseTexture = engine.getRenderer().loadTexture(imageData); 
+				newMaterial.baseTexture = textures[texture.source.value()];
 			}
 
 			newMaterial.diffuse = vec4(1, 1, 1, 1);
