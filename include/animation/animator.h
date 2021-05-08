@@ -60,7 +60,6 @@ public:
 	{
 		for (Clip &clip : animationComponent.getClips())
 		{
-			clip.advance(deltaTime);
 			if (clip.getGlobalStart() <= globalTime)
 			{
 				const Animation &animation = getAnimation(clip.getAnimationId());
@@ -73,18 +72,19 @@ public:
 
 					if (channel.getPath() == Path::TRANSLATION)
 					{
-						transform.setPosition(sampler.sample<vec3>(globalTime));
+						transform.setPosition(sampler.sample<vec3>(clip.getLocalTime()));
 					}
 					else if (channel.getPath() == Path::ROTATION)
 					{
-						const auto value = sampler.sample<vec4>(globalTime);
+						const auto value = sampler.sample<vec4>(clip.getLocalTime());
 						transform.setOrientation(quat(value.w, value.x, value.y, value.z));
 					}
 					else if (channel.getPath() == Path::SCALE)
 					{
-						transform.setScale(sampler.sample<vec3>(globalTime));
+						transform.setScale(sampler.sample<vec3>(clip.getLocalTime()));
 					}
 				}
+				clip.advance(deltaTime);
 			}
 		}
 	}

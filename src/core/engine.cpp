@@ -136,6 +136,7 @@ void Engine::step()
 	} 
 	*/
 	update(frameDelta);
+	globalTime += frameInterval;
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data

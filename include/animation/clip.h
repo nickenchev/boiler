@@ -23,10 +23,13 @@ public:
 	}
 
 	Time getGlobalStart() const { return globalStart; }
+
 	void advance(float deltaTime)
 	{
 		localTime += deltaTime;
+		if (localTime > 10) localTime = 0;
 	}
+	Time getLocalTime() const { return localTime; }
 
 	AnimationId getAnimationId() const { return animationId; }
 };
