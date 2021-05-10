@@ -1899,55 +1899,52 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 			if (group.materialId != Asset::NO_ASSET)
 			{
 				const Material &material = getMaterial(group.materialId);
-				if (material.baseTexture.has_value())
+				std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
+				const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
+				descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
+				const int bindDescCount = descriptorSets.size();
+
+				if (material.baseTexture.has_value()) // TODO: Add pipeline and descriptor layout without base texture sampler
 				{
-					std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
-					const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
-					descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
-					const int bindDescCount = descriptorSets.size();
+					VkDescriptorImageInfo imageInfo = {};
+					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
+					imageInfo.sampler = textureSampler.vkSampler();
 
-					if (material.baseTexture.has_value()) // TODO: Add pipeline and descriptor layout without base texture sampler
-					{
-						VkDescriptorImageInfo imageInfo = {};
-						imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-						imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
-						imageInfo.sampler = textureSampler.vkSampler();
+					dsetObjWrites[0] = {
+						.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+						.dstSet = descriptorSets[DSET_IDX_MATERIAL],
+						.dstBinding = 0,
+						.dstArrayElement = 0,
+						.descriptorCount = 1,
+						.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+						.pImageInfo = &imageInfo,
+					};
+					vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
+				}
 
-						dsetObjWrites[0] = {
-							.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-							.dstSet = descriptorSets[DSET_IDX_MATERIAL],
-							.dstBinding = 0,
-							.dstArrayElement = 0,
-							.descriptorCount = 1,
-							.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-							.pImageInfo = &imageInfo,
-						};
-						vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
-					}
+				// bind the appropriate pipeline for this material
+				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, material.baseTexture.has_value() ? pipeline : gBufferNoTexPipeline.vulkanPipeline());
+				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0,
+										bindDescCount, descriptorSets.data(), 0, nullptr);
 
-					// bind the appropriate pipeline for this material
-					vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-					vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0,
-											bindDescCount, descriptorSets.data(), 0, nullptr);
+				for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
+				{
+					RenderConstants constants;
+					constants.materialId = group.materialId;
+					constants.matrixId = instance.matrixId;
+					vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout,
+										VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+										0, sizeof(RenderConstants), &constants);
 
-					for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
-					{
-						RenderConstants constants;
-						constants.materialId = group.materialId;
-						constants.matrixId = instance.matrixId;
-						vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout,
-											VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-											0, sizeof(RenderConstants), &constants);
+					// draw the vertex data
+					const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(instance.primitive.getAssetId());
+					const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
+					const std::array<VkDeviceSize, buffers.size()> offsets = {0};
 
-						// draw the vertex data
-						const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(instance.primitive.getAssetId());
-						const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
-						const std::array<VkDeviceSize, buffers.size()> offsets = {0};
-
-						vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
-						vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
-						vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(instance.primitive.getIndexCount()), 1, 0, 0, 0);
-					}
+					vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
+					vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
+					vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(instance.primitive.getIndexCount()), 1, 0, 0, 0);
 				}
 			}
 		}
