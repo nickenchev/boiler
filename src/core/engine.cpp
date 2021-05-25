@@ -1,7 +1,6 @@
 #include <iostream>
 #include <chrono>
 #include <stdexcept>
-#include <thread>
 
 #include "SDL_timer.h"
 #include "SDL_video.h"
@@ -108,11 +107,13 @@ void Engine::run()
 {
 	frameInterval = 1.0f / 60;
 	running = true;
+
 	while(running)
 	{
 		processEvents();
 		step();
 	}
+	
 	// wait for any renderer commands to finish before destructors kick in
 	renderer->prepareShutdown();
 	renderer->shutdown();
