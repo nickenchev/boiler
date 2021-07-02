@@ -2,7 +2,7 @@
 #define COMPONENTSTORE_H
 
 #include <cassert>
-#include <vector>
+#include <array>
 #include <unordered_map>
 #include <memory>
 #include "core/component.h"
