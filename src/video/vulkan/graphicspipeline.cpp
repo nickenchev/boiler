@@ -1,3 +1,4 @@
+#include <array>
 #include "video/vulkan/graphicspipeline.h"
 #include "video/vulkan/shaderstagemodules.h"
 
