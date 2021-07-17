@@ -362,8 +362,7 @@ void VulkanRenderer::initialize(const Size &size)
 			VkPhysicalDeviceFeatures devFeats;
 			vkGetPhysicalDeviceFeatures(device, &devFeats);
 
-			if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
-				&& devFeats.samplerAnisotropy)
+			if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && devFeats.samplerAnisotropy)
 			{
 				deviceProperties = devProps;
 				deviceFeatures = devFeats;
@@ -1783,6 +1782,10 @@ bool VulkanRenderer::beginRender()
 	}
 	else if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR || resizeOccured)
 	{
+		if (resizeOccured)
+		{
+			logger.log("Resize detected");
+		}
 		logger.log("Invalidated swapchain, recreating...");
 		// handle out of date images
 		resizeOccured = false;
@@ -1792,8 +1795,13 @@ bool VulkanRenderer::beginRender()
 		shouldRender = false;
 		logger.log("Swapchain recreated, command buffers reinitialized");
 	}
+	else if (nextImageResult == VK_SUBOPTIMAL_KHR)
+	{
+		shouldRender = false;
+	}
 	else
 	{
+		logger.error("Image acquire error code: {}", nextImageResult);
 		throw std::runtime_error("Error during image aquire");
 	}
 
