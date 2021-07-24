@@ -1820,6 +1820,10 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	constexpr size_t DSET_IDX_FRAME = 0;
 	constexpr size_t DSET_IDX_MATERIAL = 1;
 
+	const VkDeviceSize offsetMatrices = (sizeof(ViewProjection) < deviceProperties.limits.minUniformBufferOffsetAlignment)
+		? deviceProperties.limits.minUniformBufferOffsetAlignment
+		: sizeof(ViewProjection);
+
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 
 	// setup descriptor sets
@@ -1840,7 +1844,7 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	memcpy(data, &viewProjection, sizeof(ViewProjection));
 	vkUnmapMemory(device, matrixBuffer.memory);
 
-	vkMapMemory(device, matrixBuffer.memory, sizeof(ViewProjection), size, 0, &data);
+	vkMapMemory(device, matrixBuffer.memory, offsetMatrices, size, 0, &data);
 	memcpy(data, matrices.data(), size);
 	vkUnmapMemory(device, matrixBuffer.memory);
 
@@ -1863,9 +1867,7 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	// all matrices
 	VkDescriptorBufferInfo matrixBuffInfo = {};
 	matrixBuffInfo.buffer = matrixBuffer.buffer;
-	matrixBuffInfo.offset = (sizeof(ViewProjection) < deviceProperties.limits.minUniformBufferOffsetAlignment)
-		? deviceProperties.limits.minUniformBufferOffsetAlignment
-		: sizeof(ViewProjection);
+	matrixBuffInfo.offset = offsetMatrices;
 	matrixBuffInfo.range = sizeof(mat4) * maxObjects;
 
 	dsetWritesFrame[1] = {
