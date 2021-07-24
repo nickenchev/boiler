@@ -355,6 +355,14 @@ void VulkanRenderer::initialize(const Size &size)
 		std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
 		vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
 
+		logger.log("Listing physical devices...");
+		for (VkPhysicalDevice device : physicalDevices)
+		{
+			VkPhysicalDeviceProperties devProps;
+			vkGetPhysicalDeviceProperties(device, &devProps);
+			logger.log("Physical device: {} with ID: {}", devProps.deviceName, devProps.deviceID);
+		}
+
 		for (VkPhysicalDevice device : physicalDevices)
 		{
 			VkPhysicalDeviceProperties devProps;
@@ -363,6 +371,7 @@ void VulkanRenderer::initialize(const Size &size)
 			vkGetPhysicalDeviceFeatures(device, &devFeats);
 
 			if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && devFeats.samplerAnisotropy)
+			//if (devProps.deviceID == 6427)
 			{
 				deviceProperties = devProps;
 				deviceFeatures = devFeats;
@@ -821,7 +830,8 @@ VkRenderPass VulkanRenderer::createRenderPass()
     dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependencies[1].dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    //dependencies[1].dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+	dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
     dependencies[1].dependencyFlags = 0;
  
     dependencies[2].srcSubpass = 0;
@@ -1172,7 +1182,7 @@ void VulkanRenderer::createDepthResources()
 
 void VulkanRenderer::createMatrixBuffer()
 {
-	const VkDeviceSize size = maxObjects * sizeof(mat4) + sizeof(ViewProjection);
+	const VkDeviceSize size = maxObjects * sizeof(mat4) + sizeof(ViewProjection) + deviceProperties.limits.minUniformBufferOffsetAlignment;
 	matrixBuffer = createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 								VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
@@ -1795,10 +1805,6 @@ bool VulkanRenderer::beginRender()
 		shouldRender = false;
 		logger.log("Swapchain recreated, command buffers reinitialized");
 	}
-	else if (nextImageResult == VK_SUBOPTIMAL_KHR)
-	{
-		shouldRender = false;
-	}
 	else
 	{
 		logger.error("Image acquire error code: {}", nextImageResult);
@@ -1857,7 +1863,9 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	// all matrices
 	VkDescriptorBufferInfo matrixBuffInfo = {};
 	matrixBuffInfo.buffer = matrixBuffer.buffer;
-	matrixBuffInfo.offset = sizeof(ViewProjection);
+	matrixBuffInfo.offset = (sizeof(ViewProjection) < deviceProperties.limits.minUniformBufferOffsetAlignment)
+		? deviceProperties.limits.minUniformBufferOffsetAlignment
+		: sizeof(ViewProjection);
 	matrixBuffInfo.range = sizeof(mat4) * maxObjects;
 
 	dsetWritesFrame[1] = {
