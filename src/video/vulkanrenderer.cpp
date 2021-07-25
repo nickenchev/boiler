@@ -371,7 +371,6 @@ void VulkanRenderer::initialize(const Size &size)
 			vkGetPhysicalDeviceFeatures(device, &devFeats);
 
 			if (devProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && devFeats.samplerAnisotropy)
-			//if (devProps.deviceID == 6427)
 			{
 				deviceProperties = devProps;
 				deviceFeatures = devFeats;
@@ -763,9 +762,10 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	// framebuffer attachments
 	VkAttachmentDescription positionAttachment = createAttachment(positionFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	VkAttachmentDescription albedoAttachment = createAttachment(albedoFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-	albedoAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	VkAttachmentDescription normalAttachment = createAttachment(normalFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	VkAttachmentDescription colorAttachment = createAttachment(swapChainFormat, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	VkAttachmentDescription depthAttachment = createAttachment(findDepthFormat(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 
@@ -830,15 +830,15 @@ VkRenderPass VulkanRenderer::createRenderPass()
     dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    //dependencies[1].dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-	dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+	dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     dependencies[1].dependencyFlags = 0;
  
+	// depth buffer between first -> skybox subpasses
     dependencies[2].srcSubpass = 0;
     dependencies[2].dstSubpass = 2;
-    dependencies[2].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	dependencies[2].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
     dependencies[2].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    dependencies[2].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	dependencies[2].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     dependencies[2].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
     dependencies[2].dependencyFlags = 0;
 	
