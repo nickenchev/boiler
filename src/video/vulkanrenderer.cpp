@@ -39,7 +39,7 @@ constexpr int maxObjects = 1000;
 constexpr int maxLights = 64;
 constexpr int maxMaterials = 256;
 constexpr int maxSamplers = 1;
-//constexpr VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+//constexpr VkFormat textureFormat = VK_FORMAT_R8G8B8A8_UNORM;
 constexpr VkFormat textureFormat = VK_FORMAT_R8G8B8A8_SRGB;
 
 
