@@ -74,10 +74,10 @@ set(BOILER_SOURCES
   ${SRC_BASE}/core/spriteframe.cpp
   ${SRC_BASE}/core/base64.cpp
   #${SRC_BASE}/core/glyphloader.cpp
-  ${SRC_BASE}/core/quadtree.cpp
+  #${SRC_BASE}/core/quadtree.cpp
   ${SRC_BASE}/core/rect.cpp
   #${SRC_BASE}/core/raycaster.cpp
-  ${SRC_BASE}/core/ray.cpp
+  #${SRC_BASE}/core/ray.cpp
   ${SRC_BASE}/core/bmfont.cpp
   ${SRC_BASE}/core/spriteanimation.cpp
   ${SRC_BASE}/core/line.cpp
@@ -100,7 +100,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/video/skyboxloader.cpp
   ${SRC_BASE}/video/imaging/imageloader.cpp
   ${SRC_BASE}/video/systems/rendersystem.cpp
-  ${SRC_BASE}/video/systems/glyphsystem.cpp
+  #${SRC_BASE}/video/systems/glyphsystem.cpp
   ${SRC_BASE}/video/systems/guisystem.cpp
   ${SRC_BASE}/video/systems/lightingsystem.cpp
   ${SRC_BASE}/animation/systems/animationsystem.cpp
@@ -123,6 +123,6 @@ target_include_directories(boiler
   ${INCLUDE_BASE}/tinyxml2
   boiler_deps)
 
-target_link_libraries(boiler boiler_deps)
+target_compile_options(boiler PRIVATE -Werror -Wall -Wextra)
 
-#target_compile_options(boiler PRIVATE -Wall -Wextra)
+target_link_libraries(boiler boiler_deps)

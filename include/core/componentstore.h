@@ -47,7 +47,7 @@ public:
 		entityComponents[index(entity)][T::mask.to_ulong()] = nullptr;
 	}
 
-	void removeAll(const Entity &entity)
+	void removeAll(const Entity &)
 	{
 		// remove all components first and then the entity
 		/*

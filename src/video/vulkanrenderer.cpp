@@ -34,11 +34,11 @@ using namespace Boiler;
 using namespace Boiler::Vulkan;
 
 constexpr bool enableDebugMessages = true;
-constexpr int maxFramesInFlight = 3;
-constexpr int maxObjects = 1000;
-constexpr int maxLights = 64;
-constexpr int maxMaterials = 256;
-constexpr int maxSamplers = 1;
+constexpr unsigned int maxFramesInFlight = 3;
+constexpr unsigned int maxObjects = 1000;
+constexpr unsigned int maxLights = 64;
+constexpr unsigned int maxMaterials = 256;
+constexpr unsigned int maxSamplers = 1;
 //constexpr VkFormat textureFormat = VK_FORMAT_R8G8B8A8_UNORM;
 constexpr VkFormat textureFormat = VK_FORMAT_R8G8B8A8_SRGB;
 
@@ -202,6 +202,7 @@ void VulkanRenderer::prepareShutdown()
 
 void VulkanRenderer::shutdown()
 {
+	logger.log("Starting shutdown");
 	cleanupSwapchain();
 
 	// command buffers
@@ -243,7 +244,7 @@ void VulkanRenderer::shutdown()
 	logger.log("Destroyed shader modules");
 	
 	// sync objects cleanup
-	for (int i = 0; i < maxFramesInFlight; ++i)
+	for (unsigned int i = 0; i < maxFramesInFlight; ++i)
 	{
 		vkDestroySemaphore(device, imageSemaphores[i], nullptr);
 		vkDestroySemaphore(device, renderSemaphores[i], nullptr);
@@ -1144,7 +1145,7 @@ void VulkanRenderer::createSynchronization()
 	fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	for (int i = 0; i < maxFramesInFlight; ++i)
+	for (unsigned int i = 0; i < maxFramesInFlight; ++i)
 	{
 		if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &imageSemaphores[i]) != VK_SUCCESS ||
 			vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &renderSemaphores[i]) != VK_SUCCESS ||
@@ -1166,7 +1167,7 @@ void VulkanRenderer::createDepthResources()
 	VkFormat depthFormat = findDepthFormat();
 
 	depthImages.resize(swapChainImages.size());
-	for (int i = 0; i < swapChainImages.size(); ++i)
+	for (unsigned int i = 0; i < swapChainImages.size(); ++i)
 	{
 		TextureRequest request(Size(swapChainExtent.width, swapChainExtent.height), depthFormat);
 		request.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -1389,10 +1390,10 @@ Texture VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &im
 	request.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 	auto imagePair = createImage(request);
 
-	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 6);
+	transitionImageLayout(imagePair.first, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, 6);
 	copyBufferToImage(buffInfo.buffer, 0, imagePair.first, images[0].size, 0, 6);
 	freeBuffer(buffInfo);
-	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 6);
+	transitionImageLayout(imagePair.first, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 6);
 
 	VkImageView imageView = createImageView(imagePair.first, textureFormat, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_CUBE);
 
@@ -1426,7 +1427,7 @@ Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 	auto imagePair = createImage(request);
 
 	// transition the image to transfer layout, copy the buffer pixel data to the image
-	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+	transitionImageLayout(imagePair.first, VK_IMAGE_LAYOUT_UNDEFINED,
 						  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	copyBufferToImage(bufferInfo.buffer, 0, imagePair.first, imageData.size);
 	
@@ -1434,7 +1435,7 @@ Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 	freeBuffer(bufferInfo);
 
 	// transition the image to a layout optimal for shader sampling
-	transitionImageLayout(imagePair.first, textureFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+	transitionImageLayout(imagePair.first, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 						  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	VkImageView imageView = createImageView(imagePair.first, textureFormat, VK_IMAGE_ASPECT_COLOR_BIT);
@@ -1536,8 +1537,7 @@ void VulkanRenderer::copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDevic
 	endSingleTimeCommands(transferQueue, transferPool, commandBuffer);
 }
 
-void VulkanRenderer::transitionImageLayout(VkImage image, VkFormat format,
-										   VkImageLayout oldLayout, VkImageLayout newLayout,
+void VulkanRenderer::transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout,
 										   unsigned int arrayLayer, unsigned int layerCount) const
 {
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands(commandPool);
@@ -1882,7 +1882,7 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 
 	// update shader material data
 	std::vector<ShaderMaterial> shaderMaterials(getMaterials().size());
-	for (int i = 0; i < getMaterials().size(); ++i)
+	for (unsigned int i = 0; i < static_cast<unsigned int>(getMaterials().size()); ++i)
 	{
 		const Material &material = getMaterials()[i];
 		shaderMaterials[i].baseColorFactor = material.diffuse;
@@ -1908,7 +1908,7 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 
 	const auto processGroups = [this, commandBuffer](const std::vector<MaterialGroup> &materialGroups, VkPipeline pipeline)
 	{
-		for (int i = 0; i < materialGroups.size(); ++i)
+		for (unsigned int i = 0; i < static_cast<unsigned int>(materialGroups.size()); ++i)
 		{
 			const MaterialGroup &group = materialGroups[i];
 

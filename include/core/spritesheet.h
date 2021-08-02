@@ -16,9 +16,9 @@ class Texture;
 
 class SpriteSheet
 {
+    Size size;
     const Texture texture;
     std::string imageFile;
-    Size size;
     std::map<std::string, SpriteFrame> frames;
 
 public:

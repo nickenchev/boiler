@@ -30,9 +30,6 @@ public:
 		ValueType result;
 		
 		// binary search for time
-		bool found = false;
-		int begin = 0;
-		int end = keyFrameTimes.size() - 1;
 		unsigned int prevIdx = 0;
 		unsigned int nextIdx = 0;
 

@@ -28,7 +28,7 @@ namespace Boiler {
 	namespace Vulkan {
 
 class SPVShaderProgram;
-class TextureRequest;
+struct TextureRequest;
 
 struct QueueFamilyIndices
 {
@@ -67,7 +67,6 @@ class VulkanRenderer : public Boiler::Renderer
 	std::vector<GBuffer> gBuffers;
 
 	bool enableValidationLayers, cleanedUp;
-	SDL_Window *win;
 	bool resizeOccured;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -90,7 +89,7 @@ class VulkanRenderer : public Boiler::Renderer
 	// descriptor related
 	DescriptorSet renderDescriptors, materialDescriptors, deferredDescriptors;
 
-	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout, noTexPipelineLayout;
+	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout;
 	//VkPipeline gBufferPipeline, deferredPipeline;
 	GraphicsPipeline skyboxPipeline, gBufferPipeline, gBufferNoTexPipeline, deferredPipeline;
 
@@ -116,7 +115,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void createMaterialBuffer();
 	void updateMaterials(const std::vector<ShaderMaterial> &materials) const override;
 
-	ShaderStageModules gBufferModules, deferredModules, noTexModules, skyboxModules;
+	ShaderStageModules gBufferModules, deferredModules, skyboxModules;
 	short currentFrame;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
@@ -157,8 +156,7 @@ class VulkanRenderer : public Boiler::Renderer
 	std::pair<VkImage, VkDeviceMemory> createImage(const TextureRequest &request) const;
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
 								VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D) const;
-	void transitionImageLayout(VkImage image, VkFormat format,
-							   VkImageLayout oldLayout, VkImageLayout newLayout,
+	void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout,
 							   unsigned int arrayLayer = 0, unsigned int layerCount = 1) const;
 	void copyBufferToImage(VkBuffer buffer, size_t bufferOffset, VkImage image, const Size &imageSize,
 						   unsigned int arrayLayer = 0, unsigned int layerCount = 1) const;

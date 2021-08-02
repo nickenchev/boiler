@@ -69,13 +69,13 @@ Entity SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
 
-	const int numVerts = 36;
+	const unsigned int numVerts = 36;
 	// iterate all vertices
 	int stepSize = 3;
-	for (int i = 0; i < numVerts; ++i)
+	for (unsigned int i = 0; i < numVerts; ++i)
 	{
 		bool found = false;
-		for (int j = 0; j < vertices.size(); ++j)
+		for (unsigned int j = 0; j < static_cast<unsigned int>(vertices.size()); ++j)
 		{
 			if (vertices[j].position.x == skyboxVertices[i * stepSize] &&
 				vertices[j].position.y == skyboxVertices[i * stepSize + 1] &&

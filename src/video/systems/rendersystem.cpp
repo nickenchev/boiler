@@ -9,15 +9,13 @@
 
 #include <thread>
 
-constexpr size_t maxMaterials = 128;
-
 using namespace Boiler;
 
 RenderSystem::RenderSystem(Renderer &renderer) : System("Render System"), renderer(renderer)
 {
 }
 
-void RenderSystem::update(ComponentStore &store, const Time deltaTime, const Time globalTime)
+void RenderSystem::update(ComponentStore &store, const Time, const Time)
 {
 	std::vector<MaterialGroup> materialGroups, postLightGroups;
 	materialGroups.resize(256);
@@ -25,7 +23,7 @@ void RenderSystem::update(ComponentStore &store, const Time deltaTime, const Tim
 	std::vector<mat4> matrices(getEntities().size());
 
 	// calculate matrices and setup material groups
-	for (int i = 0; i < getEntities().size(); ++i)
+	for (unsigned int i = 0; i < static_cast<unsigned int>(getEntities().size()); ++i)
 	{
 		const Entity &entity = getEntities()[i];
 		TransformComponent &transform = store.retrieve<TransformComponent>(entity);

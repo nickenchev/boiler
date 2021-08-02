@@ -19,7 +19,7 @@ namespace Boiler
 {
 
 class Primitive;
-class Material;
+struct Material;
 class VertexData;
 class TextureInfo;
 struct PositionComponent;
@@ -29,8 +29,8 @@ struct ImageData;
 
 class Renderer
 {
-    vec2 globalScale;
     vec3 clearColor;
+    vec2 globalScale;
 	AssetId assetId;
 
 protected:

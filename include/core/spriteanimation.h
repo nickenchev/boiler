@@ -11,12 +11,12 @@ class SpriteSheetFrame;
 class SpriteAnimation
 {
     std::vector<const SpriteSheetFrame *> frames;
-    int frameNum, numPlays;
+    unsigned int frameNum, numPlays;
     float animTime, duration;
 
 public:
     bool loop;
-    int timesToPlay;
+    unsigned int timesToPlay;
 
     SpriteAnimation(float duration);
 

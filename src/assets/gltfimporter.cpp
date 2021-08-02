@@ -23,7 +23,7 @@
 
 using namespace Boiler;
 
-GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) : logger("GLTF Importer"), engine(engine)
+GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) : engine(engine), logger("GLTF Importer") 
 {
 	std::ifstream infile(gltfPath);
 	std::stringstream buffer;

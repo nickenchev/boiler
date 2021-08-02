@@ -4,7 +4,7 @@
 
 using namespace Boiler;
 
-void GUISystem::update(ComponentStore &store, const Time deltaTime, const Time globalTime)
+void GUISystem::update(ComponentStore &store, const Time, const Time)
 {
 	if (getEntities().size())
 	{

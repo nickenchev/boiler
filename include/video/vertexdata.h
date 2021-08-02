@@ -11,7 +11,6 @@ namespace Boiler
 
 class VertexData
 {
-    bool owned;
     std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
 

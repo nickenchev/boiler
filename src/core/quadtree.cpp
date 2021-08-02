@@ -6,7 +6,7 @@
 
 using namespace Boiler;
 
-Quadtree::Quadtree(int level, const Rect &bounds) : maxObjects(MAX_OBJECTS), maxSubLevels(MAX_SUB_LEVELS), bounds(bounds)
+Quadtree::Quadtree(unsigned int level, const Rect &bounds) : maxObjects(MAX_OBJECTS), maxSubLevels(MAX_SUB_LEVELS), bounds(bounds)
 {
     //std::cout << "(" << bounds.position.x << "," << bounds.position.y << " " << bounds.size.width << "x" << bounds.size.height << ")" << std::endl;
     this->level = level;
@@ -96,14 +96,14 @@ void Quadtree::insert(const Entity &entity, Rect frame)
     }
 
 	objects.push_back(std::make_pair(entity, frame));
-    if (objects.size() > maxObjects && level < maxSubLevels)
+    if (static_cast<unsigned int>(objects.size()) > maxObjects && level < maxSubLevels)
     {
         if (nodes[0] == nullptr)
         {
             split();
         }
         int i = 0;
-        while (i < objects.size())
+        while (i < static_cast<unsigned int>(objects.size()))
         {
 			int index = getIndex(frame);
             if (index != -1)

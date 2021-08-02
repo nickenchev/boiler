@@ -14,7 +14,7 @@
 namespace Boiler
 {
 	class Engine;
-	struct Entity;
+	class Entity;
 
 	class GLTFImporter
 	{

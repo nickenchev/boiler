@@ -16,7 +16,6 @@ class SpriteFrame
     Rect sourceRect;
     bool rotated;
     bool trimmed;
-    glm::vec2 pivot;
 
 public:
 	SpriteFrame(const Texture &sourceTexture, Rect sourceRect, bool rotated,

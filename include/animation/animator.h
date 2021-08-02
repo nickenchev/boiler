@@ -38,7 +38,7 @@ public:
 
 	Clip createClip(Time globalStart, AnimationId animationId, bool continuous = false) const
 	{
-		const Animation &animation = getAnimation(animationId);
+		//const Animation &animation = getAnimation(animationId);
 		return Clip(globalStart, animationId, continuous);
 	}
 

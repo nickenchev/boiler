@@ -2,7 +2,7 @@
 
 using namespace Boiler;
 
-Camera::Camera(const Rect &frame, const Size &mapSize) : frame(frame), mapSize(mapSize), centralEntity(nullptr)
+Camera::Camera(const Rect &frame, const Size &mapSize) : centralEntity(nullptr), frame(frame), mapSize(mapSize) 
 {
 }
 

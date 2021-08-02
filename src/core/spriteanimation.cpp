@@ -20,7 +20,7 @@ void SpriteAnimation::update(float delta)
     if (animTime >= timePerFrame)
     {
         ++frameNum;
-        if (frameNum > frames.size())
+        if (frameNum > static_cast<unsigned int>(frames.size()))
         {
             numPlays++;
             if (!isFinished() || loop)

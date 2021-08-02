@@ -76,11 +76,13 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	ecs.getComponentSystems().removeUpdate(renderSys);
 	this->renderSystem = &renderSys;
 
+	/*
 	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*renderer)
 		.expects<TransformComponent>()
 		.expects<TextComponent>();
 	ecs.getComponentSystems().removeUpdate(glyphSys);
 	this->glyphSystem = &glyphSys;
+	*/
 
 	if (guiHandler)
 	{
@@ -147,7 +149,7 @@ void Engine::step()
 		lightingSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
 
 		renderSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
-		glyphSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
+		//glyphSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
 		if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
 
 		renderer->endRender();

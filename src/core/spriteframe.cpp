@@ -4,8 +4,8 @@
 using namespace Boiler;
 
 SpriteFrame::SpriteFrame(const Texture &sourceTexture, Rect sourceRect, bool rotated,
-						 bool trimmed, const glm::vec2 &pivot)
-    : sourceTexture(sourceTexture), sourceRect(sourceRect), pivot(pivot)
+						 bool trimmed, const glm::vec2 &)
+    : sourceTexture(sourceTexture), sourceRect(sourceRect)
 {
     this->rotated = rotated;
     this->trimmed = trimmed;
