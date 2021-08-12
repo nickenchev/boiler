@@ -22,10 +22,13 @@ struct SDL_Window;
 #include "video/vulkan/descriptorset.h"
 #include "video/vulkan/sampler.h"
 
-namespace Boiler {
+namespace Boiler
+{
 	struct MaterialGroup;
+}
 
-	namespace Vulkan {
+namespace Boiler::Vulkan
+{
 
 class SPVShaderProgram;
 struct TextureRequest;
@@ -199,7 +202,6 @@ public:
 	}
 };
 
-}
 }
 
 #endif /* VULKANRENDERER_H */
