@@ -36,7 +36,6 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 	{
 		throw std::runtime_error("Error initializing timer");
 	}
-	prevTime = SDL_GetTicks();
 	frameLag = 0;
 	globalTime = 0;
 }
@@ -95,6 +94,8 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 
 void Engine::start(std::shared_ptr<Part> part)
 {
+	prevTime = SDL_GetTicks();
+
 	//store the incoming part and start it
 	this->part = part;
 	this->part->onStart();
@@ -127,19 +128,15 @@ void Engine::step()
 	Time currentTime = SDL_GetTicks();
 	Time frameDelta = (currentTime - prevTime) / 1000.0f;
 	prevTime = currentTime;
-	//frameLag += frameDelta;
+	frameLag += frameDelta;
 
-	/*
 	// frame update / catchup phase if lagging
 	while (frameLag >= frameInterval)
 	{
 		update(frameInterval);
 		globalTime += frameInterval;
 		frameLag -= frameInterval;
-	}*/
-
-	update(frameDelta);
-	globalTime += frameDelta;
+	}
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data
