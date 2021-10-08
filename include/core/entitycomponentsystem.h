@@ -57,6 +57,7 @@ public:
 
 	void removeEntity(const Entity &entity)
 	{
+		throw std::runtime_error("Unimplemented");
 		logger.log("Deleting entity #: " + std::to_string(entity.getId()));
 
 		/*

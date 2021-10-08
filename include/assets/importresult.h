@@ -5,6 +5,7 @@
 #include "video/material.h"
 #include "video/mesh.h"
 #include "animation/animation.h"
+#include "animation/common.h"
 
 namespace Boiler {
 

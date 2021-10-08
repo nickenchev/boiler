@@ -17,6 +17,7 @@ class Clip
 public:
 	Clip(Time globalStart, AnimationId animationId, bool continuous = false)
 	{
+		this->localTime = 0;
 		this->globalStart = globalStart;
 		this->animationId = animationId;
 		this->continuous = continuous;

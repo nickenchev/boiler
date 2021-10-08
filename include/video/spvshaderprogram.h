@@ -1,9 +1,9 @@
 #ifndef SPVSHADERPROGRAM_H
 #define SPVSHADERPROGRAM_H
 
-#include <vulkan/vulkan.h>
 #include <string>
 #include <vector>
+#include "video/vulkan.h"
 
 #include "shaderprogram.h"
 #include "core/logger.h"
