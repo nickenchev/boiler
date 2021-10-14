@@ -17,6 +17,7 @@ class Clip
 public:
 	Clip(Time globalStart, AnimationId animationId, bool continuous = false)
 	{
+		this->localTime = 0;
 		this->globalStart = globalStart;
 		this->animationId = animationId;
 		this->continuous = continuous;
@@ -27,7 +28,6 @@ public:
 	void advance(float deltaTime)
 	{
 		localTime += deltaTime;
-		if (localTime > 10) localTime = 0;
 	}
 	Time getLocalTime() const { return localTime; }
 

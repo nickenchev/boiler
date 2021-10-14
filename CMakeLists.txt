@@ -3,8 +3,6 @@ project(boiler CXX)
 
 include(ExternalProject)
 
-set(CMAKE_BUILD_TYPE Debug)
-
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -53,6 +51,8 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/video/vulkan/graphicspipeline.h
   ${INCLUDE_BASE}/video/vulkan/shaderstagemodules.h
   ${INCLUDE_BASE}/video/skyboxloader.h
+  ${INCLUDE_BASE}/assets/maps/maploader.h
+  ${INCLUDE_BASE}/assets/maps/gamemap.h
   # Animation related
   ${INCLUDE_BASE}/animation/animation.h
   ${INCLUDE_BASE}/animation/animationsampler.h
@@ -62,6 +62,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/animation/common.h
   ${INCLUDE_BASE}/animation/components/animationcomponent.h
   ${INCLUDE_BASE}/animation/systems/animationsystem.h
+  ${INCLUDE_BASE}/json/jsonloader.h
 )
 
 # Engine related sources
@@ -111,18 +112,19 @@ set(BOILER_SOURCES
   ${SRC_BASE}/containers/gridposition.cpp
   ${SRC_BASE}/util/filemanager.cpp
   ${SRC_BASE}/util/tinyxml2.cpp
-  ${SRC_BASE}/assets/gltfimporter.cpp)
+  ${SRC_BASE}/assets/gltfimporter.cpp
+  ${SRC_BASE}/assets/maploader.cpp)
 
 add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
 target_include_directories(boiler
   INTERFACE
   ${INCLUDE_BASE}
-  PRIVATE
+  PUBLIC
   ${INCLUDE_BASE}
   ${INCLUDE_BASE}/tinyxml2
   boiler_deps)
 
-target_compile_options(boiler PRIVATE -Werror -Wall -Wextra)
+#target_compile_options(boiler PRIVATE -Werror -Wall -Wextra)
 
 target_link_libraries(boiler boiler_deps)

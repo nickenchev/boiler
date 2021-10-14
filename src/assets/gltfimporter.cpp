@@ -11,6 +11,7 @@
 #include "video/vertexdata.h"
 #include "assets/gltfimporter.h"
 #include "assets/importresult.h"
+#include "json/jsonloader.h"
 
 #include "animation/animation.h"
 
@@ -25,11 +26,7 @@ using namespace Boiler;
 
 GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) : engine(engine), logger("GLTF Importer") 
 {
-	std::ifstream infile(gltfPath);
-	std::stringstream buffer;
-	buffer << infile.rdbuf();
-	const std::string jsonString = buffer.str();
-	infile.close();
+	const std::string jsonString = JsonLoader::loadJson(gltfPath);
 
 	logger.log("Importing: {}", gltfPath);
 	model = gltf::load(jsonString);
@@ -323,7 +320,7 @@ void GLTFImporter::createInstance(const Entity &rootEntity) const
 {
 	// grab the default scene and load the node heirarchy
 	const gltf::Scene &scene = model.scenes[model.scene];
-	engine.getEcs().createComponent<TransformComponent>(rootEntity);
+	//engine.getEcs().createComponent<TransformComponent>(rootEntity);
 
 	// used to map between node indexes (glTF) and entity system IDs
 	std::vector<Entity> nodeEntities(model.nodes.size(), Entity::NO_ENTITY);
@@ -342,4 +339,10 @@ void GLTFImporter::createInstance(const Entity &rootEntity) const
 
 	// target -> entity mapping needed for animations
 	engine.getEcs().createComponent<AnimationComponent>(rootEntity, nodeEntities);
+
+	auto &animComp = engine.getEcs().getComponentStore().retrieve<AnimationComponent>(rootEntity);
+	for (AnimationId animId : getImportResult().animations)
+	{
+		animComp.addClip(Clip(0, animId, true));
+	}
 }

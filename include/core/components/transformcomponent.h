@@ -28,6 +28,7 @@ public:
 		orientation = {0, 0, 0, 0};
 		absolute = false;
 		dirty = true;
+		matrix = mat4();
 	}
 
 	// interface methods
@@ -66,12 +67,17 @@ public:
 	{
 		setScale(vec3(value, value, value));
 	}
+	void setScale(float x, float y, float z)
+	{
+		setScale(vec3(x, y, z));
+	}
 	void setScale(const vec3 &scale)
 	{
 		this->scale = scale;
 		dirty = true;
 	}
 
+	quat getOrientation() const { return orientation; }
 	void setOrientation(quat orientation)
 	{
 		this->orientation = orientation;
