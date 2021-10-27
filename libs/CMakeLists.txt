@@ -11,7 +11,7 @@ add_subdirectory(${LIBS_ROOT}/glm-0.9.9.8)
 # build glew
 set(GLEW_STATIC ON CACHE BOOL "Use GLEW static lib")
 set(GLEW_LIB_DIR ${LIBS_ROOT}/glew-2.1.0)
-add_subdirectory(${GLEW_LIB_DIR}/build/cmake)
+#add_subdirectory(${GLEW_LIB_DIR}/build/cmake)
 set(GLEW_HEADERS_DIR ${GLEW_LIB_DIR}/include)
 
 # build zlib
@@ -25,7 +25,7 @@ set(VIDEO_METAL ON)
 add_subdirectory(${LIBS_ROOT}/SDL2-2.0.16)
 
 # build freetype2
-add_subdirectory(${LIBS_ROOT}/freetype-2.10.1)
+add_subdirectory(${LIBS_ROOT}/freetype-2.11.0)
 
 # build jsoncpp
 set(JSONCPP_WITH_TESTS CACHE OFF "Disable JSONCPP unit tests")
@@ -75,7 +75,7 @@ target_link_libraries(boiler_deps
   zlibstatic
   freetype
   glm
-  glew_s
+  #glew_s
   jsoncpp_lib
   fmt
   ${VULKAN_LIBS}

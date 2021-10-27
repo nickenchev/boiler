@@ -7,6 +7,7 @@
 #include "assets/maps/maploader.h"
 #include "core/components/transformcomponent.h"
 #include "core/components/rendercomponent.h"
+#include "collision/collisioncomponent.h"
 
 using namespace Boiler;
 
@@ -78,6 +79,10 @@ void MapLoader::load(const std::string &filePath)
 							scale["y"].GetFloat(),
 							scale["z"].GetFloat()
 						);
+					}
+					else if (strcmp(comp["type"].GetString(), "collision") == 0)
+					{
+						const auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
 					}
 				}
 			}

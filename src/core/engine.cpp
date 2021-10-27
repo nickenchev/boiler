@@ -20,6 +20,8 @@
 #include "video/systems/lightingsystem.h"
 #include "animation/components/animationcomponent.h"
 #include "animation/systems/animationsystem.h"
+#include "collision/collisioncomponent.h"
+#include "collision/collisionsystem.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
@@ -63,6 +65,11 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 		.expects<AnimationComponent>()
 		.expects<TransformComponent>();
 	this->animationSystem = &animationSystem;
+
+	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>()
+		.expects<CollisionComponent>()
+		.expects<TransformComponent>();
+	this->collisionSystem = &collisionSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer)
 		.expects<LightingComponent>();
@@ -128,9 +135,9 @@ void Engine::step()
 	Time currentTime = SDL_GetTicks();
 	Time frameDelta = (currentTime - prevTime) / 1000.0f;
 	prevTime = currentTime;
-	frameLag += frameDelta;
 
 	// frame update / catchup phase if lagging
+	frameLag += frameDelta;
 	while (frameLag >= frameInterval)
 	{
 		update(frameInterval);

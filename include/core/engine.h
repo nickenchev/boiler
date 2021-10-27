@@ -42,7 +42,7 @@ class Engine
 	Renderer *renderer;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
-	System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem, *animationSystem;
+    System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem, *animationSystem, *collisionSystem;
 	Animator animator;
 
     std::vector<TouchMotionListener> touchMotionListeners;
