@@ -50,8 +50,19 @@ void MapLoader::load(const std::string &filePath)
 					{
 						const auto renderComponent = ecs.createComponent<RenderComponent>(entity);
 						const int assetIndex = comp["assetIndex"].GetInt();
+						const GLTFImporter &asset = assetsLoaded[assetIndex];
 
-						assetsLoaded[assetIndex].createInstance(entity);
+						asset.createInstance(entity);
+
+						if (asset.getImportResult().animations.size())
+						{
+							// load animations
+							auto &animComp = ecs.getComponentStore().retrieve<AnimationComponent>(entity);
+							for (AnimationId animId : asset.getImportResult().animations)
+							{
+								animComp.addClip(Clip(0, animId, true));
+							}
+						}
 					}
 					else if (strcmp(comp["type"].GetString(), "transform") == 0)
 					{
