@@ -36,7 +36,8 @@ typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 
 class Engine
 {
-	Time globalTime, prevTime, frameLag;
+	Time64 globalTime, prevTime;
+	Time frameLag;
 
 	Logger logger;
 	Renderer *renderer;
@@ -51,7 +52,7 @@ class Engine
     std::vector<KeyInputListener> keyInputListeners;
 
     bool running = true;
-    Time frameInterval;
+    Time updateInterval;
 
     void processEvents();
     void update(const Time delta);

@@ -1,6 +1,6 @@
 _______________________________
 Homespun  Created by Brian Kent
-¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 Thanks for Downloading Homespun.
 
 Homespun TT         [.ttf]
@@ -26,12 +26,12 @@ homespun brk
 If you have any questions or comments, you can e-mail me at
 aefonts[AT]frontiernet[DOT]net
 
-You can visit my Webpage <ÆNIGMA GAMES & FONTS> at
+You can visit my Webpage <ï¿½NIGMA GAMES & FONTS> at
 http://www.aenigmafonts.com/
 
 ________________
 INSTALLING FONTS
-¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   There's a couple of ways to install Fonts. The 'easy' way to
 install fonts is to just Unzip/place the font file [.ttf] into your
 Windows\Fonts directory (I always use this method). If you're unable
@@ -63,7 +63,7 @@ press F5 (or in the menubar select VIEW then REFRESH).
 
 __________
 DISCLAIMER
-¯¯¯¯¯¯¯¯¯¯
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 -The font(s) in this zip file were created by me (Brian Kent).  All
 of my Fonts are Freeware, you can use them any way you want to
 (Personal use, Commercial use, or whatever).

@@ -165,21 +165,23 @@ Primitive GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors
 		// TODO: Add support for other modes
 		assert(primitive.mode == 4);
 	}
-	using namespace gltf::attributes;
+	using namespace gltf;
 
 	// get the primitive's position data
 	std::vector<Vertex> vertices;
-	auto positionAccess = modelAccess.getTypedAccessor<float, 3>(primitive, POSITION);
+	auto positionAccess = modelAccess.getTypedAccessor<float, 3>(primitive, attributes::POSITION);
 	for (auto values : positionAccess)
 	{
 		Vertex vertex({values[0], values[1], values[2]});
 		vertex.colour = {1, 1, 1, 1};
 		vertices.push_back(vertex);
+
+		//const gltf::Accessor &acc = modelAccess.getModel().accessors[primitive.attributes.at(attributes::POSITION)];
 	}
 
-	assert(primitive.attributes.find(NORMAL) != primitive.attributes.end());
+	assert(primitive.attributes.find(attributes::NORMAL) != primitive.attributes.end());
 
-	auto normalAccess = modelAccess.getTypedAccessor<float, 3>(primitive, NORMAL);
+	auto normalAccess = modelAccess.getTypedAccessor<float, 3>(primitive, attributes::NORMAL);
 	unsigned int vertexIndex = 0;
 	for (auto normal : normalAccess)
 	{
@@ -219,7 +221,7 @@ Primitive GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors
 	}
 
 	// load texture coordinates
-	const auto &texCoordAttr = primitive.attributes.find(TEXCOORD_0);
+	const auto &texCoordAttr = primitive.attributes.find(attributes::TEXCOORD_0);
 	if (texCoordAttr != primitive.attributes.end())
 	{
 		const auto &accessor = modelAccess.getModel().accessors[texCoordAttr->second];

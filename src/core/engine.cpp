@@ -4,6 +4,7 @@
 
 #include "SDL_timer.h"
 #include "SDL_video.h"
+#include "core/common.h"
 #include "video/opengl.h"
 #include "boiler.h"
 #include "video/renderer.h"
@@ -58,7 +59,6 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	//baseDataPath = std::string(SDL_GetBasePath());
 
 	// initialize basic engine stuff
-	frameInterval = 1.0f / 60.0f; // 60fps
 	renderer->initialize(initialSize);
 
 	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(animator)
@@ -115,7 +115,7 @@ void Engine::start(std::shared_ptr<Part> part)
 
 void Engine::run()
 {
-	frameInterval = 1.0f / 60;
+	updateInterval = 1.0f / 90;
 	running = true;
 
 	while(running)
@@ -132,17 +132,18 @@ void Engine::run()
 void Engine::step()
 {
 	//get the delta time
-	Time currentTime = SDL_GetTicks();
+	Time64 currentTime = SDL_GetTicks64();
 	Time frameDelta = (currentTime - prevTime) / 1000.0f;
 	prevTime = currentTime;
 
 	// frame update / catchup phase if lagging
 	frameLag += frameDelta;
-	while (frameLag >= frameInterval)
+	while (frameLag >= updateInterval)
 	{
-		update(frameInterval);
-		globalTime += frameInterval;
-		frameLag -= frameInterval;
+		logger.log("Lag {}", frameLag);
+		update(updateInterval);
+		globalTime += updateInterval;
+		frameLag -= updateInterval;
 	}
 
 	// render related systems only run during render phase
@@ -272,5 +273,5 @@ void Engine::processEvents()
 void Engine::update(const Time deltaTime)
 {
 	ecs.update(deltaTime, globalTime);
-	part->update(frameInterval);
+	part->update(updateInterval);
 }
