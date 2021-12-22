@@ -1669,25 +1669,8 @@ Primitive VulkanRenderer::loadPrimitive(const VertexData &data)
 	auto vertexBuffer = createGPUBuffer((void *)data.vertexBegin(), data.vertexSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 	auto indexBuffer = createGPUBuffer((void *)data.indexBegin(), data.indexSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 	AssetId primitiveId = primitives.add(PrimitiveBuffers(vertexBuffer, indexBuffer));
-
 	logger.log("Loaded primitive with asset-id: {}", primitiveId);
-	/*
-	// MVP buffer
-	VkDeviceSize bufferSize = sizeof(ModelViewProjection);
-	auto mvpPair = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-								VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	resourceSet.buffers.push_back(mvpPair.first);
-	resourceSet.deviceMemory.push_back(mvpPair.second);
 
-	// material buffer
-	// TODO: Don't store materials per object, handle differently
-	auto materialPair = createBuffer(sizeof(ShaderMaterial), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-								VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	resourceSet.buffers.push_back(materialPair.first);
-	resourceSet.deviceMemory.push_back(materialPair.second);
-
-	resourceSets.push_back(resourceSet);
-	*/
 	return Primitive(primitiveId, data.vertexArray().size(), data.indexArray().size());
 }
 
