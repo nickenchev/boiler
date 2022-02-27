@@ -8,6 +8,7 @@
 #include "core/components/rendercomponent.h"
 #include "core/components/transformcomponent.h"
 #include "animation/components/animationcomponent.h"
+#include "gltf.h"
 #include "video/vertexdata.h"
 #include "assets/gltfimporter.h"
 #include "assets/importresult.h"
@@ -102,6 +103,17 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 		for (auto &gltfPrimitive : mesh.primitives)
 		{
 			Primitive meshPrimitive = loadPrimitive(engine, modelAccess, gltfPrimitive);
+			const gltf::Accessor &positionAccessor = model.accessors.at(gltfPrimitive.attributes.find(gltf::attributes::POSITION)->second);
+
+			// TODO: generate collision volumes
+			float min[3], max[3];
+			for (int i = 0; i < 3; ++i)
+			{
+				min[i] = positionAccessor.min[i].asFloat;
+				max[i] = positionAccessor.max[i].asFloat;
+			}
+			logger.log("Min({}, {}, {}), Max({}, {}, {})", min[0], min[1], min[2], max[0], max[1], max[2]);
+			
 			// setup material if any
 			if (gltfPrimitive.material.has_value())
 			{

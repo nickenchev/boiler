@@ -140,7 +140,6 @@ void Engine::step()
 	frameLag += frameDelta;
 	while (frameLag >= updateInterval)
 	{
-		logger.log("Lag {}", frameLag);
 		update(updateInterval);
 		globalTime += updateInterval;
 		frameLag -= updateInterval;

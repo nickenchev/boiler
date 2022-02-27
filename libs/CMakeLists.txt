@@ -20,9 +20,9 @@ add_subdirectory(${ZLIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/zlib_build)
 
 # build SDL2
 set(SDL_SHARED OFF CACHE BOOL "Disable SDL2 shared lib")
-set(VIDEO_VULKAN ON)
+set(SDL_VULKAN ON)
 set(VIDEO_METAL ON)
-add_subdirectory(${LIBS_ROOT}/SDL2-2.0.18)
+add_subdirectory(${LIBS_ROOT}/SDL2-2.0.20)
 
 # build freetype2
 add_subdirectory(${LIBS_ROOT}/freetype-2.11.0)
