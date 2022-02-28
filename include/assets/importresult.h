@@ -2,8 +2,8 @@
 #define IMPORTRESULT_H
 
 #include <vector>
-#include "video/material.h"
-#include "video/mesh.h"
+#include "display/material.h"
+#include "display/mesh.h"
 #include "animation/animation.h"
 #include "animation/common.h"
 

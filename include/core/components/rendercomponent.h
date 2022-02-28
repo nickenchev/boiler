@@ -5,7 +5,7 @@
 
 #include "core/math.h"
 #include "core/componenttype.h"
-#include "video/mesh.h"
+#include "display/mesh.h"
 
 namespace Boiler
 {

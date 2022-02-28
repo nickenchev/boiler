@@ -9,7 +9,7 @@
 #include "core/components/transformcomponent.h"
 #include "animation/components/animationcomponent.h"
 #include "gltf.h"
-#include "video/vertexdata.h"
+#include "display/vertexdata.h"
 #include "assets/gltfimporter.h"
 #include "assets/importresult.h"
 #include "json/jsonloader.h"

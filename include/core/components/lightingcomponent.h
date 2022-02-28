@@ -2,7 +2,7 @@
 #define LIGHTINGCOMPONENT_H
 
 #include "core/componenttype.h"
-#include "video/lightsource.h"
+#include "display/lightsource.h"
 
 namespace Boiler
 {

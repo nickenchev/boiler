@@ -2,7 +2,7 @@
 #define MATERIALCOMPONENT_H
 
 #include "core/componenttype.h"
-#include "video/material.h"
+#include "display/material.h"
 
 namespace Boiler
 {

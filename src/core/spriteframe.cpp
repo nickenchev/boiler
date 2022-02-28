@@ -1,5 +1,5 @@
 #include "core/spriteframe.h"
-#include "video/opengltexture.h"
+#include "display/opengltexture.h"
 
 using namespace Boiler;
 

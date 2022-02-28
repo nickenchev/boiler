@@ -6,7 +6,7 @@
 #include "core/part.h"
 #include "camera/pancamera.h"
 #include "containers/array2d.h"
-#include "video/renderer.h"
+#include "display/renderer.h"
 #include "util/colour.h"
 
 #endif /* BOILER_H */

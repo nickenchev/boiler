@@ -4,8 +4,8 @@
 #include <string>
 #include "core/math.h"
 #include "core/componenttype.h"
-#include "video/glyphmap.h"
-#include "video/glyph.h"
+#include "display/glyphmap.h"
+#include "display/glyph.h"
 
 namespace Boiler
 {

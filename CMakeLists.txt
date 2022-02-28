@@ -41,16 +41,16 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/containers/array2d.h
   ${INCLUDE_BASE}/containers/gridposition.h
   #${INCLUDE_BASE}/core/glyphloader.h
-  ${INCLUDE_BASE}/video/opengl.h
-  ${INCLUDE_BASE}/video/renderer.h
-  ${INCLUDE_BASE}/video/lightsource.h
-  ${INCLUDE_BASE}/video/texture.h
-  ${INCLUDE_BASE}/video/imaging/imagedata.h
-  ${INCLUDE_BASE}/video/imaging/skyboximages.h
+  ${INCLUDE_BASE}/display/opengl.h
+  ${INCLUDE_BASE}/display/renderer.h
+  ${INCLUDE_BASE}/display/lightsource.h
+  ${INCLUDE_BASE}/display/texture.h
+  ${INCLUDE_BASE}/display/imaging/imagedata.h
+  ${INCLUDE_BASE}/display/imaging/skyboximages.h
   ${INCLUDE_BASE}/assets/gltfimporter.h
-  ${INCLUDE_BASE}/video/vulkan/graphicspipeline.h
-  ${INCLUDE_BASE}/video/vulkan/shaderstagemodules.h
-  ${INCLUDE_BASE}/video/skyboxloader.h
+  ${INCLUDE_BASE}/display/vulkan/graphicspipeline.h
+  ${INCLUDE_BASE}/display/vulkan/shaderstagemodules.h
+  ${INCLUDE_BASE}/display/skyboxloader.h
   ${INCLUDE_BASE}/assets/maps/maploader.h
   ${INCLUDE_BASE}/assets/maps/gamemap.h
   # Animation related
@@ -85,29 +85,29 @@ set(BOILER_SOURCES
   ${SRC_BASE}/core/spriteanimation.cpp
   ${SRC_BASE}/core/line.cpp
   ${SRC_BASE}/core/fileutils.cpp
-  ${SRC_BASE}/video/renderer.cpp
-  ${SRC_BASE}/video/primitive.cpp
+  ${SRC_BASE}/display/renderer.cpp
+  ${SRC_BASE}/display/primitive.cpp
   # Vulkan Rendering
-  ${SRC_BASE}/video/vulkanrenderer.cpp
-  ${SRC_BASE}/video/vulkan/graphicspipeline.cpp
+  ${SRC_BASE}/display/vulkanrenderer.cpp
+  ${SRC_BASE}/display/vulkan/graphicspipeline.cpp
 
   # Platform Support
   ${SRC_BASE}/platform/sdlwindow.cpp
 
-  # Video and Rendering
-  #${SRC_BASE}/video/openglrenderer.cpp
-  #${SRC_BASE}/video/opengltexture.cpp
-  #${SRC_BASE}/video/openglmodel.cpp
-  #${SRC_BASE}/video/glslshaderprogram.cpp
-  ${SRC_BASE}/video/spvshaderprogram.cpp
-  ${SRC_BASE}/video/skyboxloader.cpp
-  ${SRC_BASE}/video/imaging/imageloader.cpp
-  ${SRC_BASE}/video/systems/rendersystem.cpp
-  #${SRC_BASE}/video/systems/glyphsystem.cpp
-  ${SRC_BASE}/video/systems/guisystem.cpp
-  ${SRC_BASE}/video/systems/lightingsystem.cpp
+  # display and Rendering
+  #${SRC_BASE}/display/openglrenderer.cpp
+  #${SRC_BASE}/display/opengltexture.cpp
+  #${SRC_BASE}/display/openglmodel.cpp
+  #${SRC_BASE}/display/glslshaderprogram.cpp
+  ${SRC_BASE}/display/spvshaderprogram.cpp
+  ${SRC_BASE}/display/skyboxloader.cpp
+  ${SRC_BASE}/display/imaging/imageloader.cpp
+  ${SRC_BASE}/display/systems/rendersystem.cpp
+  #${SRC_BASE}/display/systems/glyphsystem.cpp
+  ${SRC_BASE}/display/systems/guisystem.cpp
+  ${SRC_BASE}/display/systems/lightingsystem.cpp
   ${SRC_BASE}/animation/systems/animationsystem.cpp
-  ${SRC_BASE}/video/glyphmap.cpp
+  ${SRC_BASE}/display/glyphmap.cpp
   ${SRC_BASE}/camera/camera.cpp
   # src/camera/platformercamera.cpp
   ${SRC_BASE}/camera/pancamera.cpp

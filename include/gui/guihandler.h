@@ -1,7 +1,7 @@
 #ifndef GUIHANDLER_H
 #define GUIHANDLER_H
 
-#include "video/renderer.h"
+#include "display/renderer.h"
 
 union SDL_Event;
 

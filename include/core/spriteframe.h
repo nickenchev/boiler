@@ -4,8 +4,8 @@
 #include <memory>
 #include <string>
 #include "rect.h"
-#include "video/texture.h"
-#include "video/textureinfo.h"
+#include "display/texture.h"
+#include "display/textureinfo.h"
 
 namespace Boiler
 {

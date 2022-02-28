@@ -7,7 +7,7 @@
 
 #include "logger.h"
 #include "spritesheet.h"
-#include "video/texture.h"
+#include "display/texture.h"
 
 typedef unsigned int GLuint;
 

@@ -4,9 +4,9 @@
 
 #include <SDL2/SDL.h>
 #include "core/common.h"
-#include "video/opengl.h"
+#include "display/opengl.h"
 #include "boiler.h"
-#include "video/renderer.h"
+#include "display/renderer.h"
 #include "core/part.h"
 #include "core/entity.h"
 #include "input/mousebuttonevent.h"
@@ -16,8 +16,8 @@
 #include "core/components/textcomponent.h"
 #include "core/components/guicomponent.h"
 #include "core/components/lightingcomponent.h"
-#include "video/systems/guisystem.h"
-#include "video/systems/lightingsystem.h"
+#include "display/systems/guisystem.h"
+#include "display/systems/lightingsystem.h"
 #include "animation/components/animationcomponent.h"
 #include "animation/systems/animationsystem.h"
 #include "collision/collisioncomponent.h"
