@@ -2,8 +2,7 @@
 #include <chrono>
 #include <stdexcept>
 
-#include "SDL_timer.h"
-#include "SDL_video.h"
+#include <SDL2/SDL.h>
 #include "core/common.h"
 #include "video/opengl.h"
 #include "boiler.h"
@@ -23,6 +22,7 @@
 #include "animation/systems/animationsystem.h"
 #include "collision/collisioncomponent.h"
 #include "collision/collisionsystem.h"
+#include "gui/imguihandler.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
@@ -51,7 +51,7 @@ Engine::~Engine()
 
 void Engine::initialize(const Size &initialSize)
 {
-	initialize(nullptr, initialSize);
+	initialize(std::make_unique<ImGuiHandler>(), initialSize);
 }
 
 void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &initialSize)
@@ -92,6 +92,7 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 
 	if (guiHandler)
 	{
+		logger.log("Setting up GUI handler");
 		System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*renderer, std::move(guiHandler))
 			.expects<GUIComponent>();
 		ecs.getComponentSystems().removeUpdate(guiSys);
@@ -154,7 +155,10 @@ void Engine::step()
 
 		renderSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
 		//glyphSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
-		if (guiSystem) guiSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
+		if (guiSystem)
+		{
+			guiSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
+		}
 
 		renderer->endRender();
 	}

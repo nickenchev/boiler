@@ -1,8 +1,9 @@
 #ifndef GUIHANDLER_H
 #define GUIHANDLER_H
 
-#include <video/renderer.h>
-#include <SDL.h>
+#include "video/renderer.h"
+
+union SDL_Event;
 
 namespace Boiler
 {

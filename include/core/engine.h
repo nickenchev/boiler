@@ -17,7 +17,7 @@
 #include "video/systems/rendersystem.h"
 #include "video/systems/glyphsystem.h"
 #include "video/systems/guisystem.h"
-#include "video/guihandler.h"
+#include "gui/guihandler.h"
 #include "logger.h"
 #include "animation/common.h"
 #include "animation/animator.h"

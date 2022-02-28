@@ -115,14 +115,17 @@ set(BOILER_SOURCES
   ${SRC_BASE}/util/filemanager.cpp
   ${SRC_BASE}/util/tinyxml2.cpp
   ${SRC_BASE}/assets/gltfimporter.cpp
-  ${SRC_BASE}/assets/maploader.cpp)
+  ${SRC_BASE}/assets/maploader.cpp
+  # ImGui
+  ${SRC_BASE}/ext/imgui/imgui.cpp
+  ${SRC_BASE}/ext/imgui/imgui_impl_vulkan.cpp)
 
 add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
 target_include_directories(boiler
   INTERFACE
   ${INCLUDE_BASE}
-  PUBLIC
+  PRIVATE
   ${INCLUDE_BASE}
   ${INCLUDE_BASE}/tinyxml2
   boiler_deps)

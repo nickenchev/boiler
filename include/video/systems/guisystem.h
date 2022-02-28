@@ -4,7 +4,7 @@
 #include <memory>
 #include "core/common.h"
 #include <core/system.h>
-#include <video/guihandler.h>
+#include "gui/guihandler.h"
 
 namespace Boiler
 {
