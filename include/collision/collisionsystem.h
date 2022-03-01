@@ -14,7 +14,7 @@ public:
 	{
 	}
 
-	void update(ComponentStore &store, const Time deltaTime, const Time globalTime) override
+	void update(FrameInfo frameInfo, ComponentStore &store) override
 	{
 	}
 };

@@ -4,6 +4,7 @@
 #include <array>
 
 #include "core/logger.h"
+#include "core/frameinfo.h"
 #include "core/entity.h"
 #include "core/asset.h"
 #include "core/component.h"
@@ -78,9 +79,11 @@ public:
 	std::vector<Boiler::Material> &getMaterials() { return materials; }
 	Material &getMaterial(AssetId assetId);
 
-	virtual bool beginRender();
-	virtual void endRender() = 0;
-	virtual void render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups, const std::vector<MaterialGroup> &postLightGroups) = 0;
+	virtual bool beginRender(FrameInfo frameInfo);
+	virtual void endRender(FrameInfo frameInfo) = 0;
+	virtual void render(FrameInfo frameInfo, const std::vector<mat4> &matrices,
+						const std::vector<MaterialGroup> &materialGroups,
+						const std::vector<MaterialGroup> &postLightGroups) = 0;
 };
 
 }

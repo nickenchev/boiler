@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <string>
 #include "core/common.h"
+#include "core/frameinfo.h"
 #include "core/entity.h"
 #include "core/componentmapper.h"
 #include "core/logger.h"
@@ -64,7 +65,7 @@ public:
 		return matchingMask;
 	}
 
-	virtual void update(ComponentStore &store, const Time deltaTime, const Time globalTime) = 0;
+	virtual void update(FrameInfo frameInfo, ComponentStore &store) = 0;
 	const std::vector<Entity> &getEntities() const { return entities; }
 	const std::string &getName() const { return name; }
 	void removeEntity(const Entity &entity)

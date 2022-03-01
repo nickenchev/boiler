@@ -4,7 +4,7 @@
 
 using namespace Boiler;
 
-void GUISystem::update(ComponentStore &store, const Time, const Time)
+void GUISystem::update(FrameInfo frameInfo, ComponentStore &store)
 {
 	if (getEntities().size())
 	{

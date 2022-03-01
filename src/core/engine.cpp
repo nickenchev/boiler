@@ -11,6 +11,7 @@
 #include "core/entity.h"
 #include "input/mousebuttonevent.h"
 #include "input/keyinputevent.h"
+#include "core/frameinfo.h"
 #include "core/components/transformcomponent.h"
 #include "core/components/rendercomponent.h"
 #include "core/components/textcomponent.h"
@@ -24,6 +25,7 @@
 #include "collision/collisionsystem.h"
 
 using namespace Boiler;
+constexpr unsigned int maxFramesInFlight = 3;
 
 Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 									 baseDataPath(""), animator(ecs)
@@ -38,6 +40,7 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 	}
 	frameLag = 0;
 	globalTime = 0;
+	currentFrame = 0;
 }
 
 Engine::~Engine()
@@ -105,7 +108,7 @@ void Engine::start(std::shared_ptr<Part> part)
 	this->part = part;
 	this->part->onStart();
 
-	logger.log("Starting main loop");
+	logger.log("Running main loop");
 	
 	//start processing events
 	run();
@@ -120,6 +123,7 @@ void Engine::run()
 	{
 		processEvents();
 		step();
+		currentFrame = (currentFrame + 1) % maxFramesInFlight;
 	}
 	
 	// wait for any renderer commands to finish before destructors kick in
@@ -135,29 +139,28 @@ void Engine::step()
 	prevTime = currentTime;
 
 	// frame update / catchup phase if lagging
+	FrameInfo frameInfo(currentFrame, updateInterval, globalTime);
 	frameLag += frameDelta;
 	while (frameLag >= updateInterval)
 	{
-		update(updateInterval);
+		update(frameInfo);
 		globalTime += updateInterval;
 		frameLag -= updateInterval;
 	}
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data
-	// TODO: Handle GUI events differently
-	if (renderer->beginRender())
+	if (renderer->beginRender(frameInfo))
 	{
-		lightingSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
+		lightingSystem->update(frameInfo, getEcs().getComponentStore());
 
-		renderSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
-		//glyphSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
+		renderSystem->update(frameInfo, getEcs().getComponentStore());
+		//glyphSystem->update(frameInfo, getEcs().getComponentStore());
 		if (guiSystem)
 		{
-			guiSystem->update(getEcs().getComponentStore(), frameDelta, globalTime);
+			guiSystem->update(frameInfo, getEcs().getComponentStore());
 		}
-
-		renderer->endRender();
+		renderer->endRender(frameInfo);
 	}
 }
 
@@ -270,8 +273,8 @@ void Engine::processEvents()
 	}
 }
 
-void Engine::update(const Time deltaTime)
+void Engine::update(FrameInfo frameInfo)
 {
-	ecs.update(deltaTime, globalTime);
+	ecs.update(frameInfo);
 	part->update(updateInterval);
 }

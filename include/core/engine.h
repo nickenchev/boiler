@@ -38,6 +38,7 @@ class Engine
 {
 	Time64 globalTime, prevTime;
 	Time frameLag;
+	short currentFrame;
 
 	Logger logger;
 	Renderer *renderer;
@@ -55,7 +56,7 @@ class Engine
     Time updateInterval;
 
     void processEvents();
-    void update(const Time delta);
+	void update(FrameInfo frameInfo);
 
     std::shared_ptr<Part> part;
 

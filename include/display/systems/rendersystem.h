@@ -2,6 +2,7 @@
 #define RENDERSYSTEM_H
 
 #include "core/common.h"
+#include "core/frameinfo.h"
 #include "core/system.h"
 #include "core/lightsourceid.h"
 #include "display/material.h"
@@ -19,7 +20,7 @@ class RenderSystem : public System
 public:
 	RenderSystem(Renderer &renderer);
 
-	void update(ComponentStore &store, const Time deltaTime, const Time globalTime) override;
+	void update(FrameInfo frameInfo, ComponentStore &store) override;
 };
 
 }

@@ -65,7 +65,6 @@ VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtension
 {
 	this->enableValidationLayers = enableValidationLayers;
 	cleanedUp = false;
-	currentFrame = 0;
 	resizeOccured = false;
 	commandPool = VK_NULL_HANDLE;
 
@@ -1726,9 +1725,10 @@ void updateMemory(VkDevice device, VkDeviceMemory memory, const T &object)
 	vkUnmapMemory(device, memory);
 }
 
-bool VulkanRenderer::beginRender()
+bool VulkanRenderer::beginRender(FrameInfo frameInfo)
 {
-	bool shouldRender = Renderer::beginRender();
+	const short currentFrame = frameInfo.getCurrentFrame();
+	bool shouldRender = Renderer::beginRender(frameInfo);
 
 	vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
 	vkResetFences(device, 1, &frameFences[currentFrame]);
@@ -1797,9 +1797,11 @@ bool VulkanRenderer::beginRender()
 	return shouldRender;
 }
 
-void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups,
+void VulkanRenderer::render(FrameInfo frameInfo, const std::vector<mat4> &matrices,
+							const std::vector<MaterialGroup> &materialGroups,
 							const std::vector<MaterialGroup> &postLightGroups)
 {
+	const short currentFrame = frameInfo.getCurrentFrame();
 	constexpr size_t DSET_IDX_FRAME = 0;
 	constexpr size_t DSET_IDX_MATERIAL = 1;
 
@@ -1889,7 +1891,7 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 
 	vkUpdateDescriptorSets(device, dsetWritesFrame.size(), dsetWritesFrame.data(), 0, nullptr);
 
-	const auto processGroups = [this, commandBuffer](const std::vector<MaterialGroup> &materialGroups, VkPipeline pipeline)
+	const auto processGroups = [this, currentFrame, commandBuffer](const std::vector<MaterialGroup> &materialGroups, VkPipeline pipeline)
 	{
 		for (unsigned int i = 0; i < static_cast<unsigned int>(materialGroups.size()); ++i)
 		{
@@ -2021,11 +2023,11 @@ void VulkanRenderer::render(const std::vector<mat4> &matrices, const std::vector
 	processGroups(postLightGroups, skyboxPipeline.vulkanPipeline());
 }
 
-void VulkanRenderer::endRender()
+void VulkanRenderer::endRender(FrameInfo frameInfo)
 {
 	if (nextImageResult == VK_SUCCESS)
 	{
-		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+		const VkCommandBuffer commandBuffer = commandBuffers[frameInfo.getCurrentFrame()];
 		vkCmdEndRenderPass(commandBuffer);
 
 		/*
@@ -2071,7 +2073,7 @@ void VulkanRenderer::endRender()
 
 		// semaphore is used to signal the end of a frame, so the next can start
 		// semaphore indexes match up with the stages at the respective array index
-		std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[currentFrame]};
+		std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[frameInfo.getCurrentFrame()]};
 		std::array<VkPipelineStageFlags, 1> waitStages = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
 		VkSubmitInfo submitInfo = {};
@@ -2083,12 +2085,12 @@ void VulkanRenderer::endRender()
 		submitInfo.pCommandBuffers = &commandBuffer;
 
 		// render semaphores are signalled when queue commands are finished, and waited on for presentation
-		std::array<VkSemaphore, 1> signalSemaphores = {renderSemaphores[currentFrame]};
+		std::array<VkSemaphore, 1> signalSemaphores = {renderSemaphores[frameInfo.getCurrentFrame()]};
 		submitInfo.signalSemaphoreCount = signalSemaphores.size();
 		submitInfo.pSignalSemaphores = signalSemaphores.data();
 
 		// fence used to let CPU know we're done executing the command buffer
-		if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, frameFences[currentFrame]) != VK_SUCCESS)
+		if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, frameFences[frameInfo.getCurrentFrame()]) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Failed to submit draw command buffer to the graphics queue");
 		}
@@ -2106,7 +2108,6 @@ void VulkanRenderer::endRender()
 
 		vkQueuePresentKHR(presentationQueue, &presentInfo);
 	}
-	currentFrame = (currentFrame + 1) % maxFramesInFlight;
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

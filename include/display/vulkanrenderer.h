@@ -119,7 +119,6 @@ class VulkanRenderer : public Boiler::Renderer
 	void updateMaterials(const std::vector<ShaderMaterial> &materials) const override;
 
 	ShaderStageModules gBufferModules, deferredModules, skyboxModules;
-	short currentFrame;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
 	Sampler textureSampler, cubemapSampler;
@@ -185,9 +184,11 @@ public:
     Primitive loadPrimitive(const VertexData &data) override;
 	Material &createMaterial() override;
 
-	bool beginRender() override;
-	void endRender() override;
-	void render(const std::vector<mat4> &matrices, const std::vector<MaterialGroup> &materialGroups,
+	bool beginRender(FrameInfo frameInfo) override;
+	void endRender(FrameInfo frameInfo) override;
+
+	void render(FrameInfo frameInfo, const std::vector<mat4> &matrices,
+				const std::vector<MaterialGroup> &materialGroups,
 				const std::vector<MaterialGroup> &postLightGroups) override;
 
 	// TODO: This needs to be improved

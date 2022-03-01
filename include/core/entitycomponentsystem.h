@@ -27,9 +27,9 @@ public:
 	EntityComponentSystem(const EntityComponentSystem &ecs) = delete;
 	EntityComponentSystem &operator=(const EntityComponentSystem &) = delete;
 
-	void update(const Time deltaTime, const Time globalTime)
+	void update(FrameInfo frameInfo)
 	{
-		systems.update(componentStore, deltaTime, globalTime);
+		systems.update(frameInfo, componentStore);
 	}
 
 	Entity newEntity()
