@@ -65,6 +65,8 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/json/jsonloader.h
   ${INCLUDE_BASE}/collision/collisionsystem.h
   ${INCLUDE_BASE}/collision/collisioncomponent.h
+  ${INCLUDE_BASE}/gui/guihandler.h
+  ${INCLUDE_BASE}/gui/imguivulkan.h
 )
 
 # Engine related sources
@@ -117,7 +119,12 @@ set(BOILER_SOURCES
   ${SRC_BASE}/assets/gltfimporter.cpp
   ${SRC_BASE}/assets/maploader.cpp
   # ImGui
+  ${SRC_BASE}/gui/imguivulkan.cpp
   ${SRC_BASE}/ext/imgui/imgui.cpp
+  ${SRC_BASE}/ext/imgui/imgui_draw.cpp
+  ${SRC_BASE}/ext/imgui/imgui_tables.cpp
+  ${SRC_BASE}/ext/imgui/imgui_widgets.cpp
+  ${SRC_BASE}/ext/imgui/imgui_demo.cpp
   ${SRC_BASE}/ext/imgui/imgui_impl_vulkan.cpp)
 
 add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})

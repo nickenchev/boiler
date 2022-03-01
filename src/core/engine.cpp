@@ -22,9 +22,6 @@
 #include "animation/systems/animationsystem.h"
 #include "collision/collisioncomponent.h"
 #include "collision/collisionsystem.h"
-#include "gui/imguihandler.h"
-
-#define RENDERER_CLASS OpenGLRenderer
 
 using namespace Boiler;
 
@@ -51,7 +48,7 @@ Engine::~Engine()
 
 void Engine::initialize(const Size &initialSize)
 {
-	initialize(std::make_unique<ImGuiHandler>(), initialSize);
+	initialize(nullptr, initialSize);
 }
 
 void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &initialSize)

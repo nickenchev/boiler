@@ -12,7 +12,8 @@ void GUISystem::update(ComponentStore &store, const Time, const Time)
 		for (auto &entity : getEntities())
 		{
 			GUIComponent &guiComp = store.retrieve<GUIComponent>(entity);
-			if (guiComp.guiRender) {
+			if (guiComp.guiRender)
+			{
 				guiComp.guiRender();
 			}
 		}
