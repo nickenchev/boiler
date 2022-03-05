@@ -13,18 +13,16 @@ class Renderer;
 
 class GUISystem : public System
 {
-	const Renderer &renderer;
 	std::unique_ptr<GUIHandler> guiHandler;
 
 public:
-	GUISystem(const Renderer &renderer, std::unique_ptr<GUIHandler> guiHandler)
-		: System("GUI System"), renderer(renderer)
+	GUISystem(std::unique_ptr<GUIHandler> guiHandler) : System("GUI System")
 	{
 		assert(guiHandler != nullptr);
 
 		logger.log("Setting up GUI handler.");
 		this->guiHandler = std::move(guiHandler);
-		this->guiHandler->initialize(this->renderer);
+		this->guiHandler->initialize();
 	}
 
 	~GUISystem()

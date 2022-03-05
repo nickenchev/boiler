@@ -93,7 +93,7 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	if (guiHandler)
 	{
 		logger.log("Setting up GUI handler");
-		System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*renderer, std::move(guiHandler))
+		System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(std::move(guiHandler))
 			.expects<GUIComponent>();
 		ecs.getComponentSystems().removeUpdate(guiSys);
 		this->guiSystem = &guiSys;

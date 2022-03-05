@@ -193,6 +193,10 @@ public:
 
 	// TODO: This needs to be improved
 	VkInstance getVulkanInstance() const { return instance; }
+	VkDevice getDevice() const { return device; }
+	VkPhysicalDevice getPhysicalDevice() const { return physicalDevice; }
+	VkQueue getGraphicsQueue() const { return graphicsQueue; }
+
 	void setSurface(VkSurfaceKHR surface)
 	{
 		this->surface = surface;
