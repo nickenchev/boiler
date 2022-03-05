@@ -8,6 +8,7 @@
 #include "core/components/rendercomponent.h"
 #include "core/components/transformcomponent.h"
 #include "animation/components/animationcomponent.h"
+#include "gltf.h"
 #include "video/vertexdata.h"
 #include "assets/gltfimporter.h"
 #include "assets/importresult.h"
@@ -102,6 +103,17 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 		for (auto &gltfPrimitive : mesh.primitives)
 		{
 			Primitive meshPrimitive = loadPrimitive(engine, modelAccess, gltfPrimitive);
+			const gltf::Accessor &positionAccessor = model.accessors.at(gltfPrimitive.attributes.find(gltf::attributes::POSITION)->second);
+
+			// TODO: generate collision volumes
+			float min[3], max[3];
+			for (int i = 0; i < 3; ++i)
+			{
+				min[i] = positionAccessor.min[i].asFloat;
+				max[i] = positionAccessor.max[i].asFloat;
+			}
+			logger.log("Min({}, {}, {}), Max({}, {}, {})", min[0], min[1], min[2], max[0], max[1], max[2]);
+			
 			// setup material if any
 			if (gltfPrimitive.material.has_value())
 			{
@@ -165,21 +177,23 @@ Primitive GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors
 		// TODO: Add support for other modes
 		assert(primitive.mode == 4);
 	}
-	using namespace gltf::attributes;
+	using namespace gltf;
 
 	// get the primitive's position data
 	std::vector<Vertex> vertices;
-	auto positionAccess = modelAccess.getTypedAccessor<float, 3>(primitive, POSITION);
+	auto positionAccess = modelAccess.getTypedAccessor<float, 3>(primitive, attributes::POSITION);
 	for (auto values : positionAccess)
 	{
 		Vertex vertex({values[0], values[1], values[2]});
 		vertex.colour = {1, 1, 1, 1};
 		vertices.push_back(vertex);
+
+		//const gltf::Accessor &acc = modelAccess.getModel().accessors[primitive.attributes.at(attributes::POSITION)];
 	}
 
-	assert(primitive.attributes.find(NORMAL) != primitive.attributes.end());
+	assert(primitive.attributes.find(attributes::NORMAL) != primitive.attributes.end());
 
-	auto normalAccess = modelAccess.getTypedAccessor<float, 3>(primitive, NORMAL);
+	auto normalAccess = modelAccess.getTypedAccessor<float, 3>(primitive, attributes::NORMAL);
 	unsigned int vertexIndex = 0;
 	for (auto normal : normalAccess)
 	{
@@ -219,7 +233,7 @@ Primitive GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors
 	}
 
 	// load texture coordinates
-	const auto &texCoordAttr = primitive.attributes.find(TEXCOORD_0);
+	const auto &texCoordAttr = primitive.attributes.find(attributes::TEXCOORD_0);
 	if (texCoordAttr != primitive.attributes.end())
 	{
 		const auto &accessor = modelAccess.getModel().accessors[texCoordAttr->second];

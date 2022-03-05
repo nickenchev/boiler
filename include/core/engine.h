@@ -36,13 +36,14 @@ typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
 
 class Engine
 {
-	Time globalTime, prevTime, frameLag;
+	Time64 globalTime, prevTime;
+	Time frameLag;
 
 	Logger logger;
 	Renderer *renderer;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
-	System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem, *animationSystem;
+    System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem, *animationSystem, *collisionSystem;
 	Animator animator;
 
     std::vector<TouchMotionListener> touchMotionListeners;
@@ -51,7 +52,7 @@ class Engine
     std::vector<KeyInputListener> keyInputListeners;
 
     bool running = true;
-    Time frameInterval;
+    Time updateInterval;
 
     void processEvents();
     void update(const Time delta);

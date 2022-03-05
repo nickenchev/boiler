@@ -21,4 +21,4 @@ libs/zlib-1.2.11/zconf.h
 .vs/
 out/
 CMakeSettings.json
-libs/glew-2.1.0/glew.pc
+libs/glew-2.11.0/glew.pc

@@ -1,14 +1,20 @@
 #include <iostream>
-#include <rapidjson/document.h>
+#include <string>
 #include <vector>
+#include <rapidjson/document.h>
 
 #include "assets/gltfimporter.h"
 #include "json/jsonloader.h"
 #include "assets/maps/maploader.h"
 #include "core/components/transformcomponent.h"
 #include "core/components/rendercomponent.h"
+#include "collision/collisioncomponent.h"
+#include "rapidjson/encodings.h"
+#include "rapidjson/rapidjson.h"
 
 using namespace Boiler;
+
+vec3 getVector(const GenericValue<UTF8<>> &object, const std::string &name);
 
 void MapLoader::load(const std::string &filePath)
 {
@@ -49,19 +55,25 @@ void MapLoader::load(const std::string &filePath)
 					{
 						const auto renderComponent = ecs.createComponent<RenderComponent>(entity);
 						const int assetIndex = comp["assetIndex"].GetInt();
+						const GLTFImporter &asset = assetsLoaded[assetIndex];
 
-						assetsLoaded[assetIndex].createInstance(entity);
+						asset.createInstance(entity);
+
+						if (asset.getImportResult().animations.size())
+						{
+							// load animations
+							auto &animComp = ecs.getComponentStore().retrieve<AnimationComponent>(entity);
+							for (AnimationId animId : asset.getImportResult().animations)
+							{
+								animComp.addClip(Clip(0, animId, true));
+							}
+						}
 					}
 					else if (strcmp(comp["type"].GetString(), "transform") == 0)
 					{
 						const auto transformComponent = ecs.createComponent<TransformComponent>(entity);
 
-						const auto &translation = comp["translation"].GetObject();
-						transformComponent->setPosition(
-							translation["x"].GetFloat(),
-							translation["y"].GetFloat(),
-							translation["z"].GetFloat()
-						);
+						transformComponent->setPosition(getVector(comp, "translation"));
 
 						const auto &orientation = comp["orientation"].GetObject();
 						quat orientationQuat(
@@ -72,15 +84,28 @@ void MapLoader::load(const std::string &filePath)
 						);
 						transformComponent->setOrientation(orientationQuat);
 
-						const auto &scale = comp["scale"].GetObject();
-						transformComponent->setScale(
-							scale["x"].GetFloat(),
-							scale["y"].GetFloat(),
-							scale["z"].GetFloat()
-						);
+						transformComponent->setScale(getVector(comp, "scale"));
+					}
+					else if (strcmp(comp["type"].GetString(), "collision") == 0)
+					{
+						const auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
+
+						const auto &volume = comp["volume"];
+						// AABB
+						if (strcmp(volume["type"].GetString(), "aabb") == 0)
+						{
+							vec3 min = getVector(volume, "min");
+							vec3 max = getVector(volume, "max");
+						}
 					}
 				}
 			}
 		}
 	}
+}
+
+vec3 getVector(const GenericValue<UTF8<>> &object, const std::string &name)
+{
+	const auto &vecObj = object[name.c_str()].GetObject();
+	return vec3(vecObj["x"].GetFloat(), vecObj["y"].GetFloat(), vecObj["z"].GetFloat());
 }

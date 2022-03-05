@@ -1013,13 +1013,12 @@ void VulkanRenderer::createDescriptorSets()
 	renderBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	renderBindings[2].pImmutableSamplers = nullptr;
 
-	std::array<VkDescriptorPoolSize, 3> renderPoolSizes{};
-	renderPoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[0].descriptorCount = renderBindings[0].descriptorCount * renderDescriptors.getMaxSets();
-	renderPoolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[1].descriptorCount = renderBindings[1].descriptorCount * renderDescriptors.getMaxSets();
-	renderPoolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	renderPoolSizes[2].descriptorCount = renderBindings[2].descriptorCount * renderDescriptors.getMaxSets();
+	std::array<VkDescriptorPoolSize, 3> renderPoolSizes =
+	{
+		VkDescriptorPoolSize { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = renderBindings[0].descriptorCount * renderDescriptors.getMaxSets() },
+		VkDescriptorPoolSize { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = renderBindings[1].descriptorCount * renderDescriptors.getMaxSets() },
+		VkDescriptorPoolSize { .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .descriptorCount = renderBindings[2].descriptorCount * renderDescriptors.getMaxSets() }
+	};
 
 	renderDescriptors.createLayout(device, renderBindings);
 	renderDescriptors.createPool(device, renderPoolSizes);
@@ -1412,6 +1411,7 @@ Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 		throw std::runtime_error("Texture image must contain alpha channel");
 	}
 
+	// calculate size of buffer and generate the staging buffer
 	const VkDeviceSize bytesSize = imageData.size.width * imageData.size.height * bytesPerPixel;
 	auto bufferInfo = createBuffer(bytesSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 								   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -1669,25 +1669,8 @@ Primitive VulkanRenderer::loadPrimitive(const VertexData &data)
 	auto vertexBuffer = createGPUBuffer((void *)data.vertexBegin(), data.vertexSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 	auto indexBuffer = createGPUBuffer((void *)data.indexBegin(), data.indexSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 	AssetId primitiveId = primitives.add(PrimitiveBuffers(vertexBuffer, indexBuffer));
-
 	logger.log("Loaded primitive with asset-id: {}", primitiveId);
-	/*
-	// MVP buffer
-	VkDeviceSize bufferSize = sizeof(ModelViewProjection);
-	auto mvpPair = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-								VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	resourceSet.buffers.push_back(mvpPair.first);
-	resourceSet.deviceMemory.push_back(mvpPair.second);
 
-	// material buffer
-	// TODO: Don't store materials per object, handle differently
-	auto materialPair = createBuffer(sizeof(ShaderMaterial), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-								VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	resourceSet.buffers.push_back(materialPair.first);
-	resourceSet.deviceMemory.push_back(materialPair.second);
-
-	resourceSets.push_back(resourceSet);
-	*/
 	return Primitive(primitiveId, data.vertexArray().size(), data.indexArray().size());
 }
 

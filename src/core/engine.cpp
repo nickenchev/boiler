@@ -4,6 +4,7 @@
 
 #include "SDL_timer.h"
 #include "SDL_video.h"
+#include "core/common.h"
 #include "video/opengl.h"
 #include "boiler.h"
 #include "video/renderer.h"
@@ -20,6 +21,8 @@
 #include "video/systems/lightingsystem.h"
 #include "animation/components/animationcomponent.h"
 #include "animation/systems/animationsystem.h"
+#include "collision/collisioncomponent.h"
+#include "collision/collisionsystem.h"
 
 #define RENDERER_CLASS OpenGLRenderer
 
@@ -56,13 +59,17 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	//baseDataPath = std::string(SDL_GetBasePath());
 
 	// initialize basic engine stuff
-	frameInterval = 1.0f / 60.0f; // 60fps
 	renderer->initialize(initialSize);
 
 	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(animator)
 		.expects<AnimationComponent>()
 		.expects<TransformComponent>();
 	this->animationSystem = &animationSystem;
+
+	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>()
+		.expects<CollisionComponent>()
+		.expects<TransformComponent>();
+	this->collisionSystem = &collisionSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer)
 		.expects<LightingComponent>();
@@ -108,7 +115,7 @@ void Engine::start(std::shared_ptr<Part> part)
 
 void Engine::run()
 {
-	frameInterval = 1.0f / 60;
+	updateInterval = 1.0f / 90;
 	running = true;
 
 	while(running)
@@ -125,17 +132,17 @@ void Engine::run()
 void Engine::step()
 {
 	//get the delta time
-	Time currentTime = SDL_GetTicks();
+	Time64 currentTime = SDL_GetTicks64();
 	Time frameDelta = (currentTime - prevTime) / 1000.0f;
 	prevTime = currentTime;
-	frameLag += frameDelta;
 
 	// frame update / catchup phase if lagging
-	while (frameLag >= frameInterval)
+	frameLag += frameDelta;
+	while (frameLag >= updateInterval)
 	{
-		update(frameInterval);
-		globalTime += frameInterval;
-		frameLag -= frameInterval;
+		update(updateInterval);
+		globalTime += updateInterval;
+		frameLag -= updateInterval;
 	}
 
 	// render related systems only run during render phase
@@ -265,5 +272,5 @@ void Engine::processEvents()
 void Engine::update(const Time deltaTime)
 {
 	ecs.update(deltaTime, globalTime);
-	part->update(frameInterval);
+	part->update(updateInterval);
 }

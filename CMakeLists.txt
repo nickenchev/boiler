@@ -63,6 +63,8 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/animation/components/animationcomponent.h
   ${INCLUDE_BASE}/animation/systems/animationsystem.h
   ${INCLUDE_BASE}/json/jsonloader.h
+  ${INCLUDE_BASE}/collision/collisionsystem.h
+  ${INCLUDE_BASE}/collision/collisioncomponent.h
 )
 
 # Engine related sources
