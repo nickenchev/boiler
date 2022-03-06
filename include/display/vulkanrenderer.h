@@ -184,8 +184,8 @@ public:
     Primitive loadPrimitive(const VertexData &data) override;
 	Material &createMaterial() override;
 
-	bool beginRender(FrameInfo frameInfo) override;
-	void endRender(FrameInfo frameInfo) override;
+	bool prepareFrame(FrameInfo frameInfo) override;
+	void displayFrame(FrameInfo frameInfo) override;
 
 	void render(FrameInfo frameInfo, const std::vector<mat4> &matrices,
 				const std::vector<MaterialGroup> &materialGroups,

@@ -23,7 +23,7 @@ AssetId Renderer::nextAssetId()
 	return assetId++;
 }
 
-bool Renderer::beginRender(FrameInfo frameInfo)
+bool Renderer::prepareFrame(FrameInfo frameInfo)
 {
 	frameLightIdx = 0;
 	return true;

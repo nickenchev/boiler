@@ -1726,10 +1726,10 @@ void updateMemory(VkDevice device, VkDeviceMemory memory, const T &object)
 	vkUnmapMemory(device, memory);
 }
 
-bool VulkanRenderer::beginRender(FrameInfo frameInfo)
+bool VulkanRenderer::prepareFrame(FrameInfo frameInfo)
 {
 	const short currentFrame = frameInfo.getCurrentFrame();
-	bool shouldRender = Renderer::beginRender(frameInfo);
+	bool shouldRender = Renderer::prepareFrame(frameInfo);
 
 	vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
 	vkResetFences(device, 1, &frameFences[currentFrame]);
@@ -1811,6 +1811,7 @@ void VulkanRenderer::render(FrameInfo frameInfo, const std::vector<mat4> &matric
 		: sizeof(ViewProjection);
 
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+
 
 	// setup descriptor sets
 	static std::array<VkDescriptorSet, 2> descriptorSets{};
@@ -1928,7 +1929,8 @@ void VulkanRenderer::render(FrameInfo frameInfo, const std::vector<mat4> &matric
 				}
 
 				// bind the appropriate pipeline for this material
-				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, material.baseTexture.has_value() ? pipeline : gBufferNoTexPipeline.vulkanPipeline());
+				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+								  material.baseTexture.has_value() ? pipeline : gBufferNoTexPipeline.vulkanPipeline());
 				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0,
 										bindDescCount, descriptorSets.data(), 0, nullptr);
 
@@ -2012,6 +2014,7 @@ void VulkanRenderer::render(FrameInfo frameInfo, const std::vector<mat4> &matric
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 					  deferredPipeline.vulkanPipeline());
 
+	// deferred shading subpass
 	vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
 	GBufferPushConstants consts;
 	consts.cameraPosition = cameraPosition;
@@ -2020,11 +2023,12 @@ void VulkanRenderer::render(FrameInfo frameInfo, const std::vector<mat4> &matric
 
 	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
+	// skybox subpass
 	vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
 	processGroups(postLightGroups, skyboxPipeline.vulkanPipeline());
 }
 
-void VulkanRenderer::endRender(FrameInfo frameInfo)
+void VulkanRenderer::displayFrame(FrameInfo frameInfo)
 {
 	if (nextImageResult == VK_SUCCESS)
 	{

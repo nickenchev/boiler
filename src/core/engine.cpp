@@ -150,7 +150,7 @@ void Engine::step()
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data
-	if (renderer->beginRender(frameInfo))
+	if (renderer->prepareFrame(frameInfo))
 	{
 		lightingSystem->update(frameInfo, getEcs().getComponentStore());
 
@@ -160,7 +160,7 @@ void Engine::step()
 		{
 			guiSystem->update(frameInfo, getEcs().getComponentStore());
 		}
-		renderer->endRender(frameInfo);
+		renderer->displayFrame(frameInfo);
 	}
 }
 

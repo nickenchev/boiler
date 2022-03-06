@@ -33,6 +33,7 @@ void RenderSystem::update(FrameInfo frameInfo, ComponentStore &store)
 		glm::mat4 modelMatrix = transform.getMatrix();
 		Entity currentEntity = entity;
 
+		// calculate with parent transformations
 		while (store.hasComponent<ParentComponent>(currentEntity))
 		{
 			ParentComponent &parentComp = store.retrieve<ParentComponent>(currentEntity);
@@ -46,7 +47,6 @@ void RenderSystem::update(FrameInfo frameInfo, ComponentStore &store)
 		matrices[i] = modelMatrix;
 
 		const static Material defaultMaterial(0);
-
 		for (const auto &primitive : render.mesh.primitives)
 		{
 			const Material &material = renderer.getMaterial(primitive.materialId);
