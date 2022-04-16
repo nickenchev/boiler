@@ -1,7 +1,6 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include "SDL_stdinc.h"
 #include <cstdint>
 #include <sys/types.h>
 namespace Boiler

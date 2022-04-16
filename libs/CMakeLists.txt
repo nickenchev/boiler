@@ -18,12 +18,6 @@ set(GLEW_HEADERS_DIR ${GLEW_LIB_DIR}/include)
 set(ZLIB_DIR ${LIBS_ROOT}/zlib-1.2.11)
 add_subdirectory(${ZLIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/zlib_build)
 
-# build SDL2
-set(SDL_SHARED OFF CACHE BOOL "Disable SDL2 shared lib")
-set(SDL_VULKAN ON)
-set(VIDEO_METAL ON)
-add_subdirectory(${LIBS_ROOT}/SDL2-2.0.20)
-
 # build freetype2
 add_subdirectory(${LIBS_ROOT}/freetype-2.11.0)
 
@@ -62,7 +56,6 @@ set(boiler_lib_includes
   ${ZLIB_DIR}
   ${JSONCPP_INCLUDE_DIR}
   glm
-  SDL2::SDL2
   freetype
   fmt
   boiler-gltf)
@@ -70,8 +63,6 @@ set(boiler_lib_includes
 target_include_directories(boiler_deps PUBLIC ${boiler_lib_includes})
 
 target_link_libraries(boiler_deps
-  SDL2-static
-  SDL2main
   zlibstatic
   freetype
   glm

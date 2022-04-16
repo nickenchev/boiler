@@ -10,6 +10,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
+find_package(SDL2 REQUIRED)
+
 # Build libraries
 if (NOT DEFINED ${LIBS_ROOT})
   set(LIBS_ROOT ${CMAKE_CURRENT_LIST_DIR}/libs)
@@ -133,10 +135,13 @@ target_include_directories(boiler
   INTERFACE
   ${INCLUDE_BASE}
   PRIVATE
+  ${SDL2_INCLUDE_DIR}
   ${INCLUDE_BASE}
   ${INCLUDE_BASE}/tinyxml2
   boiler_deps)
 
 #target_compile_options(boiler PRIVATE -Werror -Wall -Wextra)
 
-target_link_libraries(boiler boiler_deps)
+target_link_libraries(boiler
+  boiler_deps
+  ${SDL2_LIBRARY})
