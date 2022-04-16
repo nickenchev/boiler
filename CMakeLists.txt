@@ -120,6 +120,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/util/tinyxml2.cpp
   ${SRC_BASE}/assets/gltfimporter.cpp
   ${SRC_BASE}/assets/maploader.cpp
+  ${SRC_BASE}/collision/collisionsystem.cpp
   # ImGui
   ${SRC_BASE}/gui/imguivulkan.cpp
   ${SRC_BASE}/ext/imgui/imgui.cpp

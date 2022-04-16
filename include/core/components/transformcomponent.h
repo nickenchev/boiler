@@ -12,6 +12,7 @@ namespace Boiler
 class TransformComponent : public ComponentType<TransformComponent>
 {
     Rect frame;
+	vec3 acceleration;
     vec3 scale;
 	quat orientation;
     bool absolute;
@@ -24,6 +25,7 @@ public:
 	
 	TransformComponent(Rect frame) : ComponentType(this), frame(frame)
 	{
+		acceleration = {0, 0, 0};
 		scale = {1.0f, 1.0f, 1.0f};
 		orientation = {0, 0, 0, 0};
 		absolute = false;
@@ -82,6 +84,12 @@ public:
 	{
 		this->orientation = orientation;
 		dirty = true;
+	}
+
+	vec3 getAcceleration() const { return acceleration; }
+	void setAcceleration(vec3 acceleration)
+	{
+		this->acceleration = acceleration;
 	}
 
 	// operators

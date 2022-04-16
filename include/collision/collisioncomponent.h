@@ -2,12 +2,13 @@
 #define COLLISIONCOMPONENT_H
 
 #include "core/componenttype.h"
+#include "core/common.h"
 
 namespace Boiler
 {
-	class CollisionComponent : public ComponentType<CollisionComponent>
+	struct CollisionComponent : public ComponentType<CollisionComponent>
 	{
-	public:
+		vec3 min, max;
 		CollisionComponent() : ComponentType(this) { }
 	};
 }

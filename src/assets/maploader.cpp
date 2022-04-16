@@ -90,12 +90,13 @@ void MapLoader::load(const std::string &filePath)
 					{
 						const auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
 
-						const auto &volume = comp["volume"];
 						// AABB
-						if (strcmp(volume["type"].GetString(), "aabb") == 0)
+						if (comp.HasMember("aabb"))
 						{
-							vec3 min = getVector(volume, "min");
-							vec3 max = getVector(volume, "max");
+							const auto &volume = comp["aabb"];
+							const auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
+							collisionComponent->min = getVector(volume, "min");
+							collisionComponent->max = getVector(volume, "max");
 						}
 					}
 				}

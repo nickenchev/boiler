@@ -3,6 +3,9 @@
 
 #include <cstdint>
 #include <sys/types.h>
+
+#include "math.h"
+
 namespace Boiler
 {
 	using cgfloat = float;
