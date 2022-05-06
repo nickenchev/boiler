@@ -65,8 +65,9 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/animation/components/animationcomponent.h
   ${INCLUDE_BASE}/animation/systems/animationsystem.h
   ${INCLUDE_BASE}/json/jsonloader.h
-  ${INCLUDE_BASE}/collision/collisionsystem.h
-  ${INCLUDE_BASE}/collision/collisioncomponent.h
+  ${INCLUDE_BASE}/physics/collisionsystem.h
+  ${INCLUDE_BASE}/physics/collisioncomponent.h
+  ${INCLUDE_BASE}/camera/camerasystem.h
   ${INCLUDE_BASE}/gui/guihandler.h
   ${INCLUDE_BASE}/gui/imguivulkan.h
 )
@@ -120,7 +121,8 @@ set(BOILER_SOURCES
   ${SRC_BASE}/util/tinyxml2.cpp
   ${SRC_BASE}/assets/gltfimporter.cpp
   ${SRC_BASE}/assets/maploader.cpp
-  ${SRC_BASE}/collision/collisionsystem.cpp
+  ${SRC_BASE}/physics/collisionsystem.cpp
+  ${SRC_BASE}/camera/camerasystem.cpp
   # ImGui
   ${SRC_BASE}/gui/imguivulkan.cpp
   ${SRC_BASE}/ext/imgui/imgui.cpp

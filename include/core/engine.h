@@ -44,7 +44,7 @@ class Engine
 	Renderer *renderer;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
-    System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem, *animationSystem, *collisionSystem;
+    System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem, *animationSystem, *collisionSystem, *cameraSystem;
 	Animator animator;
 
     std::vector<TouchMotionListener> touchMotionListeners;
@@ -55,8 +55,8 @@ class Engine
     bool running = true;
     Time updateInterval;
 
-    void processEvents();
-	void update(FrameInfo frameInfo);
+    void processEvents(FrameInfo &frameInfo);
+	void update(const FrameInfo &frameInfo);
 
     std::shared_ptr<Part> part;
 
@@ -71,7 +71,7 @@ public:
 	void shutdown();
     void start(std::shared_ptr<Part> part);
     void run();
-	void step();
+	void step(FrameInfo &frameInfo);
     void quit() { running = false; }
 
 	RenderSystem &getRenderSystem()

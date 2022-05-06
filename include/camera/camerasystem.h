@@ -3,12 +3,15 @@
 
 #include <core/system.h>
 
-class CameraSystem : public Boiler::System
+namespace Boiler
 {
-public:
-    CameraSystem();
-    virtual ~CameraSystem();
-};
+	class CameraSystem : public Boiler::System
+	{
+	public:
+		CameraSystem();
 
+		void update(FrameInfo frameInfo, ComponentStore &store) override;
+	};
+}
 
 #endif /* CAMERASYSTEM_H */

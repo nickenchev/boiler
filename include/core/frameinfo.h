@@ -6,22 +6,10 @@
 namespace Boiler
 {
 
-class FrameInfo
+struct FrameInfo
 {
 	short currentFrame;
 	Time deltaTime, globalTime;
-
-public:
-	FrameInfo(short currentFrame, Time deltaTime, Time globalTime)
-	{
-		this->currentFrame = currentFrame;
-		this->deltaTime = deltaTime;
-		this->globalTime = globalTime;
-	}
-
-	short getCurrentFrame() const { return currentFrame; }
-	Time getDeltaTime() const { return deltaTime; }
-	Time getGlobalTime() const { return globalTime; }
 };
 
 }

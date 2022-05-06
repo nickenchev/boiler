@@ -184,10 +184,10 @@ public:
     Primitive loadPrimitive(const VertexData &data) override;
 	Material &createMaterial() override;
 
-	bool prepareFrame(FrameInfo frameInfo) override;
-	void displayFrame(FrameInfo frameInfo) override;
+	bool prepareFrame(const FrameInfo &frameInfo) override;
+	void displayFrame(const FrameInfo &frameInfo) override;
 
-	void render(FrameInfo frameInfo, const std::vector<mat4> &matrices,
+	void render(const FrameInfo &frameInfo, const std::vector<mat4> &matrices,
 				const std::vector<MaterialGroup> &materialGroups,
 				const std::vector<MaterialGroup> &postLightGroups) override;
 

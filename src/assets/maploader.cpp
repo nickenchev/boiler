@@ -8,7 +8,7 @@
 #include "assets/maps/maploader.h"
 #include "core/components/transformcomponent.h"
 #include "core/components/rendercomponent.h"
-#include "collision/collisioncomponent.h"
+#include "physics/collisioncomponent.h"
 #include "rapidjson/encodings.h"
 #include "rapidjson/rapidjson.h"
 

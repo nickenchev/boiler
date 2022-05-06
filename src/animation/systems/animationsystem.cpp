@@ -9,6 +9,6 @@ void Boiler::AnimationSystem::update(FrameInfo frameInfo, ComponentStore &store)
 	for (const Entity &entity : getEntities())
 	{
 		auto &animationComp = store.retrieve<AnimationComponent>(entity);
-		animator.animate(frameInfo.getGlobalTime(), frameInfo.getDeltaTime(), animationComp);
+		animator.animate(frameInfo.globalTime, frameInfo.deltaTime, animationComp);
 	}
 }

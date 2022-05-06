@@ -34,6 +34,7 @@ using namespace Boiler;
 using namespace Boiler::Vulkan;
 
 constexpr bool enableDebugMessages = true;
+constexpr VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 constexpr unsigned int maxFramesInFlight = 3;
 constexpr unsigned int maxObjects = 1000;
 constexpr unsigned int maxLights = 64;
@@ -659,11 +660,11 @@ void VulkanRenderer::createSwapChain()
 	}
 
 	// select the presentation mode
-	const VkPresentModeKHR preferredMode = VK_PRESENT_MODE_MAILBOX_KHR;
+	logger.log("Configuring presentation mode");
 	VkPresentModeKHR selectedPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 	for (const auto &presentMode : presentModes)
 	{
-		if (presentMode == preferredMode)
+		if (presentMode == preferredPresentMode)
 		{
 			selectedPresentMode = presentMode;
 			logger.log("Found preferred presentation mode");
@@ -1726,21 +1727,20 @@ void updateMemory(VkDevice device, VkDeviceMemory memory, const T &object)
 	vkUnmapMemory(device, memory);
 }
 
-bool VulkanRenderer::prepareFrame(FrameInfo frameInfo)
+bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 {
-	const short currentFrame = frameInfo.getCurrentFrame();
 	bool shouldRender = Renderer::prepareFrame(frameInfo);
 
-	vkWaitForFences(device, 1, &frameFences[currentFrame], VK_TRUE, UINT32_MAX);
-	vkResetFences(device, 1, &frameFences[currentFrame]);
+	vkWaitForFences(device, 1, &frameFences[frameInfo.currentFrame], VK_TRUE, UINT32_MAX);
+	vkResetFences(device, 1, &frameFences[frameInfo.currentFrame]);
 
-	nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[currentFrame],
+	nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[frameInfo.currentFrame],
 											VK_NULL_HANDLE, &imageIndex);
 
 	if (nextImageResult == VK_SUCCESS && shouldRender)
 	{
 		// setup the command buffers
-		const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
+		const VkCommandBuffer commandBuffer = commandBuffers[frameInfo.currentFrame];
 		vkResetCommandBuffer(commandBuffer, 0);
 
 		VkCommandBufferBeginInfo beginInfo = {};
@@ -1798,11 +1798,11 @@ bool VulkanRenderer::prepareFrame(FrameInfo frameInfo)
 	return shouldRender;
 }
 
-void VulkanRenderer::render(FrameInfo frameInfo, const std::vector<mat4> &matrices,
+void VulkanRenderer::render(const FrameInfo &frameInfo, const std::vector<mat4> &matrices,
 							const std::vector<MaterialGroup> &materialGroups,
 							const std::vector<MaterialGroup> &postLightGroups)
 {
-	const short currentFrame = frameInfo.getCurrentFrame();
+	const short currentFrame = frameInfo.currentFrame;
 	constexpr size_t DSET_IDX_FRAME = 0;
 	constexpr size_t DSET_IDX_MATERIAL = 1;
 
@@ -2028,11 +2028,11 @@ void VulkanRenderer::render(FrameInfo frameInfo, const std::vector<mat4> &matric
 	processGroups(postLightGroups, skyboxPipeline.vulkanPipeline());
 }
 
-void VulkanRenderer::displayFrame(FrameInfo frameInfo)
+void VulkanRenderer::displayFrame(const FrameInfo &frameInfo)
 {
 	if (nextImageResult == VK_SUCCESS)
 	{
-		const VkCommandBuffer commandBuffer = commandBuffers[frameInfo.getCurrentFrame()];
+		const VkCommandBuffer commandBuffer = commandBuffers[frameInfo.currentFrame];
 		vkCmdEndRenderPass(commandBuffer);
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
@@ -2042,7 +2042,7 @@ void VulkanRenderer::displayFrame(FrameInfo frameInfo)
 
 		// semaphore is used to signal the end of a frame, so the next can start
 		// semaphore indexes match up with the stages at the respective array index
-		std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[frameInfo.getCurrentFrame()]};
+		std::array<VkSemaphore, 1> waitSemaphores = {imageSemaphores[frameInfo.currentFrame]};
 		std::array<VkPipelineStageFlags, 1> waitStages = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
 		VkSubmitInfo submitInfo = {};
@@ -2054,12 +2054,12 @@ void VulkanRenderer::displayFrame(FrameInfo frameInfo)
 		submitInfo.pCommandBuffers = &commandBuffer;
 
 		// render semaphores are signalled when queue commands are finished, and waited on for presentation
-		std::array<VkSemaphore, 1> signalSemaphores = {renderSemaphores[frameInfo.getCurrentFrame()]};
+		std::array<VkSemaphore, 1> signalSemaphores = {renderSemaphores[frameInfo.currentFrame]};
 		submitInfo.signalSemaphoreCount = signalSemaphores.size();
 		submitInfo.pSignalSemaphores = signalSemaphores.data();
 
 		// fence used to let CPU know we're done executing the command buffer
-		if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, frameFences[frameInfo.getCurrentFrame()]) != VK_SUCCESS)
+		if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, frameFences[frameInfo.currentFrame]) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Failed to submit draw command buffer to the graphics queue");
 		}

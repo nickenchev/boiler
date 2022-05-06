@@ -21,8 +21,7 @@
 #include "display/systems/lightingsystem.h"
 #include "animation/components/animationcomponent.h"
 #include "animation/systems/animationsystem.h"
-#include "collision/collisioncomponent.h"
-#include "collision/collisionsystem.h"
+#include "camera/camerasystem.h"
 
 using namespace Boiler;
 constexpr unsigned int maxFramesInFlight = 3;
@@ -66,10 +65,8 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 		.expects<TransformComponent>();
 	this->animationSystem = &animationSystem;
 
-	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>()
-		.expects<CollisionComponent>()
-		.expects<TransformComponent>();
-	this->collisionSystem = &collisionSystem;
+	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>();
+	this->cameraSystem = &cameraSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer)
 		.expects<LightingComponent>();
@@ -116,13 +113,14 @@ void Engine::start(std::shared_ptr<Part> part)
 
 void Engine::run()
 {
-	updateInterval = 1.0f / 90;
+	updateInterval = (1.0f / 90);
 	running = true;
 
 	while(running)
 	{
-		processEvents();
-		step();
+		FrameInfo frameInfo;
+		processEvents(frameInfo);
+		step(frameInfo);
 		currentFrame = (currentFrame + 1) % maxFramesInFlight;
 	}
 	
@@ -131,14 +129,15 @@ void Engine::run()
 	renderer->shutdown();
 }
 
-void Engine::step()
+void Engine::step(FrameInfo &frameInfo)
 {
 	//get the delta time
 	Time64 currentTime = SDL_GetTicks64();
-	Time frameDelta = (currentTime - prevTime) / 1000.0f;
+	Time deltaTime = (currentTime - prevTime) / 1000.0f;
 	prevTime = currentTime;
 
 	// frame update / catchup phase if lagging
+	/*
 	FrameInfo frameInfo(currentFrame, updateInterval, globalTime);
 	frameLag += frameDelta;
 	while (frameLag >= updateInterval)
@@ -147,6 +146,13 @@ void Engine::step()
 		globalTime += updateInterval;
 		frameLag -= updateInterval;
 	}
+	*/
+	frameInfo.currentFrame = currentFrame;
+	frameInfo.deltaTime = deltaTime;
+	frameInfo.globalTime = globalTime;
+
+	update(frameInfo);
+	globalTime += deltaTime;
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data
@@ -164,7 +170,7 @@ void Engine::step()
 	}
 }
 
-void Engine::processEvents()
+void Engine::processEvents(FrameInfo &frameInfo)
 {
 	// poll input events
 	SDL_Event event;
@@ -273,8 +279,8 @@ void Engine::processEvents()
 	}
 }
 
-void Engine::update(FrameInfo frameInfo)
+void Engine::update(const FrameInfo &frameInfo)
 {
 	ecs.update(frameInfo);
-	part->update(updateInterval);
+	part->update(frameInfo.deltaTime);
 }
