@@ -15,7 +15,7 @@ RenderSystem::RenderSystem(Renderer &renderer) : System("Render System"), render
 {
 }
 
-void RenderSystem::update(FrameInfo frameInfo, ComponentStore &store)
+void RenderSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 {
 	std::vector<MaterialGroup> materialGroups, postLightGroups;
 	materialGroups.resize(256);

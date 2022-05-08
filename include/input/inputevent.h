@@ -6,20 +6,11 @@
 namespace Boiler
 {
 
-enum class ButtonState { UP, DOWN };
+enum class ButtonState { NONE, UP, DOWN };
 
 struct InputEvent
 {
-    SDL_Keycode keyCode;
-    ButtonState state;
-
 	InputEvent() {}
-
-    InputEvent(SDL_Keycode keyCode, ButtonState state)
-    {
-        this->keyCode = keyCode;
-        this->state = state;
-    }
 };
 
 }

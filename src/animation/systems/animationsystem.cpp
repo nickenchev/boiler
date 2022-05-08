@@ -4,7 +4,7 @@
 #include "animation/components/animationcomponent.h"
 #include "core/componentstore.h"
 
-void Boiler::AnimationSystem::update(FrameInfo frameInfo, ComponentStore &store)
+void Boiler::AnimationSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 {
 	for (const Entity &entity : getEntities())
 	{

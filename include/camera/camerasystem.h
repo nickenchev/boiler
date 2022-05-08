@@ -1,17 +1,24 @@
 #ifndef CAMERASYSTEM_H
 #define CAMERASYSTEM_H
 
-#include <core/system.h>
+#include "core/system.h"
 
 namespace Boiler
 {
-	class CameraSystem : public Boiler::System
-	{
-	public:
-		CameraSystem();
 
-		void update(FrameInfo frameInfo, ComponentStore &store) override;
-	};
+class Renderer;
+
+class CameraSystem : public Boiler::System
+{
+	Renderer &renderer;
+	float prevXFactor, prevYFactor;
+
+public:
+	CameraSystem(Renderer &renderer);
+
+	void update(const FrameInfo &frameInfo, ComponentStore &store) override;
+};
+
 }
 
 #endif /* CAMERASYSTEM_H */

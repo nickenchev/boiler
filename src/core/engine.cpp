@@ -11,6 +11,7 @@
 #include "core/entity.h"
 #include "input/mousebuttonevent.h"
 #include "input/keyinputevent.h"
+#include "input/inputsystem.h"
 #include "core/frameinfo.h"
 #include "core/components/transformcomponent.h"
 #include "core/components/rendercomponent.h"
@@ -60,12 +61,14 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	// initialize basic engine stuff
 	renderer->initialize(initialSize);
 
+	System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(*this);
+
 	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(animator)
 		.expects<AnimationComponent>()
 		.expects<TransformComponent>();
 	this->animationSystem = &animationSystem;
 
-	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>();
+	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(*renderer);
 	this->cameraSystem = &cameraSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer)
@@ -214,62 +217,56 @@ void Engine::processEvents(FrameInfo &frameInfo)
 			}
 			case SDL_FINGERUP:
 			{
+				/*
 				TouchTapEvent event(TapState::UP);
 				for (const TouchTapEventListener &listener : touchTapEventListeners)
 				{
 					listener(event);
 				}
+				*/
 				break;
 			}
 			case SDL_FINGERDOWN:
 			{
+				/*
 				TouchTapEvent event(TapState::DOWN);
 				for (const TouchTapEventListener &listener : touchTapEventListeners)
 				{
 					listener(event);
 				}
+				*/
 				break;
 			}
 			case SDL_FINGERMOTION:
 			{
+				/*
 				TouchMotionEvent motionEvent(event.tfinger.x, event.tfinger.y,
 											 event.tfinger.dx, event.tfinger.dy);
 				for (const TouchMotionListener &listener : touchMotionListeners)
 				{
 					listener(motionEvent);
 				}
+				*/
 				break;
 			}
 			case SDL_MOUSEMOTION:
 			{
-				MouseMotionEvent motionEvent(event.motion.x, event.motion.y,
-									   event.motion.xrel, event.motion.yrel);
-				for (const MouseMotionListener &listener : mouseMotionListeners)
-				{
-					listener(motionEvent);
-				}
+				frameInfo.mouseXDistance += event.motion.xrel;
+				frameInfo.mouseYDistance += event.motion.yrel;
 				break;
 			}
 			case SDL_KEYDOWN:
 			{
 				SDL_Keycode keyCode = event.key.keysym.sym;
 				KeyInputEvent event(keyCode, ButtonState::DOWN);
-
-				for (const KeyInputListener &listener : keyInputListeners)
-				{
-					listener(event);
-				}
+				frameInfo.keyInputEvents.addEvent(event);
 				break;
 			}
 			case SDL_KEYUP:
 			{
 				SDL_Keycode keyCode = event.key.keysym.sym;
 				KeyInputEvent event(keyCode, ButtonState::UP);
-
-				for (const KeyInputListener &listener : keyInputListeners)
-				{
-					listener(event);
-				}
+				frameInfo.keyInputEvents.addEvent(event);
 				break;
 			}
 

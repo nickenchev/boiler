@@ -5,7 +5,7 @@
 
 using namespace Boiler;
 
-void LightingSystem::update(FrameInfo frameInfo, ComponentStore &store)
+void LightingSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 {
 	std::vector<LightSource> lightSources{};
 	for (unsigned int i = 0; i < getEntities().size(); ++i)

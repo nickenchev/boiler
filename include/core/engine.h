@@ -29,11 +29,6 @@ class Entity;
 class Renderer;
 class Part;
 
-typedef std::function<void(const TouchMotionEvent &event)> TouchMotionListener;
-typedef std::function<void(const TouchTapEvent &event)> TouchTapEventListener;
-typedef std::function<void(const MouseMotionEvent &event)> MouseMotionListener;
-typedef std::function<void(const KeyInputEvent &event)> KeyInputListener;
-
 class Engine
 {
 	Time64 globalTime, prevTime;
@@ -46,11 +41,6 @@ class Engine
     std::string baseDataPath;
     System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem, *animationSystem, *collisionSystem, *cameraSystem;
 	Animator animator;
-
-    std::vector<TouchMotionListener> touchMotionListeners;
-    std::vector<TouchTapEventListener> touchTapEventListeners;
-    std::vector<MouseMotionListener> mouseMotionListeners;
-    std::vector<KeyInputListener> keyInputListeners;
 
     bool running = true;
     Time updateInterval;
@@ -88,11 +78,6 @@ public:
 	{
 		this->part = part;
 	}
-
-    void addTouchMotionListener(const TouchMotionListener &listener) { touchMotionListeners.push_back(listener); }
-    void addTouchTapEventListener(const TouchTapEventListener &listener) { touchTapEventListeners.push_back(listener); }
-    void addMouseMotionListener(const MouseMotionListener &listener) { mouseMotionListeners.push_back(listener); }
-    void addKeyInputListener(const KeyInputListener &listener) { keyInputListeners.push_back(listener); }
 };
 
 }

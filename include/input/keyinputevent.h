@@ -12,6 +12,12 @@ struct KeyInputEvent : public InputEvent
     SDL_Keycode keyCode;
     ButtonState state;
 
+	KeyInputEvent()
+	{
+		keyCode = -1;
+		state = ButtonState::NONE;
+	}
+
     KeyInputEvent(SDL_Keycode keyCode, ButtonState state)
     {
         this->keyCode = keyCode;

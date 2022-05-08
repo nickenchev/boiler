@@ -53,6 +53,8 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/display/vulkan/graphicspipeline.h
   ${INCLUDE_BASE}/display/vulkan/shaderstagemodules.h
   ${INCLUDE_BASE}/display/skyboxloader.h
+  ${INCLUDE_BASE}/input/inputsystem.h
+  ${INCLUDE_BASE}/input/inputcomponent.h
   ${INCLUDE_BASE}/assets/maps/maploader.h
   ${INCLUDE_BASE}/assets/maps/gamemap.h
   # Animation related
@@ -123,6 +125,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/assets/maploader.cpp
   ${SRC_BASE}/physics/collisionsystem.cpp
   ${SRC_BASE}/camera/camerasystem.cpp
+  ${SRC_BASE}/input/inputsystem.cpp
   # ImGui
   ${SRC_BASE}/gui/imguivulkan.cpp
   ${SRC_BASE}/ext/imgui/imgui.cpp

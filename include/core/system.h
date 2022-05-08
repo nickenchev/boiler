@@ -65,7 +65,7 @@ public:
 		return matchingMask;
 	}
 
-	virtual void update(FrameInfo frameInfo, ComponentStore &store) = 0;
+	virtual void update(const FrameInfo &frameInfo, ComponentStore &store) = 0;
 	const std::vector<Entity> &getEntities() const { return entities; }
 	const std::string &getName() const { return name; }
 	void removeEntity(const Entity &entity)

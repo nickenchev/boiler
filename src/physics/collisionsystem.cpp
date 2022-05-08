@@ -6,7 +6,7 @@
 using namespace Boiler;
 #define GROUND_Y 1.1f
 
-void CollisionSystem::update(FrameInfo frameInfo, ComponentStore &store)
+void CollisionSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 {
 	for (Entity entity : getEntities())
 	{

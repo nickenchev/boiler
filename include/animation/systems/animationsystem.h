@@ -18,7 +18,7 @@ public:
 	{
 	}
 
-	void update(FrameInfo frameInfo, ComponentStore &store) override;
+	void update(const FrameInfo &frameInfo, ComponentStore &store) override;
 };
 
 };

@@ -20,7 +20,7 @@ class RenderSystem : public System
 public:
 	RenderSystem(Renderer &renderer);
 
-	void update(FrameInfo frameInfo, ComponentStore &store) override;
+	void update(const FrameInfo &frameInfo, ComponentStore &store) override;
 };
 
 }
