@@ -10,9 +10,7 @@ namespace Boiler
 class CollisionSystem : public System
 {
 public:
-	CollisionSystem() : System("Collision System")
-	{
-	}
+	CollisionSystem();
 
 	void update(const FrameInfo &frameInfo, ComponentStore &store) override;
 };

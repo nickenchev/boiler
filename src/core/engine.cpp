@@ -24,6 +24,8 @@
 #include "animation/systems/animationsystem.h"
 #include "camera/camerasystem.h"
 #include "physics/movementsystem.h"
+#include "physics/collisionsystem.h"
+#include "physics/collisioncomponent.h"
 
 using namespace Boiler;
 constexpr unsigned int maxFramesInFlight = 3;
@@ -70,6 +72,9 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 
 	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(*renderer);
 	this->cameraSystem = &cameraSystem;
+
+	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>();
+	this->collisionSystem = &collisionSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer);
 	this->lightingSystem = &lightingSys;
