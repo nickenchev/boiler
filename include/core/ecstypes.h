@@ -7,7 +7,7 @@
 namespace Boiler
 {
 
-using ComponentMask = std::bitset<64>;
+using ComponentMask = std::bitset<256>;
 
 }
 #endif /* ECSTYPES_H */

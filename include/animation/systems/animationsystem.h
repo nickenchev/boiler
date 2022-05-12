@@ -14,9 +14,7 @@ class AnimationSystem : public System
 	Animator &animator;
 
 public:
-	AnimationSystem(Animator &animator) : System("Animation System"), animator(animator)
-	{
-	}
+	AnimationSystem(Animator &animator);
 
 	void update(const FrameInfo &frameInfo, ComponentStore &store) override;
 };

@@ -4,7 +4,15 @@
 #include "animation/components/animationcomponent.h"
 #include "core/componentstore.h"
 
-void Boiler::AnimationSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
+using namespace Boiler;
+
+AnimationSystem::AnimationSystem(Animator &animator) : System("Animation System"), animator(animator)
+{
+	expects<AnimationComponent>();
+	expects<TransformComponent>();
+}
+
+void AnimationSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 {
 	for (const Entity &entity : getEntities())
 	{

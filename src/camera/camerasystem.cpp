@@ -59,7 +59,7 @@ void CameraSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 	//const float xFactor = xFactorNew;
 	//const float yFactor = yFactorNew;
 
-	const float sensitivity = 1.5;
+	const float sensitivity = 1.0;
 	const float xDiff = sensitivity * xFactor;
 	const float yDiff = sensitivity * yFactor;
 

@@ -6,12 +6,13 @@
 namespace Boiler
 {
 
-class InputComponent : public ComponentType<InputComponent>
+struct InputComponent : public ComponentType<InputComponent>
 {
+	bool moveLeft, moveRight, moveForward, moveBackward, moveUp, moveDown;
+
 public:
 	InputComponent() : ComponentType(this)
 	{
-
 	}
 };
 

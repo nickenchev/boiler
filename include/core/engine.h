@@ -39,7 +39,7 @@ class Engine
 	Renderer *renderer;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
-    System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem, *animationSystem, *collisionSystem, *cameraSystem;
+    System *renderSystem, *glyphSystem, *guiSystem, *lightingSystem, *animationSystem, *collisionSystem, *cameraSystem, *inputSystem, *movementSystem;
 	Animator animator;
 
     bool running = true;

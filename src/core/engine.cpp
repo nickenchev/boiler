@@ -23,6 +23,7 @@
 #include "animation/components/animationcomponent.h"
 #include "animation/systems/animationsystem.h"
 #include "camera/camerasystem.h"
+#include "physics/movementsystem.h"
 
 using namespace Boiler;
 constexpr unsigned int maxFramesInFlight = 3;
@@ -62,23 +63,19 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	renderer->initialize(initialSize);
 
 	System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(*this);
+	this->inputSystem = &inputSystem;
 
-	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(animator)
-		.expects<AnimationComponent>()
-		.expects<TransformComponent>();
+	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(animator);
 	this->animationSystem = &animationSystem;
 
 	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(*renderer);
 	this->cameraSystem = &cameraSystem;
 
-	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer)
-		.expects<LightingComponent>();
-	ecs.getComponentSystems().removeUpdate(lightingSys);
+	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer);
 	this->lightingSystem = &lightingSys;
+	ecs.getComponentSystems().removeUpdate(lightingSys);
 
-	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*renderer)
-		.expects<TransformComponent>()
-		.expects<RenderComponent>();
+	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*renderer);
 	ecs.getComponentSystems().removeUpdate(renderSys);
 	this->renderSystem = &renderSys;
 

@@ -6,11 +6,13 @@
 
 namespace Boiler
 {
-	struct CollisionComponent : public ComponentType<CollisionComponent>
-	{
-		vec3 min, max;
-		CollisionComponent() : ComponentType(this) { }
-	};
+
+struct CollisionComponent : public ComponentType<CollisionComponent>
+{
+	vec3 min, max;
+	CollisionComponent() : ComponentType(this) { }
+};
+
 }
 
 #endif // !COLLISIONCOMPONENT_H

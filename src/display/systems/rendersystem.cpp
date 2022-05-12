@@ -13,6 +13,8 @@ using namespace Boiler;
 
 RenderSystem::RenderSystem(Renderer &renderer) : System("Render System"), renderer(renderer)
 {
+	expects<TransformComponent>();
+	expects<RenderComponent>();
 }
 
 void RenderSystem::update(const FrameInfo &frameInfo, ComponentStore &store)

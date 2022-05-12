@@ -12,7 +12,7 @@
 namespace Boiler
 {
 
-constexpr unsigned short MAX_COMPONENTS = 128;
+constexpr unsigned short MAX_COMPONENTS = 64;
 constexpr unsigned int MAX_ENTITIES = 2000;
 
 class ComponentStore
@@ -36,7 +36,9 @@ public:
 	{
 		// construct and store the new compnent for this entity
 		auto component = std::make_shared<T>(std::forward<Args>(args)...);
-		entityComponents[index(entity)][T::mask.to_ulong()] = component;
+		unsigned int entityIndex = index(entity);
+		unsigned int storageIndex = T::storageIndex;
+		entityComponents[entityIndex][T::storageIndex] = component;
 
 		return component;
 	}
@@ -63,7 +65,7 @@ public:
 	template<typename T>
 	T &retrieve(const Entity &entity)
 	{
-		auto component = entityComponents[index(entity)][T::mask.to_ulong()];
+		auto component = entityComponents[index(entity)][T::storageIndex];
 
 		assert(component != nullptr);
 		return *std::static_pointer_cast<T>(component);
@@ -72,7 +74,7 @@ public:
 	template<typename T>
 	bool hasComponent(const Entity &entity)
 	{
-		return entityComponents[index(entity)][T::mask.to_ulong()] != nullptr;
+		return entityComponents[index(entity)][T::storageIndex] != nullptr;
 	}
 
 	template<typename T>

@@ -11,8 +11,9 @@ template <typename T>
 class ComponentType : public Component
 {
 	const T *component;
+
 public:
-	static int storageIndex;
+	static unsigned int storageIndex;
 	static ComponentMask mask;
 
 	ComponentType(const T *component) : component(component)
@@ -48,14 +49,23 @@ inline ComponentMask componentMask()
 template <typename T>
 ComponentMask ComponentType<T>::mask{componentMask()};
 
-inline int getStorageIndex()
+inline unsigned int getStorageIndex()
 {
-	static int index = 0;
-	return index++;
+	static unsigned int index = 0;
+	static bool firstIndex = true;
+	if (!firstIndex)
+	{
+		index++;
+	}
+	else
+	{
+		firstIndex = false;
+	}
+	return index;
 }
 
 template <typename T>
-int ComponentType<T>::storageIndex = getStorageIndex();
+unsigned int ComponentType<T>::storageIndex{getStorageIndex()};
 
 }
 
