@@ -21,11 +21,15 @@ void MovementSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 		vec3 position = transform.getPosition();
 		if (movement.moveLeft)
 		{
-			position.x -= speed * frameInfo.deltaTime;
+			glm::vec3 moveAmount = glm::cross(movement.direction, movement.up);
+			moveAmount *= frameInfo.deltaTime * speed;
+			position -= moveAmount;
 		}
 		else if (movement.moveRight)
 		{
-			position.x += speed * frameInfo.deltaTime;
+			glm::vec3 moveAmount = glm::cross(movement.direction, movement.up);
+			moveAmount *= frameInfo.deltaTime * speed;
+			position += moveAmount;
 		}
 
 		if (movement.moveForward)
