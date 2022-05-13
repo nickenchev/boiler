@@ -28,29 +28,18 @@ void MovementSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 			position.x += speed * frameInfo.deltaTime;
 		}
 
-		/*
-		if (moveForward)
+		if (movement.moveForward)
 		{
-			glm::vec3 moveAmount = camDirection;
-			moveAmount *= speed * deltaTime;
-			camPosition -= moveAmount;
+			glm::vec3 moveAmount = movement.direction;
+			moveAmount *= speed * frameInfo.deltaTime;
+			position += moveAmount;
 		}
-		else if (moveFurther)
+		else if (movement.moveBackward)
 		{
-			glm::vec3 moveAmount = camDirection;
-			moveAmount *= speed * deltaTime;
-			camPosition += moveAmount;
+			glm::vec3 moveAmount = movement.direction;
+			moveAmount *= speed * frameInfo.deltaTime;
+			position -= moveAmount;
 		}
-
-		if (moveUp)
-		{
-			camPosition.y += speed * deltaTime;
-		}
-		else if (moveDown)
-		{
-			camPosition.y -= speed * deltaTime;
-		}
-		*/
 		transform.setPosition(position);
 	}
 }

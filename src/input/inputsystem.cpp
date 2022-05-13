@@ -7,7 +7,7 @@
 
 using namespace Boiler;
 
-InputSystem::InputSystem(Engine &engine) : System("Input System")
+InputSystem::InputSystem(Engine &engine) : System("Input System"), engine(engine)
 {
 	expects<InputComponent>();
 	expects<MovementComponent>();
@@ -43,6 +43,22 @@ void InputSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 		}
 	}
 
+	// calculate mouse diff
+	const Size size = engine.getRenderer().getScreenSize();
+	const float xFactorNew = frameInfo.mouseXDistance / size.width;
+	const float yFactorNew = frameInfo.mouseYDistance / size.height;
+
+	const float alpha = 0.5f;
+	const float xFactor = prevXFactor + alpha * (xFactorNew - prevXFactor);
+	const float yFactor = prevYFactor + alpha * (yFactorNew - prevYFactor);
+
+	const float sensitivity = 1.0;
+	const float xDiff = sensitivity * xFactor;
+	const float yDiff = sensitivity * yFactor;
+
+	prevXFactor = xFactorNew;
+	prevYFactor = yFactorNew;
+
 	for (Entity entity : getEntities())
 	{
 		MovementComponent &movement = store.retrieve<MovementComponent>(entity);
@@ -52,5 +68,7 @@ void InputSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 		movement.moveBackward = moveBackward;
 		movement.moveUp = moveUp;
 		movement.moveDown = moveDown;
+		movement.mouseXDiff = xDiff;
+		movement.mouseYDiff = yDiff;
 	}
 }
