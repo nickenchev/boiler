@@ -70,11 +70,14 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(animator);
 	this->animationSystem = &animationSystem;
 
-	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(*renderer);
-	this->cameraSystem = &cameraSystem;
+	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>();
+	this->movementSystem = &movementSystem;
 
 	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>();
 	this->collisionSystem = &collisionSystem;
+
+	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(*renderer);
+	this->cameraSystem = &cameraSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer);
 	this->lightingSystem = &lightingSys;

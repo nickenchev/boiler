@@ -22,8 +22,6 @@ InputSystem::InputSystem(Engine &engine) : System("Input System")
 
 void InputSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 {
-	bool moveLeft, moveRight, moveForward, moveBackward, moveUp, moveDown;
-
 	for (unsigned int i = 0; i < frameInfo.keyInputEvents.getCount(); ++i)
 	{
 		const KeyInputEvent event = frameInfo.keyInputEvents[i];
@@ -50,9 +48,9 @@ void InputSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 		MovementComponent &movement = store.retrieve<MovementComponent>(entity);
 		movement.moveLeft = moveLeft;
 		movement.moveRight = moveRight;
-		moveForward = moveForward;
-		moveBackward = moveBackward;
-		moveUp = moveUp;
-		moveDown = moveDown;
+		movement.moveForward = moveForward;
+		movement.moveBackward = moveBackward;
+		movement.moveUp = moveUp;
+		movement.moveDown = moveDown;
 	}
 }
