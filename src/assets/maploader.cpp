@@ -8,7 +8,10 @@
 #include "assets/maps/maploader.h"
 #include "core/components/transformcomponent.h"
 #include "core/components/rendercomponent.h"
+#include "camera/cameracomponent.h"
+#include "physics/movementcomponent.h"
 #include "physics/collisioncomponent.h"
+#include "input/inputcomponent.h"
 #include "rapidjson/encodings.h"
 #include "rapidjson/rapidjson.h"
 
@@ -73,18 +76,27 @@ void MapLoader::load(const std::string &filePath)
 					{
 						const auto transformComponent = ecs.createComponent<TransformComponent>(entity);
 
-						transformComponent->setPosition(getVector(comp, "translation"));
+						if (comp.HasMember("translation"))
+						{
+							transformComponent->setPosition(getVector(comp, "translation"));
+						}
 
-						const auto &orientation = comp["orientation"].GetObject();
-						quat orientationQuat(
-							orientation["w"].GetFloat(),
-							orientation["x"].GetFloat(),
-							orientation["y"].GetFloat(),
-							orientation["z"].GetFloat()
-						);
-						transformComponent->setOrientation(orientationQuat);
+						if (comp.HasMember("orientation"))
+						{
+							const auto &orientation = comp["orientation"].GetObject();
+							quat orientationQuat(
+								orientation["w"].GetFloat(),
+								orientation["x"].GetFloat(),
+								orientation["y"].GetFloat(),
+								orientation["z"].GetFloat()
+								);
+							transformComponent->setOrientation(orientationQuat);
+						}
 
-						transformComponent->setScale(getVector(comp, "scale"));
+						if (comp.HasMember("scale"))
+						{
+							transformComponent->setScale(getVector(comp, "scale"));
+						}
 					}
 					else if (strcmp(comp["type"].GetString(), "collision") == 0)
 					{
@@ -98,6 +110,20 @@ void MapLoader::load(const std::string &filePath)
 							collisionComponent->min = getVector(volume, "min");
 							collisionComponent->max = getVector(volume, "max");
 						}
+					}
+					else if (strcmp(comp["type"].GetString(), "camera") == 0)
+					{
+						const auto cameraComponent = ecs.createComponent<CameraComponent>(entity);
+					}
+					else if (strcmp(comp["type"].GetString(), "movement") == 0)
+					{
+						const auto moveComponent = ecs.createComponent<MovementComponent>(entity);
+						moveComponent->direction = getVector(comp, "direction");
+						moveComponent->up = getVector(comp, "up");
+					}
+					else if (strcmp(comp["type"].GetString(), "input") == 0)
+					{
+						ecs.createComponent<InputComponent>(entity);
 					}
 				}
 			}
