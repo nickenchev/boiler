@@ -22,6 +22,8 @@ InputSystem::InputSystem(Engine &engine) : System("Input System"), engine(engine
 
 void InputSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 {
+	bool jump = false;
+	
 	for (unsigned int i = 0; i < frameInfo.keyInputEvents.getCount(); ++i)
 	{
 		const KeyInputEvent event = frameInfo.keyInputEvents[i];
@@ -40,6 +42,10 @@ void InputSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 		else if (event.keyCode == SDLK_w)
 		{
 			moveForward = event.state == ButtonState::DOWN;
+		}
+		else if (event.keyCode == SDLK_SPACE)
+		{
+			jump = event.state == ButtonState::UP;
 		}
 	}
 
@@ -68,6 +74,7 @@ void InputSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 		movement.moveBackward = moveBackward;
 		movement.moveUp = moveUp;
 		movement.moveDown = moveDown;
+		movement.jump = jump;
 		movement.mouseXDiff = xDiff;
 		movement.mouseYDiff = yDiff;
 	}

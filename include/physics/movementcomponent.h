@@ -9,7 +9,7 @@ namespace Boiler
 
 struct MovementComponent : public ComponentType<MovementComponent>
 {
-	bool moveLeft, moveRight, moveForward, moveBackward, moveUp, moveDown;
+	bool moveLeft, moveRight, moveForward, moveBackward, moveUp, moveDown, jump;
 	float mouseXDiff, mouseYDiff;
 	vec3 direction, up;
 
