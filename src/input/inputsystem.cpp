@@ -45,7 +45,7 @@ void InputSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 		}
 		else if (event.keyCode == SDLK_SPACE)
 		{
-			jump = event.state == ButtonState::UP;
+			jump = event.state == ButtonState::DOWN;
 		}
 	}
 
