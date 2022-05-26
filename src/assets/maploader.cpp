@@ -51,80 +51,81 @@ void MapLoader::load(const std::string &filePath)
 			Entity entity = ecs.newEntity();
 			if (ent.HasMember("components"))
 			{
-				const auto &components = ent["components"].GetArray();
-				for (const auto &comp : components)
+				const auto &components = ent["components"].GetObject();
+				if (components.HasMember("render"))
 				{
-					if (strcmp(comp["type"].GetString(), "render") == 0)
+					const auto &comp = components["render"];
+					const auto renderComponent = ecs.createComponent<RenderComponent>(entity);
+					const int assetIndex = comp["assetIndex"].GetInt();
+					const GLTFImporter &asset = assetsLoaded[assetIndex];
+
+					asset.createInstance(entity);
+
+					if (asset.getImportResult().animations.size())
 					{
-						const auto renderComponent = ecs.createComponent<RenderComponent>(entity);
-						const int assetIndex = comp["assetIndex"].GetInt();
-						const GLTFImporter &asset = assetsLoaded[assetIndex];
-
-						asset.createInstance(entity);
-
-						if (asset.getImportResult().animations.size())
+						// load animations
+						auto &animComp = ecs.getComponentStore().retrieve<AnimationComponent>(entity);
+						for (AnimationId animId : asset.getImportResult().animations)
 						{
-							// load animations
-							auto &animComp = ecs.getComponentStore().retrieve<AnimationComponent>(entity);
-							for (AnimationId animId : asset.getImportResult().animations)
-							{
-								animComp.addClip(Clip(0, animId, true));
-							}
+							animComp.addClip(Clip(0, animId, true));
 						}
 					}
-					else if (strcmp(comp["type"].GetString(), "transform") == 0)
+				}
+				if (components.HasMember("transform"))
+				{
+					const auto &comp = components["transform"];
+					const auto transformComponent = ecs.createComponent<TransformComponent>(entity);
+
+					if (comp.HasMember("translation"))
 					{
-						const auto transformComponent = ecs.createComponent<TransformComponent>(entity);
-
-						if (comp.HasMember("translation"))
-						{
-							transformComponent->setPosition(getVector(comp, "translation"));
-						}
-
-						if (comp.HasMember("orientation"))
-						{
-							const auto &orientation = comp["orientation"].GetObject();
-							quat orientationQuat(
-								orientation["w"].GetFloat(),
-								orientation["x"].GetFloat(),
-								orientation["y"].GetFloat(),
-								orientation["z"].GetFloat()
-								);
-							transformComponent->setOrientation(orientationQuat);
-						}
-
-						if (comp.HasMember("scale"))
-						{
-							transformComponent->setScale(getVector(comp, "scale"));
-						}
+						transformComponent->setPosition(getVector(comp, "translation"));
 					}
-					else if (strcmp(comp["type"].GetString(), "collision") == 0)
+
+					if (comp.HasMember("orientation"))
 					{
+						const auto &orientation = comp["orientation"].GetObject();
+						quat orientationQuat(orientation["w"].GetFloat(), orientation["x"].GetFloat(),
+											 orientation["y"].GetFloat(), orientation["z"].GetFloat());
+						transformComponent->setOrientation(orientationQuat);
+					}
+
+					if (comp.HasMember("scale"))
+					{
+						transformComponent->setScale(getVector(comp, "scale"));
+					}
+				}
+				if (components.HasMember("collision"))
+				{
+					const auto &comp = components["collision"];
+					const auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
+
+					if (comp.HasMember("aabb"))
+					{
+						const auto &volume = comp["aabb"];
 						const auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
-
-						// AABB
-						if (comp.HasMember("aabb"))
-						{
-							const auto &volume = comp["aabb"];
-							const auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
-							collisionComponent->min = getVector(volume, "min");
-							collisionComponent->max = getVector(volume, "max");
-						}
+						collisionComponent->min = getVector(volume, "min");
+						collisionComponent->max = getVector(volume, "max");
 					}
-					else if (strcmp(comp["type"].GetString(), "camera") == 0)
+					else if (comp.HasMember("vertices"))
 					{
-						const auto cameraComponent = ecs.createComponent<CameraComponent>(entity);
+						const auto &volume = comp["vertices"];
+						const auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
 					}
-					else if (strcmp(comp["type"].GetString(), "movement") == 0)
-					{
-						const auto moveComponent = ecs.createComponent<MovementComponent>(entity);
-						moveComponent->direction = getVector(comp, "direction");
-						moveComponent->up = getVector(comp, "up");
-					}
-					else if (strcmp(comp["type"].GetString(), "input") == 0)
-					{
-						ecs.createComponent<InputComponent>(entity);
-					}
+				}
+				if (components.HasMember("camera"))
+				{
+					const auto cameraComponent = ecs.createComponent<CameraComponent>(entity);
+				}
+				if (components.HasMember("movement"))
+				{
+					const auto &comp = components["movement"];
+					const auto moveComponent = ecs.createComponent<MovementComponent>(entity);
+					moveComponent->direction = getVector(comp, "direction");
+					moveComponent->up = getVector(comp, "up");
+				}
+				if (components.HasMember("input"))
+				{
+					ecs.createComponent<InputComponent>(entity);
 				}
 			}
 		}
