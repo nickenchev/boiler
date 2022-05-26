@@ -6,6 +6,7 @@
 
 #include "core/asset.h"
 #include "core/logger.h"
+#include "display/vertexdata.h"
 #include "assets/importresult.h"
 
 #include "gltf.h"
@@ -25,7 +26,7 @@ namespace Boiler
 		ImportResult result;
 
 		Entity loadNode(std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const;
-		Primitive loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive);
+		VertexData loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive);
 
 	public:
 		GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath);

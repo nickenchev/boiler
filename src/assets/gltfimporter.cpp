@@ -102,7 +102,8 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 		Mesh newMesh;
 		for (auto &gltfPrimitive : mesh.primitives)
 		{
-			Primitive meshPrimitive = loadPrimitive(engine, modelAccess, gltfPrimitive);
+			VertexData vertexData = loadPrimitive(engine, modelAccess, gltfPrimitive);
+			Primitive meshPrimitive = engine.getRenderer().loadPrimitive(vertexData);
 			const gltf::Accessor &positionAccessor = model.accessors.at(gltfPrimitive.attributes.find(gltf::attributes::POSITION)->second);
 
 			// TODO: generate collision volumes
@@ -170,7 +171,7 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 	logger.log("Imported {} animations", result.animations.size());
 }
 
-Primitive GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive)
+VertexData GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive)
 {
 	if (primitive.mode.has_value())
 	{
@@ -187,12 +188,9 @@ Primitive GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors
 		Vertex vertex({values[0], values[1], values[2]});
 		vertex.colour = {1, 1, 1, 1};
 		vertices.push_back(vertex);
-
-		//const gltf::Accessor &acc = modelAccess.getModel().accessors[primitive.attributes.at(attributes::POSITION)];
 	}
 
 	assert(primitive.attributes.find(attributes::NORMAL) != primitive.attributes.end());
-
 	auto normalAccess = modelAccess.getTypedAccessor<float, 3>(primitive, attributes::NORMAL);
 	unsigned int vertexIndex = 0;
 	for (auto normal : normalAccess)
@@ -246,8 +244,7 @@ Primitive GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors
 		}
 	}
 
-	const VertexData vertData(vertices, indices);
-	return engine.getRenderer().loadPrimitive(vertData);
+	return VertexData(vertices, indices);
 }
 
 Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const
