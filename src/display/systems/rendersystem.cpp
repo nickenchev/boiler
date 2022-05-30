@@ -58,7 +58,7 @@ void RenderSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, Compon
 
 			if (primitive.materialId != Asset::NO_ASSET)
 			{
-				matGroup.primitives.push_back(MaterialGroup::PrimitiveInstance(primitive, i));
+				matGroup.primitives.push_back(MaterialGroup::PrimitiveInstance(primitiveId, i));
 			}
 		}
 	}

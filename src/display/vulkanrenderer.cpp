@@ -1930,13 +1930,14 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
 										0, sizeof(RenderConstants), &constants);
 
 					// draw the vertex data
-					const PrimitiveBuffers &primitiveBuffers = primitives.get(instance.primitive.bufferId);
+					const Primitive &primitive = assetSet.primitives.get(instance.primitiveId);
+					const PrimitiveBuffers &primitiveBuffers = primitives.get(primitive.bufferId);
 					const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
 					const std::array<VkDeviceSize, buffers.size()> offsets = {0};
 
 					vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
 					vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
-					vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(instance.primitive.getIndexCount()), 1, 0, 0, 0);
+					vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.indexCount()), 1, 0, 0, 0);
 				}
 			}
 		}

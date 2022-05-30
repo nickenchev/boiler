@@ -32,6 +32,11 @@ public:
 		return assets[assetId];
 	}
 
+	AssetType &operator[](std::size_t index)
+	{
+		return assets[index];
+	}
+
 	const auto &getAssets() const { return assets; }
 	std::size_t getSize() const { return size; }
 };

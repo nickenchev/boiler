@@ -10,11 +10,11 @@ struct MaterialGroup
 {
 	struct PrimitiveInstance
 	{
-		const Primitive primitive;
-		AssetId matrixId;
+		AssetId primitiveId, matrixId;
 
-		PrimitiveInstance(const Primitive &primitive, AssetId matrixId) : primitive(primitive)
+		PrimitiveInstance(AssetId primitiveId, AssetId matrixId)
 		{
+			this->primitiveId = primitiveId;
 			this->matrixId = matrixId;
 		}
 	};
