@@ -27,7 +27,8 @@ struct PositionComponent;
 struct SpriteComponent;
 struct TextComponent;
 struct ImageData;
-
+struct AssetSet;
+	
 class Renderer
 {
     vec3 clearColor;
@@ -41,11 +42,6 @@ protected:
 	vec3 cameraPosition;
 	glm::mat4 viewMatrix;
 	unsigned int frameLightIdx;
-
-	// material management
-	std::vector<Material> materials;
-
-	AssetId nextAssetId();
 
 public:
     Renderer(std::string name);
@@ -67,21 +63,18 @@ public:
 	void setCameraPosition(const vec3 &cameraPosition) { this->cameraPosition = cameraPosition; }
 	void setViewMatrix(const glm::mat4 &viewMatrix) { this->viewMatrix = viewMatrix; }
 
-    virtual Texture loadTexture(const ImageData &imageData) = 0;
-	virtual Texture loadCubemap(const std::array<ImageData, 6> &images) = 0;
-    virtual Primitive loadPrimitive(const VertexData &data) = 0;
+    virtual AssetId loadTexture(const ImageData &imageData) = 0;
+	virtual AssetId loadCubemap(const std::array<ImageData, 6> &images) = 0;
+	virtual AssetId loadPrimitive(const VertexData &data) = 0;
 
 	virtual void updateMatrices(const std::vector<mat4> &matrices) const = 0;
 	virtual void updateLights(const std::vector<LightSource> &lightSources) = 0;
 	virtual void updateMaterials(const std::vector<ShaderMaterial> &materials) const = 0;
 
-	virtual Material &createMaterial();
-	std::vector<Boiler::Material> &getMaterials() { return materials; }
-	Material &getMaterial(AssetId assetId);
-
 	virtual bool prepareFrame(const FrameInfo &frameInfo);
 	virtual void displayFrame(const FrameInfo &frameInfo) = 0;
-	virtual void render(const FrameInfo &frameInfo, const std::vector<mat4> &matrices,
+	virtual void render(AssetSet &assetSet, const FrameInfo &frameInfo,
+						const std::vector<mat4> &matrices,
 						const std::vector<MaterialGroup> &materialGroups,
 						const std::vector<MaterialGroup> &postLightGroups) = 0;
 };

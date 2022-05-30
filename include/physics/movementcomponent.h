@@ -23,6 +23,7 @@ struct MovementComponent : public ComponentType<MovementComponent>
 		moveBackward = false;
 		moveUp = false;
 		moveDown = false;
+		jump = false;
 		mouseXDiff = 0;
 		mouseYDiff = 0;
 	}

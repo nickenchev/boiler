@@ -16,10 +16,11 @@ void ImGuiVulkan::initialize()
 	unsigned char *pixels = nullptr;
 	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-
+	/*
 	ImageData imageData(pixels, Size(width, height), 4, true);
 	Material material = renderer.createMaterial();
 	material.baseTexture = renderer.loadTexture(imageData);
+	*/
 }
 
 void ImGuiVulkan::cleanup() const

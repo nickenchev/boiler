@@ -17,7 +17,7 @@ RenderSystem::RenderSystem(Renderer &renderer) : System("Render System"), render
 	expects<RenderComponent>();
 }
 
-void RenderSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
+void RenderSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
 	std::vector<MaterialGroup> materialGroups, postLightGroups;
 	materialGroups.resize(256);
@@ -48,10 +48,11 @@ void RenderSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 		}
 		matrices[i] = modelMatrix;
 
-		const static Material defaultMaterial(0);
-		for (const auto &primitive : render.mesh.primitives)
+		const static Material defaultMaterial;
+		for (const auto &primitiveId : render.mesh.primitives)
 		{
-			const Material &material = renderer.getMaterial(primitive.materialId);
+			const Primitive &primitive = assetSet.primitives.get(primitiveId);
+			const Material &material = assetSet.materials.get(primitive.materialId);
 			auto &matGroup = material.depth ? materialGroups[primitive.materialId] : postLightGroups[primitive.materialId];
 			matGroup.materialId = primitive.materialId;
 
@@ -62,5 +63,5 @@ void RenderSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 		}
 	}
 
-	renderer.render(frameInfo, matrices, materialGroups, postLightGroups);
+	renderer.render(assetSet, frameInfo, matrices, materialGroups, postLightGroups);
 }

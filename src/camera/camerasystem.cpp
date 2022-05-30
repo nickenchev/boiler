@@ -20,7 +20,7 @@ CameraSystem::CameraSystem(Renderer &renderer) : System("Camera System"), render
 	prevYFactor = 0;
 }
 
-void CameraSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
+void CameraSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
 	for (Entity entity : getEntities())
 	{

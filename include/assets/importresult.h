@@ -11,7 +11,7 @@ namespace Boiler {
 
 struct ImportResult
 {
-	std::vector<Material> materials;
+	std::vector<AssetId> materialsIds;
 	std::vector<Mesh> meshes;
     std::vector<AnimationId> animations;
 };

@@ -12,11 +12,10 @@
 #include "display/vertexdata.h"
 #include "assets/gltfimporter.h"
 #include "assets/importresult.h"
-#include "json/jsonloader.h"
-
 #include "animation/animation.h"
-
 #include "typedaccessor.h"
+#include "json/jsonloader.h"
+#include "assets/assetset.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/rotate_vector.hpp>
@@ -25,7 +24,7 @@
 
 using namespace Boiler;
 
-GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) : engine(engine), logger("GLTF Importer") 
+GLTFImporter::GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std::string &gltfPath) : engine(engine), logger("GLTF Importer") 
 {
 	const std::string jsonString = JsonLoader::loadJson(gltfPath);
 
@@ -45,7 +44,7 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 	}
 
 	// load textures
-	std::vector<Texture> textures;
+	std::vector<AssetId> texturesIds;
 	for (const gltf::Image &image : model.images)
 	{
 		assert(image.uri.length() > 0);
@@ -54,13 +53,13 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 		const ImageData imageData = ImageLoader::load(imagePath.string());
 
 		// load the texture into GPU mem
-		textures.push_back(engine.getRenderer().loadTexture(imageData));
+		texturesIds.push_back(engine.getRenderer().loadTexture(imageData));
 	}
 
 	// load materials
 	for (size_t i = 0; i < model.materials.size(); ++i)
 	{
-		Material &newMaterial = engine.getRenderer().createMaterial();
+		Material newMaterial;
 		const gltf::Material &material = model.materials[i];
 		if (material.pbrMetallicRoughness.has_value())
 		{
@@ -68,7 +67,7 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 			{
 				const gltf::MaterialTexture &matTexture = material.pbrMetallicRoughness.value().baseColorTexture.value();
 				const gltf::Texture &texture = model.textures[matTexture.index.value()];
-				newMaterial.baseTexture = textures[texture.source.value()];
+				newMaterial.baseTexture = texturesIds[texture.source.value()];
 			}
 
 			newMaterial.diffuse = vec4(1, 1, 1, 1);
@@ -90,7 +89,8 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 				newMaterial.alphaMode = AlphaMode::OPAQUE;
 			}
 		}
-		result.materials.push_back(newMaterial);
+		AssetId materialId = assetSet.materials.add(std::move(newMaterial));
+		result.materialsIds.push_back(materialId);
 	}
 
 	// Model accessors which are used for typed access into buffers
@@ -103,7 +103,9 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 		for (auto &gltfPrimitive : mesh.primitives)
 		{
 			VertexData vertexData = loadPrimitive(engine, modelAccess, gltfPrimitive);
-			Primitive meshPrimitive = engine.getRenderer().loadPrimitive(vertexData);
+			AssetId bufferId = engine.getRenderer().loadPrimitive(vertexData);
+			AssetId primitiveId = assetSet.primitives.add(Primitive(bufferId, vertexData.vertexSize(), vertexData.indexSize()));
+
 			const gltf::Accessor &positionAccessor = model.accessors.at(gltfPrimitive.attributes.find(gltf::attributes::POSITION)->second);
 
 			// TODO: generate collision volumes
@@ -118,10 +120,9 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
 			// setup material if any
 			if (gltfPrimitive.material.has_value())
 			{
-				const Material &material = result.materials[gltfPrimitive.material.value()];
-				meshPrimitive.materialId = material.getAssetId();
+				assetSet.primitives.get(primitiveId).materialId = result.materialsIds[gltfPrimitive.material.value()];
 			}
-			newMesh.primitives.push_back(meshPrimitive);
+			newMesh.primitives.push_back(primitiveId);
 		}
 		result.meshes.push_back(newMesh);
 	}
@@ -166,7 +167,7 @@ GLTFImporter::GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath) 
         result.animations.push_back(animator.addAnimation(std::move(animation)));
 	}
 
-	logger.log("Imported {} materials", result.materials.size());
+	logger.log("Imported {} materials", result.materialsIds.size());
 	logger.log("Imported {} meshes", result.meshes.size());
 	logger.log("Imported {} animations", result.animations.size());
 }

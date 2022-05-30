@@ -18,28 +18,9 @@ void Renderer::resize(const Size &size)
 	setScreenSize(size);
 }
 
-AssetId Renderer::nextAssetId()
-{
-	return assetId++;
-}
-
 bool Renderer::prepareFrame(const FrameInfo &frameInfo)
 {
 	frameLightIdx = 0;
 	return true;
 }
 
-Material &Renderer::createMaterial()
-{
-	materials.push_back(Material(nextAssetId()));
-	Material &material = materials[materials.size() - 1];
-
-	logger.log("Added material with asset ID: {}", material.getAssetId());
-	return material;
-}
-Material &Renderer::getMaterial(AssetId assetId)
-{
-	auto material = std::find(materials.begin(), materials.end(), assetId);
-	assert(material != materials.end());
-	return *material;
-}

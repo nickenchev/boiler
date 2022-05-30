@@ -46,7 +46,7 @@ class Engine
     Time updateInterval;
 
     void processEvents(FrameInfo &frameInfo);
-	void update(const FrameInfo &frameInfo);
+	void update(AssetSet &assetSet, const FrameInfo &frameInfo);
 
     std::shared_ptr<Part> part;
 

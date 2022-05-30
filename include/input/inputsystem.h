@@ -16,7 +16,7 @@ class InputSystem : public System
 	
 public:
     InputSystem(Engine &engine);
-	void update(const FrameInfo &frameInfo, ComponentStore &store) override;
+	void update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
 };
 
 }

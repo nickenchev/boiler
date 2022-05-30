@@ -11,9 +11,10 @@ namespace Boiler
 	{
 		Logger logger;
 		Engine &engine;
+		AssetSet &assetSet;
 
 	public:
-		MapLoader(Engine &engine) : logger("Map Loader"), engine(engine) { }
+		MapLoader(AssetSet &assetSet, Engine &engine) : logger("Map Loader"), engine(engine), assetSet(assetSet) { }
 
 		void load(const std::string &filePath);
 	};

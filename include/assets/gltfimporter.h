@@ -14,28 +14,30 @@
 
 namespace Boiler
 {
-	class Engine;
-	class Entity;
 
-	class GLTFImporter
-	{
-		Engine &engine;
-		Logger logger;
-		std::vector<std::vector<std::byte>> buffers;
-		gltf::Model model;
-		ImportResult result;
+class Engine;
+class Entity;
+struct AssetSet;
 
-		Entity loadNode(std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const;
-		VertexData loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive);
+class GLTFImporter
+{
+	Engine &engine;
+	Logger logger;
+	std::vector<std::vector<std::byte>> buffers;
+	gltf::Model model;
+	ImportResult result;
+	std::vector<VertexData> allVertexData;
 
-	public:
-		GLTFImporter(Boiler::Engine &engine, const std::string &gltfPath);
+	Entity loadNode(std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const;
+	VertexData loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive);
 
-        ImportResult import(const std::string &gltfPath);
+public:
+	GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std::string &gltfPath);
 
-		void createInstance(const Entity &rootEntity) const;
+	ImportResult import(const std::string &gltfPath);
+	void createInstance(const Entity &rootEntity) const;
+	const ImportResult &getImportResult() const { return result; }
+};
 
-		const ImportResult &getImportResult() const { return result; }
-	};
 }
 #endif /* GLTFIMPORTER_H */

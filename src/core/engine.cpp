@@ -139,6 +139,7 @@ void Engine::run()
 
 void Engine::step(FrameInfo &frameInfo)
 {
+	AssetSet &assetSet = part->getAssetSet();
 	//get the delta time
 	Time64 currentTime = SDL_GetTicks64();
 	Time deltaTime = (currentTime - prevTime) / 1000.0f;
@@ -159,20 +160,19 @@ void Engine::step(FrameInfo &frameInfo)
 	frameInfo.deltaTime = deltaTime;
 	frameInfo.globalTime = globalTime;
 
-	update(frameInfo);
+	update(assetSet, frameInfo);
 	globalTime += deltaTime;
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data
 	if (renderer->prepareFrame(frameInfo))
 	{
-		lightingSystem->update(frameInfo, getEcs().getComponentStore());
-
-		renderSystem->update(frameInfo, getEcs().getComponentStore());
+		lightingSystem->update(assetSet, frameInfo, getEcs().getComponentStore());
+		renderSystem->update(assetSet, frameInfo, getEcs().getComponentStore());
 		//glyphSystem->update(frameInfo, getEcs().getComponentStore());
 		if (guiSystem)
 		{
-			guiSystem->update(frameInfo, getEcs().getComponentStore());
+			guiSystem->update(assetSet, frameInfo, getEcs().getComponentStore());
 		}
 		renderer->displayFrame(frameInfo);
 	}
@@ -274,15 +274,14 @@ void Engine::processEvents(FrameInfo &frameInfo)
 				frameInfo.keyInputEvents.addEvent(event);
 				break;
 			}
-
 			// GUI system needs to handle events independantly
 			static_cast<GUISystem *>(guiSystem)->processEvent(event);
 		}
 	}
 }
 
-void Engine::update(const FrameInfo &frameInfo)
+void Engine::update(AssetSet &assetSet, const FrameInfo &frameInfo)
 {
-	ecs.update(frameInfo);
-	part->update(frameInfo.deltaTime);
+	ecs.update(assetSet, frameInfo);
+	part->update(frameInfo);
 }

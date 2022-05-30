@@ -21,6 +21,7 @@
 
 #include "core/logger.h"
 #include "core/math.h"
+#include "assets/assetset.h"
 #include "display/lightsource.h"
 #include "display/imaging/imagedata.h"
 #include "display/vertexdata.h"
@@ -39,7 +40,7 @@ constexpr VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 constexpr unsigned int maxFramesInFlight = 3;
 constexpr unsigned int maxObjects = 1000;
 constexpr unsigned int maxLights = 64;
-constexpr unsigned int maxMaterials = 256;
+constexpr unsigned int maxMaterials = 512;
 constexpr unsigned int maxSamplers = 1;
 //constexpr VkFormat textureFormat = VK_FORMAT_R8G8B8A8_UNORM;
 constexpr VkFormat textureFormat = VK_FORMAT_R8G8B8A8_SRGB;
@@ -1359,7 +1360,7 @@ VkImageView VulkanRenderer::createImageView(VkImage image, VkFormat format, VkIm
 }
 
 constexpr size_t cubeMapSize = 6;
-Texture VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &images)
+AssetId VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &images)
 {
 	size_t totalSize = 0;
 
@@ -1396,15 +1397,10 @@ Texture VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &im
 	transitionImageLayout(imagePair.first, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 6);
 
 	VkImageView imageView = createImageView(imagePair.first, textureFormat, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_CUBE);
-
-	TextureImage texImage;
-	texImage.image = imagePair.first;
-	texImage.memory = imagePair.second;
-	texImage.imageView = imageView;
-	return textures.add(texImage);
+	return textures.add(TextureImage(imagePair.first, imagePair.second, imageView));
 }
 
-Texture VulkanRenderer::loadTexture(const ImageData &imageData)
+AssetId VulkanRenderer::loadTexture(const ImageData &imageData)
 {
 	const size_t bytesPerPixel = imageData.colorComponents;
 	if (imageData.colorComponents < 4)
@@ -1442,12 +1438,7 @@ Texture VulkanRenderer::loadTexture(const ImageData &imageData)
 	VkImageView imageView = createImageView(imagePair.first, textureFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 
 	logger.log("Texture data loaded");
-
-	TextureImage texImage;
-	texImage.image = imagePair.first;
-	texImage.memory = imagePair.second;
-	texImage.imageView = imageView;
-	return textures.add(texImage);
+	return textures.add(TextureImage(imagePair.first, imagePair.second, imageView));
 }
 
 BufferInfo VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperties) const
@@ -1664,22 +1655,15 @@ BufferInfo VulkanRenderer::createGPUBuffer(void *data, long size, VkBufferUsageF
 	return bufferInfo;
 }
 
-Primitive VulkanRenderer::loadPrimitive(const VertexData &data)
+AssetId VulkanRenderer::loadPrimitive(const VertexData &data)
 {
 	// primitive buffers
 	auto vertexBuffer = createGPUBuffer((void *)data.vertexBegin(), data.vertexSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 	auto indexBuffer = createGPUBuffer((void *)data.indexBegin(), data.indexSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-	AssetId primitiveId = primitives.add(PrimitiveBuffers(vertexBuffer, indexBuffer));
-	logger.log("Loaded primitive with asset-id: {}", primitiveId);
 
-	return Primitive(primitiveId, data.vertexArray().size(), data.indexArray().size());
-}
-
-Material &VulkanRenderer::createMaterial()
-{
-	Material &material = Renderer::createMaterial();
-	logger.log("Material added with asset-id: {}", material.getAssetId());
-	return material;
+	AssetId primBuffId = primitives.add(PrimitiveBuffers(vertexBuffer, indexBuffer));
+	logger.log("Loaded primitive with asset-id: {}", primBuffId);
+	return primBuffId;
 }
 
 void VulkanRenderer::updateLights(const std::vector<LightSource> &lightSources)
@@ -1704,7 +1688,7 @@ void VulkanRenderer::updateMatrices(const std::vector<mat4> &matrices) const
 }
 void VulkanRenderer::updateMaterials(const std::vector<ShaderMaterial> &materials) const
 {
-	assert(materials.size() < maxMaterials);
+	assert(materials.size() <= maxMaterials);
 	const VkDeviceSize size = materials.size() * sizeof(ShaderMaterial);
 
 	void *data = nullptr;
@@ -1799,7 +1783,8 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 	return shouldRender;
 }
 
-void VulkanRenderer::render(const FrameInfo &frameInfo, const std::vector<mat4> &matrices,
+void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
+							const std::vector<mat4> &matrices,
 							const std::vector<MaterialGroup> &materialGroups,
 							const std::vector<MaterialGroup> &postLightGroups)
 {
@@ -1869,10 +1854,10 @@ void VulkanRenderer::render(const FrameInfo &frameInfo, const std::vector<mat4> 
 	};
 
 	// update shader material data
-	std::vector<ShaderMaterial> shaderMaterials(getMaterials().size());
-	for (unsigned int i = 0; i < static_cast<unsigned int>(getMaterials().size()); ++i)
+	std::vector<ShaderMaterial> shaderMaterials(assetSet.materials.getSize());
+	for (unsigned int i = 0; i < static_cast<unsigned int>(assetSet.materials.getSize()); ++i)
 	{
-		const Material &material = getMaterials()[i];
+		const Material &material = assetSet.materials.getAssets()[i];
 		shaderMaterials[i].baseColorFactor = material.diffuse;
 	}
 	updateMaterials(shaderMaterials);
@@ -1894,7 +1879,7 @@ void VulkanRenderer::render(const FrameInfo &frameInfo, const std::vector<mat4> 
 
 	vkUpdateDescriptorSets(device, dsetWritesFrame.size(), dsetWritesFrame.data(), 0, nullptr);
 
-	const auto processGroups = [this, currentFrame, commandBuffer](const std::vector<MaterialGroup> &materialGroups, VkPipeline pipeline)
+	const auto processGroups = [this, &assetSet, currentFrame, commandBuffer](const std::vector<MaterialGroup> &materialGroups, VkPipeline pipeline)
 	{
 		for (unsigned int i = 0; i < static_cast<unsigned int>(materialGroups.size()); ++i)
 		{
@@ -1904,17 +1889,17 @@ void VulkanRenderer::render(const FrameInfo &frameInfo, const std::vector<mat4> 
 			// only loop over the ones that are actually being used
 			if (group.materialId != Asset::NO_ASSET)
 			{
-				const Material &material = getMaterial(group.materialId);
+				const Material &material = assetSet.materials.get(group.materialId);
 				std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
 				const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
 				descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
 				const int bindDescCount = descriptorSets.size();
 
-				if (material.baseTexture.has_value()) // TODO: Add pipeline and descriptor layout without base texture sampler
+				if (material.baseTexture != Asset::NO_ASSET) // TODO: Add pipeline and descriptor layout without base texture sampler
 				{
 					VkDescriptorImageInfo imageInfo = {};
 					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					imageInfo.imageView = textures.getAsset(material.baseTexture.value().getAssetId()).imageView;
+					imageInfo.imageView = textures.get(material.baseTexture).imageView;
 					imageInfo.sampler = textureSampler.vkSampler();
 
 					dsetObjWrites[0] = {
@@ -1931,7 +1916,7 @@ void VulkanRenderer::render(const FrameInfo &frameInfo, const std::vector<mat4> 
 
 				// bind the appropriate pipeline for this material
 				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-								  material.baseTexture.has_value() ? pipeline : gBufferNoTexPipeline.vulkanPipeline());
+								  material.baseTexture != Asset::NO_ASSET ? pipeline : gBufferNoTexPipeline.vulkanPipeline());
 				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0,
 										bindDescCount, descriptorSets.data(), 0, nullptr);
 
@@ -1945,7 +1930,7 @@ void VulkanRenderer::render(const FrameInfo &frameInfo, const std::vector<mat4> 
 										0, sizeof(RenderConstants), &constants);
 
 					// draw the vertex data
-					const PrimitiveBuffers &primitiveBuffers = primitives.getAsset(instance.primitive.getAssetId());
+					const PrimitiveBuffers &primitiveBuffers = primitives.get(instance.primitive.bufferId);
 					const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
 					const std::array<VkDeviceSize, buffers.size()> offsets = {0};
 

@@ -3,9 +3,9 @@
 
 using namespace Boiler;
 
-Primitive::Primitive(AssetId assetId, unsigned int vertexCount, unsigned int indexCount)
-	: Asset(assetId)
+Primitive::Primitive(AssetId bufferId, unsigned int vertexCount, unsigned int indexCount)
 {
+	this->bufferId = bufferId;
 	this->vertexCount = vertexCount;
 	this->indexCount = indexCount;
 	this->materialId = Asset::NO_ASSET;

@@ -11,6 +11,7 @@
 #include "core/entity.h"
 #include "core/componentmapper.h"
 #include "core/logger.h"
+#include "assets/assetset.h"
 
 namespace Boiler
 {
@@ -65,7 +66,7 @@ public:
 		return matchingMask;
 	}
 
-	virtual void update(const FrameInfo &frameInfo, ComponentStore &store) = 0;
+	virtual void update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) = 0;
 	const std::vector<Entity> &getEntities() const { return entities; }
 	const std::string &getName() const { return name; }
 	void removeEntity(const Entity &entity)

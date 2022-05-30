@@ -96,17 +96,21 @@ Entity SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 		}
 	}
 
-	Material &material = renderer.createMaterial();
+	Material material;
 	material.baseTexture = renderer.loadCubemap(images);
 	material.depth = false; // TODO: TEMP
 	material.diffuse = vec4(1, 1, 1, 1);
+	AssetId matAssetId = assetSet.materials.add(std::move(material));
 
-	Primitive primitive = renderer.loadPrimitive(VertexData(vertices, indices));
-	primitive.materialId = material.getAssetId();
+	VertexData vertexData(vertices, indices);
+	AssetId bufferId = renderer.loadPrimitive(vertexData);
+	Primitive primitive(bufferId, vertexData.vertexSize(), vertexData.indexSize());
+	primitive.materialId = matAssetId;
+	AssetId primitiveId = assetSet.primitives.add(std::move(primitive));
 
 	Entity skyBox = ecs.newEntity();
 	auto renderComponent = ecs.createComponent<RenderComponent>(skyBox);
-	renderComponent->mesh.primitives.push_back(primitive);
+	renderComponent->mesh.primitives.push_back(primitiveId);
 	ecs.createComponent<TransformComponent>(skyBox);
 
 	return skyBox;

@@ -23,11 +23,11 @@ public:
     ComponentSystems() : logger{"ComponentSystems"} { }
     virtual ~ComponentSystems() { }
 
-	void update(FrameInfo frameInfo, ComponentStore &store)
+	void update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 	{
 		for (auto &system : updateSystems)
 		{
-			system->update(frameInfo, store);
+			system->update(assetSet, frameInfo, store);
 		}
 	}
 

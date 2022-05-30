@@ -10,7 +10,7 @@ namespace Boiler
 class Texture : public Asset
 {
 public:
-    Texture(const AssetId assetId) : Asset(assetId) { }
+    Texture() { }
 };
 
 }

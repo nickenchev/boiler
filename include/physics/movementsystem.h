@@ -11,7 +11,7 @@ class MovementSystem : public System
 public:
     MovementSystem();
 
-	void update(const FrameInfo &frameInfo, ComponentStore &store) override;
+	void update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
 };
 
 }

@@ -9,7 +9,7 @@ namespace Boiler
 	
 struct Mesh
 {
-	std::vector<Primitive> primitives;
+	std::vector<AssetId> primitives;
 };
 
 }

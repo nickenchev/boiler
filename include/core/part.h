@@ -3,15 +3,18 @@
 
 #include <string>
 #include "core/logger.h"
+#include "assets/assetset.h"
 
 namespace Boiler
 {
 
 class Engine;
+struct FrameInfo;
 
 class Part
 {
 protected:
+	AssetSet assetSet;
 	std::string name;
 	Engine &engine;
 	Logger logger;
@@ -25,7 +28,9 @@ public:
     virtual ~Part() { }
 
     virtual void onStart() = 0;
-    virtual void update(Time deltaTime) = 0;
+    virtual void update(const FrameInfo &frameInfo) = 0;
+
+	AssetSet &getAssetSet() { return assetSet; }
 };
 
 }

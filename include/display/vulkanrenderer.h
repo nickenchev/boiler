@@ -25,6 +25,7 @@ struct SDL_Window;
 namespace Boiler
 {
 	struct MaterialGroup;
+	struct AssetSet;
 }
 
 namespace Boiler::Vulkan
@@ -104,7 +105,7 @@ class VulkanRenderer : public Boiler::Renderer
 
 	// resource management
 	AssetManager<PrimitiveBuffers, 512> primitives;
-	AssetManager<TextureImage, 128> textures;
+	AssetManager<TextureImage, 512> textures;
 	BufferInfo matrixBuffer, lightsBuffer, materialBuffer;
 
 	void freeBuffer(const BufferInfo &bufferInfo) const;
@@ -179,15 +180,15 @@ public:
 	void prepareShutdown() override;
 	void resize(const Boiler::Size &size) override;
 
-    Texture loadTexture(const ImageData &imageData) override;
-	Texture loadCubemap(const std::array<ImageData, 6> &images) override;
-    Primitive loadPrimitive(const VertexData &data) override;
-	Material &createMaterial() override;
+    AssetId loadTexture(const ImageData &imageData) override;
+	AssetId loadCubemap(const std::array<ImageData, 6> &images) override;
+	AssetId loadPrimitive(const VertexData &data) override;
 
 	bool prepareFrame(const FrameInfo &frameInfo) override;
 	void displayFrame(const FrameInfo &frameInfo) override;
 
-	void render(const FrameInfo &frameInfo, const std::vector<mat4> &matrices,
+	void render(AssetSet &assetSet, const FrameInfo &frameInfo,
+				const std::vector<mat4> &matrices,
 				const std::vector<MaterialGroup> &materialGroups,
 				const std::vector<MaterialGroup> &postLightGroups) override;
 

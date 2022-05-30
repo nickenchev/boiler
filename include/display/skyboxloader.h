@@ -3,6 +3,7 @@
 
 #include <string>
 #include "core/engine.h"
+#include "assets/assetset.h"
 
 namespace Boiler {
 
@@ -11,11 +12,12 @@ class EntityComponentSystem;
 
 class SkyBoxLoader
 {
+	AssetSet &assetSet;
 	Renderer &renderer;
 	EntityComponentSystem &ecs;
 
 public:
-	SkyBoxLoader(Renderer &renderer, EntityComponentSystem &ecs) : renderer(renderer), ecs(ecs) {}
+	SkyBoxLoader(AssetSet &assetSet, Renderer &renderer, EntityComponentSystem &ecs) : assetSet(assetSet), renderer(renderer), ecs(ecs) {}
 
 	Entity load(const std::string &top, const std::string &bottom,
 				const std::string &left, const std::string &right,

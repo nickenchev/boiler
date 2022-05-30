@@ -17,6 +17,13 @@ struct TextureImage
 		imageView = VK_NULL_HANDLE;
 		memory = VK_NULL_HANDLE;
 	}
+
+	TextureImage(VkImage image, VkDeviceMemory memory, VkImageView imageView)
+	{
+		this->image = image;
+		this->imageView = imageView;
+		this->memory = memory;
+	}
 };
 
 }

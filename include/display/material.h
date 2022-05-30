@@ -16,11 +16,11 @@ struct Material : public Asset
     vec4 specular;
     float shininess;
 
-	std::optional<Texture> baseTexture;
+	AssetId baseTexture = Asset::NO_ASSET;
 	AlphaMode alphaMode;
 	bool depth;
 	
-    Material(const AssetId assetId) : Asset(assetId)
+    Material()
 	{
 		depth = true;
 		ambient = vec4(1, 1, 1, 1);

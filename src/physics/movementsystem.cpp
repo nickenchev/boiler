@@ -11,10 +11,9 @@ MovementSystem::MovementSystem() : System("Movement System")
 	expects<TransformComponent>();
 }
 
-void MovementSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
+void MovementSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
-	const float ground = 1.1f;
-	const float gravity = 12.0f;
+	const float gravity = 15.0f;
 	const float speed = 10.0f;
 
 	for (Entity entity : getEntities())
@@ -29,21 +28,18 @@ void MovementSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
 
 		velocity.y -= gravity * frameInfo.deltaTime;
 
-		if (position.y < ground)
-		{
-			position.y = ground;
-			velocity.y = -velocity.y * 0.1f;
-		}
+		// strifing mid-air slower than on the ground
+		float slowdown = 0.6f;
 		if (movement.moveLeft)
 		{
 			glm::vec3 moveAmount = glm::cross(movement.direction, movement.up);
-			moveAmount *= frameInfo.deltaTime * speed * 0.6f;
+			moveAmount *= frameInfo.deltaTime * speed * slowdown;
 			position -= moveAmount;
 		}
 		else if (movement.moveRight)
 		{
 			glm::vec3 moveAmount = glm::cross(movement.direction, movement.up);
-			moveAmount *= frameInfo.deltaTime * speed * 0.6f;
+			moveAmount *= frameInfo.deltaTime * speed * slowdown;
 			position += moveAmount;
 		}
 

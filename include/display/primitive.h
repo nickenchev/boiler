@@ -12,9 +12,11 @@ class Primitive : public Asset
     unsigned int indexCount;
 
 public:
-	AssetId materialId;
+	AssetId bufferId = Asset::NO_ASSET;
+	AssetId materialId = Asset::NO_ASSET;
 
-    Primitive(const AssetId assetId, unsigned int vertexCount, unsigned int indexCount);
+	Primitive() { }
+    Primitive(AssetId bufferId, unsigned int vertexCount, unsigned int indexCount);
 
 	unsigned int getVertexCount() const { return vertexCount; }
 	unsigned int getIndexCount() const { return indexCount; }

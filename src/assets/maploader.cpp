@@ -36,7 +36,7 @@ void MapLoader::load(const std::string &filePath)
 		{
 			if (strcmp(asset["type"].GetString(), "gltf") == 0)
 			{
-				assetsLoaded.push_back(GLTFImporter(engine, asset["file"].GetString()));
+				assetsLoaded.push_back(GLTFImporter(assetSet, engine, asset["file"].GetString()));
 			}
 		}
 	}
@@ -102,14 +102,12 @@ void MapLoader::load(const std::string &filePath)
 					if (comp.HasMember("aabb"))
 					{
 						const auto &volume = comp["aabb"];
-						const auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
 						collisionComponent->min = getVector(volume, "min");
 						collisionComponent->max = getVector(volume, "max");
 					}
 					else if (comp.HasMember("vertices"))
 					{
 						const auto &volume = comp["vertices"];
-						const auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
 					}
 				}
 				if (components.HasMember("camera"))

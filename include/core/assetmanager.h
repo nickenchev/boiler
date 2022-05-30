@@ -9,7 +9,7 @@ namespace Boiler {
 template<typename AssetType, std::size_t Size>
 class AssetManager
 {
-	size_t size, index;
+	std::size_t size, index;
 	std::array<AssetType, Size> assets;
 
 public:
@@ -18,7 +18,7 @@ public:
 		index = 0;
 	}
 
-	AssetId add(AssetType asset)
+	AssetId add(AssetType &&asset)
 	{
 		size++;
 		AssetId assetId = index++;
@@ -27,12 +27,13 @@ public:
 		return assetId;
 	}
 
-	AssetType &getAsset(AssetId assetId)
+	AssetType &get(AssetId assetId)
 	{
 		return assets[assetId];
 	}
 
-	auto & getAssets() const { return assets; }
+	const auto &getAssets() const { return assets; }
+	std::size_t getSize() const { return size; }
 };
 
 }

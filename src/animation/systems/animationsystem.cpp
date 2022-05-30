@@ -12,7 +12,7 @@ AnimationSystem::AnimationSystem(Animator &animator) : System("Animation System"
 	expects<TransformComponent>();
 }
 
-void AnimationSystem::update(const FrameInfo &frameInfo, ComponentStore &store)
+void AnimationSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
 	for (const Entity &entity : getEntities())
 	{
