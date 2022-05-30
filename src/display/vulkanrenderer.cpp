@@ -1658,8 +1658,8 @@ BufferInfo VulkanRenderer::createGPUBuffer(void *data, long size, VkBufferUsageF
 AssetId VulkanRenderer::loadPrimitive(const VertexData &data)
 {
 	// primitive buffers
-	auto vertexBuffer = createGPUBuffer((void *)data.vertexBegin(), data.vertexSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-	auto indexBuffer = createGPUBuffer((void *)data.indexBegin(), data.indexSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+	auto vertexBuffer = createGPUBuffer((void *)data.vertexBegin(), data.vertexByteSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+	auto indexBuffer = createGPUBuffer((void *)data.indexBegin(), data.indexByteSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
 	AssetId primBuffId = primitives.add(PrimitiveBuffers(vertexBuffer, indexBuffer));
 	logger.log("Loaded primitive with asset-id: {}", primBuffId);

@@ -104,7 +104,7 @@ GLTFImporter::GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std
 		{
 			VertexData vertexData = loadPrimitive(engine, modelAccess, gltfPrimitive);
 			AssetId bufferId = engine.getRenderer().loadPrimitive(vertexData);
-			AssetId primitiveId = assetSet.primitives.add(Primitive(bufferId, vertexData.vertexSize(), vertexData.indexSize()));
+			AssetId primitiveId = assetSet.primitives.add(Primitive(bufferId, std::move(vertexData)));
 
 			const gltf::Accessor &positionAccessor = model.accessors.at(gltfPrimitive.attributes.find(gltf::attributes::POSITION)->second);
 
