@@ -18,18 +18,40 @@ void CollisionSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, Com
 	for (Entity entity : getEntities())
 	{
 		auto &collision = store.retrieve<CollisionComponent>(entity);
-		auto &transform = store.retrieve<TransformComponent>(entity);
-		vec3 position = transform.getPosition();
-		vec3 velocity = transform.getVelocity();
-
-		if (position.y < ground)
+		// check dynamic bodies for collisions
+		if (collision.isDynamic)
 		{
-			position.y = ground;
-			velocity.y = -velocity.y * 0.1f;
-		}
+			// need transform info to respond to collisions
+			auto &transform = store.retrieve<TransformComponent>(entity);
+			vec3 position = transform.getPosition();
+			vec3 velocity = transform.getVelocity();
 
-		transform.setVelocity(velocity);
-		transform.setPosition(position);
+			// find other objects we are colliding with
+			for (Entity otherEntity : getEntities())
+			{
+				if (entity != otherEntity)
+				{
+					auto &otherCollision = store.retrieve<CollisionComponent>(otherEntity);
+					if (otherCollision.colliderType == ColliderType::Mesh)
+					{
+						for (AssetId primitiveId : otherCollision.mesh.primitives)
+						{
+							const Primitive &primitive = assetSet.primitives.get(primitiveId);
+							logger.log("Checking {} vertices for collision on primitive-id: {}", primitive.getVertexData().vertexArray().size(), primitiveId);
+						}
+					}
+				}
+			}
+
+			if (position.y < ground)
+			{
+				position.y = ground;
+				velocity.y = -velocity.y * 0.1f;
+			}
+
+			transform.setVelocity(velocity);
+			transform.setPosition(position);
+		}
 		//vec4 min = vec4(collision.min, 1) * transformMatrix;
 		//vec4 max = vec4(collision.max, 1) * transformMatrix;
 	}

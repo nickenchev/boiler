@@ -18,7 +18,7 @@ public:
 	Primitive() { }
     Primitive(AssetId bufferId, VertexData &&vertexData);
 
-	VertexData &getVertexData() { return vertexData; }
+	const VertexData &getVertexData() const { return vertexData; }
 	auto indexCount() const { return vertexData.indexArray().size(); }
 };
 

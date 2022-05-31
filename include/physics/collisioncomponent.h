@@ -3,14 +3,25 @@
 
 #include "core/componenttype.h"
 #include "core/common.h"
+#include "display/mesh.h"
 
 namespace Boiler
 {
 
+enum class ColliderType
+{
+	None,
+	AABB,
+	Mesh
+};
+
 struct CollisionComponent : public ComponentType<CollisionComponent>
 {
+	bool isDynamic = false;
+	ColliderType colliderType = ColliderType::None;
+	Mesh mesh;
 	vec3 min, max;
-	CollisionComponent() : ComponentType(this) { }
+	CollisionComponent() : ComponentType(this) {}
 };
 
 }

@@ -97,17 +97,27 @@ void MapLoader::load(const std::string &filePath)
 				if (components.HasMember("collision"))
 				{
 					const auto &comp = components["collision"];
-					const auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
+					auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
+
+					if (comp.HasMember("dynamic"))
+					{
+						collisionComponent->isDynamic = comp["dynamic"].GetBool();
+					}
 
 					if (comp.HasMember("aabb"))
 					{
+						collisionComponent->colliderType = ColliderType::AABB;
 						const auto &volume = comp["aabb"];
 						collisionComponent->min = getVector(volume, "min");
 						collisionComponent->max = getVector(volume, "max");
 					}
-					else if (comp.HasMember("vertices"))
+					else if (comp.HasMember("mesh"))
 					{
-						const auto &volume = comp["vertices"];
+						collisionComponent->colliderType = ColliderType::Mesh;
+						assert(ecs.getComponentStore().hasComponent<RenderComponent>(entity));
+						const auto &volume = comp["mesh"];
+						const auto &renderComponent = ecs.getComponentStore().retrieve<RenderComponent>(entity);
+						collisionComponent->mesh = renderComponent.mesh;
 					}
 				}
 				if (components.HasMember("camera"))
