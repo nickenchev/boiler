@@ -16,6 +16,7 @@ public:
     AssetManager()
 	{
 		index = 0;
+		size = 0;
 	}
 
 	AssetId add(AssetType &&asset)
