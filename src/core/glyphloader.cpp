@@ -64,15 +64,14 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		}
 	}
 
-	//sort by pixel area
-	auto cmprs = [](std::pair<unsigned long, FT_Glyph> t1, std::pair<unsigned long, FT_Glyph> t2) {
+	logger.log("Building glyph atlas for " + fontPath);
+	//sort by bitmap height
+	std::sort(glyphs.begin(), glyphs.end(),
+			  [](std::pair<unsigned long, FT_Glyph> t1, std::pair<unsigned long, FT_Glyph> t2) {
 		FT_BitmapGlyph bmg1 = (FT_BitmapGlyph)t1.second;
 		FT_BitmapGlyph bmg2 = (FT_BitmapGlyph)t2.second;
-		return bmg1->bitmap.rows < bmg2->bitmap.rows;
-	};
-	logger.log("Building glyph atlas for " + fontPath);
-	std::sort(glyphs.begin(), glyphs.end(), cmprs);
-	std::reverse(glyphs.begin(), glyphs.end());
+		return bmg1->bitmap.rows > bmg2->bitmap.rows;
+	});
 
 	// figure out atlas size
 	FT_BitmapGlyph tallestGlyph = (FT_BitmapGlyph)std::get<1>(glyphs[0]);

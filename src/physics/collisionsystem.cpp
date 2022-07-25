@@ -13,7 +13,8 @@ CollisionSystem::CollisionSystem() : System("Collision System")
 
 void CollisionSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
-	const float ground = 1.1f;
+	float ground = 2;
+	float radius = 3;
 
 	for (Entity entity : getEntities())
 	{
@@ -25,23 +26,6 @@ void CollisionSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, Com
 			auto &transform = store.retrieve<TransformComponent>(entity);
 			vec3 position = transform.getPosition();
 			vec3 velocity = transform.getVelocity();
-
-			// find other objects we are colliding with
-			for (Entity otherEntity : getEntities())
-			{
-				if (entity != otherEntity)
-				{
-					auto &otherCollision = store.retrieve<CollisionComponent>(otherEntity);
-					if (otherCollision.colliderType == ColliderType::Mesh)
-					{
-						for (AssetId primitiveId : otherCollision.mesh.primitives)
-						{
-							const Primitive &primitive = assetSet.primitives.get(primitiveId);
-							logger.log("Checking {} vertices for collision on primitive-id: {}", primitive.getVertexData().vertexArray().size(), primitiveId);
-						}
-					}
-				}
-			}
 
 			if (position.y < ground)
 			{

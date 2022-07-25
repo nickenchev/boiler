@@ -30,6 +30,7 @@
 #include "display/material.h"
 #include "display/materialgroup.h"
 #include "display/vulkan/texturerequest.h"
+#include "display/glyphmap.h"
 
 using namespace Boiler;
 using namespace Boiler::Vulkan;
@@ -1439,6 +1440,10 @@ AssetId VulkanRenderer::loadTexture(const ImageData &imageData)
 
 	logger.log("Texture data loaded");
 	return textures.add(TextureImage(imagePair.first, imagePair.second, imageView));
+}
+
+void allocateGlyphs(const GlyphMap &map)
+{
 }
 
 BufferInfo VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperties) const

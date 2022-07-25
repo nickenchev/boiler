@@ -14,7 +14,7 @@ MovementSystem::MovementSystem() : System("Movement System")
 void MovementSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
 	const float gravity = 15.0f;
-	const float speed = 10.0f;
+	const float speed = 3.0f;
 
 	for (Entity entity : getEntities())
 	{

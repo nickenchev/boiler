@@ -20,6 +20,7 @@ public:
 
 	~GlyphMap();
 
+	auto &getMap() const { return map; }
 	const Glyph &operator[](unsigned long code) const
 	{
 		return map.at(code);

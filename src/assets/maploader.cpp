@@ -52,25 +52,6 @@ void MapLoader::load(const std::string &filePath)
 			if (ent.HasMember("components"))
 			{
 				const auto &components = ent["components"].GetObject();
-				if (components.HasMember("render"))
-				{
-					const auto &comp = components["render"];
-					const auto renderComponent = ecs.createComponent<RenderComponent>(entity);
-					const int assetIndex = comp["assetIndex"].GetInt();
-					const GLTFImporter &asset = assetsLoaded[assetIndex];
-
-					asset.createInstance(entity);
-
-					if (asset.getImportResult().animations.size())
-					{
-						// load animations
-						auto &animComp = ecs.getComponentStore().retrieve<AnimationComponent>(entity);
-						for (AnimationId animId : asset.getImportResult().animations)
-						{
-							animComp.addClip(Clip(0, animId, true));
-						}
-					}
-				}
 				if (components.HasMember("transform"))
 				{
 					const auto &comp = components["transform"];
@@ -92,6 +73,27 @@ void MapLoader::load(const std::string &filePath)
 					if (comp.HasMember("scale"))
 					{
 						transformComponent->setScale(getVector(comp, "scale"));
+					}
+				}
+
+				std::vector<Entity> childEntities;
+				if (components.HasMember("render"))
+				{
+					const auto &comp = components["render"];
+					const auto renderComponent = ecs.createComponent<RenderComponent>(entity);
+					const int assetIndex = comp["assetIndex"].GetInt();
+					const GLTFImporter &asset = assetsLoaded[assetIndex];
+
+					childEntities = asset.createInstance(entity);
+
+					if (asset.getImportResult().animations.size())
+					{
+						// load animations
+						auto &animComp = ecs.getComponentStore().retrieve<AnimationComponent>(entity);
+						for (AnimationId animId : asset.getImportResult().animations)
+						{
+							animComp.addClip(Clip(0, animId, true));
+						}
 					}
 				}
 				if (components.HasMember("collision"))
@@ -118,6 +120,17 @@ void MapLoader::load(const std::string &filePath)
 						const auto &volume = comp["mesh"];
 						const auto &renderComponent = ecs.getComponentStore().retrieve<RenderComponent>(entity);
 						collisionComponent->mesh = renderComponent.mesh;
+
+						for (Entity childEntity : childEntities)
+						{
+							if (ecs.getComponentStore().hasComponent<RenderComponent>(childEntity))
+							{
+								const RenderComponent &childRender = ecs.getComponentStore().retrieve<RenderComponent>(childEntity);
+								auto childCollision = ecs.createComponent<CollisionComponent>(childEntity);
+								childCollision->colliderType = ColliderType::Mesh;
+								childCollision->mesh = childRender.mesh;
+							}
+						}
 					}
 				}
 				if (components.HasMember("camera"))

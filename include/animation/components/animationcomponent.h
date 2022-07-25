@@ -10,6 +10,7 @@ namespace Boiler
 
 class AnimationComponent : public ComponentType<AnimationComponent>
 {
+	// TODO: Check if vector causes runtime issues due to alloc
 	const std::vector<Entity> targets;
 	std::vector<Clip> clips;
 

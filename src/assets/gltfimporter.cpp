@@ -7,6 +7,7 @@
 #include "core/engine.h"
 #include "core/components/rendercomponent.h"
 #include "core/components/transformcomponent.h"
+#include "physics/collisioncomponent.h"
 #include "animation/components/animationcomponent.h"
 #include "gltf.h"
 #include "display/vertexdata.h"
@@ -191,6 +192,7 @@ VertexData GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessor
 		vertices.push_back(vertex);
 	}
 
+	// vertex normals
 	assert(primitive.attributes.find(attributes::NORMAL) != primitive.attributes.end());
 	auto normalAccess = modelAccess.getTypedAccessor<float, 3>(primitive, attributes::NORMAL);
 	unsigned int vertexIndex = 0;
@@ -328,8 +330,10 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 	return nodeEntity;
 }
 
-void GLTFImporter::createInstance(const Entity &rootEntity) const
+std::vector<Entity> GLTFImporter::createInstance(const Entity &rootEntity) const
 {
+	// TODO: Remove array from this call to avoid memory allocation during runtime
+	
 	// grab the default scene and load the node heirarchy
 	const gltf::Scene &scene = model.scenes[model.scene];
 	//engine.getEcs().createComponent<TransformComponent>(rootEntity);
@@ -357,4 +361,6 @@ void GLTFImporter::createInstance(const Entity &rootEntity) const
 	{
 		animComp.addClip(Clip(0, animId, true));
 	}
+
+	return nodeEntities;
 }

@@ -35,7 +35,7 @@ public:
 	GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std::string &gltfPath);
 
 	ImportResult import(const std::string &gltfPath);
-	void createInstance(const Entity &rootEntity) const;
+	std::vector<Entity> createInstance(const Entity &rootEntity) const;
 	const ImportResult &getImportResult() const { return result; }
 };
 
