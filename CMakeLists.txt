@@ -42,7 +42,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/camera/platformercamera.h
   ${INCLUDE_BASE}/containers/array2d.h
   ${INCLUDE_BASE}/containers/gridposition.h
-  #${INCLUDE_BASE}/core/glyphloader.h
+  ${INCLUDE_BASE}/core/glyphloader.h
   ${INCLUDE_BASE}/display/opengl.h
   ${INCLUDE_BASE}/display/renderer.h
   ${INCLUDE_BASE}/display/lightsource.h
@@ -84,7 +84,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/core/spritesheet.cpp
   ${SRC_BASE}/core/spriteframe.cpp
   ${SRC_BASE}/core/base64.cpp
-  #${SRC_BASE}/core/glyphloader.cpp
+  ${SRC_BASE}/core/glyphloader.cpp
   #${SRC_BASE}/core/quadtree.cpp
   ${SRC_BASE}/core/rect.cpp
   #${SRC_BASE}/core/raycaster.cpp
@@ -109,6 +109,7 @@ set(BOILER_SOURCES
   #${SRC_BASE}/display/glslshaderprogram.cpp
   ${SRC_BASE}/display/spvshaderprogram.cpp
   ${SRC_BASE}/display/skyboxloader.cpp
+  ${SRC_BASE}/display/imaging/stb.cpp
   ${SRC_BASE}/display/imaging/imageloader.cpp
   ${SRC_BASE}/display/systems/rendersystem.cpp
   #${SRC_BASE}/display/systems/glyphsystem.cpp
