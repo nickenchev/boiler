@@ -18,9 +18,6 @@ set(GLEW_HEADERS_DIR ${GLEW_LIB_DIR}/include)
 set(ZLIB_DIR ${LIBS_ROOT}/zlib-1.2.11)
 add_subdirectory(${ZLIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/zlib_build)
 
-# build freetype2
-add_subdirectory(${LIBS_ROOT}/freetype-2.12.1)
-
 # build jsoncpp
 set(JSONCPP_WITH_TESTS CACHE OFF "Disable JSONCPP unit tests")
 set(JSONCPP_WITH_POST_BUILD_UNITTEST CACHE OFF "Disable JSONCPP post-build runner")
