@@ -11,7 +11,7 @@ CollisionSystem::CollisionSystem() : System("Collision System")
 	expects<TransformComponent>();
 }
 
-void CollisionSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
 	float ground = 2;
 	float radius = 3;

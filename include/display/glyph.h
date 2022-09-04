@@ -18,24 +18,36 @@ class Glyph
 	Rect sourceRect;
     ivec2 bearing;    // Offset from baseline to left/top of glyph
     long int advance;    // Offset to advance to next glyph
-	Primitive primitive;
-	std::shared_ptr<TextureInfo> textureInfo;
 	
 public:
-	Glyph(unsigned long code, const Primitive &primitive, std::shared_ptr<TextureInfo> textureInfo, const Rect &sourceRect,
-		  const ivec2 &bearing, long int advance) : primitive(primitive)
+	Glyph(unsigned long code, const Rect &sourceRect,
+		  const ivec2 &bearing, long int advance)
 	{
 		this->code = code;
 		this->sourceRect = sourceRect;
 		this->bearing = bearing;
 		this->advance = advance;
-		this->textureInfo = textureInfo;
 	}
 
+	auto &getRect() const { return sourceRect; }
 	auto &getBearing() const { return bearing; }
 	auto &getAdvance() const { return advance; }
-	auto getPrimitive() const { return primitive; }
-	auto getTextureInfo() const { return textureInfo; }
+
+	VertexData vertexData() const
+	{
+		cgfloat sizeW = sourceRect.size.width;
+		cgfloat sizeH = sourceRect.size.height;
+
+		std::vector<Vertex> verts = {
+			Vertex(vec3(0.0f, sizeH, 0.0f)),
+			Vertex(vec3(sizeW, 0.0f, 0.0f)),
+			Vertex(vec3(0.0f, 0.0f, 0.0f)),
+			Vertex(vec3(sizeW, sizeH, 0.0f))
+		};
+		std::vector<glm::uint32_t> indices = { 0, 1, 2, 0, 3, 1 };
+
+		return VertexData(verts, indices);
+	}
 };
 
 }

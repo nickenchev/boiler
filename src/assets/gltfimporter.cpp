@@ -54,7 +54,7 @@ GLTFImporter::GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std
 		const ImageData imageData = ImageLoader::load(imagePath.string());
 
 		// load the texture into GPU mem
-		texturesIds.push_back(engine.getRenderer().loadTexture(imageData));
+		texturesIds.push_back(engine.getRenderer().loadTexture(imageData, TextureType::RGBA_SRGB));
 	}
 
 	// load materials

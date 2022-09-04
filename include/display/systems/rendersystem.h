@@ -15,12 +15,10 @@ class Renderer;
 
 class RenderSystem : public System
 {
-	Renderer &renderer;
-
 public:
-	RenderSystem(Renderer &renderer);
+	RenderSystem();
 
-	void update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
+	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
 };
 
 }

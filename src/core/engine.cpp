@@ -20,6 +20,7 @@
 #include "core/components/lightingcomponent.h"
 #include "display/systems/guisystem.h"
 #include "display/systems/lightingsystem.h"
+#include "display/systems/textsystem.h"
 #include "animation/components/animationcomponent.h"
 #include "animation/systems/animationsystem.h"
 #include "camera/camerasystem.h"
@@ -76,17 +77,20 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>();
 	this->collisionSystem = &collisionSystem;
 
-	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(*renderer);
+	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>();
 	this->cameraSystem = &cameraSystem;
 
-	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(*renderer);
+	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>();
 	this->lightingSystem = &lightingSys;
 	ecs.getComponentSystems().removeUpdate(lightingSys);
 
-	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(*renderer);
+	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>();
 	ecs.getComponentSystems().removeUpdate(renderSys);
 	this->renderSystem = &renderSys;
 
+	System &textSys = ecs.getComponentSystems().registerSystem<TextSystem>();
+	ecs.getComponentSystems().removeUpdate(textSys);
+	this->textSystem = &textSys;
 	/*
 	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*renderer)
 		.expects<TransformComponent>()
@@ -167,12 +171,12 @@ void Engine::step(FrameInfo &frameInfo)
 	// this is called before updateMatrices, wrong descriptor data
 	if (renderer->prepareFrame(frameInfo))
 	{
-		lightingSystem->update(assetSet, frameInfo, getEcs().getComponentStore());
-		renderSystem->update(assetSet, frameInfo, getEcs().getComponentStore());
-		//glyphSystem->update(frameInfo, getEcs().getComponentStore());
+		lightingSystem->update(*renderer, assetSet, frameInfo, getEcs().getComponentStore());
+		renderSystem->update(*renderer, assetSet, frameInfo, getEcs().getComponentStore());
+		textSystem->update(*renderer, assetSet, frameInfo, ecs.getComponentStore());
 		if (guiSystem)
 		{
-			guiSystem->update(assetSet, frameInfo, getEcs().getComponentStore());
+			guiSystem->update(*renderer, assetSet, frameInfo, getEcs().getComponentStore());
 		}
 		renderer->displayFrame(frameInfo);
 	}
@@ -282,6 +286,6 @@ void Engine::processEvents(FrameInfo &frameInfo)
 
 void Engine::update(AssetSet &assetSet, const FrameInfo &frameInfo)
 {
-	ecs.update(assetSet, frameInfo);
+	ecs.update(*renderer, assetSet, frameInfo);
 	part->update(frameInfo);
 }

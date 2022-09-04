@@ -19,6 +19,12 @@
 namespace Boiler
 {
 
+enum class TextureType
+{
+	GLYPH_ATLAS,
+	RGBA_SRGB
+};
+
 class Primitive;
 struct Material;
 class VertexData;
@@ -63,7 +69,7 @@ public:
 	void setCameraPosition(const vec3 &cameraPosition) { this->cameraPosition = cameraPosition; }
 	void setViewMatrix(const glm::mat4 &viewMatrix) { this->viewMatrix = viewMatrix; }
 
-    virtual AssetId loadTexture(const ImageData &imageData) = 0;
+    virtual AssetId loadTexture(const ImageData &imageData, TextureType type) = 0;
 	virtual AssetId loadCubemap(const std::array<ImageData, 6> &images) = 0;
 	virtual AssetId loadPrimitive(const VertexData &data) = 0;
 

@@ -122,7 +122,7 @@ class VulkanRenderer : public Boiler::Renderer
 	ShaderStageModules gBufferModules, deferredModules, skyboxModules;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
-	Sampler textureSampler, cubemapSampler;
+	Sampler textureSampler, cubemapSampler, glyphAtlasSampler;
 
 	std::vector<TextureImage> depthImages;
 
@@ -148,6 +148,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void createDepthResources();
 
 	// memory/buffer operations
+	VkDeviceSize offsetUniform(VkDeviceSize offset);
 	uint32_t findMemoryType(uint32_t filter, VkMemoryPropertyFlags flags) const;
 	BufferInfo createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperties) const;
 
@@ -180,7 +181,7 @@ public:
 	void prepareShutdown() override;
 	void resize(const Boiler::Size &size) override;
 
-    AssetId loadTexture(const ImageData &imageData) override;
+    AssetId loadTexture(const ImageData &imageData, TextureType type) override;
 	AssetId loadCubemap(const std::array<ImageData, 6> &images) override;
 	AssetId loadPrimitive(const VertexData &data) override;
 

@@ -16,6 +16,7 @@
 namespace Boiler
 {
 
+class Renderer;
 class ComponentStore;
 
 class System
@@ -66,7 +67,7 @@ public:
 		return matchingMask;
 	}
 
-	virtual void update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) = 0;
+	virtual void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) = 0;
 	const std::vector<Entity> &getEntities() const { return entities; }
 	const std::string &getName() const { return name; }
 	void removeEntity(const Entity &entity)

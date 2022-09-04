@@ -10,12 +10,10 @@ class Renderer;
 
 class LightingSystem: public Boiler::System
 {
-	Renderer &renderer;
-
 public:
-	LightingSystem(Renderer &renderer);
+	LightingSystem();
 
-	void update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
+	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
 };
 
 }

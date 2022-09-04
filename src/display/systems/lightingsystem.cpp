@@ -5,12 +5,12 @@
 
 using namespace Boiler;
 
-LightingSystem::LightingSystem(Renderer &renderer) : System("Lighting System"), renderer(renderer)
+LightingSystem::LightingSystem() : System("Lighting System")
 {
 	expects<LightingComponent>();
 }
 
-void LightingSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void LightingSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
 	std::vector<LightSource> lightSources{};
 	for (unsigned int i = 0; i < getEntities().size(); ++i)

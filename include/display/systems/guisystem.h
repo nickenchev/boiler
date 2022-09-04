@@ -31,7 +31,7 @@ public:
 		guiHandler->cleanup();
 	}
 
-	void update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
+	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
 	void processEvent(const SDL_Event &event) const
 	{
 		guiHandler->processEvent(event);

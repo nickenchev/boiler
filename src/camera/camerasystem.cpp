@@ -10,7 +10,7 @@
 
 using namespace Boiler;
 
-CameraSystem::CameraSystem(Renderer &renderer) : System("Camera System"), renderer(renderer)
+CameraSystem::CameraSystem() : System("Camera System")
 {
 	expects<TransformComponent>();
 	expects<CameraComponent>();
@@ -20,7 +20,7 @@ CameraSystem::CameraSystem(Renderer &renderer) : System("Camera System"), render
 	prevYFactor = 0;
 }
 
-void CameraSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
 	for (Entity entity : getEntities())
 	{

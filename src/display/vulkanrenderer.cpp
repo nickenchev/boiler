@@ -274,6 +274,7 @@ void VulkanRenderer::shutdown()
 
 	textureSampler.destroy(device);
 	cubemapSampler.destroy(device);
+	glyphAtlasSampler.destroy(device);
 
 	// cleanup Vulkan device and instance
 	if (device != VK_NULL_HANDLE)
@@ -1162,6 +1163,7 @@ void VulkanRenderer::createTextureSamplers()
 {
 	textureSampler = Sampler::create(device, VK_SAMPLER_ADDRESS_MODE_REPEAT);
 	cubemapSampler = Sampler::create(device, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+	glyphAtlasSampler = Sampler::create(device, VK_SAMPLER_ADDRESS_MODE_REPEAT);
 }
 
 void VulkanRenderer::createDepthResources()
@@ -1401,13 +1403,10 @@ AssetId VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &im
 	return textures.add(TextureImage(imagePair.first, imagePair.second, imageView));
 }
 
-AssetId VulkanRenderer::loadTexture(const ImageData &imageData)
+AssetId VulkanRenderer::loadTexture(const ImageData &imageData, TextureType type)
 {
+	VkFormat format = type == TextureType::RGBA_SRGB ? textureFormat : VK_FORMAT_R8_UINT;
 	const size_t bytesPerPixel = imageData.colorComponents;
-	if (imageData.colorComponents < 4)
-	{
-		throw std::runtime_error("Texture image must contain alpha channel");
-	}
 
 	// calculate size of buffer and generate the staging buffer
 	const VkDeviceSize bytesSize = imageData.size.width * imageData.size.height * bytesPerPixel;
@@ -1420,7 +1419,7 @@ AssetId VulkanRenderer::loadTexture(const ImageData &imageData)
 	memcpy(data, imageData.pixelData, static_cast<size_t>(bytesSize));
 	vkUnmapMemory(device, bufferInfo.memory);
 
-	TextureRequest request(imageData.size, textureFormat);
+	TextureRequest request(imageData.size, format);
 	request.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	auto imagePair = createImage(request);
 
@@ -1436,7 +1435,7 @@ AssetId VulkanRenderer::loadTexture(const ImageData &imageData)
 	transitionImageLayout(imagePair.first, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 						  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	VkImageView imageView = createImageView(imagePair.first, textureFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+	VkImageView imageView = createImageView(imagePair.first, format, VK_IMAGE_ASPECT_COLOR_BIT);
 
 	logger.log("Texture data loaded");
 	return textures.add(TextureImage(imagePair.first, imagePair.second, imageView));
@@ -1788,6 +1787,12 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 	return shouldRender;
 }
 
+VkDeviceSize VulkanRenderer::offsetUniform(VkDeviceSize offset)
+{
+	VkDeviceSize minimumOffset = deviceProperties.limits.minUniformBufferOffsetAlignment;
+	return (offset < minimumOffset) ? minimumOffset : offset;
+}
+
 void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
 							const std::vector<mat4> &matrices,
 							const std::vector<MaterialGroup> &materialGroups,
@@ -1797,10 +1802,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
 	constexpr size_t DSET_IDX_FRAME = 0;
 	constexpr size_t DSET_IDX_MATERIAL = 1;
 
-	const VkDeviceSize offsetMatrices = (sizeof(ViewProjection) < deviceProperties.limits.minUniformBufferOffsetAlignment)
-		? deviceProperties.limits.minUniformBufferOffsetAlignment
-		: sizeof(ViewProjection);
-
+	const VkDeviceSize offsetMatrices = offsetUniform(sizeof(ViewProjection));
 	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 
 

@@ -1,19 +1,20 @@
-#ifndef MOVEMENTSYSTEM_H
-#define MOVEMENTSYSTEM_H
+#ifndef TEXTSYSTEM_H
+#define TEXTSYSTEM_H
 
 #include "core/system.h"
 
 namespace Boiler
 {
 
-class MovementSystem : public System
+class TextSystem : public System
 {
 public:
-    MovementSystem();
+    TextSystem();
+    virtual ~TextSystem() { }
 
 	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
 };
 
 }
 
-#endif /* MOVEMENTSYSTEM_H */
+#endif /* TEXTSYSTEM_H */

@@ -11,7 +11,7 @@ MovementSystem::MovementSystem() : System("Movement System")
 	expects<TransformComponent>();
 }
 
-void MovementSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void MovementSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
 	const float gravity = 15.0f;
 	const float speed = 3.0f;

@@ -20,7 +20,7 @@ InputSystem::InputSystem(Engine &engine) : System("Input System"), engine(engine
 	moveDown = false;
 }
 
-void InputSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
 	bool jump = false;
 	

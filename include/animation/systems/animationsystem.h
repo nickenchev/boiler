@@ -16,7 +16,7 @@ class AnimationSystem : public System
 public:
 	AnimationSystem(Animator &animator);
 
-	void update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
+	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
 };
 
 };

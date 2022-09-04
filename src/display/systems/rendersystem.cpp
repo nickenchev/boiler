@@ -11,13 +11,13 @@
 
 using namespace Boiler;
 
-RenderSystem::RenderSystem(Renderer &renderer) : System("Render System"), renderer(renderer)
+RenderSystem::RenderSystem() : System("Render System")
 {
 	expects<TransformComponent>();
 	expects<RenderComponent>();
 }
 
-void RenderSystem::update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
 	std::vector<MaterialGroup> materialGroups, postLightGroups;
 	materialGroups.resize(256);

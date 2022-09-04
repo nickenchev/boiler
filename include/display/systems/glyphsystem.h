@@ -11,11 +11,10 @@ class Renderer;
 
 class GlyphSystem : public System
 {
-	Renderer &renderer;
 public:
-	GlyphSystem(Renderer &renderer) : System("Glyph System"), renderer(renderer) { }
+	GlyphSystem() : System("Glyph System") { }
 
-	void update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
+	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
 };
 
 }

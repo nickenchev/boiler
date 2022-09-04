@@ -10,13 +10,12 @@ class Renderer;
 
 class CameraSystem : public Boiler::System
 {
-	Renderer &renderer;
 	float prevXFactor, prevYFactor;
 
 public:
-	CameraSystem(Renderer &renderer);
+	CameraSystem();
 
-	void update(AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
+	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
 };
 
 }
