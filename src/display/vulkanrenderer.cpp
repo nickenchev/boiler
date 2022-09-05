@@ -1817,13 +1817,14 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
 		.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f)
 	};
 
-	// update matrix data
-	const VkDeviceSize size = matrices.size() * sizeof(mat4);
+	// update view-matrix data
 	void *data = nullptr;
 	vkMapMemory(device, matrixBuffer.memory, 0, sizeof(ViewProjection), 0, &data);
 	memcpy(data, &viewProjection, sizeof(ViewProjection));
 	vkUnmapMemory(device, matrixBuffer.memory);
 
+	// update matrix data
+	const VkDeviceSize size = matrices.size() * sizeof(mat4);
 	vkMapMemory(device, matrixBuffer.memory, offsetMatrices, size, 0, &data);
 	memcpy(data, matrices.data(), size);
 	vkUnmapMemory(device, matrixBuffer.memory);
