@@ -2,6 +2,11 @@
 #include <tuple>
 #include <vector>
 #include <boiler.h>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_GLYPH_H
+
 #include "core/glyphloader.h"
 #include "display/glyphmap.h"
 #include "display/glyph.h"
@@ -15,10 +20,6 @@ using namespace Boiler;
 
 GlyphLoader::GlyphLoader() : logger("Glyph Loader")
 {
-	if (FT_Init_FreeType(&ft))
-	{
-		logger.error("Could not initialize FreeType");
-	}
 }
 
 int nextPow2(int value)
@@ -33,6 +34,12 @@ int nextPow2(int value)
 
 const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 {
+	FT_Library ft;
+	if (FT_Init_FreeType(&ft))
+	{
+		logger.error("Could not initialize FreeType");
+	}
+
 	FT_Face face;
 	if (FT_New_Face(ft, fontPath.c_str(), 0, &face))
 	{
@@ -162,12 +169,8 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		FT_Done_Glyph(ftGlyph);
 	}
 	FT_Done_Face(face);
+	FT_Done_FreeType(ft);
 
 	logger.log("Generated font atlas with dimensions {}x{} ", static_cast<int>(atlasSize.width), static_cast<int>(atlasSize.height));
 	return GlyphMap(ImageData(atlasBuffer, atlasSize, 1, false), glyphMap);
-}
-
-GlyphLoader::~GlyphLoader()
-{
-	FT_Done_FreeType(ft);
 }

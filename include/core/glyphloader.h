@@ -2,9 +2,6 @@
 #define GLYPHLOADER_H
 
 #include <string>
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_GLYPH_H
 #include "core/logger.h"
 #include "display/glyphmap.h"
 
@@ -15,12 +12,10 @@ class Renderer;
 
 class GlyphLoader
 {
-	FT_Library ft;
 	Logger logger;
 	
 public:
     GlyphLoader();
-	virtual ~GlyphLoader();
 
 	const GlyphMap loadFace(std::string fontPath, int fontSize);
 };
