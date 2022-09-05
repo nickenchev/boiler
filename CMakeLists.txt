@@ -11,6 +11,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
 find_package(SDL2 REQUIRED)
+find_package(Freetype REQUIRED)
 
 # Build libraries
 if (NOT DEFINED ${LIBS_ROOT})
@@ -149,10 +150,12 @@ target_include_directories(boiler
   ${SDL2_INCLUDE_DIR}
   ${INCLUDE_BASE}
   ${INCLUDE_BASE}/tinyxml2
+  ${FREETYPE_INCLUDE_DIRS}
   boiler_deps)
 
 #target_compile_options(boiler PRIVATE -Werror -Wall -Wextra)
 
 target_link_libraries(boiler
   boiler_deps
+  ${FREETYPE_LIBRARIES}
   ${SDL2_LIBRARY})
