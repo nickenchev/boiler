@@ -58,7 +58,7 @@ void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo
 	const float xFactor = prevXFactor + alpha * (xFactorNew - prevXFactor);
 	const float yFactor = prevYFactor + alpha * (yFactorNew - prevYFactor);
 
-	const float sensitivity = 1.0;
+	const float sensitivity = 1.3;
 	const float xDiff = sensitivity * xFactor;
 	const float yDiff = sensitivity * yFactor;
 
