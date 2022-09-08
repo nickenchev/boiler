@@ -16,13 +16,13 @@ struct TextComponent : public ComponentType<TextComponent>
 {
 	std::string text;
 	vec4 colour;
-	AssetId atlasTextureId;
+	AssetId glyphId;
 
-	TextComponent(const std::string &text, const vec4 &colour, AssetId atlasTextureId) : ComponentType(this)
+	TextComponent(const std::string &text, const vec4 &colour, AssetId glyphId) : ComponentType(this)
 	{
 		this->text = text;
 		this->colour = colour;
-		this->atlasTextureId = atlasTextureId;
+		this->glyphId = glyphId;
 		/*
 		const float scale = 1;
 		for (char c : text)

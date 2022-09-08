@@ -17,5 +17,13 @@ void TextSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo 
 	{
 		TransformComponent &transform = store.retrieve<TransformComponent>(entity);
 		TextComponent &text = store.retrieve<TextComponent>(entity);
+
+		const GlyphMap &glyphMap = assetSet.glyphs.get(text.glyphId);
+
+		for (char c : text.text)
+		{
+			const Glyph &glyph = glyphMap.getMap().at(c);
+			logger.log("{}", glyph.primitiveId);
+		}
 	}
 }

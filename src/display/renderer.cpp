@@ -21,6 +21,12 @@ void Renderer::resize(const Size &size)
 bool Renderer::prepareFrame(const FrameInfo &frameInfo)
 {
 	frameLightIdx = 0;
+	matrices.reset();
 	return true;
 }
 
+
+AssetId Renderer::addMatrix(mat4 matrix)
+{
+	return matrices.add(std::move(matrix));
+}

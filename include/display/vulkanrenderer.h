@@ -22,6 +22,8 @@ struct SDL_Window;
 #include "display/vulkan/descriptorset.h"
 #include "display/vulkan/sampler.h"
 
+#define MAX_OBJECTS 1000
+
 namespace Boiler
 {
 	struct MaterialGroup;
@@ -189,7 +191,6 @@ public:
 	void displayFrame(const FrameInfo &frameInfo) override;
 
 	void render(AssetSet &assetSet, const FrameInfo &frameInfo,
-				const std::vector<mat4> &matrices,
 				const std::vector<MaterialGroup> &materialGroups,
 				const std::vector<MaterialGroup> &postLightGroups) override;
 

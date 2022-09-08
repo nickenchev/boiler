@@ -15,15 +15,14 @@ class AssetManager
 public:
     AssetManager()
 	{
-		index = 0;
-		size = 0;
+		reset();
 	}
 
 	AssetId add(AssetType &&asset)
 	{
 		size++;
 		AssetId assetId = index++;
-		assets[assetId] = asset;
+		assets[assetId] = std::move(asset);
 
 		return assetId;
 	}
@@ -38,8 +37,20 @@ public:
 		return assets[index];
 	}
 
+	void reset()
+	{
+		index = 0;
+		size = 0;
+	}
+
+	const AssetType *data() const
+	{
+		return assets.data();
+	}
+
 	const auto &getAssets() const { return assets; }
 	std::size_t getSize() const { return size; }
+	std::size_t byteSize() const { return getSize() * sizeof(AssetType); }
 };
 
 }

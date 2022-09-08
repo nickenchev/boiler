@@ -20,13 +20,15 @@ class Glyph
     long int advance;    // Offset to advance to next glyph
 	
 public:
-	Glyph(unsigned long code, const Rect &sourceRect,
-		  const ivec2 &bearing, long int advance)
+	AssetId primitiveId;
+
+	Glyph(unsigned long code, const Rect &sourceRect, const ivec2 &bearing, long int advance, AssetId primitiveId)
 	{
 		this->code = code;
 		this->sourceRect = sourceRect;
 		this->bearing = bearing;
 		this->advance = advance;
+		this->primitiveId = primitiveId;
 	}
 
 	auto &getRect() const { return sourceRect; }

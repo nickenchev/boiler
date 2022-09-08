@@ -8,16 +8,19 @@
 namespace Boiler
 {
 
+class AssetSet;
 class Renderer;
 
 class GlyphLoader
 {
+	Renderer &renderer;
+	AssetSet &assetSet;
 	Logger logger;
 	
 public:
-    GlyphLoader();
+    GlyphLoader(Renderer &renderer, AssetSet &assetSet);
 
-	const GlyphMap loadFace(std::string fontPath, int fontSize);
+	AssetId loadFace(std::string fontPath, int fontSize);
 };
 
 }

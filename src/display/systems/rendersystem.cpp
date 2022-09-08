@@ -22,7 +22,6 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 	std::vector<MaterialGroup> materialGroups, postLightGroups;
 	materialGroups.resize(256);
 	postLightGroups.resize(256);
-	std::vector<mat4> matrices(getEntities().size());
 
 	// calculate matrices and setup material groups
 	for (unsigned int i = 0; i < static_cast<unsigned int>(getEntities().size()); ++i)
@@ -46,7 +45,6 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 			}
 			currentEntity = parentComp.entity;
 		}
-		matrices[i] = modelMatrix;
 
 		const static Material defaultMaterial;
 		for (const auto &primitiveId : render.mesh.primitives)
@@ -58,10 +56,11 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 
 			if (primitive.materialId != Asset::NO_ASSET)
 			{
-				matGroup.primitives.push_back(MaterialGroup::PrimitiveInstance(primitiveId, i));
+				AssetId matrixId = renderer.addMatrix(modelMatrix);
+				matGroup.primitives.push_back(MaterialGroup::PrimitiveInstance(primitiveId, matrixId));
 			}
 		}
 	}
 
-	renderer.render(assetSet, frameInfo, matrices, materialGroups, postLightGroups);
+	renderer.render(assetSet, frameInfo, materialGroups, postLightGroups);
 }

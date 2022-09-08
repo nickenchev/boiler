@@ -18,21 +18,14 @@
 
 using namespace Boiler;
 
-GlyphLoader::GlyphLoader() : logger("Glyph Loader")
+int nextPow2(int value);
+
+GlyphLoader::GlyphLoader(Renderer &renderer, AssetSet &assetSet)
+	: renderer(renderer), assetSet(assetSet), logger("Glyph Loader")
 {
 }
 
-int nextPow2(int value)
-{
-	int pow = 1;
-	while (value > pow)
-	{
-		pow *= 2;
-	}
-	return pow;
-}
-
-const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
+AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 {
 	FT_Library ft;
 	if (FT_Init_FreeType(&ft))
@@ -139,7 +132,22 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		cgfloat sizeW = destRect.size.width * scale;
 		cgfloat sizeH = destRect.size.height * scale;
 
-		glyphMap.insert({code, Glyph(code, destRect, bearing, ftGlyph->advance.x)});
+		// generate vertex buffer
+		std::vector<Vertex> verts = {
+			Vertex(vec3(0.0f, sizeH, 0.0f)),
+			Vertex(vec3(sizeW, 0.0f, 0.0f)),
+			Vertex(vec3(0.0f, 0.0f, 0.0f)),
+			Vertex(vec3(sizeW, sizeH, 0.0f))
+		};
+		std::vector<glm::uint32_t> indices = { 0, 1, 2, 0, 3, 1 };
+
+		VertexData vertexData(verts, indices);
+		AssetId bufferId = renderer.loadPrimitive(vertexData);
+
+		// create primitive
+		Primitive primitive(bufferId, std::move(vertexData));
+		AssetId primitiveId = assetSet.primitives.add(std::move(primitive));
+		glyphMap.insert({code, Glyph(code, destRect, bearing, ftGlyph->advance.x, primitiveId)});
 
 		/*
 		std::vector<Vertex> verts = {
@@ -171,6 +179,18 @@ const GlyphMap GlyphLoader::loadFace(std::string fontPath, int fontSize)
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 
+	AssetId textureId = renderer.loadTexture(ImageData(atlasBuffer, atlasSize, 1, false), TextureType::GLYPH_ATLAS);
+
 	logger.log("Generated font atlas with dimensions {}x{} ", static_cast<int>(atlasSize.width), static_cast<int>(atlasSize.height));
-	return GlyphMap(ImageData(atlasBuffer, atlasSize, 1, false), glyphMap);
+	return assetSet.glyphs.add(GlyphMap(textureId, glyphMap));
+}
+
+int nextPow2(int value)
+{
+	int pow = 1;
+	while (value > pow)
+	{
+		pow *= 2;
+	}
+	return pow;
 }

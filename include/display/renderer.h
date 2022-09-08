@@ -15,6 +15,7 @@
 #include "texture.h"
 #include "shadermaterial.h"
 #include "display/materialgroup.h"
+#include "core/assetmanager.h"
 
 namespace Boiler
 {
@@ -48,6 +49,7 @@ protected:
 	vec3 cameraPosition;
 	glm::mat4 viewMatrix;
 	unsigned int frameLightIdx;
+	AssetManager<mat4, 1000> matrices;
 
 public:
     Renderer(std::string name);
@@ -68,6 +70,7 @@ public:
     void setClearColor(const vec3 &color) { clearColor = color; }
 	void setCameraPosition(const vec3 &cameraPosition) { this->cameraPosition = cameraPosition; }
 	void setViewMatrix(const glm::mat4 &viewMatrix) { this->viewMatrix = viewMatrix; }
+	AssetId addMatrix(mat4 matrix);
 
     virtual AssetId loadTexture(const ImageData &imageData, TextureType type) = 0;
 	virtual AssetId loadCubemap(const std::array<ImageData, 6> &images) = 0;
@@ -80,7 +83,6 @@ public:
 	virtual bool prepareFrame(const FrameInfo &frameInfo);
 	virtual void displayFrame(const FrameInfo &frameInfo) = 0;
 	virtual void render(AssetSet &assetSet, const FrameInfo &frameInfo,
-						const std::vector<mat4> &matrices,
 						const std::vector<MaterialGroup> &materialGroups,
 						const std::vector<MaterialGroup> &postLightGroups) = 0;
 };

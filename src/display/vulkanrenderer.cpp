@@ -39,7 +39,6 @@ constexpr bool enableDebugMessages = true;
 //constexpr VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 constexpr VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 constexpr unsigned int maxFramesInFlight = 3;
-constexpr unsigned int maxObjects = 1000;
 constexpr unsigned int maxLights = 64;
 constexpr unsigned int maxMaterials = 512;
 constexpr unsigned int maxSamplers = 1;
@@ -1187,7 +1186,7 @@ void VulkanRenderer::createDepthResources()
 
 void VulkanRenderer::createMatrixBuffer()
 {
-	const VkDeviceSize size = maxObjects * sizeof(mat4) + sizeof(ViewProjection) + deviceProperties.limits.minUniformBufferOffsetAlignment;
+	const VkDeviceSize size = MAX_OBJECTS * sizeof(mat4) + sizeof(ViewProjection) + deviceProperties.limits.minUniformBufferOffsetAlignment;
 	matrixBuffer = createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 								VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
@@ -1682,7 +1681,7 @@ void VulkanRenderer::updateLights(const std::vector<LightSource> &lightSources)
 
 void VulkanRenderer::updateMatrices(const std::vector<mat4> &matrices) const
 {
-	assert(matrices.size() < maxObjects);
+	assert(matrices.size() < MAX_OBJECTS);
 	const VkDeviceSize size = matrices.size() * sizeof(mat4);
 
 	void *data = nullptr;
@@ -1794,7 +1793,6 @@ VkDeviceSize VulkanRenderer::offsetUniform(VkDeviceSize offset)
 }
 
 void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
-							const std::vector<mat4> &matrices,
 							const std::vector<MaterialGroup> &materialGroups,
 							const std::vector<MaterialGroup> &postLightGroups)
 {
@@ -1818,15 +1816,16 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
 	};
 
 	// update view-matrix data
-	void *data = nullptr;
-	vkMapMemory(device, matrixBuffer.memory, 0, sizeof(ViewProjection), 0, &data);
-	memcpy(data, &viewProjection, sizeof(ViewProjection));
+	void *viewMatrixData = nullptr;
+	vkMapMemory(device, matrixBuffer.memory, 0, sizeof(ViewProjection), 0, &viewMatrixData);
+	memcpy(viewMatrixData, &viewProjection, sizeof(ViewProjection));
 	vkUnmapMemory(device, matrixBuffer.memory);
 
 	// update matrix data
-	const VkDeviceSize size = matrices.size() * sizeof(mat4);
-	vkMapMemory(device, matrixBuffer.memory, offsetMatrices, size, 0, &data);
-	memcpy(data, matrices.data(), size);
+	void *matrixData = nullptr;
+	const VkDeviceSize size = matrices.byteSize();
+	vkMapMemory(device, matrixBuffer.memory, offsetMatrices, size, 0, &matrixData);
+	memcpy(matrixData, matrices.data(), size);
 	vkUnmapMemory(device, matrixBuffer.memory);
 
 	// view and projection matrices
@@ -1849,7 +1848,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
 	VkDescriptorBufferInfo matrixBuffInfo = {};
 	matrixBuffInfo.buffer = matrixBuffer.buffer;
 	matrixBuffInfo.offset = offsetMatrices;
-	matrixBuffInfo.range = sizeof(mat4) * maxObjects;
+	matrixBuffInfo.range = sizeof(mat4) * this->matrices.getSize();
 
 	dsetWritesFrame[1] = {
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,

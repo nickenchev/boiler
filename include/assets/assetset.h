@@ -5,6 +5,7 @@
 #include "core/assetmanager.h"
 #include "display/material.h"
 #include "display/primitive.h"
+#include "display/glyphmap.h"
 
 namespace Boiler
 {
@@ -15,6 +16,7 @@ struct AssetSet
 	
 	AssetManager<Material, MaxAssets> materials;
 	AssetManager<Primitive, MaxAssets> primitives;
+	AssetManager<GlyphMap, MaxAssets> glyphs;
 };
 
 }

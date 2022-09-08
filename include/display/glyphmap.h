@@ -11,14 +11,29 @@ namespace Boiler
 
 class GlyphMap
 {
-	const ImageData imageData;
+	AssetId textureId;
 	std::unordered_map<unsigned long, const Glyph> map;
 
 public:
-    GlyphMap(ImageData &&imageData, const std::unordered_map<unsigned long, const Glyph> &map) : map(map), imageData(std::move(imageData)) {}
+	GlyphMap()
+	{
+		textureId = Asset::NO_ASSET;
+	}
+	
+    GlyphMap(AssetId textureId, const std::unordered_map<unsigned long, const Glyph> &map) : textureId(textureId), map(std::move(map))
+	{
+	}
+
 	~GlyphMap();
 
-	const ImageData &getImageData() const { return imageData; }
+	GlyphMap &operator=(GlyphMap &&glyphMap)
+	{
+		this->textureId = glyphMap.textureId;
+		this->map = std::move(glyphMap.map);
+
+		return *this;
+	}
+
 	auto &getMap() const { return map; }
 	const Glyph &operator[](unsigned long code) const
 	{
