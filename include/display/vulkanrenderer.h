@@ -8,11 +8,9 @@
 
 struct SDL_Window;
 
-#include "core/rect.h"
 #include "core/assetmanager.h"
 #include "display/vulkan.h"
 #include "display/renderer.h"
-#include "display/viewprojection.h"
 
 #include "display/vulkan/bufferinfo.h"
 #include "display/vulkan/primitivebuffers.h"
@@ -96,9 +94,9 @@ class VulkanRenderer : public Boiler::Renderer
 	DescriptorSet renderDescriptors, materialDescriptors, deferredDescriptors;
 
 	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout;
-	//VkPipeline gBufferPipeline, deferredPipeline;
 	GraphicsPipeline skyboxPipeline, gBufferPipeline, gBufferNoTexPipeline, deferredPipeline;
 
+	//std::vector<FrameContext> frameContexts;
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;
 	std::vector<VkCommandBuffer> commandBuffers;
@@ -113,7 +111,6 @@ class VulkanRenderer : public Boiler::Renderer
 	void freeBuffer(const BufferInfo &bufferInfo) const;
 	// matrices
 	void createMatrixBuffer();
-	void updateMatrices(const std::vector<mat4> &matrices) const override;
 	// lights
 	void createLightBuffer(int lightCount);
 	void updateLights(const std::vector<LightSource> &lightSources) override;
@@ -188,7 +185,7 @@ public:
 	AssetId loadPrimitive(const VertexData &data) override;
 
 	bool prepareFrame(const FrameInfo &frameInfo) override;
-	void displayFrame(const FrameInfo &frameInfo) override;
+	void displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet) override;
 
 	void render(AssetSet &assetSet, const FrameInfo &frameInfo,
 				const std::vector<MaterialGroup> &materialGroups,

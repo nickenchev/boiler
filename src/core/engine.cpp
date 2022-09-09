@@ -178,7 +178,7 @@ void Engine::step(FrameInfo &frameInfo)
 		{
 			guiSystem->update(*renderer, assetSet, frameInfo, getEcs().getComponentStore());
 		}
-		renderer->displayFrame(frameInfo);
+		renderer->displayFrame(frameInfo, assetSet);
 	}
 }
 

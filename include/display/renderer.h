@@ -76,12 +76,11 @@ public:
 	virtual AssetId loadCubemap(const std::array<ImageData, 6> &images) = 0;
 	virtual AssetId loadPrimitive(const VertexData &data) = 0;
 
-	virtual void updateMatrices(const std::vector<mat4> &matrices) const = 0;
 	virtual void updateLights(const std::vector<LightSource> &lightSources) = 0;
 	virtual void updateMaterials(const std::vector<ShaderMaterial> &materials) const = 0;
 
 	virtual bool prepareFrame(const FrameInfo &frameInfo);
-	virtual void displayFrame(const FrameInfo &frameInfo) = 0;
+	virtual void displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet) = 0;
 	virtual void render(AssetSet &assetSet, const FrameInfo &frameInfo,
 						const std::vector<MaterialGroup> &materialGroups,
 						const std::vector<MaterialGroup> &postLightGroups) = 0;
