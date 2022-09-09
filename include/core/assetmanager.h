@@ -2,6 +2,8 @@
 #define ASSETMANAGER_H
 
 #include <array>
+#include <assert.h>
+
 #include "core/asset.h"
 
 namespace Boiler {
@@ -20,6 +22,8 @@ public:
 
 	AssetId add(AssetType &&asset)
 	{
+		assert(size < Size);
+		
 		size++;
 		AssetId assetId = index++;
 		assets[assetId] = std::move(asset);
