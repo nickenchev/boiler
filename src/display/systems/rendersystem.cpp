@@ -19,9 +19,9 @@ RenderSystem::RenderSystem() : System("Render System")
 
 void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
-	std::vector<MaterialGroup> materialGroups, postLightGroups;
+	std::vector<MaterialGroup> materialGroups, postDepthGroups;
 	materialGroups.resize(256);
-	postLightGroups.resize(256);
+	postDepthGroups.resize(256);
 
 	// calculate matrices and setup material groups
 	for (unsigned int i = 0; i < static_cast<unsigned int>(getEntities().size()); ++i)
@@ -51,7 +51,7 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 		{
 			const Primitive &primitive = assetSet.primitives.get(primitiveId);
 			const Material &material = assetSet.materials.get(primitive.materialId);
-			auto &matGroup = material.depth ? materialGroups[primitive.materialId] : postLightGroups[primitive.materialId];
+			auto &matGroup = material.depth ? materialGroups[primitive.materialId] : postDepthGroups[primitive.materialId];
 			matGroup.materialId = primitive.materialId;
 
 			if (primitive.materialId != Asset::NO_ASSET)
@@ -63,5 +63,5 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 	}
 
 	renderer.render(assetSet, frameInfo, materialGroups, RenderStage::PRE_DEFERRED_LIGHTING);
-	renderer.render(assetSet, frameInfo, postLightGroups, RenderStage::POST_DEPTH_WRITE);
+	renderer.render(assetSet, frameInfo, postDepthGroups, RenderStage::POST_DEPTH_WRITE);
 }
