@@ -212,6 +212,9 @@ void VulkanRenderer::shutdown()
 
 	// command buffers
 	vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, geometryCommandBuffers.size(), geometryCommandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, deferredCommandBuffers.size(), deferredCommandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, skyboxCommandBuffers.size(), skyboxCommandBuffers.data());
 	logger.log("Destroyed command buffers");
 
 	vkDestroyRenderPass(device, renderPass, nullptr);
@@ -1135,6 +1138,27 @@ void VulkanRenderer::createCommandBuffers()
 	}
 
 	logger.log("Allocated {} command buffers", commandBuffers.size());
+
+	createSecondaryCommandBuffers(geometryCommandBuffers);
+	createSecondaryCommandBuffers(deferredCommandBuffers);
+	createSecondaryCommandBuffers(skyboxCommandBuffers);
+}
+
+void VulkanRenderer::createSecondaryCommandBuffers(std::vector<VkCommandBuffer> &secondaryBuffers)
+{
+	secondaryBuffers.resize(maxFramesInFlight);
+
+	VkCommandBufferAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+	allocInfo.commandPool = commandPool;
+	allocInfo.commandBufferCount = static_cast<uint32_t>(maxFramesInFlight);
+
+	if (vkAllocateCommandBuffers(device, &allocInfo, secondaryBuffers.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Error allocating secondary command buffers");
+	}
+	logger.log("Allocated {} secondary command buffers", secondaryBuffers.size());
 }
 
 void VulkanRenderer::createSynchronization()
@@ -1708,6 +1732,25 @@ void updateMemory(VkDevice device, VkDeviceMemory memory, const T &object)
 	vkUnmapMemory(device, memory);
 }
 
+void beginSecondaryCommandBuffer(VkCommandBuffer secondaryBuffer, VkFramebuffer frameBuffer, VkRenderPass renderPass, uint32_t subpassIndex)
+{
+	VkCommandBufferInheritanceInfo inheritInfo = {};
+	inheritInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+	inheritInfo.renderPass = renderPass;
+	inheritInfo.subpass = subpassIndex;
+	inheritInfo.framebuffer = frameBuffer;
+
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+	beginInfo.pInheritanceInfo = &inheritInfo;
+
+	if (vkBeginCommandBuffer(secondaryBuffer, &beginInfo) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Could not begin secondary command buffer");
+	}
+}
+
 bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 {
 	bool shouldRender = Renderer::prepareFrame(frameInfo);
@@ -1722,7 +1765,10 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 	{
 		// setup the command buffers
 		const VkCommandBuffer commandBuffer = commandBuffers[frameInfo.currentFrame];
-		vkResetCommandBuffer(commandBuffer, 0);
+		vkResetCommandBuffer(commandBuffers[frameInfo.currentFrame], 0);
+		vkResetCommandBuffer(geometryCommandBuffers[frameInfo.currentFrame], 0);
+		vkResetCommandBuffer(deferredCommandBuffers[frameInfo.currentFrame], 0);
+		vkResetCommandBuffer(skyboxCommandBuffers[frameInfo.currentFrame], 0);
 
 		VkCommandBufferBeginInfo beginInfo = {};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1752,10 +1798,14 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		renderBeginInfo.clearValueCount = clearValues.size();
 		renderBeginInfo.pClearValues = clearValues.data();
 
-		// perform the render pass
-		vkCmdBeginRenderPass(commandBuffer, &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBeginRenderPass(commandBuffer, &renderBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
+		// begin the secondary command buffers for various subpasses
+		beginSecondaryCommandBuffer(geometryCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 0);
+		beginSecondaryCommandBuffer(deferredCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 1);
+		beginSecondaryCommandBuffer(skyboxCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 2);
 
+		// update the descriptor sets for this frame / buffers are updated later
 		static std::array<VkDescriptorSet, 2> descriptorSets{};
 		descriptorSets[DSET_IDX_FRAME] = renderDescriptors.getSet(frameInfo.currentFrame);
 
@@ -1811,6 +1861,55 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		};
 
 		vkUpdateDescriptorSets(device, dsetWritesFrame.size(), dsetWritesFrame.data(), 0, nullptr);
+
+		// update lights descriptor
+		VkDescriptorBufferInfo lightsBuffInfo = {};
+		lightsBuffInfo.buffer = lightsBuffer.buffer;
+		lightsBuffInfo.offset = 0;
+		lightsBuffInfo.range = sizeof(LightSource) * maxLights;
+
+		// update input attachments
+		std::array<VkDescriptorImageInfo, 3> descriptorImages{};
+		descriptorImages[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		descriptorImages[0].imageView = gBuffers[imageIndex].positions.imageView;
+		descriptorImages[0].sampler = VK_NULL_HANDLE;
+		descriptorImages[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		descriptorImages[1].imageView = gBuffers[imageIndex].albedo.imageView;
+		descriptorImages[1].sampler = VK_NULL_HANDLE;
+		descriptorImages[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		descriptorImages[2].imageView = gBuffers[imageIndex].normals.imageView;
+		descriptorImages[2].sampler = VK_NULL_HANDLE;
+
+		const VkDescriptorSet deferredDescSet = deferredDescriptors.getSet(frameInfo.currentFrame);
+		std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
+		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[0].dstBinding = 0;
+		descriptorWrites[0].dstSet = deferredDescSet;
+		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+		descriptorWrites[0].descriptorCount = 1;
+		descriptorWrites[0].pImageInfo = &descriptorImages[0];
+		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[1].dstBinding = 1;
+		descriptorWrites[1].dstSet = deferredDescSet;
+		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+		descriptorWrites[1].descriptorCount = 1;
+		descriptorWrites[1].pImageInfo = &descriptorImages[1];
+		descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[2].dstBinding = 2;
+		descriptorWrites[2].dstSet = deferredDescSet;
+		descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+		descriptorWrites[2].descriptorCount = 1;
+		descriptorWrites[2].pImageInfo = &descriptorImages[2];
+
+		descriptorWrites[3].dstBinding = 3;
+		descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[3].dstSet = deferredDescSet;
+		descriptorWrites[3].dstArrayElement = 0;
+		descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrites[3].descriptorCount = 1;
+		descriptorWrites[3].pBufferInfo = &lightsBuffInfo;
+
+		vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 	}
 	else if (nextImageResult == VK_ERROR_OUT_OF_DATE_KHR || resizeOccured)
 	{
@@ -1847,13 +1946,12 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
 							const std::vector<MaterialGroup> &postLightGroups)
 {
 	const short currentFrame = frameInfo.currentFrame;
-	const VkCommandBuffer commandBuffer = commandBuffers[currentFrame];
 
 	// setup descriptor sets
 	static std::array<VkDescriptorSet, 2> descriptorSets{};
 	descriptorSets[DSET_IDX_FRAME] = renderDescriptors.getSet(currentFrame);
 
-	const auto processGroups = [this, &assetSet, currentFrame, commandBuffer](const std::vector<MaterialGroup> &materialGroups, VkPipeline pipeline)
+	const auto processGroups = [this, &assetSet, currentFrame](const std::vector<MaterialGroup> &materialGroups, VkPipeline pipeline, VkCommandBuffer commandBuffer)
 	{
 		for (unsigned int i = 0; i < static_cast<unsigned int>(materialGroups.size()); ++i)
 		{
@@ -1890,10 +1988,10 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
 				}
 
 				// bind the appropriate pipeline for this material
-				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-								  material.baseTexture != Asset::NO_ASSET ? pipeline : gBufferNoTexPipeline.vulkanPipeline());
 				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0,
 										bindDescCount, descriptorSets.data(), 0, nullptr);
+				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+								  material.baseTexture != Asset::NO_ASSET ? pipeline : gBufferNoTexPipeline.vulkanPipeline());
 
 				for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
 				{
@@ -1918,76 +2016,24 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
 		}
 	};
 
-	// update input attachments
-	std::array<VkDescriptorImageInfo, 3> descriptorImages{};
-	descriptorImages[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	descriptorImages[0].imageView = gBuffers[imageIndex].positions.imageView;
-	descriptorImages[0].sampler = VK_NULL_HANDLE;
-	descriptorImages[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	descriptorImages[1].imageView = gBuffers[imageIndex].albedo.imageView;
-	descriptorImages[1].sampler = VK_NULL_HANDLE;
-	descriptorImages[2].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	descriptorImages[2].imageView = gBuffers[imageIndex].normals.imageView;
-	descriptorImages[2].sampler = VK_NULL_HANDLE;
-
-	const VkDescriptorSet descriptorSet = deferredDescriptors.getSet(currentFrame);
-	std::array<VkWriteDescriptorSet, 4> descriptorWrites{};
-	descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[0].dstBinding = 0;
-	descriptorWrites[0].dstSet = descriptorSet;
-	descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	descriptorWrites[0].descriptorCount = 1;
-	descriptorWrites[0].pImageInfo = &descriptorImages[0];
-	descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[1].dstBinding = 1;
-	descriptorWrites[1].dstSet = descriptorSet;
-	descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	descriptorWrites[1].descriptorCount = 1;
-	descriptorWrites[1].pImageInfo = &descriptorImages[1];
-	descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[2].dstBinding = 2;
-	descriptorWrites[2].dstSet = descriptorSet;
-	descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	descriptorWrites[2].descriptorCount = 1;
-	descriptorWrites[2].pImageInfo = &descriptorImages[2];
-
-	// update lights descriptor
-	VkDescriptorBufferInfo lightsBuffInfo = {};
-	lightsBuffInfo.buffer = lightsBuffer.buffer;
-	lightsBuffInfo.offset = 0;
-	lightsBuffInfo.range = sizeof(LightSource) * maxLights;
-
-	descriptorWrites[3].dstBinding = 3;
-	descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[3].dstSet = descriptorSet;
-	descriptorWrites[3].dstArrayElement = 0;
-	descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descriptorWrites[3].descriptorCount = 1;
-	descriptorWrites[3].pBufferInfo = &lightsBuffInfo;
-
-	vkUpdateDescriptorSets(device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
-
 	// render all pre-deferred pass groups
-	processGroups(materialGroups, gBufferPipeline.vulkanPipeline());
-	
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-							deferredPipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+	processGroups(materialGroups, gBufferPipeline.vulkanPipeline(), geometryCommandBuffers[currentFrame]);
 
-	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-					  deferredPipeline.vulkanPipeline());
+
+	// deferred pass setup
+	VkCommandBuffer deferredCommandBuffer = deferredCommandBuffers[currentFrame];
+	const VkDescriptorSet deferredDescSet = deferredDescriptors.getSet(frameInfo.currentFrame);
+	vkCmdBindDescriptorSets(deferredCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipelineLayout, 0, 1, &deferredDescSet, 0, nullptr);
+	vkCmdBindPipeline(deferredCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipeline.vulkanPipeline());
 
 	// deferred shading subpass
-	vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
 	GBufferPushConstants consts;
 	consts.cameraPosition = cameraPosition;
-	vkCmdPushConstants(commandBuffer, deferredPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
-					   sizeof(GBufferPushConstants), &consts);
-
-	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+	vkCmdPushConstants(deferredCommandBuffer, deferredPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GBufferPushConstants), &consts);
+	vkCmdDraw(deferredCommandBuffer, 3, 1, 0, 0);
 
 	// skybox subpass
-	vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_INLINE);
-	processGroups(postLightGroups, skyboxPipeline.vulkanPipeline());
+	processGroups(postLightGroups, skyboxPipeline.vulkanPipeline(), skyboxCommandBuffers[currentFrame]);
 }
 
 void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet)
@@ -1995,6 +2041,26 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 	if (nextImageResult == VK_SUCCESS)
 	{
 		const VkCommandBuffer commandBuffer = commandBuffers[frameInfo.currentFrame];
+
+		if (vkEndCommandBuffer(geometryCommandBuffers[frameInfo.currentFrame]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Error ending the command buffer");
+		}
+		if (vkEndCommandBuffer(deferredCommandBuffers[frameInfo.currentFrame]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Error ending the command buffer");
+		}
+		if (vkEndCommandBuffer(skyboxCommandBuffers[frameInfo.currentFrame]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Error ending the command buffer");
+		}
+
+		// sequence primary command buffer
+		vkCmdExecuteCommands(commandBuffer, 1, &geometryCommandBuffers[frameInfo.currentFrame]);
+		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+		vkCmdExecuteCommands(commandBuffer, 1, &deferredCommandBuffers[frameInfo.currentFrame]);
+		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+		vkCmdExecuteCommands(commandBuffer, 1, &skyboxCommandBuffers[frameInfo.currentFrame]);
 
 		// matrix data updates
 		ViewProjection viewProjection {
@@ -2026,6 +2092,7 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 		updateMaterials(shaderMaterials);
 
 		vkCmdEndRenderPass(commandBuffer);
+
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Error ending the command buffer");

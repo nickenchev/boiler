@@ -96,10 +96,9 @@ class VulkanRenderer : public Boiler::Renderer
 	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout;
 	GraphicsPipeline skyboxPipeline, gBufferPipeline, gBufferNoTexPipeline, deferredPipeline;
 
-	//std::vector<FrameContext> frameContexts;
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;
-	std::vector<VkCommandBuffer> commandBuffers;
+	std::vector<VkCommandBuffer> commandBuffers, geometryCommandBuffers, deferredCommandBuffers, skyboxCommandBuffers;
 	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
 	std::vector<VkFence> frameFences;
 
@@ -140,6 +139,7 @@ class VulkanRenderer : public Boiler::Renderer
 
 	VkCommandPool createCommandPools(const QueueFamilyIndices &queueFamilyIndices, const VkQueue &graphicsQueue, const VkQueue &transferQueue);
 	void createCommandBuffers();
+	void createSecondaryCommandBuffers(std::vector<VkCommandBuffer> &secondaryBuffers);
 	void createSynchronization();
 	void recreateSwapchain();
 	void cleanupSwapchain();

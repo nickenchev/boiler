@@ -8,8 +8,8 @@ namespace Boiler::Vulkan
 
 class FrameContext
 {
+	VkCommandBuffer mainCommandBuffer, renderCommandBuffer, deferredCommandBuffer, skyboxCommandBuffer;
 	VkDescriptorSet frameDescriptorSet;
-	VkDescriptorSet materialDescriptorSet;
 public:
     FrameContext();
     virtual ~FrameContext();

@@ -23,7 +23,6 @@ void TextSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo 
 		for (char c : text.text)
 		{
 			const Glyph &glyph = glyphMap.getMap().at(c);
-			logger.log("{}", glyph.primitiveId);
 		}
 	}
 }
