@@ -26,6 +26,13 @@ enum class TextureType
 	RGBA_SRGB
 };
 
+enum class RenderStage
+{
+	PRE_DEFERRED_LIGHTING,
+	POST_DEFERRED_LIGHTING,
+	POST_DEPTH_WRITE
+};
+
 class Primitive;
 struct Material;
 class VertexData;
@@ -80,10 +87,9 @@ public:
 	virtual void updateMaterials(const std::vector<ShaderMaterial> &materials) const = 0;
 
 	virtual bool prepareFrame(const FrameInfo &frameInfo);
-	virtual void displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet) = 0;
 	virtual void render(AssetSet &assetSet, const FrameInfo &frameInfo,
-						const std::vector<MaterialGroup> &materialGroups,
-						const std::vector<MaterialGroup> &postLightGroups) = 0;
+						const std::vector<MaterialGroup> &materialGroups, RenderStage stage) = 0;
+	virtual void displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet) = 0;
 };
 
 }

@@ -185,11 +185,9 @@ public:
 	AssetId loadPrimitive(const VertexData &data) override;
 
 	bool prepareFrame(const FrameInfo &frameInfo) override;
-	void displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet) override;
-
 	void render(AssetSet &assetSet, const FrameInfo &frameInfo,
-				const std::vector<MaterialGroup> &materialGroups,
-				const std::vector<MaterialGroup> &postLightGroups) override;
+				const std::vector<MaterialGroup> &materialGroups, RenderStage stage) override;
+	void displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet) override;
 
 	// TODO: This needs to be improved
 	VkInstance getVulkanInstance() const { return instance; }

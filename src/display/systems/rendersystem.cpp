@@ -62,5 +62,6 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 		}
 	}
 
-	renderer.render(assetSet, frameInfo, materialGroups, postLightGroups);
+	renderer.render(assetSet, frameInfo, materialGroups, RenderStage::PRE_DEFERRED_LIGHTING);
+	renderer.render(assetSet, frameInfo, postLightGroups, RenderStage::POST_DEPTH_WRITE);
 }

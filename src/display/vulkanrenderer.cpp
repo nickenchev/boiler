@@ -1941,99 +1941,87 @@ VkDeviceSize VulkanRenderer::offsetUniform(VkDeviceSize offset)
 	return (offset < minimumOffset) ? minimumOffset : offset;
 }
 
-void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo,
-							const std::vector<MaterialGroup> &materialGroups,
-							const std::vector<MaterialGroup> &postLightGroups)
+void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, const std::vector<MaterialGroup> &materialGroups, RenderStage stage)
 {
 	const short currentFrame = frameInfo.currentFrame;
 
+	VkCommandBuffer commandBuffer = geometryCommandBuffers[currentFrame];
+	VkPipeline pipeline = gBufferPipeline.vulkanPipeline();
+	if (stage == RenderStage::POST_DEFERRED_LIGHTING)
+	{
+		commandBuffer = deferredCommandBuffers[currentFrame];
+	}
+	else if (stage == RenderStage::POST_DEPTH_WRITE)
+	{
+		commandBuffer = skyboxCommandBuffers[currentFrame];
+		pipeline = skyboxPipeline.vulkanPipeline();
+	}
+	
 	// setup descriptor sets
 	static std::array<VkDescriptorSet, 2> descriptorSets{};
 	descriptorSets[DSET_IDX_FRAME] = renderDescriptors.getSet(currentFrame);
 
-	const auto processGroups = [this, &assetSet, currentFrame](const std::vector<MaterialGroup> &materialGroups, VkPipeline pipeline, VkCommandBuffer commandBuffer)
+	for (unsigned int i = 0; i < static_cast<unsigned int>(materialGroups.size()); ++i)
 	{
-		for (unsigned int i = 0; i < static_cast<unsigned int>(materialGroups.size()); ++i)
+		const MaterialGroup &group = materialGroups[i];
+
+		// TODO: Avoid looping over all material groups
+		// only loop over the ones that are actually being used
+		if (group.materialId != Asset::NO_ASSET)
 		{
-			const MaterialGroup &group = materialGroups[i];
+			const Material &material = assetSet.materials.get(group.materialId);
+			const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
+			descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
+			const int bindDescCount = descriptorSets.size();
 
-			// TODO: Avoid looping over all material groups
-			// only loop over the ones that are actually being used
-			if (group.materialId != Asset::NO_ASSET)
+			if (material.baseTexture != Asset::NO_ASSET) // TODO: Add pipeline and descriptor layout without base texture sampler
 			{
-				const Material &material = assetSet.materials.get(group.materialId);
-				const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
-				descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
-				const int bindDescCount = descriptorSets.size();
+				VkDescriptorImageInfo imageInfo = {};
+				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				imageInfo.imageView = textures.get(material.baseTexture).imageView;
+				imageInfo.sampler = textureSampler.vkSampler();
 
-				if (material.baseTexture != Asset::NO_ASSET) // TODO: Add pipeline and descriptor layout without base texture sampler
-				{
-					VkDescriptorImageInfo imageInfo = {};
-					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-					imageInfo.imageView = textures.get(material.baseTexture).imageView;
-					imageInfo.sampler = textureSampler.vkSampler();
+				// update the per-material descriptor
+				std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
+				dsetObjWrites[0] = {
+					.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+					.dstSet = descriptorSets[DSET_IDX_MATERIAL],
+					.dstBinding = 0,
+					.dstArrayElement = 0,
+					.descriptorCount = 1,
+					.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+					.pImageInfo = &imageInfo,
+				};
+				vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
+			}
 
-					// update the per-material descriptor
-					std::array<VkWriteDescriptorSet, 1> dsetObjWrites;
-					dsetObjWrites[0] = {
-						.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-						.dstSet = descriptorSets[DSET_IDX_MATERIAL],
-						.dstBinding = 0,
-						.dstArrayElement = 0,
-						.descriptorCount = 1,
-						.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-						.pImageInfo = &imageInfo,
-					};
-					vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
-				}
+			// bind the appropriate pipeline for this material
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0,
+									bindDescCount, descriptorSets.data(), 0, nullptr);
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+								material.baseTexture != Asset::NO_ASSET ? pipeline : gBufferNoTexPipeline.vulkanPipeline());
 
-				// bind the appropriate pipeline for this material
-				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0,
-										bindDescCount, descriptorSets.data(), 0, nullptr);
-				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-								  material.baseTexture != Asset::NO_ASSET ? pipeline : gBufferNoTexPipeline.vulkanPipeline());
+			for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
+			{
+				RenderConstants constants;
+				constants.materialId = group.materialId;
+				constants.matrixId = instance.matrixId;
+				vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout,
+									VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+									0, sizeof(RenderConstants), &constants);
 
-				for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
-				{
-					RenderConstants constants;
-					constants.materialId = group.materialId;
-					constants.matrixId = instance.matrixId;
-					vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout,
-										VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-										0, sizeof(RenderConstants), &constants);
+				// draw the vertex data
+				const Primitive &primitive = assetSet.primitives.get(instance.primitiveId);
+				const PrimitiveBuffers &primitiveBuffers = primitives.get(primitive.bufferId);
+				const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
+				const std::array<VkDeviceSize, buffers.size()> offsets = {0};
 
-					// draw the vertex data
-					const Primitive &primitive = assetSet.primitives.get(instance.primitiveId);
-					const PrimitiveBuffers &primitiveBuffers = primitives.get(primitive.bufferId);
-					const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
-					const std::array<VkDeviceSize, buffers.size()> offsets = {0};
-
-					vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
-					vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
-					vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.indexCount()), 1, 0, 0, 0);
-				}
+				vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
+				vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
+				vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.indexCount()), 1, 0, 0, 0);
 			}
 		}
-	};
-
-	// render all pre-deferred pass groups
-	processGroups(materialGroups, gBufferPipeline.vulkanPipeline(), geometryCommandBuffers[currentFrame]);
-
-
-	// deferred pass setup
-	VkCommandBuffer deferredCommandBuffer = deferredCommandBuffers[currentFrame];
-	const VkDescriptorSet deferredDescSet = deferredDescriptors.getSet(frameInfo.currentFrame);
-	vkCmdBindDescriptorSets(deferredCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipelineLayout, 0, 1, &deferredDescSet, 0, nullptr);
-	vkCmdBindPipeline(deferredCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipeline.vulkanPipeline());
-
-	// deferred shading subpass
-	GBufferPushConstants consts;
-	consts.cameraPosition = cameraPosition;
-	vkCmdPushConstants(deferredCommandBuffer, deferredPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GBufferPushConstants), &consts);
-	vkCmdDraw(deferredCommandBuffer, 3, 1, 0, 0);
-
-	// skybox subpass
-	processGroups(postLightGroups, skyboxPipeline.vulkanPipeline(), skyboxCommandBuffers[currentFrame]);
+	}
 }
 
 void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet)
@@ -2041,6 +2029,19 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 	if (nextImageResult == VK_SUCCESS)
 	{
 		const VkCommandBuffer commandBuffer = commandBuffers[frameInfo.currentFrame];
+
+		// deferred pass setup
+		VkCommandBuffer deferredCommandBuffer = deferredCommandBuffers[frameInfo.currentFrame];
+		const VkDescriptorSet deferredDescSet = deferredDescriptors.getSet(frameInfo.currentFrame);
+		vkCmdBindDescriptorSets(deferredCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipelineLayout, 0, 1, &deferredDescSet, 0, nullptr);
+		vkCmdBindPipeline(deferredCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, deferredPipeline.vulkanPipeline());
+
+		// deferred shading subpass
+		GBufferPushConstants consts;
+		consts.cameraPosition = cameraPosition;
+		vkCmdPushConstants(deferredCommandBuffer, deferredPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GBufferPushConstants), &consts);
+		vkCmdDraw(deferredCommandBuffer, 3, 1, 0, 0);
+
 
 		if (vkEndCommandBuffer(geometryCommandBuffers[frameInfo.currentFrame]) != VK_SUCCESS)
 		{
