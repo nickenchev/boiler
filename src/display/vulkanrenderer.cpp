@@ -215,6 +215,7 @@ void VulkanRenderer::shutdown()
 	vkFreeCommandBuffers(device, commandPool, geometryCommandBuffers.size(), geometryCommandBuffers.data());
 	vkFreeCommandBuffers(device, commandPool, deferredCommandBuffers.size(), deferredCommandBuffers.data());
 	vkFreeCommandBuffers(device, commandPool, skyboxCommandBuffers.size(), skyboxCommandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, uiCommandBuffers.size(), uiCommandBuffers.data());
 	logger.log("Destroyed command buffers");
 
 	vkDestroyRenderPass(device, renderPass, nullptr);
@@ -249,6 +250,8 @@ void VulkanRenderer::shutdown()
 	vkDestroyShaderModule(device, skyboxModules.fragment, nullptr);
 	vkDestroyShaderModule(device, deferredModules.vertex, nullptr);
 	vkDestroyShaderModule(device, deferredModules.fragment, nullptr);
+	vkDestroyShaderModule(device, uiModules.vertex, nullptr);
+	vkDestroyShaderModule(device, uiModules.fragment, nullptr);
 	logger.log("Destroyed shader modules");
 	
 	// sync objects cleanup
@@ -554,6 +557,12 @@ void VulkanRenderer::initialize(const Size &size)
 		auto deferredFragData = FileManager::readBinaryFile("shaders/deferred.frag.spv");
 		deferredModules.fragment = createShaderModule(deferredFragData);
 
+		// shader modules to compose final image
+		auto uiVertData = FileManager::readBinaryFile("shaders/ui.vert.spv");
+		uiModules.vertex = createShaderModule(uiVertData);
+		auto uiFragData = FileManager::readBinaryFile("shaders/ui.frag.spv");
+		uiModules.fragment = createShaderModule(uiFragData);
+
 		createSwapChain();
 		createGBuffers();
 		createDepthResources();
@@ -804,14 +813,14 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	depthAttachRef.attachment = 1;
 	depthAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	std::array<VkSubpassDescription, 3> subpasses{};
+	std::array<VkSubpassDescription, 4> subpasses{};
 	// gbuffer subpass
 	subpasses[0].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[0].colorAttachmentCount = colorAttachmentRefs.size();
 	subpasses[0].pColorAttachments = colorAttachmentRefs.data();
 	subpasses[0].pDepthStencilAttachment = &depthAttachRef;
 	// deferred subpass
-	std::array<uint32_t, 1> gbuffPreserve = {1};
+	std::array<uint32_t, 1> gbuffPreserve = {1}; // preserve depth-buffer
 	subpasses[1].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[1].colorAttachmentCount = 1;
 	subpasses[1].pColorAttachments = &swapColorAttachRef;
@@ -824,9 +833,14 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpasses[2].colorAttachmentCount = 1;
 	subpasses[2].pColorAttachments = &swapColorAttachRef;
 	subpasses[2].pDepthStencilAttachment = &depthAttachRef;
+	// ui subpass
+	subpasses[3].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpasses[3].colorAttachmentCount = 1;
+	subpasses[3].pColorAttachments = &swapColorAttachRef;
+	subpasses[3].pDepthStencilAttachment = &depthAttachRef;
 
 	// subpass dependencies
-    std::array<VkSubpassDependency, 3> dependencies{};
+    std::array<VkSubpassDependency, 4> dependencies{};
     dependencies[0].srcSubpass = 0;
     dependencies[0].dstSubpass = 1;
     dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -842,16 +856,24 @@ VkRenderPass VulkanRenderer::createRenderPass()
     dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     dependencies[1].dependencyFlags = 0;
+
+    dependencies[2].srcSubpass = 2;
+    dependencies[2].dstSubpass = 3;
+    dependencies[2].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependencies[2].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependencies[2].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependencies[2].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependencies[2].dependencyFlags = 0;
  
 	// depth buffer between first -> skybox subpasses
-    dependencies[2].srcSubpass = 0;
-    dependencies[2].dstSubpass = 2;
-	dependencies[2].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-    dependencies[2].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	dependencies[2].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependencies[2].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-    dependencies[2].dependencyFlags = 0;
-	
+    dependencies[3].srcSubpass = 0;
+    dependencies[3].dstSubpass = 2;
+	dependencies[3].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+    dependencies[3].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	dependencies[3].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependencies[3].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+    dependencies[3].dependencyFlags = 0;
+
 	// create the render pass
 	std::array<VkAttachmentDescription, 5> attachments = {
 		colorAttachment, depthAttachment, positionAttachment, albedoAttachment, normalAttachment
@@ -876,15 +898,16 @@ VkRenderPass VulkanRenderer::createRenderPass()
 
 void VulkanRenderer::createGraphicsPipelines()
 {
-    std::array<VkPushConstantRange, 2> pushConsts{};
-    pushConsts[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-    pushConsts[0].offset = 0;
-    pushConsts[0].size = sizeof(RenderConstants);
-
 	std::array<VkDescriptorSetLayout, 2> descriptorLayouts {
 		renderDescriptors.getLayout(),
 		materialDescriptors.getLayout()
 	};
+
+	// geometry pass
+    std::array<VkPushConstantRange, 2> pushConsts{};
+    pushConsts[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+    pushConsts[0].offset = 0;
+    pushConsts[0].size = sizeof(RenderConstants);
 
 	VkPipelineLayoutCreateInfo gBuffPipeLayoutCreateInfo{};
 	gBuffPipeLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -892,9 +915,9 @@ void VulkanRenderer::createGraphicsPipelines()
 	gBuffPipeLayoutCreateInfo.pSetLayouts = descriptorLayouts.data();
 	gBuffPipeLayoutCreateInfo.pushConstantRangeCount = 1;
 	gBuffPipeLayoutCreateInfo.pPushConstantRanges = &pushConsts[0];
-
     gBuffersPipelineLayout = createGraphicsPipelineLayout(gBuffPipeLayoutCreateInfo);
 	
+	// deferred pass
     pushConsts[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
     pushConsts[1].offset = 0;
     pushConsts[1].size = sizeof(GBufferPushConstants);
@@ -905,8 +928,16 @@ void VulkanRenderer::createGraphicsPipelines()
 	defPipeLayoutCreateInfo.pSetLayouts = &deferredDescriptors.getLayout();
 	defPipeLayoutCreateInfo.pushConstantRangeCount = 1;
 	defPipeLayoutCreateInfo.pPushConstantRanges = &pushConsts[1];
-
 	deferredPipelineLayout = createGraphicsPipelineLayout(defPipeLayoutCreateInfo);
+
+	// UI pass
+	VkPipelineLayoutCreateInfo uiPipeLayoutCreateInfo{};
+	uiPipeLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	uiPipeLayoutCreateInfo.setLayoutCount = descriptorLayouts.size();
+	uiPipeLayoutCreateInfo.pSetLayouts = descriptorLayouts.data();
+	uiPipeLayoutCreateInfo.pushConstantRangeCount = 1;
+	uiPipeLayoutCreateInfo.pPushConstantRanges = &pushConsts[0];
+    uiPipelineLayout = createGraphicsPipelineLayout(uiPipeLayoutCreateInfo);
 
 	// Vertex input stage
 	VkVertexInputBindingDescription standardInputBind = {};
@@ -931,7 +962,7 @@ void VulkanRenderer::createGraphicsPipelines()
 		.location = 2,
 		.binding = 0,
 		.format = VK_FORMAT_R32G32_SFLOAT,
-		.offset = offsetof(Vertex, textureCoordinate)
+		.offset = offsetof(Vertex, textureCoordinates)
 	});
 	standardAttrDesc.push_back({
 		.location = 3,
@@ -955,6 +986,10 @@ void VulkanRenderer::createGraphicsPipelines()
 	skyboxPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
 											  &standardInputBind, &standardAttrDesc, 1, skyboxModules, 2,
 											  VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS_OR_EQUAL, true, true);
+	// UI pipeline
+	uiPipeline = GraphicsPipeline::create(device, renderPass, uiPipelineLayout, swapChainExtent,
+											  &standardInputBind, &standardAttrDesc, 1, uiModules, 3,
+											  VK_CULL_MODE_BACK_BIT, false, VK_COMPARE_OP_LESS_OR_EQUAL, true, true);
 }
 
 VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(const VkPipelineLayoutCreateInfo &createInfo) const
@@ -1142,6 +1177,7 @@ void VulkanRenderer::createCommandBuffers()
 	createSecondaryCommandBuffers(geometryCommandBuffers);
 	createSecondaryCommandBuffers(deferredCommandBuffers);
 	createSecondaryCommandBuffers(skyboxCommandBuffers);
+	createSecondaryCommandBuffers(uiCommandBuffers);
 }
 
 void VulkanRenderer::createSecondaryCommandBuffers(std::vector<VkCommandBuffer> &secondaryBuffers)
@@ -1299,9 +1335,11 @@ void VulkanRenderer::cleanupSwapchain()
 	GraphicsPipeline::destroy(device, gBufferNoTexPipeline);
 	GraphicsPipeline::destroy(device, skyboxPipeline);
 	GraphicsPipeline::destroy(device, deferredPipeline);
+	GraphicsPipeline::destroy(device, uiPipeline);
 
 	vkDestroyPipelineLayout(device, gBuffersPipelineLayout, nullptr);
 	vkDestroyPipelineLayout(device, deferredPipelineLayout, nullptr);
+	vkDestroyPipelineLayout(device, uiPipelineLayout, nullptr);
 	logger.log("Pipeline layouts destroyed");
 
 	// clean up g buffers
@@ -1431,7 +1469,7 @@ AssetId VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &im
 
 AssetId VulkanRenderer::loadTexture(const ImageData &imageData, TextureType type)
 {
-	VkFormat format = type == TextureType::RGBA_SRGB ? textureFormat : VK_FORMAT_R8_UINT;
+	VkFormat format = type == TextureType::RGBA_SRGB ? textureFormat : VK_FORMAT_R8_UNORM;
 	const size_t bytesPerPixel = imageData.colorComponents;
 
 	// calculate size of buffer and generate the staging buffer
@@ -1769,6 +1807,7 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		vkResetCommandBuffer(geometryCommandBuffers[frameInfo.currentFrame], 0);
 		vkResetCommandBuffer(deferredCommandBuffers[frameInfo.currentFrame], 0);
 		vkResetCommandBuffer(skyboxCommandBuffers[frameInfo.currentFrame], 0);
+		vkResetCommandBuffer(uiCommandBuffers[frameInfo.currentFrame], 0);
 
 		VkCommandBufferBeginInfo beginInfo = {};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1804,6 +1843,7 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		beginSecondaryCommandBuffer(geometryCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 0);
 		beginSecondaryCommandBuffer(deferredCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 1);
 		beginSecondaryCommandBuffer(skyboxCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 2);
+		beginSecondaryCommandBuffer(uiCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 3);
 
 		// update the descriptor sets for this frame / buffers are updated later
 		static std::array<VkDescriptorSet, 2> descriptorSets{};
@@ -1946,6 +1986,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 	const short currentFrame = frameInfo.currentFrame;
 
 	VkCommandBuffer commandBuffer = geometryCommandBuffers[currentFrame];
+	VkPipelineLayout pipelineLayout = gBuffersPipelineLayout;
 	VkPipeline pipeline = gBufferPipeline.vulkanPipeline();
 	if (stage == RenderStage::POST_DEFERRED_LIGHTING)
 	{
@@ -1955,6 +1996,12 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 	{
 		commandBuffer = skyboxCommandBuffers[currentFrame];
 		pipeline = skyboxPipeline.vulkanPipeline();
+	}
+	else if (stage == RenderStage::UI)
+	{
+		commandBuffer = uiCommandBuffers[currentFrame];
+		pipelineLayout = uiPipelineLayout;
+		pipeline = uiPipeline.vulkanPipeline();
 	}
 	
 	// setup descriptor sets
@@ -1996,7 +2043,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 			}
 
 			// bind the appropriate pipeline for this material
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, gBuffersPipelineLayout, 0,
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0,
 									bindDescCount, descriptorSets.data(), 0, nullptr);
 			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 								material.baseTexture != Asset::NO_ASSET ? pipeline : gBufferNoTexPipeline.vulkanPipeline());
@@ -2006,9 +2053,9 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 				RenderConstants constants;
 				constants.materialId = group.materialId;
 				constants.matrixId = instance.matrixId;
-				vkCmdPushConstants(commandBuffer, gBuffersPipelineLayout,
-									VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-									0, sizeof(RenderConstants), &constants);
+				constants.offset = vec4(instance.offset, 0);
+				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+								   0, sizeof(RenderConstants), &constants);
 
 				// draw the vertex data
 				const Primitive &primitive = assetSet.primitives.get(instance.primitiveId);
@@ -2042,7 +2089,6 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 		vkCmdPushConstants(deferredCommandBuffer, deferredPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(GBufferPushConstants), &consts);
 		vkCmdDraw(deferredCommandBuffer, 3, 1, 0, 0);
 
-
 		if (vkEndCommandBuffer(geometryCommandBuffers[frameInfo.currentFrame]) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Error ending the command buffer");
@@ -2055,6 +2101,10 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 		{
 			throw std::runtime_error("Error ending the command buffer");
 		}
+		if (vkEndCommandBuffer(uiCommandBuffers[frameInfo.currentFrame]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Error ending the command buffer");
+		}
 
 		// sequence primary command buffer
 		vkCmdExecuteCommands(commandBuffer, 1, &geometryCommandBuffers[frameInfo.currentFrame]);
@@ -2062,11 +2112,14 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 		vkCmdExecuteCommands(commandBuffer, 1, &deferredCommandBuffers[frameInfo.currentFrame]);
 		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 		vkCmdExecuteCommands(commandBuffer, 1, &skyboxCommandBuffers[frameInfo.currentFrame]);
+		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+		vkCmdExecuteCommands(commandBuffer, 1, &uiCommandBuffers[frameInfo.currentFrame]);
 
 		// matrix data updates
 		ViewProjection viewProjection {
 			.view = viewMatrix,
-			.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f)
+			.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f),
+			.orthographic = glm::ortho(0.0f, static_cast<cgfloat>(swapChainExtent.width), static_cast<cgfloat>(swapChainExtent.height), 0.0f)
 		};
 
 		// update view-matrix data

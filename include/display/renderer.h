@@ -30,7 +30,8 @@ enum class RenderStage
 {
 	PRE_DEFERRED_LIGHTING,
 	POST_DEFERRED_LIGHTING,
-	POST_DEPTH_WRITE
+	POST_DEPTH_WRITE,
+	UI
 };
 
 class Primitive;

@@ -3,24 +3,23 @@
 
 #include <unordered_map>
 #include "display/glyph.h"
-#include "display/texture.h"
-#include "display/imaging/imagedata.h"
 
 namespace Boiler
 {
 
 class GlyphMap
 {
-	AssetId textureId;
 	std::unordered_map<unsigned long, const Glyph> map;
 
 public:
+	AssetId materialId;
+
 	GlyphMap()
 	{
-		textureId = Asset::NO_ASSET;
+		materialId = Asset::NO_ASSET;
 	}
 	
-    GlyphMap(AssetId textureId, const std::unordered_map<unsigned long, const Glyph> &map) : textureId(textureId), map(std::move(map))
+    GlyphMap(AssetId materialId, const std::unordered_map<unsigned long, const Glyph> &map) : materialId(materialId), map(std::move(map))
 	{
 	}
 
@@ -28,7 +27,7 @@ public:
 
 	GlyphMap &operator=(GlyphMap &&glyphMap)
 	{
-		this->textureId = glyphMap.textureId;
+		this->materialId = glyphMap.materialId;
 		this->map = std::move(glyphMap.map);
 
 		return *this;

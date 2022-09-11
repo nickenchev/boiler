@@ -43,6 +43,7 @@ struct QueueFamilyIndices
 
 struct RenderConstants
 {
+	vec4 offset;
 	int matrixId, materialId;
 };
 
@@ -93,12 +94,12 @@ class VulkanRenderer : public Boiler::Renderer
 	// descriptor related
 	DescriptorSet renderDescriptors, materialDescriptors, deferredDescriptors;
 
-	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout;
-	GraphicsPipeline skyboxPipeline, gBufferPipeline, gBufferNoTexPipeline, deferredPipeline;
+	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout, uiPipelineLayout;
+	GraphicsPipeline skyboxPipeline, gBufferPipeline, gBufferNoTexPipeline, deferredPipeline, uiPipeline;
 
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;
-	std::vector<VkCommandBuffer> commandBuffers, geometryCommandBuffers, deferredCommandBuffers, skyboxCommandBuffers;
+	std::vector<VkCommandBuffer> commandBuffers, geometryCommandBuffers, deferredCommandBuffers, skyboxCommandBuffers, uiCommandBuffers;
 	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
 	std::vector<VkFence> frameFences;
 
@@ -117,7 +118,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void createMaterialBuffer();
 	void updateMaterials(const std::vector<ShaderMaterial> &materials) const override;
 
-	ShaderStageModules gBufferModules, deferredModules, skyboxModules;
+	ShaderStageModules gBufferModules, deferredModules, skyboxModules, uiModules;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
 	Sampler textureSampler, cubemapSampler, glyphAtlasSampler;

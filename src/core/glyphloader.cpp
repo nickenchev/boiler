@@ -133,11 +133,16 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		cgfloat sizeH = destRect.size.height * scale;
 
 		// generate vertex buffer
+		const float texX = destRect.position.x / atlasSize.width;
+		const float texY = destRect.position.y / atlasSize.height;
+		const float texW = (destRect.position.x + destRect.size.width) / atlasSize.width;
+		const float texH = (destRect.position.y + destRect.size.height) / atlasSize.height;
+
 		std::vector<Vertex> verts = {
-			Vertex(vec3(0.0f, sizeH, 0.0f)),
-			Vertex(vec3(sizeW, 0.0f, 0.0f)),
-			Vertex(vec3(0.0f, 0.0f, 0.0f)),
-			Vertex(vec3(sizeW, sizeH, 0.0f))
+			Vertex(vec3(0.0f, sizeH, 0.0f), vec2(texX, texH)),
+			Vertex(vec3(sizeW, 0.0f, 0.0f), vec2(texW, texY)),
+			Vertex(vec3(0.0f, 0.0f, 0.0f), vec2(texX, texY)),
+			Vertex(vec3(sizeW, sizeH, 0.0f), vec2(texW, texH))
 		};
 		std::vector<glm::uint32_t> indices = { 0, 1, 2, 0, 3, 1 };
 
@@ -149,20 +154,10 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		AssetId primitiveId = assetSet.primitives.add(std::move(primitive));
 		glyphMap.insert({code, Glyph(code, destRect, bearing, ftGlyph->advance.x, primitiveId)});
 
-		/*
-		std::vector<Vertex> verts = {
-			0.0f, sizeH, 0.0f,
-			sizeW, 0.0f, 0.0f,
-			0.0f, 0.0f, 0.0f,
-
-			0.0f, sizeH, 0.0f,
-			sizeW, sizeH, 0.0f,
-			sizeW, 0.0f, 0.0f
-		};
-		VertexData vertData(verts);
 
 		const auto texCoords = TextureUtil::getTextureCoords(atlasSize, destRect);
 
+		/*
 		// create a VBO to hold each frame's texture coords
 		GLuint texCoordVbo = 0;
 		glGenBuffers(1, &texCoordVbo);
@@ -179,10 +174,12 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 
-	AssetId textureId = renderer.loadTexture(ImageData(atlasBuffer, atlasSize, 1, false), TextureType::GLYPH_ATLAS);
+	Material glyphMat;
+	glyphMat.baseTexture = renderer.loadTexture(ImageData(atlasBuffer, atlasSize, 1, false), TextureType::GLYPH_ATLAS);
+	AssetId materialId = assetSet.materials.add(std::move(glyphMat));
 
 	logger.log("Generated font atlas with dimensions {}x{} ", static_cast<int>(atlasSize.width), static_cast<int>(atlasSize.height));
-	return assetSet.glyphs.add(GlyphMap(textureId, glyphMap));
+	return assetSet.glyphs.add(GlyphMap(materialId, glyphMap));
 }
 
 int nextPow2(int value)

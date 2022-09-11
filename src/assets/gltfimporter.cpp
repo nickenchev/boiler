@@ -243,7 +243,7 @@ VertexData GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessor
 		long vertexIdx = 0;
 		for (auto values : texCoordAccess)
 		{
-			vertices[vertexIdx++].textureCoordinate = {values[0], values[1]};
+			vertices[vertexIdx++].textureCoordinates = {values[0], values[1]};
 		}
 	}
 
