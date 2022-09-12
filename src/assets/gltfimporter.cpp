@@ -273,7 +273,11 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 			render->mesh = result.meshes[node.mesh.value()]; // use mesh-id instead of copying
 		}
 
-		auto transform = ecs.createComponent<TransformComponent>(nodeEntity, Rect(0, 0, 0, 0));
+		// create a transform component if one doesn't exist
+		TransformComponent &transform = ecs.getComponentStore().hasComponent<TransformComponent>(nodeEntity)
+			? ecs.getComponentStore().retrieve<TransformComponent>(nodeEntity)
+			: *ecs.createComponent<TransformComponent>(nodeEntity, Rect(0, 0, 0, 0));
+
 		// decompose a matrix if available, otherwise try to load transformations directly
 		if (node.matrix.has_value())
 		{
@@ -284,16 +288,16 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 			vec4 perspective;
 
 			glm::decompose(matrix, scale, orientation, position, skew, perspective);
-			transform->setPosition(position);
-			transform->setScale(scale);
-			transform->setOrientation(orientation);
+			transform.setPosition(position);
+			transform.setScale(scale);
+			transform.setOrientation(orientation);
 		}
 		else
 		{
 			// otherwise load transformation directly
 			if (node.scale.has_value())
 			{
-				transform->setScale({
+				transform.setScale({
 					node.scale.value()[0],
 					node.scale.value()[1],
 					node.scale.value()[2]
@@ -301,7 +305,7 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 			}
 			if (node.translation.has_value())
 			{
-				transform->setPosition({
+				transform.setPosition({
 					node.translation.value()[0],
 					node.translation.value()[1],
 					node.translation.value()[2]
@@ -309,7 +313,7 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 			}
 			if (node.rotation.has_value())
 			{
-				transform->setOrientation(quat{
+				transform.setOrientation(quat{
 					node.rotation.value()[3],
 					node.rotation.value()[0],
 					node.rotation.value()[1],
