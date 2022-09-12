@@ -48,6 +48,7 @@ void MapLoader::load(const std::string &filePath)
 		const auto &entities = doc["entities"].GetArray();
 		for (const auto &ent : entities)
 		{
+			std::string name = ent.HasMember("name") ? ent["name"].GetString() : "Unnamed";
 			Entity entity = ecs.newEntity();
 			if (ent.HasMember("components"))
 			{

@@ -22,7 +22,7 @@ namespace Boiler
 
 enum class TextureType
 {
-	GLYPH_ATLAS,
+	FREETYPE_ATLAS,
 	RGBA_SRGB
 };
 

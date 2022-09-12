@@ -138,6 +138,7 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		const float texW = (destRect.position.x + destRect.size.width) / atlasSize.width;
 		const float texH = (destRect.position.y + destRect.size.height) / atlasSize.height;
 
+		// generate vertices and texture coordinates
 		std::vector<Vertex> verts = {
 			Vertex(vec3(0.0f, sizeH, 0.0f), vec2(texX, texH)),
 			Vertex(vec3(sizeW, 0.0f, 0.0f), vec2(texW, texY)),
@@ -154,28 +155,13 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		AssetId primitiveId = assetSet.primitives.add(std::move(primitive));
 		glyphMap.insert({code, Glyph(code, destRect, bearing, ftGlyph->advance.x, primitiveId)});
 
-
-		const auto texCoords = TextureUtil::getTextureCoords(atlasSize, destRect);
-
-		/*
-		// create a VBO to hold each frame's texture coords
-		GLuint texCoordVbo = 0;
-		glGenBuffers(1, &texCoordVbo);
-		glBindBuffer(GL_ARRAY_BUFFER, texCoordVbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * texCoords.size(), &texCoords[0], GL_STATIC_DRAW);
-
-		if (glGetError() != GL_NO_ERROR)
-		{
-			logger.error("Unable to create the texture coordinate VBO.");
-		}
-		*/
 		FT_Done_Glyph(ftGlyph);
 	}
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 
 	Material glyphMat;
-	glyphMat.baseTexture = renderer.loadTexture(ImageData(atlasBuffer, atlasSize, 1, false), TextureType::GLYPH_ATLAS);
+	glyphMat.baseTexture = renderer.loadTexture(ImageData(atlasBuffer, atlasSize, 1, false), TextureType::FREETYPE_ATLAS);
 	AssetId materialId = assetSet.materials.add(std::move(glyphMat));
 
 	logger.log("Generated font atlas with dimensions {}x{} ", static_cast<int>(atlasSize.width), static_cast<int>(atlasSize.height));

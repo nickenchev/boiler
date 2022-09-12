@@ -34,7 +34,7 @@ void TextSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo 
 			const Glyph &glyph = glyphMap.getMap().at(c);
 			cgfloat height = glyph.getRect().size.height;
 			cgfloat bearY = glyph.getBearing().y;
-			logger.log("{} - H:{} Y:{}", c, glyph.getRect().size.height, glyph.getBearing().y);
+			//logger.log("{} - H:{} Y:{}", c, glyph.getRect().size.height, glyph.getBearing().y);
 
 			vec3 offset(xOffset, -height - (bearY - height), 0);
 			group[0].primitives.push_back(MaterialGroup::PrimitiveInstance(glyph.primitiveId, matrixId, offset));
