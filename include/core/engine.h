@@ -31,8 +31,8 @@ class Part;
 
 class Engine
 {
-	Time64 globalTime, prevTime;
-	Time frameLag;
+	Time64 prevTime;
+	Time globalTime, frameLag;
 	short currentFrame;
 
 	Logger logger;

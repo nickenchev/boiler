@@ -166,6 +166,7 @@ void Engine::step(FrameInfo &frameInfo)
 
 	update(assetSet, frameInfo);
 	globalTime += deltaTime;
+	logger.log("{}", globalTime);
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data

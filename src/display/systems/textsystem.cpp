@@ -32,11 +32,14 @@ void TextSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo 
 		for (char c : text.text)
 		{
 			const Glyph &glyph = glyphMap.getMap().at(c);
-			//logger.log("{} - {}x{}", c, glyph.getRect().size.width, glyph.getRect().size.height);
+			cgfloat height = glyph.getRect().size.height;
+			cgfloat bearY = glyph.getBearing().y;
+			logger.log("{} - H:{} Y:{}", c, glyph.getRect().size.height, glyph.getBearing().y);
 
-			xOffset += glyph.getBearing().x;
-			group[0].primitives.push_back(MaterialGroup::PrimitiveInstance(glyph.primitiveId, matrixId, vec3(xOffset, 0, 0)));
-			xOffset += glyph.getAdvance() >> 6;
+			vec3 offset(xOffset, -height - (bearY - height), 0);
+			group[0].primitives.push_back(MaterialGroup::PrimitiveInstance(glyph.primitiveId, matrixId, offset));
+
+			xOffset += (glyph.getAdvance() >> 6);
 		}
 		renderer.render(assetSet, frameInfo, group, RenderStage::UI);
 	}

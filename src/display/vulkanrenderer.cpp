@@ -1988,6 +1988,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 	VkCommandBuffer commandBuffer = geometryCommandBuffers[currentFrame];
 	VkPipelineLayout pipelineLayout = gBuffersPipelineLayout;
 	VkPipeline pipeline = gBufferPipeline.vulkanPipeline();
+	VkSampler sampler = textureSampler.vkSampler();
 	if (stage == RenderStage::POST_DEFERRED_LIGHTING)
 	{
 		commandBuffer = deferredCommandBuffers[currentFrame];
@@ -1996,12 +1997,14 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 	{
 		commandBuffer = skyboxCommandBuffers[currentFrame];
 		pipeline = skyboxPipeline.vulkanPipeline();
+		sampler = cubemapSampler.vkSampler();
 	}
 	else if (stage == RenderStage::UI)
 	{
 		commandBuffer = uiCommandBuffers[currentFrame];
 		pipelineLayout = uiPipelineLayout;
 		pipeline = uiPipeline.vulkanPipeline();
+		sampler = glyphAtlasSampler.vkSampler();
 	}
 	
 	// setup descriptor sets
@@ -2026,7 +2029,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 				VkDescriptorImageInfo imageInfo = {};
 				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				imageInfo.imageView = textures.get(material.baseTexture).imageView;
-				imageInfo.sampler = textureSampler.vkSampler();
+				imageInfo.sampler = sampler;
 
 				// update the per-material descriptor
 				std::array<VkWriteDescriptorSet, 1> dsetObjWrites;

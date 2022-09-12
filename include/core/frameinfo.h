@@ -38,7 +38,8 @@ struct FrameInfo
 	KeyInputEvents keyInputEvents;
 
 	short currentFrame;
-	Time deltaTime, globalTime;
+	double globalTime;
+	Time deltaTime;
 	int mouseXDistance, mouseYDistance;
 
 	FrameInfo()
