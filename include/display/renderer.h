@@ -16,6 +16,7 @@
 #include "shadermaterial.h"
 #include "display/materialgroup.h"
 #include "core/assetmanager.h"
+#include "assets/assetset.h"
 
 namespace Boiler
 {
@@ -58,6 +59,7 @@ protected:
 	glm::mat4 viewMatrix;
 	unsigned int frameLightIdx;
 	AssetManager<mat4, 1000> matrices;
+	AssetSet assetSet;
 
 public:
     Renderer(std::string name);
@@ -72,6 +74,7 @@ public:
     void setScreenSize(const Size &screenSize) { this->screenSize = screenSize; }
     const Size &getScreenSize() const { return screenSize; }
 
+	AssetSet &getAssetSet() { return assetSet; }
     const vec2 &getGlobalScale() const { return globalScale; }
     void setGlobalScale(const vec2 &scale) { this->globalScale = scale; }
     const vec3 &getClearColor() const { return clearColor; }

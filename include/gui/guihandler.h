@@ -18,11 +18,12 @@ public:
 	{
 	}
 
-	virtual void initialize() = 0;
+	virtual void initialize(Renderer &renderer) = 0;
 	virtual void cleanup() const = 0;
 	virtual void processEvent(const SDL_Event &event) const = 0;
-	virtual void preRender() const = 0;
-	virtual void render() const = 0;
+	virtual void preRender(Renderer &renderer) const = 0;
+	virtual void render(Renderer &renderer, const FrameInfo &frameInfo) = 0;
+	virtual void postRender(Renderer &renderer) const = 0;
 };
 
 }

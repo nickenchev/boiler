@@ -2020,7 +2020,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 		if (group.materialId != Asset::NO_ASSET)
 		{
 			const Material &material = assetSet.materials.get(group.materialId);
-			const uint32_t descriptorIndex = (currentFrame * maxMaterials) + i;
+			const uint32_t descriptorIndex = (currentFrame * maxMaterials) + group.materialId; // TODO: Careful using ID as index
 			descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
 			const int bindDescCount = descriptorSets.size();
 
@@ -2056,7 +2056,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 				RenderConstants constants;
 				constants.materialId = group.materialId;
 				constants.matrixId = instance.matrixId;
-				constants.offset = vec4(instance.offset, 0);
+				constants.offset = vec4(instance.drawOffset, 0);
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 								   0, sizeof(RenderConstants), &constants);
 

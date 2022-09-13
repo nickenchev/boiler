@@ -140,10 +140,10 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 
 		// generate vertices and texture coordinates
 		std::vector<Vertex> verts = {
-			Vertex(vec3(0.0f, sizeH, 0.0f), vec2(texX, texH)),
-			Vertex(vec3(sizeW, 0.0f, 0.0f), vec2(texW, texY)),
-			Vertex(vec3(0.0f, 0.0f, 0.0f), vec2(texX, texY)),
-			Vertex(vec3(sizeW, sizeH, 0.0f), vec2(texW, texH))
+			Vertex(vec3(0.0f, sizeH, 0.0f), vec2(texX, texH), vec4(1, 1, 1, 1)),
+			Vertex(vec3(sizeW, 0.0f, 0.0f), vec2(texW, texY), vec4(1, 1, 1, 1)),
+			Vertex(vec3(0.0f, 0.0f, 0.0f), vec2(texX, texY), vec4(1, 1, 1, 1)),
+			Vertex(vec3(sizeW, sizeH, 0.0f), vec2(texW, texH), vec4(1, 1, 1, 1))
 		};
 		std::vector<glm::uint32_t> indices = { 0, 1, 2, 0, 3, 1 };
 

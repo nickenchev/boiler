@@ -8,7 +8,8 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 {
 	if (getEntities().size())
 	{
-		guiHandler->preRender();
+		guiHandler->preRender(renderer);
+
 		for (auto &entity : getEntities())
 		{
 			GUIComponent &guiComp = store.retrieve<GUIComponent>(entity);
@@ -17,6 +18,7 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 				guiComp.guiRender();
 			}
 		}
-		guiHandler->render();
+		guiHandler->render(renderer, frameInfo);
+		guiHandler->postRender(renderer);
 	}
 }

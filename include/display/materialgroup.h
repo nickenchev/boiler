@@ -11,14 +11,10 @@ struct MaterialGroup
 	struct PrimitiveInstance
 	{
 		AssetId primitiveId, matrixId;
-		vec3 offset;
+		vec3 drawOffset;
 
-		PrimitiveInstance(AssetId primitiveId, AssetId matrixId) : offset(0)
-		{
-			this->primitiveId = primitiveId;
-			this->matrixId = matrixId;
-		}
-		PrimitiveInstance(AssetId primitiveId, AssetId matrixId, vec3 offset) : offset(offset)
+		PrimitiveInstance(AssetId primitiveId, AssetId matrixId) : PrimitiveInstance(primitiveId, matrixId, vec3(0)) { }
+		PrimitiveInstance(AssetId primitiveId, AssetId matrixId, vec3 drawOffset) : drawOffset(drawOffset)
 		{
 			this->primitiveId = primitiveId;
 			this->matrixId = matrixId;

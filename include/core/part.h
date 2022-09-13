@@ -3,7 +3,6 @@
 
 #include <string>
 #include "core/logger.h"
-#include "assets/assetset.h"
 
 namespace Boiler
 {
@@ -14,7 +13,6 @@ struct FrameInfo;
 class Part
 {
 protected:
-	AssetSet assetSet;
 	std::string name;
 	Engine &engine;
 	Logger logger;
@@ -29,8 +27,6 @@ public:
 
     virtual void onStart() = 0;
     virtual void update(const FrameInfo &frameInfo) = 0;
-
-	AssetSet &getAssetSet() { return assetSet; }
 };
 
 }

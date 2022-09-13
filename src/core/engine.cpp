@@ -101,7 +101,9 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 
 	if (guiHandler)
 	{
-		logger.log("Setting up GUI handler");
+		logger.log("Initializing GUI handler");
+		guiHandler->initialize(*renderer);
+
 		System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(std::move(guiHandler))
 			.expects<GUIComponent>();
 		ecs.getComponentSystems().removeUpdate(guiSys);
@@ -143,7 +145,6 @@ void Engine::run()
 
 void Engine::step(FrameInfo &frameInfo)
 {
-	AssetSet &assetSet = part->getAssetSet();
 	//get the delta time
 	Time64 currentTime = SDL_GetTicks64();
 	Time deltaTime = (currentTime - prevTime) / 1000.0f;
@@ -164,22 +165,21 @@ void Engine::step(FrameInfo &frameInfo)
 	frameInfo.deltaTime = deltaTime;
 	frameInfo.globalTime = globalTime;
 
-	update(assetSet, frameInfo);
+	update(renderer->getAssetSet(), frameInfo);
 	globalTime += deltaTime;
-	logger.log("{}", globalTime);
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data
 	if (renderer->prepareFrame(frameInfo))
 	{
-		lightingSystem->update(*renderer, assetSet, frameInfo, getEcs().getComponentStore());
-		renderSystem->update(*renderer, assetSet, frameInfo, getEcs().getComponentStore());
-		textSystem->update(*renderer, assetSet, frameInfo, ecs.getComponentStore());
+		lightingSystem->update(*renderer, renderer->getAssetSet(), frameInfo, getEcs().getComponentStore());
+		renderSystem->update(*renderer, renderer->getAssetSet(), frameInfo, getEcs().getComponentStore());
+		textSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs.getComponentStore());
 		if (guiSystem)
 		{
-			guiSystem->update(*renderer, assetSet, frameInfo, getEcs().getComponentStore());
+			guiSystem->update(*renderer, renderer->getAssetSet(), frameInfo, getEcs().getComponentStore());
 		}
-		renderer->displayFrame(frameInfo, assetSet);
+		renderer->displayFrame(frameInfo, renderer->getAssetSet());
 	}
 }
 

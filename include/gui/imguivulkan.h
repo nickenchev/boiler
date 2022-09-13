@@ -3,7 +3,7 @@
 
 #include "gui/guihandler.h"
 #include "core/logger.h"
-#include "display/vulkanrenderer.h"
+#include "assets/assetset.h"
 
 union SDL_Event;
 
@@ -13,16 +13,18 @@ namespace Boiler
 class ImGuiVulkan : public Boiler::GUIHandler
 {
 	Logger logger;
-	Vulkan::VulkanRenderer &renderer;
+	AssetId materialId;
+	AssetId primitiveId;
 
 public:
-	ImGuiVulkan(Vulkan::VulkanRenderer &renderer) : logger("ImGui"), renderer(renderer) { }
+	ImGuiVulkan() : logger("ImGui") { }
 
-	void initialize() override;
+	void initialize(Renderer &renderer) override;
 	void cleanup() const override;
 	void processEvent(const SDL_Event &event) const override;
-	void preRender() const override;
-	void render() const override;
+	void preRender(Renderer &renderer) const override;
+	void render(Renderer &renderer, const FrameInfo &frameInfo) override;
+	void postRender(Renderer &renderer) const override;
 };
 
 }

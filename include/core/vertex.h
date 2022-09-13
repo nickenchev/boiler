@@ -12,15 +12,26 @@ struct Vertex
 	glm::vec2 textureCoordinates;
 	glm::vec3 normal;
 
-	Vertex(glm::vec3 position)
+	Vertex()
+	{
+	}
+
+	Vertex(vec3 position)
 	{
 		this->position = position;
 	}
 
-	Vertex(glm::vec3 position, vec2 textureCoordinates)
+	Vertex(vec3 position, vec2 textureCoordinates)
 	{
 		this->position = position;
 		this->textureCoordinates = textureCoordinates;
+	}
+
+	Vertex(vec3 position, vec2 textureCoordinates, vec4 colour)
+	{
+		this->position = position;
+		this->textureCoordinates = textureCoordinates;
+		this->colour = colour;
 	}
 };
 
