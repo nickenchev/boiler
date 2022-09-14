@@ -1,4 +1,5 @@
 #include "core/engine.h"
+#include "display/renderer.h"
 #include "input/inputsystem.h"
 #include "input/inputcomponent.h"
 #include "input/keyinputevent.h"

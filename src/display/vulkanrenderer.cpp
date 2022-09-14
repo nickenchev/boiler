@@ -837,7 +837,6 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpasses[3].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[3].colorAttachmentCount = 1;
 	subpasses[3].pColorAttachments = &swapColorAttachRef;
-	subpasses[3].pDepthStencilAttachment = &depthAttachRef;
 
 	// subpass dependencies
     std::array<VkSubpassDependency, 4> dependencies{};
@@ -989,7 +988,7 @@ void VulkanRenderer::createGraphicsPipelines()
 	// UI pipeline
 	uiPipeline = GraphicsPipeline::create(device, renderPass, uiPipelineLayout, swapChainExtent,
 											  &standardInputBind, &standardAttrDesc, 1, uiModules, 3,
-											  VK_CULL_MODE_BACK_BIT, false, VK_COMPARE_OP_LESS_OR_EQUAL, true, true);
+											  VK_CULL_MODE_NONE, false, VK_COMPARE_OP_LESS_OR_EQUAL, true, true);
 }
 
 VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(const VkPipelineLayoutCreateInfo &createInfo) const
@@ -1469,7 +1468,15 @@ AssetId VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &im
 
 AssetId VulkanRenderer::loadTexture(const ImageData &imageData, TextureType type)
 {
-	VkFormat format = type == TextureType::RGBA_SRGB ? textureFormat : VK_FORMAT_R8_UNORM;
+	VkFormat format = textureFormat;
+	if (type == TextureType::FREETYPE_ATLAS)
+	{
+		format = VK_FORMAT_R8_UNORM;
+	}
+	else if (type == TextureType::RGBA_UNORM)
+	{
+		format = VK_FORMAT_R8G8B8A8_UNORM;
+	}
 	const size_t bytesPerPixel = imageData.colorComponents;
 
 	// calculate size of buffer and generate the staging buffer
@@ -2063,12 +2070,17 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 				// draw the vertex data
 				const Primitive &primitive = assetSet.primitives.get(instance.primitiveId);
 				const PrimitiveBuffers &primitiveBuffers = primitives.get(primitive.bufferId);
+
+				// TODO: Group bind/draw commands by buffer ID as well
 				const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
 				const std::array<VkDeviceSize, buffers.size()> offsets = {0};
-
 				vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
+
+				VkDeviceSize indexOffset = instance.indexOffset;
+				uint32_t indexCount = instance.indexCount == 0 ? primitive.indexCount() : instance.indexCount;
 				vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
-				vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(primitive.indexCount()), 1, 0, 0, 0);
+
+				vkCmdDrawIndexed(commandBuffer, indexCount, 1, indexOffset, instance.vertexOffset, 0);
 			}
 		}
 	}

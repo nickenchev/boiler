@@ -24,7 +24,8 @@ namespace Boiler
 enum class TextureType
 {
 	FREETYPE_ATLAS,
-	RGBA_SRGB
+	RGBA_SRGB,
+	RGBA_UNORM
 };
 
 enum class RenderStage

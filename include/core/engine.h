@@ -17,7 +17,6 @@
 #include "display/systems/rendersystem.h"
 #include "display/systems/glyphsystem.h"
 #include "display/systems/guisystem.h"
-#include "gui/guihandler.h"
 #include "logger.h"
 #include "animation/common.h"
 #include "animation/animator.h"
@@ -57,7 +56,6 @@ public:
     void operator=(const Engine &s) = delete;
 
     void initialize(const Size &initialSize);
-    void initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &initialSize);
 	void shutdown();
     void start(std::shared_ptr<Part> part);
     void run();

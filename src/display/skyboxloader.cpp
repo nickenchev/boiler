@@ -1,6 +1,7 @@
 #include <array>
 
 #include "core/engine.h"
+#include "display/renderer.h"
 #include "display/skyboxloader.h"
 #include "display/vertexdata.h"
 #include "display/imaging/imageloader.h"

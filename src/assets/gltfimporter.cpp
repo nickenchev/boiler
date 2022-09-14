@@ -7,6 +7,7 @@
 #include "core/engine.h"
 #include "core/components/rendercomponent.h"
 #include "core/components/transformcomponent.h"
+#include "display/renderer.h"
 #include "physics/collisioncomponent.h"
 #include "animation/components/animationcomponent.h"
 #include "gltf.h"

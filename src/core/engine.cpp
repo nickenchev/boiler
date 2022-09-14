@@ -55,11 +55,6 @@ Engine::~Engine()
 
 void Engine::initialize(const Size &initialSize)
 {
-	initialize(nullptr, initialSize);
-}
-
-void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &initialSize)
-{
 	//baseDataPath = std::string(SDL_GetBasePath());
 
 	// initialize basic engine stuff
@@ -99,16 +94,10 @@ void Engine::initialize(std::unique_ptr<GUIHandler> guiHandler, const Size &init
 	this->glyphSystem = &glyphSys;
 	*/
 
-	if (guiHandler)
-	{
-		logger.log("Initializing GUI handler");
-		guiHandler->initialize(*renderer);
-
-		System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(std::move(guiHandler))
-			.expects<GUIComponent>();
-		ecs.getComponentSystems().removeUpdate(guiSys);
-		this->guiSystem = &guiSys;
-	}
+	System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*renderer)
+		.expects<GUIComponent>();
+	ecs.getComponentSystems().removeUpdate(guiSys);
+	this->guiSystem = &guiSys;
 }
 
 void Engine::start(std::shared_ptr<Part> part)
@@ -265,6 +254,14 @@ void Engine::processEvents(FrameInfo &frameInfo)
 				frameInfo.mouseYDistance += event.motion.yrel;
 				break;
 			}
+			case SDL_MOUSEBUTTONDOWN:
+			{
+				break;
+			}
+			case SDL_MOUSEBUTTONUP:
+			{
+				break;
+			}
 			case SDL_KEYDOWN:
 			{
 				SDL_Keycode keyCode = event.key.keysym.sym;
@@ -279,8 +276,6 @@ void Engine::processEvents(FrameInfo &frameInfo)
 				frameInfo.keyInputEvents.addEvent(event);
 				break;
 			}
-			// GUI system needs to handle events independantly
-			static_cast<GUISystem *>(guiSystem)->processEvent(event);
 		}
 	}
 }

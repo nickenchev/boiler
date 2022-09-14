@@ -73,8 +73,6 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/physics/collisioncomponent.h
   ${INCLUDE_BASE}/physics/movementsystem.h
   ${INCLUDE_BASE}/camera/camerasystem.h
-  ${INCLUDE_BASE}/gui/guihandler.h
-  ${INCLUDE_BASE}/gui/imguivulkan.h
 )
 
 # Engine related sources
@@ -116,7 +114,6 @@ set(BOILER_SOURCES
   ${SRC_BASE}/display/systems/rendersystem.cpp
   #${SRC_BASE}/display/systems/glyphsystem.cpp
   ${SRC_BASE}/display/systems/textsystem.cpp
-  ${SRC_BASE}/display/systems/guisystem.cpp
   ${SRC_BASE}/display/systems/lightingsystem.cpp
   ${SRC_BASE}/animation/systems/animationsystem.cpp
   ${SRC_BASE}/display/glyphmap.cpp
@@ -133,7 +130,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/camera/camerasystem.cpp
   ${SRC_BASE}/input/inputsystem.cpp
   # ImGui
-  ${SRC_BASE}/gui/imguivulkan.cpp
+  ${SRC_BASE}/display/systems/guisystem.cpp
   ${SRC_BASE}/ext/imgui/imgui.cpp
   ${SRC_BASE}/ext/imgui/imgui_draw.cpp
   ${SRC_BASE}/ext/imgui/imgui_tables.cpp
