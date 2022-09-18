@@ -782,7 +782,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	VkAttachmentDescription albedoAttachment = createAttachment(albedoFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	VkAttachmentDescription normalAttachment = createAttachment(normalFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	VkAttachmentDescription colorAttachment = createAttachment(swapChainFormat, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	VkAttachmentDescription depthAttachment = createAttachment(findDepthFormat(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -877,7 +877,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 			.srcSubpass = 1,
 			.dstSubpass = 3,
 			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
 			.dependencyFlags = 0
@@ -886,7 +886,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 			.srcSubpass = 2,
 			.dstSubpass = 3,
 			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
 			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
 			.dependencyFlags = 0
@@ -989,10 +989,6 @@ void VulkanRenderer::createGraphicsPipelines()
 	});
 
 	// pipeline for g-buffer
-	// gBufferPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
-	// 										   &standardInputBind, &standardAttrDesc, 3, gBufferModules,
-	// 										   0, VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS, true, true);
-
 	gBufferPipeline = GraphicsPipelineBuilder<3>(device, gBuffersPipelineLayout)
 		.assembly(&standardInputBind, &standardAttrDesc)
 		.viewport(true, swapChainExtent)
@@ -1004,9 +1000,6 @@ void VulkanRenderer::createGraphicsPipelines()
 		.renderPass(renderPass, 0)
 		.build();
 
-	// gBufferNoTexPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
-	// 												&standardInputBind, &standardAttrDesc, 3, gBufferModules,
-	// 												0, VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS, true, false);
 	gBufferNoTexPipeline = GraphicsPipelineBuilder<3>(device, gBuffersPipelineLayout)
 		.assembly(&standardInputBind, &standardAttrDesc)
 		.viewport(true, swapChainExtent)
@@ -1019,10 +1012,6 @@ void VulkanRenderer::createGraphicsPipelines()
 		.build();
 
 	// pipeline for deferred final output
-	// deferredPipeline = GraphicsPipeline::create(device, renderPass, deferredPipelineLayout, swapChainExtent,
-	// 											nullptr, nullptr, 1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT,
-	// 											false, VK_COMPARE_OP_LESS, false, true);
-
 	deferredPipeline = GraphicsPipelineBuilder<1>(device, deferredPipelineLayout)
 		.assembly(nullptr, nullptr)
 		.viewport(false, swapChainExtent)
@@ -1035,10 +1024,6 @@ void VulkanRenderer::createGraphicsPipelines()
 		.build();
 
 	// skybox pipeline
-	// skyboxPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
-	// 										  &standardInputBind, &standardAttrDesc, 1, skyboxModules, 2,
-	// 										  VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS_OR_EQUAL, true, true);
-
 	skyboxPipeline = GraphicsPipelineBuilder<1>(device, gBuffersPipelineLayout)
 		.assembly(&standardInputBind, &standardAttrDesc)
 		.viewport(true, swapChainExtent)
@@ -1051,11 +1036,6 @@ void VulkanRenderer::createGraphicsPipelines()
 		.build();
 
 	// UI pipeline
-	// uiPipeline = GraphicsPipeline::create(device, renderPass, uiPipelineLayout, swapChainExtent,
-	// 									  &standardInputBind, &standardAttrDesc, 1, uiModules, 3,
-	// 									  VK_CULL_MODE_NONE, false, VK_COMPARE_OP_LESS_OR_EQUAL,
-	// 									  true, true, &dynaInfo);
-
 	std::array<VkDynamicState, 1> dynamicStates{ VK_DYNAMIC_STATE_SCISSOR };
 	uiPipeline = GraphicsPipelineBuilder<1>(device, uiPipelineLayout)
 		.assembly(&standardInputBind, &standardAttrDesc)
