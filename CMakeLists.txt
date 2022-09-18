@@ -53,6 +53,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/display/imaging/skyboximages.h
   ${INCLUDE_BASE}/assets/gltfimporter.h
   ${INCLUDE_BASE}/display/vulkan/graphicspipeline.h
+  ${INCLUDE_BASE}/display/vulkan/graphicspipelinebuilder.h
   ${INCLUDE_BASE}/display/vulkan/shaderstagemodules.h
   ${INCLUDE_BASE}/display/skyboxloader.h
   ${INCLUDE_BASE}/input/inputsystem.h

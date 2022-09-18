@@ -51,6 +51,7 @@ class Renderer
     vec3 clearColor;
     vec2 globalScale;
 	AssetId assetId;
+	unsigned short maxFramesInFlight;
 
 protected:
 	Logger logger;
@@ -63,7 +64,7 @@ protected:
 	AssetSet assetSet;
 
 public:
-    Renderer(std::string name);
+    Renderer(std::string name, unsigned short maxFramesInflight);
 	virtual ~Renderer() { }
 
     virtual void initialize(const Size &size);
@@ -86,7 +87,7 @@ public:
 
     virtual AssetId loadTexture(const ImageData &imageData, TextureType type) = 0;
 	virtual AssetId loadCubemap(const std::array<ImageData, 6> &images) = 0;
-	virtual AssetId loadPrimitive(const VertexData &data) = 0;
+	virtual AssetId loadPrimitive(const VertexData &data, AssetId existingId = Asset::NO_ASSET) = 0;
 
 	virtual void updateLights(const std::vector<LightSource> &lightSources) = 0;
 	virtual void updateMaterials(const std::vector<ShaderMaterial> &materials) const = 0;
@@ -95,6 +96,7 @@ public:
 	virtual void render(AssetSet &assetSet, const FrameInfo &frameInfo,
 						const std::vector<MaterialGroup> &materialGroups, RenderStage stage) = 0;
 	virtual void displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet) = 0;
+	unsigned short getMaxFramesInFlight() const { return maxFramesInFlight; }
 };
 
 }

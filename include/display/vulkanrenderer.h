@@ -16,7 +16,7 @@ struct SDL_Window;
 #include "display/vulkan/primitivebuffers.h"
 #include "display/vulkan/textureimage.h"
 #include "display/vulkan/shaderstagemodules.h"
-#include "display/vulkan/graphicspipeline.h"
+#include "display/vulkan/graphicspipelinebuilder.h"
 #include "display/vulkan/descriptorset.h"
 #include "display/vulkan/sampler.h"
 
@@ -183,7 +183,7 @@ public:
 
     AssetId loadTexture(const ImageData &imageData, TextureType type) override;
 	AssetId loadCubemap(const std::array<ImageData, 6> &images) override;
-	AssetId loadPrimitive(const VertexData &data) override;
+	AssetId loadPrimitive(const VertexData &data, AssetId existingId = Asset::NO_ASSET) override;
 
 	bool prepareFrame(const FrameInfo &frameInfo) override;
 	void render(AssetSet &assetSet, const FrameInfo &frameInfo,

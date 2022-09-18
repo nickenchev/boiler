@@ -39,7 +39,6 @@ using namespace Boiler::Vulkan;
 constexpr bool enableDebugMessages = true;
 //constexpr VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 constexpr VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_FIFO_KHR;
-constexpr unsigned int maxFramesInFlight = 3;
 constexpr unsigned int maxLights = 64;
 constexpr unsigned int maxMaterials = 512;
 constexpr unsigned int maxSamplers = 1;
@@ -67,7 +66,7 @@ Function getFunctionPointer(VkInstance instance, std::string funcName)
 	return func;
 }
 
-VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtensions, bool enableValidationLayers) : Renderer("Vulkan Renderer")
+VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtensions, bool enableValidationLayers) : Renderer("Vulkan Renderer", 3)
 {
 	this->enableValidationLayers = enableValidationLayers;
 	cleanedUp = false;
@@ -255,7 +254,7 @@ void VulkanRenderer::shutdown()
 	logger.log("Destroyed shader modules");
 	
 	// sync objects cleanup
-	for (unsigned int i = 0; i < maxFramesInFlight; ++i)
+	for (unsigned int i = 0; i < getMaxFramesInFlight(); ++i)
 	{
 		vkDestroySemaphore(device, imageSemaphores[i], nullptr);
 		vkDestroySemaphore(device, renderSemaphores[i], nullptr);
@@ -749,7 +748,7 @@ void VulkanRenderer::createSwapChain()
 	vkGetSwapchainImagesKHR(device, swapChain, &swapImagesCount, swapChainImages.data());
 	logger.log("Got {} swapchain images", swapImagesCount);
 
-	assert(maxFramesInFlight <= swapImagesCount);
+	assert(getMaxFramesInFlight() <= swapImagesCount);
 
 	swapChainFormat = selectedFormat.format;
 	swapChainExtent = surfaceExtent;
@@ -783,10 +782,15 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	VkAttachmentDescription albedoAttachment = createAttachment(albedoFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	VkAttachmentDescription normalAttachment = createAttachment(normalFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	VkAttachmentDescription colorAttachment = createAttachment(swapChainFormat, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	VkAttachmentDescription depthAttachment = createAttachment(findDepthFormat(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+
+	// framebuffer attachments
+	std::array<VkAttachmentDescription, 5> attachments = {
+		colorAttachment, depthAttachment, positionAttachment, albedoAttachment, normalAttachment
+	};
 
 	std::array<VkAttachmentReference, 3> colorAttachmentRefs{};
 	colorAttachmentRefs[0].attachment = 2; // positions
@@ -839,44 +843,58 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpasses[3].pColorAttachments = &swapColorAttachRef;
 
 	// subpass dependencies
-    std::array<VkSubpassDependency, 4> dependencies{};
-    dependencies[0].srcSubpass = 0;
-    dependencies[0].dstSubpass = 1;
-    dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependencies[0].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    dependencies[0].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    dependencies[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-    dependencies[0].dependencyFlags = 0;
-
-    dependencies[1].srcSubpass = 1;
-    dependencies[1].dstSubpass = 2;
-    dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    dependencies[1].dependencyFlags = 0;
-
-    dependencies[2].srcSubpass = 2;
-    dependencies[2].dstSubpass = 3;
-    dependencies[2].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependencies[2].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    dependencies[2].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependencies[2].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    dependencies[2].dependencyFlags = 0;
- 
-	// depth buffer between first -> skybox subpasses
-    dependencies[3].srcSubpass = 0;
-    dependencies[3].dstSubpass = 2;
-	dependencies[3].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-    dependencies[3].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	dependencies[3].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependencies[3].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-    dependencies[3].dependencyFlags = 0;
-
-	// create the render pass
-	std::array<VkAttachmentDescription, 5> attachments = {
-		colorAttachment, depthAttachment, positionAttachment, albedoAttachment, normalAttachment
+    std::array<VkSubpassDependency, 5> dependencies
+	{
+		VkSubpassDependency
+		{
+			.srcSubpass = 0,
+			.dstSubpass = 1,
+			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+			.dependencyFlags = 0
+		},
+		{
+			.srcSubpass = 1,
+			.dstSubpass = 2,
+			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.dependencyFlags = 0
+		},
+		{
+			.srcSubpass = 0,
+			.dstSubpass = 2,
+			.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+			.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+			.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
+			.dependencyFlags = 0
+		},
+		{
+			.srcSubpass = 1,
+			.dstSubpass = 3,
+			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+			.dependencyFlags = 0
+		},
+		{
+			.srcSubpass = 2,
+			.dstSubpass = 3,
+			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+			.dependencyFlags = 0
+		}
 	};
+
+ 
+	// create the render pass
 	VkRenderPassCreateInfo renderPassCreateInfo = {};
 	renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	renderPassCreateInfo.attachmentCount = attachments.size();
@@ -971,24 +989,85 @@ void VulkanRenderer::createGraphicsPipelines()
 	});
 
 	// pipeline for g-buffer
-	gBufferPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
-											   &standardInputBind, &standardAttrDesc, 3, gBufferModules,
-											   0, VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS, true, true);
-	gBufferNoTexPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
-													&standardInputBind, &standardAttrDesc, 3, gBufferModules,
-													0, VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS, true, false);
+	// gBufferPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
+	// 										   &standardInputBind, &standardAttrDesc, 3, gBufferModules,
+	// 										   0, VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS, true, true);
+
+	gBufferPipeline = GraphicsPipelineBuilder<3>(device, gBuffersPipelineLayout)
+		.assembly(&standardInputBind, &standardAttrDesc)
+		.viewport(true, swapChainExtent)
+		.rasterizer(VK_CULL_MODE_BACK_BIT)
+		.multisampling()
+		.blending({AttachmentBlendInfo { .enabled = false }, { .enabled = true }, { .enabled = false }})
+		.depth(true, VK_COMPARE_OP_LESS)
+		.shaderModules(gBufferModules, true)
+		.renderPass(renderPass, 0)
+		.build();
+
+	// gBufferNoTexPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
+	// 												&standardInputBind, &standardAttrDesc, 3, gBufferModules,
+	// 												0, VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS, true, false);
+	gBufferNoTexPipeline = GraphicsPipelineBuilder<3>(device, gBuffersPipelineLayout)
+		.assembly(&standardInputBind, &standardAttrDesc)
+		.viewport(true, swapChainExtent)
+		.rasterizer(VK_CULL_MODE_BACK_BIT)
+		.multisampling()
+		.blending({AttachmentBlendInfo { .enabled = false }, { .enabled = true }, { .enabled = false }})
+		.depth(true, VK_COMPARE_OP_LESS)
+		.shaderModules(gBufferModules, false)
+		.renderPass(renderPass, 0)
+		.build();
+
 	// pipeline for deferred final output
-	deferredPipeline = GraphicsPipeline::create(device, renderPass, deferredPipelineLayout, swapChainExtent,
-												nullptr, nullptr, 1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT,
-												false, VK_COMPARE_OP_LESS, false, true);
+	// deferredPipeline = GraphicsPipeline::create(device, renderPass, deferredPipelineLayout, swapChainExtent,
+	// 											nullptr, nullptr, 1, deferredModules, 1, VK_CULL_MODE_FRONT_BIT,
+	// 											false, VK_COMPARE_OP_LESS, false, true);
+
+	deferredPipeline = GraphicsPipelineBuilder<1>(device, deferredPipelineLayout)
+		.assembly(nullptr, nullptr)
+		.viewport(false, swapChainExtent)
+		.rasterizer(VK_CULL_MODE_FRONT_BIT)
+		.multisampling()
+		.blending({AttachmentBlendInfo { .enabled = false }})
+		.depth(true, VK_COMPARE_OP_LESS)
+		.shaderModules(deferredModules, false)
+		.renderPass(renderPass, 1)
+		.build();
+
 	// skybox pipeline
-	skyboxPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
-											  &standardInputBind, &standardAttrDesc, 1, skyboxModules, 2,
-											  VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS_OR_EQUAL, true, true);
+	// skyboxPipeline = GraphicsPipeline::create(device, renderPass, gBuffersPipelineLayout, swapChainExtent,
+	// 										  &standardInputBind, &standardAttrDesc, 1, skyboxModules, 2,
+	// 										  VK_CULL_MODE_BACK_BIT, true, VK_COMPARE_OP_LESS_OR_EQUAL, true, true);
+
+	skyboxPipeline = GraphicsPipelineBuilder<1>(device, gBuffersPipelineLayout)
+		.assembly(&standardInputBind, &standardAttrDesc)
+		.viewport(true, swapChainExtent)
+		.rasterizer(VK_CULL_MODE_BACK_BIT)
+		.multisampling()
+		.blending({AttachmentBlendInfo { .enabled = false }})
+		.depth(true, VK_COMPARE_OP_LESS_OR_EQUAL)
+		.shaderModules(skyboxModules, true)
+		.renderPass(renderPass, 2)
+		.build();
+
 	// UI pipeline
-	uiPipeline = GraphicsPipeline::create(device, renderPass, uiPipelineLayout, swapChainExtent,
-											  &standardInputBind, &standardAttrDesc, 1, uiModules, 3,
-											  VK_CULL_MODE_NONE, false, VK_COMPARE_OP_LESS_OR_EQUAL, true, true);
+	// uiPipeline = GraphicsPipeline::create(device, renderPass, uiPipelineLayout, swapChainExtent,
+	// 									  &standardInputBind, &standardAttrDesc, 1, uiModules, 3,
+	// 									  VK_CULL_MODE_NONE, false, VK_COMPARE_OP_LESS_OR_EQUAL,
+	// 									  true, true, &dynaInfo);
+
+	std::array<VkDynamicState, 1> dynamicStates{ VK_DYNAMIC_STATE_SCISSOR };
+	uiPipeline = GraphicsPipelineBuilder<1>(device, uiPipelineLayout)
+		.assembly(&standardInputBind, &standardAttrDesc)
+		.viewport(true, swapChainExtent)
+		.rasterizer(VK_CULL_MODE_NONE)
+		.multisampling()
+		.blending({AttachmentBlendInfo { .enabled = true }})
+		.depth(false, VK_COMPARE_OP_LESS_OR_EQUAL)
+		.shaderModules(uiModules, true)
+		.renderPass(renderPass, 3)
+		.dynamicState(&dynamicStates)
+		.build();
 }
 
 VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(const VkPipelineLayoutCreateInfo &createInfo) const
@@ -1036,7 +1115,7 @@ void VulkanRenderer::createFramebuffers()
 
 void VulkanRenderer::createDescriptorSets()
 {
-	const int frames = maxFramesInFlight;
+	const int frames = getMaxFramesInFlight();
 	// render pass - per frame
 	renderDescriptors.setMaxSets(frames);
 	std::array<VkDescriptorSetLayoutBinding, 3> renderBindings{};
@@ -1158,13 +1237,13 @@ VkCommandPool VulkanRenderer::createCommandPools(const QueueFamilyIndices &queue
 
 void VulkanRenderer::createCommandBuffers()
 {
-	commandBuffers.resize(maxFramesInFlight);
+	commandBuffers.resize(getMaxFramesInFlight());
 
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandPool = commandPool;
-	allocInfo.commandBufferCount = static_cast<uint32_t>(maxFramesInFlight);
+	allocInfo.commandBufferCount = static_cast<uint32_t>(getMaxFramesInFlight());
 
 	if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS)
 	{
@@ -1181,13 +1260,13 @@ void VulkanRenderer::createCommandBuffers()
 
 void VulkanRenderer::createSecondaryCommandBuffers(std::vector<VkCommandBuffer> &secondaryBuffers)
 {
-	secondaryBuffers.resize(maxFramesInFlight);
+	secondaryBuffers.resize(getMaxFramesInFlight());
 
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 	allocInfo.commandPool = commandPool;
-	allocInfo.commandBufferCount = static_cast<uint32_t>(maxFramesInFlight);
+	allocInfo.commandBufferCount = static_cast<uint32_t>(getMaxFramesInFlight());
 
 	if (vkAllocateCommandBuffers(device, &allocInfo, secondaryBuffers.data()) != VK_SUCCESS)
 	{
@@ -1198,9 +1277,9 @@ void VulkanRenderer::createSecondaryCommandBuffers(std::vector<VkCommandBuffer> 
 
 void VulkanRenderer::createSynchronization()
 {
-	imageSemaphores.resize(maxFramesInFlight);
-	renderSemaphores.resize(maxFramesInFlight);
-	frameFences.resize(maxFramesInFlight);
+	imageSemaphores.resize(getMaxFramesInFlight());
+	renderSemaphores.resize(getMaxFramesInFlight());
+	frameFences.resize(getMaxFramesInFlight());
 
 	VkSemaphoreCreateInfo semaphoreCreateInfo = {};
 	semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -1209,7 +1288,7 @@ void VulkanRenderer::createSynchronization()
 	fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	for (unsigned int i = 0; i < maxFramesInFlight; ++i)
+	for (unsigned int i = 0; i < getMaxFramesInFlight(); ++i)
 	{
 		if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &imageSemaphores[i]) != VK_SUCCESS ||
 			vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &renderSemaphores[i]) != VK_SUCCESS ||
@@ -1723,21 +1802,31 @@ BufferInfo VulkanRenderer::createGPUBuffer(void *data, long size, VkBufferUsageF
 								   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	copyBuffer(stageBufferInfo.buffer, bufferInfo.buffer, bufferInfo.size);
-
-	vkDestroyBuffer(device, stageBufferInfo.buffer, nullptr);
-	vkFreeMemory(device, stageBufferInfo.memory, nullptr);
+	freeBuffer(stageBufferInfo);
 
 	return bufferInfo;
 }
 
-AssetId VulkanRenderer::loadPrimitive(const VertexData &data)
+AssetId VulkanRenderer::loadPrimitive(const VertexData &data, AssetId existingId)
 {
-	// primitive buffers
 	auto vertexBuffer = createGPUBuffer((void *)data.vertexBegin(), data.vertexByteSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 	auto indexBuffer = createGPUBuffer((void *)data.indexBegin(), data.indexByteSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
-	AssetId primBuffId = primitives.add(PrimitiveBuffers(vertexBuffer, indexBuffer));
-	logger.log("Loaded primitive with asset-id: {}", primBuffId);
+	AssetId primBuffId = existingId;
+	if (primBuffId == Asset::NO_ASSET)
+	{
+		primBuffId = primitives.add(PrimitiveBuffers(vertexBuffer, indexBuffer));
+	}
+	else
+	{
+		// delete existing buffers and set the new ones in their place
+		PrimitiveBuffers &primitiveBuffers = primitives.get(primBuffId);
+		freeBuffer(primitiveBuffers.getVertexBuffer());
+		freeBuffer(primitiveBuffers.getIndexBuffer());
+
+		primitiveBuffers.setBuffers(vertexBuffer, indexBuffer);
+	}
+
 	return primBuffId;
 }
 
@@ -2076,11 +2165,25 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 				const std::array<VkDeviceSize, buffers.size()> offsets = {0};
 				vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
 
-				VkDeviceSize indexOffset = instance.indexOffset;
 				uint32_t indexCount = instance.indexCount == 0 ? primitive.indexCount() : instance.indexCount;
 				vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
 
-				vkCmdDrawIndexed(commandBuffer, indexCount, 1, indexOffset, instance.vertexOffset, 0);
+				// apply scissors if needed
+				if (instance.shouldClip)
+				{
+					assert(stage == RenderStage::UI);
+
+					std::array<VkRect2D, 1> scissors{};
+					scissors[0].offset.x = instance.clip.position.x;
+					scissors[0].offset.y = instance.clip.position.y;
+					scissors[0].extent.width = instance.clip.size.width;
+					scissors[0].extent.height = instance.clip.size.height;
+					vkCmdSetScissor(commandBuffer, 0, scissors.size(), scissors.data());
+				}
+
+				vkCmdDrawIndexed(commandBuffer, indexCount, 1,
+								 instance.indexBufferStart + instance.indexOffset,
+								 instance.vertexBufferStart + instance.vertexOffset, 0);
 			}
 		}
 	}

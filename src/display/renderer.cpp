@@ -2,10 +2,11 @@
 
 using namespace Boiler;
 
-Renderer::Renderer(std::string name) : clearColor(0, 0, 0), globalScale(1.0f, 1.0f), logger(name)
+Renderer::Renderer(std::string name, unsigned short maxFramesInFlight) : clearColor(0, 0, 0), globalScale(1.0f, 1.0f), logger(name)
 {
 	assetId = 0;
 	frameLightIdx = 0;
+	this->maxFramesInFlight = maxFramesInFlight;
 }
 
 void Renderer::initialize(const Size &size)

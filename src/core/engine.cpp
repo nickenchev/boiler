@@ -252,25 +252,33 @@ void Engine::processEvents(FrameInfo &frameInfo)
 			{
 				frameInfo.mouseXDistance += event.motion.xrel;
 				frameInfo.mouseYDistance += event.motion.yrel;
+				static_cast<GUISystem *>(guiSystem)->mouseMove(event.motion.x, event.motion.y);
 				break;
 			}
 			case SDL_MOUSEBUTTONDOWN:
 			{
+				static_cast<GUISystem *>(guiSystem)->mouseButton(event.button.button, true);
 				break;
 			}
 			case SDL_MOUSEBUTTONUP:
 			{
+				static_cast<GUISystem *>(guiSystem)->mouseButton(event.button.button, false);
 				break;
 			}
 			case SDL_KEYDOWN:
 			{
+				//static_cast<GUISystem *>(guiSystem)->keyEvent(event.key.keysym.scancode, true);
+
 				SDL_Keycode keyCode = event.key.keysym.sym;
 				KeyInputEvent event(keyCode, ButtonState::DOWN);
 				frameInfo.keyInputEvents.addEvent(event);
+
 				break;
 			}
 			case SDL_KEYUP:
 			{
+				//static_cast<GUISystem *>(guiSystem)->keyEvent(event.key.keysym.scancode, false);
+
 				SDL_Keycode keyCode = event.key.keysym.sym;
 				KeyInputEvent event(keyCode, ButtonState::UP);
 				frameInfo.keyInputEvents.addEvent(event);

@@ -1,6 +1,5 @@
 #include <array>
 #include "display/vulkan/graphicspipeline.h"
-#include "display/vulkan/shaderstagemodules.h"
 
 #include "core/logger.h"
 
@@ -8,7 +7,6 @@ static Boiler::Logger logger("Vulkan Graphics Pipeline");;
 
 using namespace Boiler::Vulkan;
 
-const std::string GraphicsPipeline::SHADER_ENTRY = "main";
 
 GraphicsPipeline::GraphicsPipeline() : GraphicsPipeline(VK_NULL_HANDLE)
 {
@@ -19,6 +17,7 @@ GraphicsPipeline::GraphicsPipeline(VkPipeline pipeline)
 	this->pipeline = pipeline;
 }
 
+/*
 GraphicsPipeline GraphicsPipeline::create(VkDevice device, VkRenderPass renderPass, VkPipelineLayout pipelineLayout, VkExtent2D swapChainExtent,
 										  const VkVertexInputBindingDescription *inputBind, const std::vector<VkVertexInputAttributeDescription> *attrDescs,
 										  const int attachmentCount, const ShaderStageModules &shaderModules, int subpassIndex,
@@ -196,6 +195,7 @@ GraphicsPipeline GraphicsPipeline::create(VkDevice device, VkRenderPass renderPa
 
 	return GraphicsPipeline(pipeline);
 }
+*/
 
 void GraphicsPipeline::destroy(VkDevice device, const GraphicsPipeline &pipeline)
 {

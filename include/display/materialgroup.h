@@ -2,7 +2,8 @@
 #define MATERIALGROUP_H
 
 #include <vector>
-#include "display/primitive.h"
+#include "core/asset.h"
+#include "core/rect.h"
 
 namespace Boiler {
 
@@ -15,12 +16,16 @@ struct MaterialGroup
 		uint32_t indexCount;
 		uint32_t vertexOffset;
 		uint32_t indexOffset;
+		uint32_t vertexBufferStart;
+		uint32_t indexBufferStart;
+		Rect clip;
+		bool shouldClip;
 
 		PrimitiveInstance(AssetId primitiveId, AssetId matrixId) : PrimitiveInstance(primitiveId, matrixId, vec3(0), 0, 0, 0) { }
 
 		PrimitiveInstance(AssetId primitiveId, AssetId matrixId, vec3 drawOffset) : PrimitiveInstance(primitiveId, matrixId, drawOffset, 0, 0, 0) { }
 
-		PrimitiveInstance(AssetId primitiveId, AssetId matrixId, vec3 drawOffset, uint32_t indexCount, uint32_t vertexOffset, uint32_t indexOffset)
+		PrimitiveInstance(AssetId primitiveId, AssetId matrixId, vec3 drawOffset, uint32_t indexCount, uint32_t vertexOffset, uint32_t indexOffset, uint32_t vertexBufferStart = 0, uint32_t indexBufferStart = 0)
 		{
 			this->primitiveId = primitiveId;
 			this->matrixId = matrixId;
@@ -28,6 +33,9 @@ struct MaterialGroup
 			this->indexCount = indexCount;
 			this->vertexOffset = vertexOffset;
 			this->indexOffset = indexOffset;
+			this->vertexBufferStart = vertexBufferStart;
+			this->indexBufferStart = indexBufferStart;
+			this->shouldClip = false;
 		}
 	};
 	

@@ -20,6 +20,11 @@ public:
 
 	const BufferInfo &getVertexBuffer() const { return vertexBuffer; }
 	const BufferInfo &getIndexBuffer() const { return indexBuffer; }
+	void setBuffers(const BufferInfo &vertexBuffer, const BufferInfo &indexBuffer)
+	{
+		this->vertexBuffer = vertexBuffer;
+		this->indexBuffer = indexBuffer;
+	}
 };
 
 }}
