@@ -144,7 +144,7 @@ public:
 			colorBlendAttachState.blendEnable = VK_TRUE;
 			colorBlendAttachState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 			colorBlendAttachState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-			colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			colorBlendAttachState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 			colorBlendAttachState.colorBlendOp = VK_BLEND_OP_ADD;
 			colorBlendAttachState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 			colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
