@@ -212,6 +212,7 @@ void VulkanRenderer::shutdown()
 	// command buffers
 	vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
 	vkFreeCommandBuffers(device, commandPool, geometryCommandBuffers.size(), geometryCommandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, alphaCommandBuffers.size(), alphaCommandBuffers.data());
 	vkFreeCommandBuffers(device, commandPool, deferredCommandBuffers.size(), deferredCommandBuffers.data());
 	vkFreeCommandBuffers(device, commandPool, skyboxCommandBuffers.size(), skyboxCommandBuffers.data());
 	vkFreeCommandBuffers(device, commandPool, uiCommandBuffers.size(), uiCommandBuffers.data());
@@ -817,38 +818,52 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	depthAttachRef.attachment = 1;
 	depthAttachRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	std::array<VkSubpassDescription, 4> subpasses{};
+	std::array<VkSubpassDescription, 5> subpasses{};
 	// gbuffer subpass
 	subpasses[0].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[0].colorAttachmentCount = colorAttachmentRefs.size();
 	subpasses[0].pColorAttachments = colorAttachmentRefs.data();
 	subpasses[0].pDepthStencilAttachment = &depthAttachRef;
+	// alpha subpass
+	subpasses[1].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpasses[1].colorAttachmentCount = colorAttachmentRefs.size();
+	subpasses[1].pColorAttachments = colorAttachmentRefs.data();
+	subpasses[1].pDepthStencilAttachment = &depthAttachRef;
 	// deferred subpass
 	std::array<uint32_t, 1> gbuffPreserve = {1}; // preserve depth-buffer
-	subpasses[1].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpasses[1].colorAttachmentCount = 1;
-	subpasses[1].pColorAttachments = &swapColorAttachRef;
-	subpasses[1].inputAttachmentCount = inputColorAttachRefs.size();
-	subpasses[1].pInputAttachments = inputColorAttachRefs.data();
-	subpasses[1].preserveAttachmentCount = gbuffPreserve.size();
-	subpasses[1].pPreserveAttachments = gbuffPreserve.data();
-	// skybox subpass
 	subpasses[2].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[2].colorAttachmentCount = 1;
 	subpasses[2].pColorAttachments = &swapColorAttachRef;
-	subpasses[2].pDepthStencilAttachment = &depthAttachRef;
-	// ui subpass
+	subpasses[2].inputAttachmentCount = inputColorAttachRefs.size();
+	subpasses[2].pInputAttachments = inputColorAttachRefs.data();
+	subpasses[2].preserveAttachmentCount = gbuffPreserve.size();
+	subpasses[2].pPreserveAttachments = gbuffPreserve.data();
+	// skybox subpass
 	subpasses[3].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[3].colorAttachmentCount = 1;
 	subpasses[3].pColorAttachments = &swapColorAttachRef;
+	subpasses[3].pDepthStencilAttachment = &depthAttachRef;
+	// ui subpass
+	subpasses[4].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpasses[4].colorAttachmentCount = 1;
+	subpasses[4].pColorAttachments = &swapColorAttachRef;
 
 	// subpass dependencies
-    std::array<VkSubpassDependency, 3> dependencies
+    std::array<VkSubpassDependency, 4> dependencies
 	{
 		VkSubpassDependency
 		{
 			.srcSubpass = 0,
 			.dstSubpass = 1,
+			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+			.dependencyFlags = 0
+		},
+		{
+			.srcSubpass = 1,
+			.dstSubpass = 2,
 			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 			.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -856,8 +871,8 @@ VkRenderPass VulkanRenderer::createRenderPass()
 			.dependencyFlags = 0
 		},
 		{
-			.srcSubpass = 1,
-			.dstSubpass = 2,
+			.srcSubpass = 2,
+			.dstSubpass = 3,
 			.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
 			.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
 			.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
@@ -865,8 +880,8 @@ VkRenderPass VulkanRenderer::createRenderPass()
 			.dependencyFlags = 0
 		},
 		{
-			.srcSubpass = 2,
-			.dstSubpass = 3,
+			.srcSubpass = 3,
+			.dstSubpass = 4,
 			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -976,7 +991,7 @@ void VulkanRenderer::createGraphicsPipelines()
 		.viewport(true, swapChainExtent)
 		.rasterizer(VK_CULL_MODE_BACK_BIT)
 		.multisampling()
-		.blending({AttachmentBlendInfo { .enabled = false }, { .enabled = true }, { .enabled = false }})
+		.blending({AttachmentBlendInfo { .enabled = false }, { .enabled = false }, { .enabled = false }})
 		.depth(true, VK_COMPARE_OP_LESS)
 		.shaderModules(gBufferModules, true)
 		.renderPass(renderPass, 0)
@@ -993,6 +1008,17 @@ void VulkanRenderer::createGraphicsPipelines()
 		.renderPass(renderPass, 0)
 		.build();
 
+	alphaBufferPipeline = GraphicsPipelineBuilder<3>(device, gBuffersPipelineLayout)
+		.assembly(&standardInputBind, &standardAttrDesc)
+		.viewport(true, swapChainExtent)
+		.rasterizer(VK_CULL_MODE_BACK_BIT)
+		.multisampling()
+		.blending({AttachmentBlendInfo { .enabled = false }, { .enabled = true }, { .enabled = false }})
+		.depth(true, VK_COMPARE_OP_LESS)
+		.shaderModules(gBufferModules, true)
+		.renderPass(renderPass, 1)
+		.build();
+
 	// pipeline for deferred final output
 	deferredPipeline = GraphicsPipelineBuilder<1>(device, deferredPipelineLayout)
 		.assembly(nullptr, nullptr)
@@ -1002,7 +1028,7 @@ void VulkanRenderer::createGraphicsPipelines()
 		.blending({AttachmentBlendInfo { .enabled = false }})
 		.depth(true, VK_COMPARE_OP_LESS)
 		.shaderModules(deferredModules, false)
-		.renderPass(renderPass, 1)
+		.renderPass(renderPass, 2)
 		.build();
 
 	// skybox pipeline
@@ -1014,7 +1040,7 @@ void VulkanRenderer::createGraphicsPipelines()
 		.blending({AttachmentBlendInfo { .enabled = false }})
 		.depth(true, VK_COMPARE_OP_LESS_OR_EQUAL)
 		.shaderModules(skyboxModules, true)
-		.renderPass(renderPass, 2)
+		.renderPass(renderPass, 3)
 		.build();
 
 	// UI pipeline
@@ -1027,7 +1053,7 @@ void VulkanRenderer::createGraphicsPipelines()
 		.blending({AttachmentBlendInfo { .enabled = true }})
 		.depth(false, VK_COMPARE_OP_LESS_OR_EQUAL)
 		.shaderModules(uiModules, true)
-		.renderPass(renderPass, 3)
+		.renderPass(renderPass, 4)
 		.dynamicState(&dynamicStates)
 		.build();
 }
@@ -1215,6 +1241,7 @@ void VulkanRenderer::createCommandBuffers()
 	logger.log("Allocated {} command buffers", commandBuffers.size());
 
 	createSecondaryCommandBuffers(geometryCommandBuffers);
+	createSecondaryCommandBuffers(alphaCommandBuffers);
 	createSecondaryCommandBuffers(deferredCommandBuffers);
 	createSecondaryCommandBuffers(skyboxCommandBuffers);
 	createSecondaryCommandBuffers(uiCommandBuffers);
@@ -1373,6 +1400,7 @@ void VulkanRenderer::cleanupSwapchain()
 	// clean up graphics pipeline
 	GraphicsPipeline::destroy(device, gBufferPipeline);
 	GraphicsPipeline::destroy(device, gBufferNoTexPipeline);
+	GraphicsPipeline::destroy(device, alphaBufferPipeline);
 	GraphicsPipeline::destroy(device, skyboxPipeline);
 	GraphicsPipeline::destroy(device, deferredPipeline);
 	GraphicsPipeline::destroy(device, uiPipeline);
@@ -1863,6 +1891,7 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		const VkCommandBuffer commandBuffer = commandBuffers[frameInfo.currentFrame];
 		vkResetCommandBuffer(commandBuffers[frameInfo.currentFrame], 0);
 		vkResetCommandBuffer(geometryCommandBuffers[frameInfo.currentFrame], 0);
+		vkResetCommandBuffer(alphaCommandBuffers[frameInfo.currentFrame], 0);
 		vkResetCommandBuffer(deferredCommandBuffers[frameInfo.currentFrame], 0);
 		vkResetCommandBuffer(skyboxCommandBuffers[frameInfo.currentFrame], 0);
 		vkResetCommandBuffer(uiCommandBuffers[frameInfo.currentFrame], 0);
@@ -1899,9 +1928,10 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 
 		// begin the secondary command buffers for various subpasses
 		beginSecondaryCommandBuffer(geometryCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 0);
-		beginSecondaryCommandBuffer(deferredCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 1);
-		beginSecondaryCommandBuffer(skyboxCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 2);
-		beginSecondaryCommandBuffer(uiCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 3);
+		beginSecondaryCommandBuffer(alphaCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 1);
+		beginSecondaryCommandBuffer(deferredCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 2);
+		beginSecondaryCommandBuffer(skyboxCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 3);
+		beginSecondaryCommandBuffer(uiCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 4);
 
 		// update the descriptor sets for this frame / buffers are updated later
 		static std::array<VkDescriptorSet, 2> descriptorSets{};
@@ -2078,6 +2108,11 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 		if (group.materialId != Asset::NO_ASSET)
 		{
 			const Material &material = assetSet.materials.get(group.materialId);
+			if (material.alphaMode == AlphaMode::BLEND)
+			{
+				pipeline = alphaBufferPipeline.vulkanPipeline();
+				commandBuffer = alphaCommandBuffers[currentFrame];
+			}
 			const uint32_t descriptorIndex = (currentFrame * maxMaterials) + group.materialId; // TODO: Careful using ID as index
 			descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
 			const int bindDescCount = descriptorSets.size();
@@ -2173,6 +2208,10 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 		{
 			throw std::runtime_error("Error ending the command buffer");
 		}
+		if (vkEndCommandBuffer(alphaCommandBuffers[frameInfo.currentFrame]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Error ending the command buffer");
+		}
 		if (vkEndCommandBuffer(deferredCommandBuffers[frameInfo.currentFrame]) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Error ending the command buffer");
@@ -2188,6 +2227,8 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 
 		// sequence primary command buffer
 		vkCmdExecuteCommands(commandBuffer, 1, &geometryCommandBuffers[frameInfo.currentFrame]);
+		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+		vkCmdExecuteCommands(commandBuffer, 1, &alphaCommandBuffers[frameInfo.currentFrame]);
 		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 		vkCmdExecuteCommands(commandBuffer, 1, &deferredCommandBuffers[frameInfo.currentFrame]);
 		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);

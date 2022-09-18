@@ -95,11 +95,11 @@ class VulkanRenderer : public Boiler::Renderer
 	DescriptorSet renderDescriptors, materialDescriptors, deferredDescriptors;
 
 	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout, uiPipelineLayout;
-	GraphicsPipeline skyboxPipeline, gBufferPipeline, gBufferNoTexPipeline, deferredPipeline, uiPipeline;
+	GraphicsPipeline skyboxPipeline, gBufferPipeline, alphaBufferPipeline, gBufferNoTexPipeline, deferredPipeline, uiPipeline;
 
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;
-	std::vector<VkCommandBuffer> commandBuffers, geometryCommandBuffers, deferredCommandBuffers, skyboxCommandBuffers, uiCommandBuffers;
+	std::vector<VkCommandBuffer> commandBuffers, geometryCommandBuffers, alphaCommandBuffers, deferredCommandBuffers, skyboxCommandBuffers, uiCommandBuffers;
 	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
 	std::vector<VkFence> frameFences;
 

@@ -27,7 +27,7 @@ struct Material : public Asset
 		diffuse = vec4(1, 1, 1, 1);
 		specular = vec4(1, 1, 1, 1);
 		shininess = 0;
-		alphaMode = AlphaMode::BLEND;
+		alphaMode = AlphaMode::OPAQUE;
 	}
     virtual ~Material() { }
 };
