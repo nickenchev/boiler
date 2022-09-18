@@ -14,7 +14,7 @@ GUISystem::GUISystem(Renderer &renderer) : System("ImGui System")
 	logger.log("Initializing");
 	ImGui::CreateContext();
 
-	ImGui::GetStyle().Alpha = 0.7f;
+	ImGui::GetStyle().Alpha = 0.9f;
 
 	ImGuiIO &io = ImGui::GetIO();
 
