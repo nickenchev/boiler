@@ -29,7 +29,7 @@ class GraphicsPipelineBuilder
 	VkPipelineViewportStateCreateInfo viewportCreateInfo = {};
 	VkPipelineRasterizationStateCreateInfo rasterizerCreateInfo = {};
 	VkPipelineMultisampleStateCreateInfo multiSampCreateInfo = {};
-	std::vector<VkPipelineColorBlendAttachmentState> blendStates{};
+	std::array<VkPipelineColorBlendAttachmentState, NumAttachments> blendStates{};
 	VkPipelineColorBlendStateCreateInfo colorBlendCreateInfo = {};
 	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
 	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages{};
@@ -149,7 +149,7 @@ public:
 			colorBlendAttachState.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 			colorBlendAttachState.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
 			colorBlendAttachState.alphaBlendOp = VK_BLEND_OP_ADD;
-			blendStates.push_back(colorBlendAttachState);
+			blendStates[i] = colorBlendAttachState;
 		}
 
 		colorBlendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
