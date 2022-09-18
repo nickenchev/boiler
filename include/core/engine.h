@@ -41,7 +41,8 @@ class Engine
     System *renderSystem, *textSystem, *guiSystem, *lightingSystem, *animationSystem, *collisionSystem, *cameraSystem, *inputSystem, *movementSystem;
 	Animator animator;
 
-    bool running = true;
+    bool running;
+	bool mouseRelativeMode;
     Time updateInterval;
 
     void processEvents(FrameInfo &frameInfo);

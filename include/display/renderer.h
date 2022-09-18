@@ -31,6 +31,7 @@ enum class TextureType
 enum class RenderStage
 {
 	PRE_DEFERRED_LIGHTING,
+	ALPHA_BLENDING,
 	POST_DEFERRED_LIGHTING,
 	POST_DEPTH_WRITE,
 	UI

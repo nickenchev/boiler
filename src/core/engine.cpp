@@ -45,6 +45,9 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 	frameLag = 0;
 	globalTime = 0;
 	currentFrame = 0;
+	mouseRelativeMode = true;
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+	running = false;
 }
 
 Engine::~Engine()
@@ -55,6 +58,7 @@ Engine::~Engine()
 
 void Engine::initialize(const Size &initialSize)
 {
+	// TODO: Figure out base path stuff
 	//baseDataPath = std::string(SDL_GetBasePath());
 
 	// initialize basic engine stuff
@@ -252,17 +256,26 @@ void Engine::processEvents(FrameInfo &frameInfo)
 			{
 				frameInfo.mouseXDistance += event.motion.xrel;
 				frameInfo.mouseYDistance += event.motion.yrel;
-				static_cast<GUISystem *>(guiSystem)->mouseMove(event.motion.x, event.motion.y);
+				if (!mouseRelativeMode)
+				{
+					static_cast<GUISystem *>(guiSystem)->mouseMove(event.motion.x, event.motion.y);
+				}
 				break;
 			}
 			case SDL_MOUSEBUTTONDOWN:
 			{
-				static_cast<GUISystem *>(guiSystem)->mouseButton(event.button.button, true);
+				if (!mouseRelativeMode)
+				{
+					static_cast<GUISystem *>(guiSystem)->mouseButton(event.button.button, true);
+				}
 				break;
 			}
 			case SDL_MOUSEBUTTONUP:
 			{
-				static_cast<GUISystem *>(guiSystem)->mouseButton(event.button.button, false);
+				if (!mouseRelativeMode)
+				{
+					static_cast<GUISystem *>(guiSystem)->mouseButton(event.button.button, false);
+				}
 				break;
 			}
 			case SDL_KEYDOWN:
@@ -277,6 +290,11 @@ void Engine::processEvents(FrameInfo &frameInfo)
 			}
 			case SDL_KEYUP:
 			{
+				if (event.key.keysym.sym == SDLK_BACKQUOTE)
+				{
+					mouseRelativeMode = !mouseRelativeMode;
+					SDL_SetRelativeMouseMode(mouseRelativeMode ? SDL_TRUE : SDL_FALSE);
+				}
 				//static_cast<GUISystem *>(guiSystem)->keyEvent(event.key.keysym.scancode, false);
 
 				SDL_Keycode keyCode = event.key.keysym.sym;
