@@ -843,7 +843,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpasses[3].pColorAttachments = &swapColorAttachRef;
 
 	// subpass dependencies
-    std::array<VkSubpassDependency, 5> dependencies
+    std::array<VkSubpassDependency, 3> dependencies
 	{
 		VkSubpassDependency
 		{
@@ -858,28 +858,10 @@ VkRenderPass VulkanRenderer::createRenderPass()
 		{
 			.srcSubpass = 1,
 			.dstSubpass = 2,
-			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			.dependencyFlags = 0
-		},
-		{
-			.srcSubpass = 0,
-			.dstSubpass = 2,
 			.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
 			.dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
 			.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
 			.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
-			.dependencyFlags = 0
-		},
-		{
-			.srcSubpass = 1,
-			.dstSubpass = 3,
-			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
 			.dependencyFlags = 0
 		},
 		{
