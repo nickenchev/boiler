@@ -13,7 +13,7 @@ CollisionSystem::CollisionSystem() : System("Collision System")
 
 void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
-	float ground = 1.3;
+	float ground = 10;
 	float radius = 3;
 
 	for (Entity entity : getEntities())

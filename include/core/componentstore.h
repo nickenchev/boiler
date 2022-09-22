@@ -13,7 +13,7 @@ namespace Boiler
 {
 
 constexpr unsigned short MAX_COMPONENTS = 64;
-constexpr unsigned int MAX_ENTITIES = 2000;
+constexpr unsigned int MAX_ENTITIES = 5000;
 
 class ComponentStore
 {
@@ -38,6 +38,8 @@ public:
 		auto component = std::make_shared<T>(std::forward<Args>(args)...);
 		unsigned int entityIndex = index(entity);
 		unsigned int storageIndex = T::storageIndex;
+
+		assert(entityIndex < entityComponents.size());
 		entityComponents[entityIndex][T::storageIndex] = component;
 
 		return component;

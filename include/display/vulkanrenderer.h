@@ -20,7 +20,7 @@ struct SDL_Window;
 #include "display/vulkan/descriptorset.h"
 #include "display/vulkan/sampler.h"
 
-#define MAX_OBJECTS 1000
+#define MAX_OBJECTS 5000
 
 namespace Boiler
 {
@@ -104,7 +104,7 @@ class VulkanRenderer : public Boiler::Renderer
 	std::vector<VkFence> frameFences;
 
 	// resource management
-	AssetManager<PrimitiveBuffers, 512> primitives;
+	AssetManager<PrimitiveBuffers, 2048> primitives;
 	AssetManager<TextureImage, 512> textures;
 	BufferInfo matrixBuffer, lightsBuffer, materialBuffer;
 

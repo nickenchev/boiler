@@ -12,7 +12,7 @@ namespace Boiler
 
 struct AssetSet
 {
-	static const unsigned int MaxAssets = 512;
+	static const unsigned int MaxAssets = 2048;
 	
 	AssetManager<Material, MaxAssets> materials;
 	AssetManager<Primitive, MaxAssets> primitives;
