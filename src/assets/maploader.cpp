@@ -53,30 +53,6 @@ void MapLoader::load(const std::string &filePath)
 			if (ent.HasMember("components"))
 			{
 				const auto &components = ent["components"].GetObject();
-				if (components.HasMember("transform"))
-				{
-					const auto &comp = components["transform"];
-					const auto transformComponent = ecs.createComponent<TransformComponent>(entity);
-
-					if (comp.HasMember("translation"))
-					{
-						transformComponent->setPosition(getVector(comp, "translation"));
-					}
-
-					if (comp.HasMember("orientation"))
-					{
-						const auto &orientation = comp["orientation"].GetObject();
-						quat orientationQuat(orientation["w"].GetFloat(), orientation["x"].GetFloat(),
-											 orientation["y"].GetFloat(), orientation["z"].GetFloat());
-						transformComponent->setOrientation(orientationQuat);
-					}
-
-					if (comp.HasMember("scale"))
-					{
-						transformComponent->setScale(getVector(comp, "scale"));
-					}
-				}
-
 				std::vector<Entity> childEntities;
 				if (components.HasMember("render"))
 				{
@@ -95,6 +71,31 @@ void MapLoader::load(const std::string &filePath)
 						{
 							animComp.addClip(Clip(0, animId, true));
 						}
+					}
+				}
+				if (components.HasMember("transform"))
+				{
+					const auto &comp = components["transform"];
+					const auto transformComponent = ecs.getComponentStore().hasComponent<TransformComponent>(entity)
+						? &ecs.getComponentStore().retrieve<TransformComponent>(entity)
+						: ecs.createComponent<TransformComponent>(entity).get();
+
+					if (comp.HasMember("translation"))
+					{
+						transformComponent->setPosition(getVector(comp, "translation"));
+					}
+
+					if (comp.HasMember("orientation"))
+					{
+						const auto &orientation = comp["orientation"].GetObject();
+						quat orientationQuat(orientation["w"].GetFloat(), orientation["x"].GetFloat(),
+											 orientation["y"].GetFloat(), orientation["z"].GetFloat());
+						transformComponent->setOrientation(orientationQuat);
+					}
+
+					if (comp.HasMember("scale"))
+					{
+						transformComponent->setScale(getVector(comp, "scale"));
 					}
 				}
 				if (components.HasMember("collision"))

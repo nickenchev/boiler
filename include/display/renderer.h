@@ -61,7 +61,7 @@ protected:
 	vec3 cameraPosition;
 	glm::mat4 viewMatrix;
 	unsigned int frameLightIdx;
-	AssetManager<mat4, 1000> matrices;
+	AssetManager<mat4, 5000> matrices;
 	AssetSet assetSet;
 
 public:

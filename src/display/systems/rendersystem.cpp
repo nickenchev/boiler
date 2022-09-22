@@ -20,9 +20,9 @@ RenderSystem::RenderSystem() : System("Render System")
 void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
 	std::vector<MaterialGroup> materialGroups, alphaGroups, postDepthGroups;
-	materialGroups.resize(256);
-	alphaGroups.resize(256);
-	postDepthGroups.resize(256);
+	materialGroups.resize(512);
+	alphaGroups.resize(512);
+	postDepthGroups.resize(512);
 
 	// calculate matrices and setup material groups
 	for (unsigned int i = 0; i < static_cast<unsigned int>(getEntities().size()); ++i)
@@ -36,6 +36,7 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 		Entity currentEntity = entity;
 
 		// calculate with parent transformations
+		logger.log("Testing parents");
 		while (store.hasComponent<ParentComponent>(currentEntity))
 		{
 			ParentComponent &parentComp = store.retrieve<ParentComponent>(currentEntity);
@@ -43,6 +44,7 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 			{
 				auto &parentTransform = store.retrieve<TransformComponent>(parentComp.entity);
 				modelMatrix = parentTransform.getMatrix() * modelMatrix;
+				logger.log("scale: {},{},{}", transform.getScale().x, transform.getScale().y, transform.getScale().z);
 			}
 			currentEntity = parentComp.entity;
 		}
@@ -52,6 +54,7 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 		{
 			const Primitive &primitive = assetSet.primitives.get(primitiveId);
 			const Material &material = assetSet.materials.get(primitive.materialId);
+
 			MaterialGroup *matGroup = &materialGroups[primitive.materialId];
 			if (!material.depth)
 			{

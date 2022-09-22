@@ -613,6 +613,7 @@ void VulkanRenderer::createGBuffers()
 	auto createBuffers = [this, imageSize](OffscreenBuffer &offscreenBuffer, VkFormat imageFormat)
 	{
 		TextureRequest request(imageSize, imageFormat);
+		// TODO: Try using TRANSIENT image usage
 		request.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 		auto imagePair = createImage(request);
 		offscreenBuffer.image = imagePair.first;
@@ -783,7 +784,6 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	VkAttachmentDescription albedoAttachment = createAttachment(albedoFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	VkAttachmentDescription normalAttachment = createAttachment(normalFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	VkAttachmentDescription colorAttachment = createAttachment(swapChainFormat, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	VkAttachmentDescription depthAttachment = createAttachment(findDepthFormat(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -830,14 +830,14 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpasses[1].pColorAttachments = colorAttachmentRefs.data();
 	subpasses[1].pDepthStencilAttachment = &depthAttachRef;
 	// deferred subpass
-	std::array<uint32_t, 1> gbuffPreserve = {1}; // preserve depth-buffer
+	std::array<uint32_t, 1> depthPreserve = {1}; // preserve depth-buffer
 	subpasses[2].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[2].colorAttachmentCount = 1;
 	subpasses[2].pColorAttachments = &swapColorAttachRef;
 	subpasses[2].inputAttachmentCount = inputColorAttachRefs.size();
 	subpasses[2].pInputAttachments = inputColorAttachRefs.data();
-	subpasses[2].preserveAttachmentCount = gbuffPreserve.size();
-	subpasses[2].pPreserveAttachments = gbuffPreserve.data();
+	subpasses[2].preserveAttachmentCount = depthPreserve.size();
+	subpasses[2].pPreserveAttachments = depthPreserve.data();
 	// skybox subpass
 	subpasses[3].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[3].colorAttachmentCount = 1;
@@ -849,9 +849,8 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpasses[4].pColorAttachments = &swapColorAttachRef;
 
 	// subpass dependencies
-    std::array<VkSubpassDependency, 4> dependencies
+    std::vector<VkSubpassDependency> dependencies
 	{
-		VkSubpassDependency
 		{
 			.srcSubpass = 0,
 			.dstSubpass = 1,
@@ -862,12 +861,21 @@ VkRenderPass VulkanRenderer::createRenderPass()
 			.dependencyFlags = 0
 		},
 		{
+			.srcSubpass = 0,
+			.dstSubpass = 2,
+			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+			.dependencyFlags = 0
+		},
+		{
 			.srcSubpass = 1,
 			.dstSubpass = 2,
 			.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 			.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-			.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+			.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
 			.dependencyFlags = 0
 		},
 		{
@@ -1026,7 +1034,7 @@ void VulkanRenderer::createGraphicsPipelines()
 		.rasterizer(VK_CULL_MODE_FRONT_BIT)
 		.multisampling()
 		.blending({AttachmentBlendInfo { .enabled = false }})
-		.depth(true, VK_COMPARE_OP_LESS)
+		.depth(false, VK_COMPARE_OP_LESS)
 		.shaderModules(deferredModules, false)
 		.renderPass(renderPass, 2)
 		.build();
@@ -2077,7 +2085,12 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 	VkPipelineLayout pipelineLayout = gBuffersPipelineLayout;
 	VkPipeline pipeline = gBufferPipeline.vulkanPipeline();
 	VkSampler sampler = textureSampler.vkSampler();
-	if (stage == RenderStage::POST_DEFERRED_LIGHTING)
+	if (stage == RenderStage::ALPHA_BLENDING)
+	{
+		commandBuffer = alphaCommandBuffers[currentFrame];
+		pipeline = alphaBufferPipeline.vulkanPipeline();
+	}
+	else if (stage == RenderStage::POST_DEFERRED_LIGHTING)
 	{
 		commandBuffer = deferredCommandBuffers[currentFrame];
 	}
@@ -2108,11 +2121,6 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 		if (group.materialId != Asset::NO_ASSET)
 		{
 			const Material &material = assetSet.materials.get(group.materialId);
-			if (material.alphaMode == AlphaMode::BLEND)
-			{
-				pipeline = alphaBufferPipeline.vulkanPipeline();
-				commandBuffer = alphaCommandBuffers[currentFrame];
-			}
 			const uint32_t descriptorIndex = (currentFrame * maxMaterials) + group.materialId; // TODO: Careful using ID as index
 			descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
 			const int bindDescCount = descriptorSets.size();
@@ -2135,9 +2143,9 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 					.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 					.pImageInfo = &imageInfo,
 				};
+
 				vkUpdateDescriptorSets(device, dsetObjWrites.size(), dsetObjWrites.data(), 0, nullptr);
 			}
-
 			// bind the appropriate pipeline for this material
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0,
 									bindDescCount, descriptorSets.data(), 0, nullptr);
@@ -2151,7 +2159,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 				constants.matrixId = instance.matrixId;
 				constants.offset = vec4(instance.drawOffset, 0);
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-								   0, sizeof(RenderConstants), &constants);
+								0, sizeof(RenderConstants), &constants);
 
 				// draw the vertex data
 				const Primitive &primitive = assetSet.primitives.get(instance.primitiveId);
@@ -2179,8 +2187,8 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 				}
 
 				vkCmdDrawIndexed(commandBuffer, indexCount, 1,
-								 instance.indexBufferStart + instance.indexOffset,
-								 instance.vertexBufferStart + instance.vertexOffset, 0);
+								instance.indexBufferStart + instance.indexOffset,
+								instance.vertexBufferStart + instance.vertexOffset, 0);
 			}
 		}
 	}

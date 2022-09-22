@@ -98,6 +98,7 @@ GLTFImporter::GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std
 	// Model accessors which are used for typed access into buffers
 	gltf::ModelAccessors modelAccess(model, buffers);
 
+	unsigned int primitiveCount = 0;
 	for (const auto &mesh : model.meshes)
 	{
 		logger.log("Loading mesh: {}", mesh.name);
@@ -125,9 +126,11 @@ GLTFImporter::GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std
 				assetSet.primitives.get(primitiveId).materialId = result.materialsIds[gltfPrimitive.material.value()];
 			}
 			newMesh.primitives.push_back(primitiveId);
+			primitiveCount++;
 		}
 		result.meshes.push_back(newMesh);
 	}
+	logger.log("Loaded {} total primitives across all meshes", primitiveCount);
 
 	// load all animations
     Animator &animator = engine.getAnimator();
@@ -185,6 +188,8 @@ VertexData GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessor
 
 	// get the primitive's position data
 	std::vector<Vertex> vertices;
+
+	assert(modelAccess.getAccessor(primitive, attributes::POSITION).type == gltf::AccessorType::VEC3);
 	auto positionAccess = modelAccess.getTypedAccessor<float, 3>(primitive, attributes::POSITION);
 	for (auto values : positionAccess)
 	{
@@ -207,6 +212,7 @@ VertexData GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessor
 	assert(primitive.indices.has_value());
 	if (primitive.indices.has_value())
 	{
+		assert(modelAccess.getModel().accessors[primitive.indices.value()].type == AccessorType::SCALAR);
 		const auto &indexAccessor = modelAccess.getModel().accessors[primitive.indices.value()];
 		if (indexAccessor.componentType == gltf::ComponentType::UNSIGNED_SHORT)
 		{
@@ -238,6 +244,7 @@ VertexData GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessor
 	const auto &texCoordAttr = primitive.attributes.find(attributes::TEXCOORD_0);
 	if (texCoordAttr != primitive.attributes.end())
 	{
+		assert(modelAccess.getModel().accessors[texCoordAttr->second].type == gltf::AccessorType::VEC2);
 		const auto &accessor = modelAccess.getModel().accessors[texCoordAttr->second];
 		auto texCoordAccess = modelAccess.getTypedAccessor<float, 2>(accessor);
 
@@ -275,6 +282,9 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 		}
 
 		// create a transform component if one doesn't exist
+		if (!ecs.getComponentStore().hasComponent<TransformComponent>(nodeEntity))
+		{
+		}
 		TransformComponent &transform = ecs.getComponentStore().hasComponent<TransformComponent>(nodeEntity)
 			? ecs.getComponentStore().retrieve<TransformComponent>(nodeEntity)
 			: *ecs.createComponent<TransformComponent>(nodeEntity, Rect(0, 0, 0, 0));
