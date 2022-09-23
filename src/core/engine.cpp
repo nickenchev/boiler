@@ -29,7 +29,6 @@
 #include "physics/collisioncomponent.h"
 
 using namespace Boiler;
-constexpr unsigned int maxFramesInFlight = 3;
 
 Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 									 baseDataPath(""), animator(ecs)
@@ -128,7 +127,7 @@ void Engine::run()
 		FrameInfo frameInfo;
 		processEvents(frameInfo);
 		step(frameInfo);
-		currentFrame = (currentFrame + 1) % maxFramesInFlight;
+		currentFrame = (currentFrame + 1) % renderer->getMaxFramesInFlight();
 	}
 	
 	// wait for any renderer commands to finish before destructors kick in
