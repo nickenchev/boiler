@@ -2167,11 +2167,11 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 
 				// TODO: Group bind/draw commands by buffer ID as well
 				const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
-				const std::array<VkDeviceSize, buffers.size()> offsets = {0};
-				vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
-
+				const std::array<VkDeviceSize, 1> offsets = {instance.vertexBufferStart};
 				uint32_t indexCount = instance.indexCount == 0 ? primitive.indexCount() : instance.indexCount;
-				vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, 0, VK_INDEX_TYPE_UINT32);
+
+				vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
+				vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, instance.indexBufferStart, VK_INDEX_TYPE_UINT32);
 
 				// apply scissors if needed
 				if (instance.shouldClip)
@@ -2186,9 +2186,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 					vkCmdSetScissor(commandBuffer, 0, scissors.size(), scissors.data());
 				}
 
-				vkCmdDrawIndexed(commandBuffer, indexCount, 1,
-								instance.indexBufferStart + instance.indexOffset,
-								instance.vertexBufferStart + instance.vertexOffset, 0);
+				vkCmdDrawIndexed(commandBuffer, indexCount, 1, instance.indexOffset, instance.vertexOffset, 0);
 			}
 		}
 	}

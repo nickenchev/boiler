@@ -97,7 +97,7 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 	std::vector<uint32_t> indices;
 	uint32_t vertexBufferStart = 0;
 	uint32_t indexBufferStart = 0;
-	// TODO: Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled
+
 	// TODO: Setup viewport covering draw_data->DisplayPos to draw_data->DisplayPos + draw_data->DisplaySize
 	ImVec2 clip_off = drawData->DisplayPos;
 	for (int n = 0; n < drawData->CmdListsCount; n++)
@@ -148,10 +148,6 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 				// The vast majority of draw calls will use the Dear ImGui texture atlas, which value you have set yourself during initialization.
 				//MyEngineBindTexture((MyTexture*)pcmd->GetTexID());
 
-				// Render 'pcmd->ElemCount/3' indexed triangles.
-				// By default the indices ImDrawIdx are 16-bit, you can change them to 32-bit in imconfig.h if your engine doesn't support 16-bit indices.
-				//MyEngineDrawIndexedTriangles(pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer + pcmd->IdxOffset, vtx_buffer, pcmd->VtxOffset);
-
 				uint32_t vertOffset = (pcmd->VtxOffset / sizeof(ImDrawVert)) * sizeof(Vertex); // vert offset in boiler terms
 				uint32_t indexOffset = pcmd->IdxOffset;
 
@@ -166,8 +162,8 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 				groups[0].primitives.push_back(inst);
 			}
 		}
-		vertexBufferStart += vertices.size() * sizeof(Vertex);
-		indexBufferStart += indices.size();
+		vertexBufferStart += cmd_list->VtxBuffer.Size * sizeof(Vertex);
+		indexBufferStart += cmd_list->IdxBuffer.Size * sizeof(uint32_t);
 	}
 
 	if (vertices.size())
