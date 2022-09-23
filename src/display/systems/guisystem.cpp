@@ -155,7 +155,7 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 													  vertOffset, indexOffset, vertexBufferStart, indexBufferStart);
 				inst.clip.position.x = clip_min.x;
 				inst.clip.position.y = clip_min.y;
-				inst.clip.size.width = clip_max.x - clip_min.y;
+				inst.clip.size.width = clip_max.x - clip_min.x;
 				inst.clip.size.height = clip_max.y - clip_min.y;
 				inst.shouldClip = true;
 
