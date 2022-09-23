@@ -17,12 +17,39 @@ RenderSystem::RenderSystem() : System("Render System")
 	expects<RenderComponent>();
 }
 
+mat4 getMatrix(Entity entity, ComponentStore &store, std::array<std::optional<mat4>, 5000> &matrixCache)
+{
+	glm::mat4 modelMatrix;
+	std::optional<mat4> &opt = matrixCache[entity.getId()];
+	if (opt.has_value())
+	{
+		modelMatrix = opt.value();
+	}
+	else if (store.hasComponent<TransformComponent>(entity))
+	{
+		TransformComponent &transform = store.retrieve<TransformComponent>(entity);
+		modelMatrix = transform.getMatrix();
+		if (store.hasComponent<ParentComponent>(entity))
+		{
+			ParentComponent &parentComp = store.retrieve<ParentComponent>(entity);
+			modelMatrix = getMatrix(parentComp.entity, store, matrixCache) * modelMatrix;
+		}
+		matrixCache[entity.getId()] = modelMatrix;
+	}
+
+	return modelMatrix;
+}
+
 void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
+	// TODO: none of these can be fixed sizes
 	std::vector<MaterialGroup> materialGroups, alphaGroups, postDepthGroups;
 	materialGroups.resize(512);
 	alphaGroups.resize(512);
 	postDepthGroups.resize(512);
+
+	// TODO: Can't be fixed size
+	std::array<std::optional<mat4>, 5000> matrixCache;
 
 	// calculate matrices and setup material groups
 	for (unsigned int i = 0; i < static_cast<unsigned int>(getEntities().size()); ++i)
@@ -32,22 +59,8 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 		RenderComponent &render = store.retrieve<RenderComponent>(entity);
 
 		// calculate model matrix
-		glm::mat4 modelMatrix = transform.getMatrix();
+		glm::mat4 modelMatrix = getMatrix(entity, store, matrixCache);
 		Entity currentEntity = entity;
-
-		// calculate with parent transformations
-		logger.log("Testing parents");
-		while (store.hasComponent<ParentComponent>(currentEntity))
-		{
-			ParentComponent &parentComp = store.retrieve<ParentComponent>(currentEntity);
-			if (store.hasComponent<TransformComponent>(parentComp.entity))
-			{
-				auto &parentTransform = store.retrieve<TransformComponent>(parentComp.entity);
-				modelMatrix = parentTransform.getMatrix() * modelMatrix;
-				logger.log("scale: {},{},{}", transform.getScale().x, transform.getScale().y, transform.getScale().z);
-			}
-			currentEntity = parentComp.entity;
-		}
 
 		const static Material defaultMaterial;
 		for (const auto &primitiveId : render.mesh.primitives)
