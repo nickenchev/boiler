@@ -251,6 +251,11 @@ void Engine::processEvents(FrameInfo &frameInfo)
 				*/
 				break;
 			}
+			case SDL_MOUSEWHEEL:
+			{
+				static_cast<GUISystem *>(guiSystem)->mouseWheel(event.wheel.preciseX, event.wheel.preciseY);
+				break;
+			}
 			case SDL_MOUSEMOTION:
 			{
 				frameInfo.mouseXDistance += event.motion.xrel;
@@ -279,7 +284,8 @@ void Engine::processEvents(FrameInfo &frameInfo)
 			}
 			case SDL_KEYDOWN:
 			{
-				//static_cast<GUISystem *>(guiSystem)->keyEvent(event.key.keysym.scancode, true);
+				static_cast<GUISystem *>(guiSystem)->keyEvent(event.key.keysym.sym, true);
+				static_cast<GUISystem *>(guiSystem)->keyMods(event.key.keysym.mod);
 
 				SDL_Keycode keyCode = event.key.keysym.sym;
 				KeyInputEvent event(keyCode, ButtonState::DOWN);
@@ -294,11 +300,16 @@ void Engine::processEvents(FrameInfo &frameInfo)
 					mouseRelativeMode = !mouseRelativeMode;
 					SDL_SetRelativeMouseMode(mouseRelativeMode ? SDL_TRUE : SDL_FALSE);
 				}
-				//static_cast<GUISystem *>(guiSystem)->keyEvent(event.key.keysym.scancode, false);
+				static_cast<GUISystem *>(guiSystem)->keyEvent(event.key.keysym.sym, false);
 
 				SDL_Keycode keyCode = event.key.keysym.sym;
 				KeyInputEvent event(keyCode, ButtonState::UP);
 				frameInfo.keyInputEvents.addEvent(event);
+				break;
+			}
+			case SDL_TEXTINPUT:
+			{
+				static_cast<GUISystem *>(guiSystem)->textInput(event.text.text);
 				break;
 			}
 		}

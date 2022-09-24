@@ -19,7 +19,10 @@ public:
 
 	void mouseMove(uint32_t x, uint32_t y);
 	void mouseButton(uint8_t button, bool isDown);
+	void mouseWheel(cgfloat x, cgfloat y);
 	void keyEvent(glm::int32_t key, bool isDown);
+	void keyMods(uint16_t keymods);
+	void textInput(const std::string &text);
 
 	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
 };
