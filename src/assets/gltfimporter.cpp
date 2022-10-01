@@ -107,18 +107,13 @@ GLTFImporter::GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std
 		{
 			VertexData vertexData = loadPrimitive(engine, modelAccess, gltfPrimitive);
 			AssetId bufferId = engine.getRenderer().loadPrimitive(vertexData);
-			AssetId primitiveId = assetSet.primitives.add(Primitive(bufferId, std::move(vertexData)));
 
 			const gltf::Accessor &positionAccessor = model.accessors.at(gltfPrimitive.attributes.find(gltf::attributes::POSITION)->second);
 
 			// TODO: generate collision volumes
-			float min[3], max[3];
-			for (int i = 0; i < 3; ++i)
-			{
-				min[i] = positionAccessor.min[i].asFloat;
-				max[i] = positionAccessor.max[i].asFloat;
-			}
-			logger.log("Min({}, {}, {}), Max({}, {}, {})", min[0], min[1], min[2], max[0], max[1], max[2]);
+			vec3 min(positionAccessor.min[0].asFloat, positionAccessor.min[1].asFloat, positionAccessor.max[2].asFloat);
+			vec3 max(positionAccessor.max[0].asFloat, positionAccessor.max[1].asFloat, positionAccessor.max[2].asFloat);
+			AssetId primitiveId = assetSet.primitives.add(Primitive(bufferId, std::move(vertexData), min, max));
 			
 			// setup material if any
 			if (gltfPrimitive.material.has_value())
