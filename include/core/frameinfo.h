@@ -41,6 +41,7 @@ struct FrameInfo
 	double globalTime;
 	Time deltaTime;
 	int mouseXDistance, mouseYDistance;
+	unsigned long frameCount;
 
 	FrameInfo()
 	{
@@ -49,6 +50,7 @@ struct FrameInfo
 		globalTime = 0;
 		mouseXDistance = 0;
 		mouseYDistance = 0;
+		frameCount = 0;
 	}
 };
 

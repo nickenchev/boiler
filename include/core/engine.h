@@ -33,6 +33,7 @@ class Engine
 	Time64 prevTime;
 	Time globalTime, frameLag;
 	short currentFrame;
+	unsigned long frameCount;
 
 	Logger logger;
 	Renderer *renderer;

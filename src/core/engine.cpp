@@ -44,6 +44,7 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 	frameLag = 0;
 	globalTime = 0;
 	currentFrame = 0;
+	frameCount = 0;
 	mouseRelativeMode = true;
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	running = false;
@@ -156,6 +157,7 @@ void Engine::step(FrameInfo &frameInfo)
 	frameInfo.currentFrame = currentFrame;
 	frameInfo.deltaTime = deltaTime;
 	frameInfo.globalTime = globalTime;
+	frameInfo.frameCount = frameCount;
 
 	update(renderer->getAssetSet(), frameInfo);
 	globalTime += deltaTime;
@@ -173,6 +175,7 @@ void Engine::step(FrameInfo &frameInfo)
 		}
 		renderer->displayFrame(frameInfo, renderer->getAssetSet());
 	}
+	frameCount++;
 }
 
 void Engine::processEvents(FrameInfo &frameInfo)

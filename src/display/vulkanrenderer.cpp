@@ -31,7 +31,7 @@
 #include "display/materialgroup.h"
 #include "display/vulkan/texturerequest.h"
 #include "display/glyphmap.h"
-#include "display/viewprojection.h"
+#include "display/rendermatrices.h"
 
 using namespace Boiler;
 using namespace Boiler::Vulkan;
@@ -1324,7 +1324,7 @@ void VulkanRenderer::createDepthResources()
 
 void VulkanRenderer::createMatrixBuffer()
 {
-	const VkDeviceSize size = MAX_OBJECTS * sizeof(mat4) + sizeof(ViewProjection) + deviceProperties.limits.minUniformBufferOffsetAlignment;
+	const VkDeviceSize size = MAX_OBJECTS * sizeof(mat4) + sizeof(RenderMatrices) + deviceProperties.limits.minUniformBufferOffsetAlignment;
 	matrixBuffer = createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 								VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
@@ -1951,7 +1951,7 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		VkDescriptorBufferInfo viewProjBuffInfo = {};
 		viewProjBuffInfo.buffer = matrixBuffer.buffer;
 		viewProjBuffInfo.offset = 0;
-		viewProjBuffInfo.range = sizeof(ViewProjection);
+		viewProjBuffInfo.range = sizeof(RenderMatrices);
 
 		dsetWritesFrame[0] = {
 			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -1964,7 +1964,7 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		};
 
 		// all matrices
-		const VkDeviceSize offsetMatrices = offsetUniform(sizeof(ViewProjection));
+		const VkDeviceSize offsetMatrices = offsetUniform(sizeof(RenderMatrices));
 		VkDescriptorBufferInfo matrixBuffInfo = {};
 		matrixBuffInfo.buffer = matrixBuffer.buffer;
 		matrixBuffInfo.offset = offsetMatrices;
@@ -2243,20 +2243,23 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 		vkCmdExecuteCommands(commandBuffer, 1, &uiCommandBuffers[frameInfo.currentFrame]);
 
 		// matrix data updates
-		ViewProjection viewProjection {
+		mat4 projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f);
+		mat4 orthographic = glm::ortho(0.0f, static_cast<cgfloat>(swapChainExtent.width), static_cast<cgfloat>(swapChainExtent.height), 0.0f);
+		RenderMatrices renderMatrices {
 			.view = viewMatrix,
-			.projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f),
-			.orthographic = glm::ortho(0.0f, static_cast<cgfloat>(swapChainExtent.width), static_cast<cgfloat>(swapChainExtent.height), 0.0f)
+			.projection = projection,
+			.viewProjection = projection * viewMatrix,
+			.orthographic = orthographic
 		};
 
-		// update view-matrix data
-		void *viewMatrixData = nullptr;
-		vkMapMemory(device, matrixBuffer.memory, 0, sizeof(ViewProjection), 0, &viewMatrixData);
-		memcpy(viewMatrixData, &viewProjection, sizeof(ViewProjection));
-		vkUnmapMemory(device, matrixBuffer.memory);
+	// update view-matrix data
+	void *viewMatrixData = nullptr;
+	vkMapMemory(device, matrixBuffer.memory, 0, sizeof(RenderMatrices), 0, &viewMatrixData);
+	memcpy(viewMatrixData, &renderMatrices, sizeof(RenderMatrices));
+	vkUnmapMemory(device, matrixBuffer.memory);
 
 		// update matrix data
-		const VkDeviceSize offsetMatrices = offsetUniform(sizeof(ViewProjection));
+		const VkDeviceSize offsetMatrices = offsetUniform(sizeof(RenderMatrices));
 		void *matrixData = nullptr;
 		const VkDeviceSize size = matrices.byteSize();
 		vkMapMemory(device, matrixBuffer.memory, offsetMatrices, size, 0, &matrixData);

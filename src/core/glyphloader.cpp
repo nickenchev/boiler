@@ -151,7 +151,7 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		AssetId bufferId = renderer.loadPrimitive(vertexData);
 
 		// create primitive
-		Primitive primitive(bufferId, std::move(vertexData));
+		Primitive primitive(bufferId, std::move(vertexData), vec3(0, 0, 0), vec3(sizeW, sizeH, 0));
 		AssetId primitiveId = assetSet.primitives.add(std::move(primitive));
 		glyphMap.insert({code, Glyph(code, destRect, bearing, ftGlyph->advance.x, primitiveId)});
 

@@ -195,7 +195,8 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 		if (primitives[frameInfo.currentFrame] == Asset::NO_ASSET)
 		{
 			AssetId bufferId = renderer.loadPrimitive(vertexData);
-			primitives[frameInfo.currentFrame] = renderer.getAssetSet().primitives.add(Primitive(bufferId, std::move(vertexData)));
+			primitives[frameInfo.currentFrame] = renderer.getAssetSet().primitives.add(
+				Primitive(bufferId, std::move(vertexData), vec3(0, 0, 0), vec3(0, 0, 0))); // TODO: min/max should reflect actual values in vtx buffer
 		}
 		else
 		{

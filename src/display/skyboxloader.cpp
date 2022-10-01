@@ -23,6 +23,8 @@ Entity SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 		ImageLoader::load(back)
 	};
 
+	vec3 min(-1, -1, -1);
+	vec3 max(1, 1, 1);
 	float skyboxVertices[] = {
 		-1.0f,  1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
@@ -105,7 +107,7 @@ Entity SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 
 	VertexData vertexData(vertices, indices);
 	AssetId bufferId = renderer.loadPrimitive(vertexData);
-	Primitive primitive(bufferId, std::move(vertexData));
+	Primitive primitive(bufferId, std::move(vertexData), min, max);
 	primitive.materialId = matAssetId;
 	AssetId primitiveId = assetSet.primitives.add(std::move(primitive));
 
