@@ -2,7 +2,8 @@
 #define MESH_H
 
 #include <vector>
-#include "display/primitive.h"
+#include "core/asset.h"
+#include "core/math.h"
 
 namespace Boiler
 {
@@ -10,6 +11,7 @@ namespace Boiler
 struct Mesh
 {
 	std::vector<AssetId> primitives;
+	vec3 min, max;
 };
 
 }

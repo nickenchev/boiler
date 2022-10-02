@@ -103,24 +103,31 @@ GLTFImporter::GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std
 	{
 		logger.log("Loading mesh: {}", mesh.name);
 		Mesh newMesh;
+		std::optional<vec3> meshMin, meshMax;
+
 		for (auto &gltfPrimitive : mesh.primitives)
 		{
 			VertexData vertexData = loadPrimitive(engine, modelAccess, gltfPrimitive);
 			AssetId bufferId = engine.getRenderer().loadPrimitive(vertexData);
 
-			const gltf::Accessor &positionAccessor = model.accessors.at(gltfPrimitive.attributes.find(gltf::attributes::POSITION)->second);
-
 			// TODO: generate collision volumes
-			vec3 min(positionAccessor.min[0].asFloat, positionAccessor.min[1].asFloat, positionAccessor.max[2].asFloat);
+			const gltf::Accessor &positionAccessor = model.accessors.at(gltfPrimitive.attributes.find(gltf::attributes::POSITION)->second);
+			vec3 min(positionAccessor.min[0].asFloat, positionAccessor.min[1].asFloat, positionAccessor.min[2].asFloat);
 			vec3 max(positionAccessor.max[0].asFloat, positionAccessor.max[1].asFloat, positionAccessor.max[2].asFloat);
 			AssetId primitiveId = assetSet.primitives.add(Primitive(bufferId, std::move(vertexData), min, max));
-			
+
+			// keep track of min/max for the entire mesh
+			meshMin = !meshMin.has_value() ? min : glm::min(meshMin.value(), min);
+			meshMax = !meshMax.has_value() ? max : glm::max(meshMax.value(), max);
+
 			// setup material if any
 			if (gltfPrimitive.material.has_value())
 			{
 				assetSet.primitives.get(primitiveId).materialId = result.materialsIds[gltfPrimitive.material.value()];
 			}
 			newMesh.primitives.push_back(primitiveId);
+			newMesh.min = meshMin.value();
+			newMesh.max = meshMax.value();
 			primitiveCount++;
 		}
 		result.meshes.push_back(newMesh);
