@@ -2,6 +2,7 @@
 #include "physics/movementsystem.h"
 #include "core/components/transformcomponent.h"
 #include "physics/movementcomponent.h"
+#include "physics/physicscomponent.h"
 
 using namespace Boiler;
 
@@ -13,59 +14,56 @@ MovementSystem::MovementSystem() : System("Movement System")
 
 void MovementSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
 {
-	const float gravity = 15.0f;
 	const float speed = 3.0f;
 
-	for (Entity entity : getEntities())
+	for (const Entity &entity : getEntities())
 	{
 		MovementComponent &movement = store.retrieve<MovementComponent>(entity);
 		TransformComponent &transform = store.retrieve<TransformComponent>(entity);
-
-		// apply gravity
-		mat4 transformMatrix = transform.getMatrix();
-		vec3 position = transform.getPosition();
-		vec3 velocity = transform.getVelocity();
-
-		velocity.y -= gravity * frameInfo.deltaTime;
+		PhysicsComponent &physics = store.retrieve<PhysicsComponent>(entity);
 
 		// strifing mid-air slower than on the ground
 		float slowdown = 0.6f;
+		vec3 acceleration(0, 0, 0);
 		if (movement.moveLeft)
 		{
 			glm::vec3 moveAmount = glm::cross(movement.direction, movement.up);
 			moveAmount *= frameInfo.deltaTime * speed * slowdown;
-			position -= moveAmount;
+			acceleration = -moveAmount;
 		}
 		else if (movement.moveRight)
 		{
 			glm::vec3 moveAmount = glm::cross(movement.direction, movement.up);
 			moveAmount *= frameInfo.deltaTime * speed * slowdown;
-			position += moveAmount;
+			acceleration = moveAmount;
 		}
 
 		if (movement.moveForward)
 		{
-			glm::vec3 moveAmount = vec3(movement.direction.x, 0, movement.direction.z);
+			//glm::vec3 moveAmount = vec3(movement.direction.x, 0, movement.direction.z);
+			glm::vec3 moveAmount = movement.direction;
 			moveAmount *= speed * frameInfo.deltaTime;
-			position += moveAmount;
+			acceleration += moveAmount;
 		}
 		else if (movement.moveBackward)
 		{
-			glm::vec3 moveAmount = vec3(movement.direction.x, 0, movement.direction.z);
+			//glm::vec3 moveAmount = vec3(movement.direction.x, 0, movement.direction.z);
+			glm::vec3 moveAmount = movement.direction;
 			moveAmount *= speed * frameInfo.deltaTime;
-			position -= moveAmount;
+			acceleration += -moveAmount;
 		}
 
-		if (movement.jump)
+		if (acceleration.x + acceleration.y + acceleration.z != 0)
 		{
-			if (position.y < 2)
+			physics.velocity += acceleration;
+		}
+		else
+		{
+			physics.velocity *= 0.2f;
+			if (physics.velocity.length() < 0.01)
 			{
-				velocity.y += 7.0f;
+				physics.velocity *= 0;
 			}
 		}
-
-		position += velocity * frameInfo.deltaTime;
-		transform.setVelocity(velocity);
-		transform.setPosition(position);
 	}
 }

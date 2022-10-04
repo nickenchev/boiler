@@ -20,7 +20,7 @@ class ComponentSystems
 	std::vector<System *> updateSystems;
 
 public:
-    ComponentSystems() : logger{"ComponentSystems"} { }
+    ComponentSystems() : logger{"Component Systems"} { }
     virtual ~ComponentSystems() { }
 
 	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)

@@ -21,11 +21,6 @@ public:
 	}
 
 	const ComponentMask &getMask() const override { return T::mask; }
-
-	Component *clone() override
-	{
-		return new T(*component);
-	}
 };
 
 inline ComponentMask componentMask()

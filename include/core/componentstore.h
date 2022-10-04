@@ -95,20 +95,6 @@ public:
 		return list;
 		*/
 	}
-
-	auto &copyComponents(const Entity source, const Entity destination)
-	{
-		for (auto &component : entityComponents[index(source)])
-		{
-			if (component != nullptr)
-			{
-				logger.log("Component with mask: {}", component->getMask().to_string());
-				auto newComponent = std::shared_ptr<Component>(component->clone());
-				entityComponents[index(destination)][component->getMask().to_ulong()] = newComponent;
-			}
-		}
-		return entityComponents[index(destination)];
-	}
 };
 
 }

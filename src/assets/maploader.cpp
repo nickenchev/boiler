@@ -11,6 +11,7 @@
 #include "camera/cameracomponent.h"
 #include "physics/movementcomponent.h"
 #include "physics/collisioncomponent.h"
+#include "physics/physicscomponent.h"
 #include "input/inputcomponent.h"
 #include "rapidjson/encodings.h"
 #include "rapidjson/rapidjson.h"
@@ -97,6 +98,11 @@ void MapLoader::load(const std::string &filePath)
 					{
 						transformComponent->setScale(getVector(comp, "scale"));
 					}
+				}
+				if (components.HasMember("physics"))
+				{
+					const auto &comp = components["physics"];
+					ecs.createComponent<PhysicsComponent>(entity);
 				}
 				if (components.HasMember("collision"))
 				{

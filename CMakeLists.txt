@@ -73,6 +73,8 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/physics/collisionsystem.h
   ${INCLUDE_BASE}/physics/collisioncomponent.h
   ${INCLUDE_BASE}/physics/movementsystem.h
+  ${INCLUDE_BASE}/physics/transformsystem.h
+  ${INCLUDE_BASE}/physics/physicscomponent.h
   ${INCLUDE_BASE}/camera/camerasystem.h
 )
 
@@ -128,6 +130,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/assets/maploader.cpp
   ${SRC_BASE}/physics/collisionsystem.cpp
   ${SRC_BASE}/physics/movementsystem.cpp
+  ${SRC_BASE}/physics/transformsystem.cpp
   ${SRC_BASE}/camera/camerasystem.cpp
   ${SRC_BASE}/input/inputsystem.cpp
   # ImGui

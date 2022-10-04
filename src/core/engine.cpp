@@ -27,6 +27,7 @@
 #include "physics/movementsystem.h"
 #include "physics/collisionsystem.h"
 #include "physics/collisioncomponent.h"
+#include "physics/transformsystem.h"
 
 using namespace Boiler;
 
@@ -82,6 +83,8 @@ void Engine::initialize(const Size &initialSize)
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>();
 	this->lightingSystem = &lightingSys;
 	ecs.getComponentSystems().removeUpdate(lightingSys);
+
+	System &transformSys = ecs.getComponentSystems().registerSystem<TransformSystem>();
 
 	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>();
 	ecs.getComponentSystems().removeUpdate(renderSys);

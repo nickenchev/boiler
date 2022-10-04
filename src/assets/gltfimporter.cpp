@@ -279,14 +279,20 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 		// assign mesh
 		if (node.mesh.has_value())
 		{
+			const Mesh &mesh = result.meshes[node.mesh.value()]; // use mesh-id instead of copying
 			auto render = ecs.createComponent<RenderComponent>(nodeEntity);
-			render->mesh = result.meshes[node.mesh.value()]; // use mesh-id instead of copying
+			render->mesh = mesh;
+
+			// generate collision component
+			if (!ecs.getComponentStore().hasComponent<CollisionComponent>(nodeEntity))
+			{
+				auto collision = ecs.createComponent<CollisionComponent>(nodeEntity);
+				collision->min = mesh.min;
+				collision->max = mesh.max;
+			}
 		}
 
 		// create a transform component if one doesn't exist
-		if (!ecs.getComponentStore().hasComponent<TransformComponent>(nodeEntity))
-		{
-		}
 		TransformComponent &transform = ecs.getComponentStore().hasComponent<TransformComponent>(nodeEntity)
 			? ecs.getComponentStore().retrieve<TransformComponent>(nodeEntity)
 			: *ecs.createComponent<TransformComponent>(nodeEntity, Rect(0, 0, 0, 0));

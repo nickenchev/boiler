@@ -37,24 +37,6 @@ public:
 		return entityWorld.createEntity();
 	}
 
-	Entity duplicate(const Entity entity)
-	{
-		Entity newEntity = entityWorld.createEntity();
-		auto &components = componentStore.copyComponents(entity, newEntity);
-
-		// ensure new components are mapped and systems are aware
-		for (const auto &c : components)
-		{
-			if (c != nullptr) mapper.add(newEntity, c->getMask());
-		}
-		const ComponentMask &entityMask = mapper.getMask(newEntity);
-		systems.checkEntity(newEntity, entityMask);
-
-		logger.log("Duplicated entity {} -> {} with mask: ", entity.getId(), newEntity.getId(), mapper.getMask(newEntity).to_string());
-
-		return newEntity;
-	}
-
 	void removeEntity(const Entity &entity)
 	{
 		throw std::runtime_error("Unimplemented");
