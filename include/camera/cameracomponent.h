@@ -7,11 +7,14 @@
 namespace Boiler
 {
 
-class CameraComponent : public ComponentType<CameraComponent>
+struct CameraComponent : public ComponentType<CameraComponent>
 {
-public:
+	vec3 direction, up;
+
 	CameraComponent() : ComponentType(this)
 	{
+		direction = {0, 0, 0};
+		up = {0, 0, 0};
 	}
 };
 

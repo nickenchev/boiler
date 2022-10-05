@@ -8,10 +8,12 @@ EntityWorld::EntityWorld() : logger("Entity World")
 	entityCount = 0;
 }
 
-Entity EntityWorld::createEntity()
+Entity EntityWorld::createEntity(const std::string &name)
 {
 	Entity entity(++entityCount);
+	names[entity.getId() - 1] = name;
 	entities.push_back(entity);
+
 	logger.log("Created entity with ID: {}", entity.getId());
 	return entity;
 }
@@ -35,4 +37,9 @@ bool EntityWorld::exists(const Entity &entity) const
 		exists = true;
 	}
 	return exists;
+}
+
+const std::string &EntityWorld::getName(Entity entity) const
+{
+	return names[entity.getId() - 1];
 }

@@ -24,7 +24,7 @@ public:
 	void keyMods(uint16_t keymods);
 	void textInput(const std::string &text);
 
-	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
+    void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs) override;
 };
 
 }

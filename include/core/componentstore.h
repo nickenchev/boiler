@@ -13,7 +13,6 @@ namespace Boiler
 {
 
 constexpr unsigned short MAX_COMPONENTS = 64;
-constexpr unsigned int MAX_ENTITIES = 5000;
 
 class ComponentStore
 {

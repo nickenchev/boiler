@@ -7,11 +7,11 @@
 #include "core/ecstypes.h"
 #include "core/system.h"
 #include "core/logger.h"
-#include "core/componentmapper.h"
-#include "core/componentstore.h"
 
 namespace Boiler
 {
+
+class EntityComponentSystem;
 
 class ComponentSystems
 {
@@ -23,11 +23,11 @@ public:
     ComponentSystems() : logger{"Component Systems"} { }
     virtual ~ComponentSystems() { }
 
-	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+    void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 	{
 		for (auto &system : updateSystems)
 		{
-			system->update(renderer, assetSet, frameInfo, store);
+            system->update(renderer, assetSet, frameInfo, ecs);
 		}
 	}
 

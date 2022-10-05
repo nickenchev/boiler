@@ -3,6 +3,7 @@
 #include "physics/collisioncomponent.h"
 #include "core/components/transformcomponent.h"
 #include "physics/physicscomponent.h"
+#include "core/entitycomponentsystem.h"
 
 using namespace Boiler;
 
@@ -13,61 +14,52 @@ CollisionSystem::CollisionSystem() : System("Collision System")
 	expects<PhysicsComponent>();
 }
 
-void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
-	float ground = 10;
-	float radius = 3;
-
-	for (Entity entity : getEntities())
+    for (const Entity &entity : getEntities())
 	{
-		auto &collision = store.retrieve<CollisionComponent>(entity);
-		auto &transform = store.retrieve<TransformComponent>(entity);
-		auto &physics = store.retrieve<PhysicsComponent>(entity);
+        auto &collision = ecs.getComponentStore().retrieve<CollisionComponent>(entity);
+        auto &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
+        auto &physics = ecs.getComponentStore().retrieve<PhysicsComponent>(entity);
 
-		logger.log("{}", entity.getId());
+		// generate debug geometry
+		
+
 		// check dynamic bodies for collisions
 		if (collision.isDynamic)
 		{
-			vec3 position = transform.getPosition();
-			vec3 velocity = physics.velocity;
+            vec3 velocity = physics.velocity;
 
-			mat4 matA = transform.getMatrix();
-			vec3 minA = (collision.min + transform.getPosition() + velocity) * transform.getScale();
-			vec3 maxA = (collision.max + transform.getPosition() + velocity) * transform.getScale();
+			// predict the transform after object is moved
+			TransformComponent newTransformA = transform;
+			newTransformA.setPosition(newTransformA.getPosition() + physics.velocity * frameInfo.deltaTime);
 
-			// need transform info to respond to collisions
+			vec3 minA = vec3(newTransformA.getMatrix() * vec4(collision.min, 1));
+			vec3 maxA = vec3(newTransformA.getMatrix() * vec4(collision.max, 1));
+			logger.log("{}: ({}, {}, {})   ({}, {}, {})", ecs.nameOf(entity), minA.x, minA.y, minA.z, maxA.x, maxA.y, maxA.z);
 
-			//logger.log("Scanning... {}, {}, {}    {}, {}, {}", minA.x, minA.y, minA.z, maxA.x, maxA.y, maxA.z);
-			for (Entity entityB : getEntities())
+            for (const Entity &entityB : getEntities())
 			{
 				if (entity != entityB)
 				{
-					auto &collisionB = store.retrieve<CollisionComponent>(entityB);
-					auto &transformB = store.retrieve<TransformComponent>(entityB);
+                    auto &collisionB = ecs.getComponentStore().retrieve<CollisionComponent>(entityB);
+                    auto &transformB = ecs.getComponentStore().retrieve<TransformComponent>(entityB);
 
-					mat4 matB = transformB.getMatrix();
-					vec3 minB = collision.min + transformB.getPosition();
-					vec3 maxB = collision.max + transformB.getPosition();
-
-					logger.log("{}: ({}, {}, {})   ({}, {}, {})", entity.getId(), minA.x, minA.y, minA.z, maxA.x, maxA.y, maxA.z);
-					logger.log("{}: ({}, {}, {})   ({}, {}, {})", entityB.getId(), minB.x, minB.y, minB.z, maxB.x, maxB.y, maxB.z);
-					if (store.hasComponent<PhysicsComponent>(entityB))
+					TransformComponent newTransformB = transformB;
+                    if (ecs.getComponentStore().hasComponent<PhysicsComponent>(entityB))
 					{
-						PhysicsComponent &physicsB = store.retrieve<PhysicsComponent>(entityB);
-						minB += physicsB.velocity;
-						maxB += physicsB.velocity;
+                        PhysicsComponent &physicsB = ecs.getComponentStore().retrieve<PhysicsComponent>(entityB);
+						newTransformB.setPosition(newTransformB.getPosition() + physicsB.velocity * frameInfo.deltaTime);
 					}
-					minB *= transformB.getScale();
-					maxB *= transformB.getScale();
+					vec3 minB = vec3(newTransformB.getMatrix() * vec4(collisionB.min, 1));
+					vec3 maxB = vec3(newTransformB.getMatrix() * vec4(collisionB.max, 1));
 
-					if (maxA.x > minB.x &&
-						minA.x < maxB.x &&
-						maxA.y > minB.y &&
-						minA.y < maxB.y &&
-						maxA.z > minB.z &&
-						minA.z < maxB.z)
+					if (maxA.x > minB.x && minA.x < maxB.x &&
+						maxA.y > minB.y && minA.y < maxB.y &&
+						maxA.z > minB.z && minA.z < maxB.z)
 					{
-						velocity.y = 0;
+						logger.log("{}: ({}, {}, {})   ({}, {}, {})", ecs.nameOf(entityB), minB.x, minB.y, minB.z, maxB.x, maxB.y, maxB.z);
+						velocity *= 0;
 					}
 				}
 			}

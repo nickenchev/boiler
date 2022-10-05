@@ -12,6 +12,12 @@ struct Mesh
 {
 	std::vector<AssetId> primitives;
 	vec3 min, max;
+
+	Mesh()
+	{
+		min = {0, 0, 0};
+		max = {0, 0, 0};
+	}
 };
 
 }

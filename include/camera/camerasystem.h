@@ -15,7 +15,7 @@ class CameraSystem : public Boiler::System
 public:
 	CameraSystem();
 
-	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
+    void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs) override;
 };
 
 }

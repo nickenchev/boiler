@@ -3,7 +3,7 @@
 #include "display/renderer.h"
 #include "core/components/transformcomponent.h"
 #include "core/components/textcomponent.h"
-#include "core/componentstore.h"
+#include "core/entitycomponentsystem.h"
 
 using namespace Boiler;
 
@@ -13,12 +13,12 @@ TextSystem::TextSystem() : System("Text System")
 	expects<TextComponent>();
 }
 
-void TextSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void TextSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
 	for (Entity entity : getEntities())
 	{
-		TransformComponent &transform = store.retrieve<TransformComponent>(entity);
-		TextComponent &text = store.retrieve<TextComponent>(entity);
+        TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
+        TextComponent &text = ecs.getComponentStore().retrieve<TextComponent>(entity);
 
 		const GlyphMap &glyphMap = assetSet.glyphs.get(text.glyphId);
 		// setup material group

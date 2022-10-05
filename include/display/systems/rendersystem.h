@@ -18,7 +18,7 @@ class RenderSystem : public System
 public:
 	RenderSystem();
 
-	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
+    void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs) override;
 };
 
 }

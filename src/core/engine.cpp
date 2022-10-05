@@ -68,17 +68,17 @@ void Engine::initialize(const Size &initialSize)
 	System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(*this);
 	this->inputSystem = &inputSystem;
 
-	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(animator);
-	this->animationSystem = &animationSystem;
+	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>();
+	this->cameraSystem = &cameraSystem;
 
 	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>();
 	this->movementSystem = &movementSystem;
 
+	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(animator);
+	this->animationSystem = &animationSystem;
+
 	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>();
 	this->collisionSystem = &collisionSystem;
-
-	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>();
-	this->cameraSystem = &cameraSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>();
 	this->lightingSystem = &lightingSys;
@@ -169,12 +169,12 @@ void Engine::step(FrameInfo &frameInfo)
 	// this is called before updateMatrices, wrong descriptor data
 	if (renderer->prepareFrame(frameInfo))
 	{
-		lightingSystem->update(*renderer, renderer->getAssetSet(), frameInfo, getEcs().getComponentStore());
-		renderSystem->update(*renderer, renderer->getAssetSet(), frameInfo, getEcs().getComponentStore());
-		textSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs.getComponentStore());
+		lightingSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
+		renderSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
+		textSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
 		if (guiSystem)
 		{
-			guiSystem->update(*renderer, renderer->getAssetSet(), frameInfo, getEcs().getComponentStore());
+			guiSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
 		}
 		renderer->displayFrame(frameInfo, renderer->getAssetSet());
 	}

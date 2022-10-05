@@ -1,4 +1,4 @@
-#include "core/componentstore.h"
+#include "core/entitycomponentsystem.h"
 #include "core/components/guicomponent.h"
 #include "display/renderer.h"
 #include "display/systems/guisystem.h"
@@ -83,7 +83,7 @@ void GUISystem::textInput(const std::string &text)
 	io.AddInputCharactersUTF8(text.c_str());
 }
 
-void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
 	ImGuiIO &io = ImGui::GetIO();
 	io.DeltaTime = 1.0f/60.0f;              // TODO: set the time elapsed since the previous frame (in seconds)
@@ -96,7 +96,7 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 	{
 		for (auto &entity : getEntities())
 		{
-			GUIComponent &guiComp = store.retrieve<GUIComponent>(entity);
+            GUIComponent &guiComp = ecs.getComponentStore().retrieve<GUIComponent>(entity);
 			if (guiComp.guiRender)
 			{
 				guiComp.guiRender();

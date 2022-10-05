@@ -1,6 +1,8 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+constexpr unsigned int MAX_ENTITIES = 5000;
+
 namespace Boiler
 {
 

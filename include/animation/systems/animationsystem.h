@@ -1,7 +1,6 @@
 #ifndef ANIMATIONSYSTEM_H
 #define ANIMATIONSYSTEM_H
 
-#include "core/common.h"
 #include "core/system.h"
 
 namespace Boiler
@@ -16,7 +15,7 @@ class AnimationSystem : public System
 public:
 	AnimationSystem(Animator &animator);
 
-	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store) override;
+    void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs) override;
 };
 
 };

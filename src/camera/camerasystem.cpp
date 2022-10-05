@@ -1,12 +1,11 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "display/renderer.h"
-#include "core/componentstore.h"
+#include "core/entitycomponentsystem.h"
 #include "camera/camerasystem.h"
 #include "core/components/transformcomponent.h"
 #include "physics/movementcomponent.h"
 #include "camera/cameracomponent.h"
-#include "input/mousemotionevent.h"
 
 using namespace Boiler;
 
@@ -20,19 +19,20 @@ CameraSystem::CameraSystem() : System("Camera System")
 	prevYFactor = 0;
 }
 
-void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
 	for (Entity entity : getEntities())
 	{
-		TransformComponent &transform = store.retrieve<TransformComponent>(entity);
-		CameraComponent &camera = store.retrieve<CameraComponent>(entity);
-		MovementComponent &movement = store.retrieve<MovementComponent>(entity);
+        TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
+        CameraComponent &camera = ecs.getComponentStore().retrieve<CameraComponent>(entity);
+        MovementComponent &movement = ecs.getComponentStore().retrieve<MovementComponent>(entity);
 
-		movement.direction = glm::rotate(movement.direction, static_cast<float>(-movement.mouseXDiff), movement.up);
-		const glm::vec3 axis = glm::cross(movement.up, movement.direction);
-		movement.direction = glm::rotate(movement.direction, static_cast<float>(movement.mouseYDiff), axis);
+		camera.direction = glm::rotate(camera.direction, static_cast<float>(-movement.mouseXDiff), camera.up);
+		const glm::vec3 axis = glm::cross(camera.up, camera.direction);
+		camera.direction = glm::rotate(camera.direction, static_cast<float>(movement.mouseYDiff), axis);
 
-		glm::mat4 view = glm::lookAt(transform.getPosition(), transform.getPosition() + movement.direction, movement.up);
+		// TODO: This shouldn't be happening directly on the renderer
+		glm::mat4 view = glm::lookAt(transform.getPosition(), transform.getPosition() + camera.direction, camera.up);
 		renderer.setViewMatrix(view);
 		renderer.setCameraPosition(transform.getPosition());
 	}

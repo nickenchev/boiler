@@ -2,7 +2,7 @@
 #define MOVEMENTCOMPONENT_H
 
 #include "core/componenttype.h"
-#include "core/common.h"
+#include "core/math.h"
 
 namespace Boiler
 {
@@ -11,12 +11,9 @@ struct MovementComponent : public ComponentType<MovementComponent>
 {
 	bool moveLeft, moveRight, moveForward, moveBackward, moveUp, moveDown, jump;
 	float mouseXDiff, mouseYDiff;
-	vec3 direction, up;
 
 	MovementComponent() : ComponentType(this)
 	{
-		direction = {0, 0, 0};
-		up = {0, 0, 0};
 		moveLeft = false;
 		moveRight = false;
 		moveForward = false;

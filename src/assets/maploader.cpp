@@ -50,7 +50,7 @@ void MapLoader::load(const std::string &filePath)
 		for (const auto &ent : entities)
 		{
 			std::string name = ent.HasMember("name") ? ent["name"].GetString() : "Unnamed";
-			Entity entity = ecs.newEntity();
+			Entity entity = ecs.newEntity(name);
 			if (ent.HasMember("components"))
 			{
 				const auto &components = ent["components"].GetObject();
@@ -102,7 +102,16 @@ void MapLoader::load(const std::string &filePath)
 				if (components.HasMember("physics"))
 				{
 					const auto &comp = components["physics"];
-					ecs.createComponent<PhysicsComponent>(entity);
+					auto physics = ecs.createComponent<PhysicsComponent>(entity);
+
+					if (comp.HasMember("speed"))
+					{
+						physics->speed = comp["speed"].GetFloat();
+					}
+					if (comp.HasMember("acceleration"))
+					{
+						physics->acceleration = comp["acceleration"].GetFloat();
+					}
 				}
 				if (components.HasMember("collision"))
 				{
@@ -143,14 +152,15 @@ void MapLoader::load(const std::string &filePath)
 				}
 				if (components.HasMember("camera"))
 				{
+					const auto &comp = components["camera"];
 					const auto cameraComponent = ecs.createComponent<CameraComponent>(entity);
+					cameraComponent->direction = getVector(comp, "direction");
+					cameraComponent->up = getVector(comp, "up");
 				}
 				if (components.HasMember("movement"))
 				{
 					const auto &comp = components["movement"];
 					const auto moveComponent = ecs.createComponent<MovementComponent>(entity);
-					moveComponent->direction = getVector(comp, "direction");
-					moveComponent->up = getVector(comp, "up");
 				}
 				if (components.HasMember("input"))
 				{

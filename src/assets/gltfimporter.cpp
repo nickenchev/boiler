@@ -9,6 +9,7 @@
 #include "core/components/transformcomponent.h"
 #include "display/renderer.h"
 #include "physics/collisioncomponent.h"
+#include "physics/physicscomponent.h"
 #include "animation/components/animationcomponent.h"
 #include "gltf.h"
 #include "display/vertexdata.h"
@@ -291,6 +292,7 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 				collision->max = mesh.max;
 			}
 		}
+		auto physics = ecs.createComponent<PhysicsComponent>(nodeEntity);
 
 		// create a transform component if one doesn't exist
 		TransformComponent &transform = ecs.getComponentStore().hasComponent<TransformComponent>(nodeEntity)
@@ -346,7 +348,7 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 		{
 			for (int childIndex : node.children)
 			{
-				loadNode(nodeEntities, ecs.newEntity(), childIndex, nodeEntity);
+				loadNode(nodeEntities, ecs.newEntity(model.nodes[childIndex].name), childIndex, nodeEntity);
 			}
 		}
 	}
@@ -372,7 +374,7 @@ std::vector<Entity> GLTFImporter::createInstance(const Entity &rootEntity) const
 	{
 		for (auto &nodeIndex : scene.nodes)
 		{
-			loadNode(nodeEntities, engine.getEcs().newEntity(), nodeIndex, rootEntity);
+			loadNode(nodeEntities, engine.getEcs().newEntity(model.nodes[nodeIndex].name), nodeIndex, rootEntity);
 		}
 	}
 

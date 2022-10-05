@@ -3,7 +3,7 @@
 #include "core/components/rendercomponent.h"
 #include "core/components/materialcomponent.h"
 #include "core/components/parentcomponent.h"
-#include "core/componentstore.h"
+#include "core/entitycomponentsystem.h"
 #include "display/systems/rendersystem.h"
 #include "display/materialgroup.h"
 
@@ -40,7 +40,7 @@ mat4 getMatrix(Entity entity, ComponentStore &store, std::array<std::optional<ma
 	return modelMatrix;
 }
 
-void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
 	// TODO: none of these can be fixed sizes
 	std::vector<MaterialGroup> materialGroups, alphaGroups, postDepthGroups;
@@ -55,11 +55,11 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 	for (unsigned int i = 0; i < static_cast<unsigned int>(getEntities().size()); ++i)
 	{
 		const Entity &entity = getEntities()[i];
-		TransformComponent &transform = store.retrieve<TransformComponent>(entity);
-		RenderComponent &render = store.retrieve<RenderComponent>(entity);
+        TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
+        RenderComponent &render = ecs.getComponentStore().retrieve<RenderComponent>(entity);
 
 		// calculate model matrix
-		glm::mat4 modelMatrix = getMatrix(entity, store, matrixCache);
+        glm::mat4 modelMatrix = getMatrix(entity, ecs.getComponentStore(), matrixCache);
 		Entity currentEntity = entity;
 
 		const static Material defaultMaterial;

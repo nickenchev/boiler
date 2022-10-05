@@ -3,7 +3,7 @@
 #include "input/inputsystem.h"
 #include "input/inputcomponent.h"
 #include "input/keyinputevent.h"
-#include "core/componentstore.h"
+#include "core/entitycomponentsystem.h"
 #include "physics/movementcomponent.h"
 
 using namespace Boiler;
@@ -21,7 +21,7 @@ InputSystem::InputSystem(Engine &engine) : System("Input System"), engine(engine
 	moveDown = false;
 }
 
-void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, ComponentStore &store)
+void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
 	bool jump = false;
 	
@@ -68,7 +68,7 @@ void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo
 
 	for (Entity entity : getEntities())
 	{
-		MovementComponent &movement = store.retrieve<MovementComponent>(entity);
+        MovementComponent &movement = ecs.getComponentStore().retrieve<MovementComponent>(entity);
 		movement.moveLeft = moveLeft;
 		movement.moveRight = moveRight;
 		movement.moveForward = moveForward;

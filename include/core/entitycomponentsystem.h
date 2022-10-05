@@ -2,7 +2,6 @@
 #define ENTITYCOMPONENTSYSTEM_H
 
 #include <string>
-#include "core/common.h"
 #include "core/entityworld.h"
 #include "core/componentmapper.h"
 #include "core/componentsystems.h"
@@ -29,12 +28,17 @@ public:
 
 	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo)
 	{
-		systems.update(renderer, assetSet, frameInfo, componentStore);
+        systems.update(renderer, assetSet, frameInfo, *this);
 	}
 
-	Entity newEntity()
+	Entity newEntity(const std::string &name)
 	{
-		return entityWorld.createEntity();
+		return entityWorld.createEntity(name);
+	}
+
+	const std::string &nameOf(Entity entity)
+	{
+		return entityWorld.getName(entity);
 	}
 
 	void removeEntity(const Entity &entity)
