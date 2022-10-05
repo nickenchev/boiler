@@ -36,7 +36,6 @@ void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
 
 			vec3 minA = vec3(newTransformA.getMatrix() * vec4(collision.min, 1));
 			vec3 maxA = vec3(newTransformA.getMatrix() * vec4(collision.max, 1));
-			logger.log("{}: ({}, {}, {})   ({}, {}, {})", ecs.nameOf(entity), minA.x, minA.y, minA.z, maxA.x, maxA.y, maxA.z);
 
             for (const Entity &entityB : getEntities())
 			{
@@ -58,8 +57,7 @@ void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
 						maxA.y > minB.y && minA.y < maxB.y &&
 						maxA.z > minB.z && minA.z < maxB.z)
 					{
-						logger.log("{}: ({}, {}, {})   ({}, {}, {})", ecs.nameOf(entityB), minB.x, minB.y, minB.z, maxB.x, maxB.y, maxB.z);
-						velocity *= 0;
+						velocity = -velocity * 0.2f;
 					}
 				}
 			}
