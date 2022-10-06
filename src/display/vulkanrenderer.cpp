@@ -2064,7 +2064,7 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 	}
 	else
 	{
-		logger.error("Image acquire error code: {}", nextImageResult);
+		logger.error("Image acquire error code: {}", static_cast<unsigned int>(nextImageResult));
 		throw std::runtime_error("Error during image aquire");
 	}
 
