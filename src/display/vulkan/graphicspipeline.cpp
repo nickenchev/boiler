@@ -1,4 +1,5 @@
 #include <array>
+#include <assert.h>
 #include "display/vulkan/graphicspipeline.h"
 
 #include "core/logger.h"

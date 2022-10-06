@@ -93,7 +93,6 @@ void MapLoader::load(const std::string &filePath)
 											 orientation["y"].GetFloat(), orientation["z"].GetFloat());
 						transformComponent->setOrientation(orientationQuat);
 					}
-
 					if (comp.HasMember("scale"))
 					{
 						transformComponent->setScale(getVector(comp, "scale"));
