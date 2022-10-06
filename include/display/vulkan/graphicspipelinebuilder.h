@@ -50,7 +50,7 @@ public:
 		pipelineInfo.pDynamicState = nullptr;
 	}
 
-	GraphicsPipelineBuilder &assembly(VkVertexInputBindingDescription *inputBind, std::vector<VkVertexInputAttributeDescription> *attrDescs)
+	GraphicsPipelineBuilder &assembly(VkVertexInputBindingDescription *inputBind, std::vector<VkVertexInputAttributeDescription> *attrDescs, VkPrimitiveTopology topology)
 	{
 		vertInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertInputCreateInfo.vertexBindingDescriptionCount = (inputBind != nullptr) ? 1 : 0;
@@ -59,7 +59,7 @@ public:
 		vertInputCreateInfo.pVertexAttributeDescriptions = (attrDescs != nullptr) ? attrDescs->data() : nullptr;
 
 		assemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		assemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		assemblyCreateInfo.topology = topology;
 		assemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
 
 		pipelineInfo.pVertexInputState = &vertInputCreateInfo;

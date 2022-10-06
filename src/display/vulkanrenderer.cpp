@@ -995,7 +995,7 @@ void VulkanRenderer::createGraphicsPipelines()
 
 	// pipeline for g-buffer
 	gBufferPipeline = GraphicsPipelineBuilder<3>(device, gBuffersPipelineLayout)
-		.assembly(&standardInputBind, &standardAttrDesc)
+		.assembly(&standardInputBind, &standardAttrDesc, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
 		.viewport(true, swapChainExtent)
 		.rasterizer(VK_CULL_MODE_BACK_BIT)
 		.multisampling()
@@ -1006,7 +1006,7 @@ void VulkanRenderer::createGraphicsPipelines()
 		.build();
 
 	gBufferNoTexPipeline = GraphicsPipelineBuilder<3>(device, gBuffersPipelineLayout)
-		.assembly(&standardInputBind, &standardAttrDesc)
+		.assembly(&standardInputBind, &standardAttrDesc, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
 		.viewport(true, swapChainExtent)
 		.rasterizer(VK_CULL_MODE_BACK_BIT)
 		.multisampling()
@@ -1017,7 +1017,7 @@ void VulkanRenderer::createGraphicsPipelines()
 		.build();
 
 	alphaBufferPipeline = GraphicsPipelineBuilder<3>(device, gBuffersPipelineLayout)
-		.assembly(&standardInputBind, &standardAttrDesc)
+		.assembly(&standardInputBind, &standardAttrDesc, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
 		.viewport(true, swapChainExtent)
 		.rasterizer(VK_CULL_MODE_BACK_BIT)
 		.multisampling()
@@ -1029,7 +1029,7 @@ void VulkanRenderer::createGraphicsPipelines()
 
 	// pipeline for deferred final output
 	deferredPipeline = GraphicsPipelineBuilder<1>(device, deferredPipelineLayout)
-		.assembly(nullptr, nullptr)
+		.assembly(nullptr, nullptr, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
 		.viewport(false, swapChainExtent)
 		.rasterizer(VK_CULL_MODE_FRONT_BIT)
 		.multisampling()
@@ -1041,7 +1041,7 @@ void VulkanRenderer::createGraphicsPipelines()
 
 	// skybox pipeline
 	skyboxPipeline = GraphicsPipelineBuilder<1>(device, gBuffersPipelineLayout)
-		.assembly(&standardInputBind, &standardAttrDesc)
+		.assembly(&standardInputBind, &standardAttrDesc, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
 		.viewport(true, swapChainExtent)
 		.rasterizer(VK_CULL_MODE_BACK_BIT)
 		.multisampling()
@@ -1054,7 +1054,7 @@ void VulkanRenderer::createGraphicsPipelines()
 	// UI pipeline
 	std::array<VkDynamicState, 1> dynamicStates{ VK_DYNAMIC_STATE_SCISSOR };
 	uiPipeline = GraphicsPipelineBuilder<1>(device, uiPipelineLayout)
-		.assembly(&standardInputBind, &standardAttrDesc)
+		.assembly(&standardInputBind, &standardAttrDesc, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
 		.viewport(true, swapChainExtent)
 		.rasterizer(VK_CULL_MODE_NONE)
 		.multisampling()
