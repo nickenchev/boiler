@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <fmt/format.h>
+#include <utility>
+#include <fmt/core.h>
 
 namespace Boiler
 {
@@ -34,20 +35,15 @@ public:
 	}
 
 	template<typename... Args>
-	void log(std::string formatString, Args&&... args) const
+	constexpr void log(fmt::format_string<Args...> fmtString, Args&&... args) const
 	{
-		printInfo(fmt::format(formatString, args...));
-	}
-
-	void log(double value) const
-	{
-		log(std::to_string(value));
+		printInfo(fmt::format(fmtString, std::forward<Args>(args)...));
 	}
 
 	template<typename... Args>
-	void error(std::string formatString, Args&&... args) const
+	void error(fmt::format_string<Args...> fmtString, Args&&... args) const
 	{
-		printError(fmt::format(formatString, args...));
+		printError(fmt::format(fmtString, std::forward<Args>(args)...));
 	}
 
     void error(std::string message) const

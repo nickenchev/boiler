@@ -24,7 +24,8 @@ set(JSONCPP_WITH_POST_BUILD_UNITTEST CACHE OFF "Disable JSONCPP post-build runne
 add_subdirectory(${LIBS_ROOT}/jsoncpp)
 
 # build fmt
-add_subdirectory(${LIBS_ROOT}/fmt-6.0.0)
+#add_subdirectory(${LIBS_ROOT}/fmt-6.0.0)
+add_subdirectory(${LIBS_ROOT}/fmt-9.1.0)
 
 # boiler-gltf
 add_subdirectory(${LIBS_ROOT}/boiler-gltf)
