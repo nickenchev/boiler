@@ -35,6 +35,8 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 
     for (const Entity &entity : getEntities())
 	{
+		size_t vertOffset = vertices.size();
+		size_t idxOffset = indices.size();
         auto &collision = ecs.getComponentStore().retrieve<CollisionComponent>(entity);
         auto &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
         auto &physics = ecs.getComponentStore().retrieve<PhysicsComponent>(entity);
@@ -55,14 +57,30 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 		indices.push_back(1);
 
 		AssetId matrixId = renderer.addMatrix(mat4(1));
-		matGroup.primitives.push_back(MaterialGroup::PrimitiveInstance(primitiveIds[frameInfo.currentFrame], matrixId, vec3(0, 0, 0), 2, vertices.size(), indices.size()));
+		matGroup.primitives.push_back(MaterialGroup::PrimitiveInstance(Asset::NO_ASSET, matrixId, vec3(0, 0, 0), 2, vertOffset, idxOffset));
 	}
 	matGroups.push_back(matGroup);
 
+	// generate primitive buffers and a primitive asset
 	VertexData vertData(vertices, indices);
-	AssetId primBuffsId = renderer.loadPrimitive(vertData, primitiveIds[frameInfo.currentFrame]);
+	AssetId primBuffsId = Asset::NO_ASSET;
+	if (primitiveIds[frameInfo.currentFrame] != Asset::NO_ASSET)
+	{
+		// re-create primitive buffers with new data
+		AssetId existingBuffersId = renderer.getAssetSet().primitives.get(primitiveIds[frameInfo.currentFrame]).bufferId;
+		primBuffsId = renderer.loadPrimitive(vertData, existingBuffersId);
+	}
+	else
+	{
+		// create new primitive buffers
+		primBuffsId = renderer.loadPrimitive(vertData);
+		primitiveIds[frameInfo.currentFrame] = renderer.getAssetSet().primitives.add(Primitive(primBuffsId, std::move(vertData), vec3(0, 0, 0), vec3(0, 0, 0))); // TODO: min/max should reflect actual values in vtx buffer
+	}
 
-	primitiveIds[frameInfo.currentFrame] = renderer.getAssetSet().primitives.add(Primitive(primBuffsId, std::move(vertData), vec3(0, 0, 0), vec3(0, 0, 0))); // TODO: min/max should reflect actual values in vtx buffer
+	for (MaterialGroup::PrimitiveInstance &instance : matGroups[0].primitives)
+	{
+		instance.primitiveId = primitiveIds[frameInfo.currentFrame];
+	}
 
 	renderer.render(renderer.getAssetSet(), frameInfo, matGroups, RenderStage::DEBUG);
 }

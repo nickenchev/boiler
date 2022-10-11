@@ -181,7 +181,7 @@ void Engine::step(FrameInfo &frameInfo)
 		{
 			guiSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
 		}
-		//debugRenderSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
+		debugRenderSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
 
 		renderer->displayFrame(frameInfo, renderer->getAssetSet());
 	}
