@@ -95,30 +95,23 @@ class VulkanRenderer : public Boiler::Renderer
 	DescriptorSet renderDescriptors, materialDescriptors, deferredDescriptors;
 
 	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout, uiPipelineLayout;
-	GraphicsPipeline skyboxPipeline, gBufferPipeline, alphaBufferPipeline, gBufferNoTexPipeline, deferredPipeline, uiPipeline;
+	GraphicsPipeline skyboxPipeline, gBufferPipeline, alphaBufferPipeline, gBufferNoTexPipeline, deferredPipeline, uiPipeline, debugLinePipeline;
 
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;
-	std::vector<VkCommandBuffer> commandBuffers, geometryCommandBuffers, alphaCommandBuffers, deferredCommandBuffers, skyboxCommandBuffers, uiCommandBuffers;
+	std::vector<VkCommandBuffer> commandBuffers, geometryCommandBuffers, alphaCommandBuffers, deferredCommandBuffers, skyboxCommandBuffers, uiCommandBuffers, debugCommandBuffers;
 	std::vector<VkSemaphore> imageSemaphores, renderSemaphores;
 	std::vector<VkFence> frameFences;
 
 	// resource management
+	AssetManager<BufferInfo, 2048> buffers;
 	AssetManager<PrimitiveBuffers, 2048> primitives;
 	AssetManager<TextureImage, 512> textures;
-	BufferInfo matrixBuffer, lightsBuffer, materialBuffer;
-
-	void freeBuffer(const BufferInfo &bufferInfo) const;
-	// matrices
-	void createMatrixBuffer();
-	// lights
-	void createLightBuffer(int lightCount);
-	void updateLights(const std::vector<LightSource> &lightSources) override;
-	// materials
-	void createMaterialBuffer();
+	AssetId matrixBufferId, lightsBufferId, materialBufferId;
+	void updateLights(const std::vector<LightSource> &lightSources) const override;
 	void updateMaterials(const std::vector<ShaderMaterial> &materials) const override;
 
-	ShaderStageModules gBufferModules, deferredModules, skyboxModules, uiModules;
+	ShaderStageModules gBufferModules, deferredModules, skyboxModules, uiModules, debugModules;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
 	Sampler textureSampler, cubemapSampler, glyphAtlasSampler;
@@ -150,11 +143,13 @@ class VulkanRenderer : public Boiler::Renderer
 	// memory/buffer operations
 	VkDeviceSize offsetUniform(VkDeviceSize offset);
 	uint32_t findMemoryType(uint32_t filter, VkMemoryPropertyFlags flags) const;
-	BufferInfo createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperties) const;
+
+	AssetId createBuffer(size_t size, BufferUsage usage, MemoryType memType) override;
+	void freeBuffer(const BufferInfo &bufferInfo) const;
+	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const;
 
 	VkCommandBuffer beginSingleTimeCommands(const VkCommandPool &pool) const;
 	void endSingleTimeCommands(const VkQueue &queue, const VkCommandPool &pool, const VkCommandBuffer &buffer) const;
-	void copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const;
 
 	// image operations
 	std::pair<VkImage, VkDeviceMemory> createImage(const TextureRequest &request) const;
@@ -168,7 +163,7 @@ class VulkanRenderer : public Boiler::Renderer
 								 VkFormatFeatureFlags features) const;
 	VkFormat findDepthFormat() const;
 	bool hasStencilComponent(VkFormat format) const;
-	BufferInfo createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const;
+	AssetId createGPUBuffer(void *data, long size, BufferUsage usage);
 
 public:
     VulkanRenderer(const std::vector<const char *> requiredExtensions, bool enableValidationLayers = false);

@@ -21,6 +21,12 @@ struct Vertex
 		this->position = position;
 	}
 
+	Vertex(vec3 position, vec4 colour)
+	{
+		this->position = position;
+		this->colour = colour;
+	}
+
 	Vertex(vec3 position, vec2 textureCoordinates)
 	{
 		this->position = position;

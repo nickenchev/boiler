@@ -21,6 +21,7 @@
 #include "display/systems/guisystem.h"
 #include "display/systems/lightingsystem.h"
 #include "display/systems/textsystem.h"
+#include "display/systems/debugrendersystem.h"
 #include "animation/components/animationcomponent.h"
 #include "animation/systems/animationsystem.h"
 #include "camera/camerasystem.h"
@@ -105,6 +106,10 @@ void Engine::initialize(const Size &initialSize)
 		.expects<GUIComponent>();
 	ecs.getComponentSystems().removeUpdate(guiSys);
 	this->guiSystem = &guiSys;
+
+	System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(*renderer);
+	ecs.getComponentSystems().removeUpdate(debugRenderSys);
+	this->debugRenderSystem = &debugRenderSys;
 }
 
 void Engine::start(std::shared_ptr<Part> part)
@@ -176,6 +181,8 @@ void Engine::step(FrameInfo &frameInfo)
 		{
 			guiSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
 		}
+		//debugRenderSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
+
 		renderer->displayFrame(frameInfo, renderer->getAssetSet());
 	}
 	frameCount++;
@@ -212,12 +219,10 @@ void Engine::processEvents(FrameInfo &frameInfo)
 					}
 					case SDL_WINDOWEVENT_MINIMIZED:
 					{
-						logger.log("Pausing run loop");
 						break;
 					}
 					case SDL_WINDOWEVENT_SHOWN:
 					{
-						logger.log("Resuming run loop");
 						break;
 					}
 				}

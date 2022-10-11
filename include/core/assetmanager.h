@@ -11,29 +11,54 @@ namespace Boiler {
 template<typename AssetType, std::size_t Size>
 class AssetManager
 {
-	std::size_t size, index;
 	std::array<AssetType, Size> assets;
+	std::array<bool, Size> assetStates;
 
 public:
-    AssetManager()
+    AssetManager() : assetStates{false}
 	{
-		reset();
 	}
 
 	AssetId add(AssetType &&asset)
 	{
-		assert(size < Size);
-		
-		size++;
-		AssetId assetId = index++;
-		assets[assetId] = std::move(asset);
+		AssetId assetId = Asset::NO_ASSET;
+
+		unsigned int index = 0;
+		while (assetId == Asset::NO_ASSET && index < Size)
+		{
+			if (!assetStates[index])
+			{
+				assetId = index;
+				assets[index] = std::move(asset);
+				assetStates[index] = true;
+			}
+			index++;
+		}
+		assert(assetId != Asset::NO_ASSET);
 
 		return assetId;
 	}
 
+	void remove(AssetId id)
+	{
+		assetStates[id] = false;
+	}
+
 	AssetType &get(AssetId assetId)
 	{
+		assert(assetStates[assetId] != false);
 		return assets[assetId];
+	}
+
+	const AssetType &get(AssetId assetId) const
+	{
+		assert(assetStates[assetId] != false);
+		return assets[assetId];
+	}
+
+	bool isOccupied(AssetId id) const
+	{
+		return assetStates[id];
 	}
 
 	AssetType &operator[](std::size_t index)
@@ -43,8 +68,7 @@ public:
 
 	void reset()
 	{
-		index = 0;
-		size = 0;
+		memset(assetStates.data(), 0, sizeof(bool) * Size);
 	}
 
 	const AssetType *data() const
@@ -53,8 +77,8 @@ public:
 	}
 
 	const auto &getAssets() const { return assets; }
-	std::size_t getSize() const { return size; }
-	std::size_t byteSize() const { return getSize() * sizeof(AssetType); }
+	std::size_t getSize() const { return Size; }
+	std::size_t byteSize() const { return Size * sizeof(AssetType); }
 };
 
 }

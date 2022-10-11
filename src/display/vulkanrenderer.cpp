@@ -216,6 +216,7 @@ void VulkanRenderer::shutdown()
 	vkFreeCommandBuffers(device, commandPool, deferredCommandBuffers.size(), deferredCommandBuffers.data());
 	vkFreeCommandBuffers(device, commandPool, skyboxCommandBuffers.size(), skyboxCommandBuffers.data());
 	vkFreeCommandBuffers(device, commandPool, uiCommandBuffers.size(), uiCommandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, debugCommandBuffers.size(), debugCommandBuffers.data());
 	logger.log("Destroyed command buffers");
 
 	vkDestroyRenderPass(device, renderPass, nullptr);
@@ -227,20 +228,30 @@ void VulkanRenderer::shutdown()
 	logger.log("Destroyed descriptors");
 
 	// Cleanup all resources allocated for various assets
-	for (const TextureImage &ti : textures.getAssets())
+	for (int i = 0; i < textures.getSize(); ++i)
 	{
-		vkFreeMemory(device, ti.memory, nullptr);
-		vkDestroyImage(device, ti.image, nullptr);
-		vkDestroyImageView(device, ti.imageView, nullptr);
+		const TextureImage &ti = textures.getAssets()[i];
+		if (textures.isOccupied(i))
+		{
+			vkFreeMemory(device, ti.memory, nullptr);
+			vkDestroyImage(device, ti.image, nullptr);
+			vkDestroyImageView(device, ti.imageView, nullptr);
+		}
 	}
-	for (const PrimitiveBuffers &pb : primitives.getAssets())
+
+	for (int i = 0; i < primitives.getSize(); ++i)
 	{
-		freeBuffer(pb.getVertexBuffer());
-		freeBuffer(pb.getIndexBuffer());
+		const PrimitiveBuffers &pb = primitives.getAssets()[i];
+		if (primitives.isOccupied(i))
+		{
+			freeBuffer(buffers.get(pb.getVertexBufferId()));
+			freeBuffer(buffers.get(pb.getIndexBufferId()));
+		}
 	}
-	freeBuffer(matrixBuffer);
-	freeBuffer(lightsBuffer);
-	freeBuffer(materialBuffer);
+
+	freeBuffer(buffers.get(matrixBufferId));
+	freeBuffer(buffers.get(lightsBufferId));
+	freeBuffer(buffers.get(materialBufferId));
 	logger.log("Cleaned up buffers and memory");
 
 	// delete the shader module
@@ -252,6 +263,8 @@ void VulkanRenderer::shutdown()
 	vkDestroyShaderModule(device, deferredModules.fragment, nullptr);
 	vkDestroyShaderModule(device, uiModules.vertex, nullptr);
 	vkDestroyShaderModule(device, uiModules.fragment, nullptr);
+	vkDestroyShaderModule(device, debugModules.vertex, nullptr);
+	vkDestroyShaderModule(device, debugModules.fragment, nullptr);
 	logger.log("Destroyed shader modules");
 	
 	// sync objects cleanup
@@ -563,6 +576,11 @@ void VulkanRenderer::initialize(const Size &size)
 		auto uiFragData = FileManager::readBinaryFile("shaders/ui.frag.spv");
 		uiModules.fragment = createShaderModule(uiFragData);
 
+		auto debugVertData = FileManager::readBinaryFile("shaders/debug.vert.spv");
+		debugModules.vertex = createShaderModule(debugVertData);
+		auto debugFragData = FileManager::readBinaryFile("shaders/debug.frag.spv");
+		debugModules.fragment = createShaderModule(debugFragData);
+
 		createSwapChain();
 		createGBuffers();
 		createDepthResources();
@@ -572,9 +590,12 @@ void VulkanRenderer::initialize(const Size &size)
 		createDescriptorSets();
 		createGraphicsPipelines();
 
-		createMatrixBuffer();
-		createLightBuffer(maxLights);
-		createMaterialBuffer();
+		const VkDeviceSize matrixBufferSize = MAX_OBJECTS * sizeof(mat4) + sizeof(RenderMatrices) + deviceProperties.limits.minUniformBufferOffsetAlignment;
+		matrixBufferId = createBuffer(matrixBufferSize, BufferUsage::UNIFORM, MemoryType::DEVICE_LOCAL_HOST_CACHED);
+		const VkDeviceSize lightsBufferSize = sizeof(LightSource) * maxLights;
+		lightsBufferId = createBuffer(lightsBufferSize, BufferUsage::UNIFORM, MemoryType::DEVICE_LOCAL_HOST_CACHED);
+		const VkDeviceSize matsBufferSize = sizeof(ShaderMaterial) * maxMaterials;
+		materialBufferId = createBuffer(matsBufferSize, BufferUsage::UNIFORM, MemoryType::DEVICE_LOCAL_HOST_CACHED);
 
 		commandPool = createCommandPools(queueFamilyIndices, graphicsQueue, transferQueue);
 		createCommandBuffers();
@@ -1051,6 +1072,18 @@ void VulkanRenderer::createGraphicsPipelines()
 		.renderPass(renderPass, 3)
 		.build();
 
+	// debugging-line drawing pipeline
+	debugLinePipeline = GraphicsPipelineBuilder<1>(device, uiPipelineLayout)
+		.assembly(&standardInputBind, &standardAttrDesc, VK_PRIMITIVE_TOPOLOGY_LINE_LIST)
+		.viewport(true, swapChainExtent)
+		.rasterizer(VK_CULL_MODE_NONE)
+		.multisampling()
+		.blending({AttachmentBlendInfo { .enabled = true }})
+		.depth(false, VK_COMPARE_OP_LESS)
+		.shaderModules(debugModules, false)
+		.renderPass(renderPass, 4)
+		.build();
+
 	// UI pipeline
 	std::array<VkDynamicState, 1> dynamicStates{ VK_DYNAMIC_STATE_SCISSOR };
 	uiPipeline = GraphicsPipelineBuilder<1>(device, uiPipelineLayout)
@@ -1253,6 +1286,7 @@ void VulkanRenderer::createCommandBuffers()
 	createSecondaryCommandBuffers(deferredCommandBuffers);
 	createSecondaryCommandBuffers(skyboxCommandBuffers);
 	createSecondaryCommandBuffers(uiCommandBuffers);
+	createSecondaryCommandBuffers(debugCommandBuffers);
 }
 
 void VulkanRenderer::createSecondaryCommandBuffers(std::vector<VkCommandBuffer> &secondaryBuffers)
@@ -1320,27 +1354,6 @@ void VulkanRenderer::createDepthResources()
 		depthImages[i].memory = imagePair.second;
 		depthImages[i].imageView = createImageView(imagePair.first, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 	}
-}
-
-void VulkanRenderer::createMatrixBuffer()
-{
-	const VkDeviceSize size = MAX_OBJECTS * sizeof(mat4) + sizeof(RenderMatrices) + deviceProperties.limits.minUniformBufferOffsetAlignment;
-	matrixBuffer = createBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-								VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-}
-
-void VulkanRenderer::createLightBuffer(int lightCount)
-{
-	VkDeviceSize bufferSize = sizeof(LightSource) * lightCount;
-	lightsBuffer = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-								VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-}
-
-void VulkanRenderer::createMaterialBuffer()
-{
-	VkDeviceSize bufferSize = sizeof(ShaderMaterial) * maxMaterials;
-	materialBuffer = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-								  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
 
 void VulkanRenderer::recreateSwapchain()
@@ -1412,6 +1425,7 @@ void VulkanRenderer::cleanupSwapchain()
 	GraphicsPipeline::destroy(device, skyboxPipeline);
 	GraphicsPipeline::destroy(device, deferredPipeline);
 	GraphicsPipeline::destroy(device, uiPipeline);
+	GraphicsPipeline::destroy(device, debugLinePipeline);
 
 	vkDestroyPipelineLayout(device, gBuffersPipelineLayout, nullptr);
 	vkDestroyPipelineLayout(device, deferredPipelineLayout, nullptr);
@@ -1513,9 +1527,10 @@ AssetId VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &im
 	}
 
 	// create a single image with 6 layers
-	BufferInfo buffInfo = createBuffer(totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-									   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	AssetId stageBufferId = createBuffer(totalSize, BufferUsage::STAGING, MemoryType::HOST_CACHED);
+
 	// stage data for all 6 images
+	const BufferInfo buffInfo = buffers.get(stageBufferId);
 	char *data = nullptr;
 	vkMapMemory(device, buffInfo.memory, 0, totalSize, 0, (void **)&data);
 	size_t offset = 0;
@@ -1558,8 +1573,9 @@ AssetId VulkanRenderer::loadTexture(const ImageData &imageData, TextureType type
 
 	// calculate size of buffer and generate the staging buffer
 	const VkDeviceSize bytesSize = imageData.size.width * imageData.size.height * bytesPerPixel;
-	auto bufferInfo = createBuffer(bytesSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-								   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	AssetId stagingBufferId = createBuffer(bytesSize, BufferUsage::STAGING, MemoryType::HOST_CACHED);
+	const BufferInfo bufferInfo = buffers.get(stagingBufferId);
 
 	logger.log("Staging {} bytes of data", bytesSize);
 	void *data = nullptr;
@@ -1593,12 +1609,45 @@ void allocateGlyphs(const GlyphMap &map)
 {
 }
 
-BufferInfo VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperties) const
+AssetId VulkanRenderer::createBuffer(size_t size, BufferUsage usage, MemoryType memType)
 {
+	VkBufferUsageFlags usageFlags;
+	VkMemoryPropertyFlags memoryProperties;
+
+	if (usage == BufferUsage::STAGING)
+	{
+		usageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	}
+	else if (usage == BufferUsage::VERTICES)
+	{
+		usageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	}
+	else if (usage == BufferUsage::INDICES)
+	{
+		usageFlags = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	}
+	else if (usage == BufferUsage::UNIFORM)
+	{
+		usageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	}
+
+	if (memType == MemoryType::DEVICE_LOCAL)
+	{
+		memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	}
+	else if (memType == MemoryType::DEVICE_LOCAL_HOST_CACHED)
+	{
+		memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	}
+	else if (memType == MemoryType::HOST_CACHED)
+	{
+		memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	}
+
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferInfo.size = size;
-	bufferInfo.usage = usage;
+	bufferInfo.usage = usageFlags;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 	VkBuffer buffer;
@@ -1624,7 +1673,7 @@ BufferInfo VulkanRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags us
 	// bind the memory to the buffer and map it
 	vkBindBufferMemory(device, buffer, bufferMemory, 0);
 
-	return BufferInfo(buffer, bufferMemory, size);
+	return buffers.add(BufferInfo(buffer, bufferMemory, size));
 }
 
 VkCommandBuffer VulkanRenderer::beginSingleTimeCommands(const VkCommandPool &pool) const
@@ -1668,7 +1717,7 @@ void VulkanRenderer::endSingleTimeCommands(const VkQueue &queue, const VkCommand
 	vkFreeCommandBuffers(device, pool, 1, &buffer);
 }
 
-void VulkanRenderer::copyBuffer(VkBuffer &srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const
+void VulkanRenderer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize dataSize) const
 {
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands(transferPool);
 	
@@ -1783,12 +1832,12 @@ bool VulkanRenderer::hasStencilComponent(VkFormat format) const
 	return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-BufferInfo VulkanRenderer::createGPUBuffer(void *data, long size, VkBufferUsageFlags usageFlags) const
+AssetId VulkanRenderer::createGPUBuffer(void *data, long size, BufferUsage usage)
 {
 	VkDeviceSize bufferSize = size;
 	// create a staging buffer (host), map memory and copy
-	auto stageBufferInfo = createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-										VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	AssetId stageBufferId = createBuffer(bufferSize, BufferUsage::STAGING, MemoryType::HOST_CACHED);
+	const BufferInfo &stageBufferInfo = buffers.get(stageBufferId);
 
 	void *mappedMem = nullptr;
 	vkMapMemory(device, stageBufferInfo.memory, 0, bufferSize, 0, &mappedMem);
@@ -1796,56 +1845,62 @@ BufferInfo VulkanRenderer::createGPUBuffer(void *data, long size, VkBufferUsageF
 	vkUnmapMemory(device, stageBufferInfo.memory);
 
 	// create a device-local buffer
-	auto bufferInfo = createBuffer(bufferSize, usageFlags | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-								   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	AssetId bufferId = createBuffer(bufferSize, usage, MemoryType::DEVICE_LOCAL);
+	const BufferInfo &bufferInfo = buffers.get(bufferId);
 
 	copyBuffer(stageBufferInfo.buffer, bufferInfo.buffer, bufferInfo.size);
+
+	buffers.remove(stageBufferId);
 	freeBuffer(stageBufferInfo);
 
-	return bufferInfo;
+	return bufferId;
 }
 
 AssetId VulkanRenderer::loadPrimitive(const VertexData &data, AssetId existingId)
 {
-	auto vertexBuffer = createGPUBuffer((void *)data.vertexBegin(), data.vertexByteSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-	auto indexBuffer = createGPUBuffer((void *)data.indexBegin(), data.indexByteSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+	AssetId vertexBufferId = createGPUBuffer((void *)data.vertexBegin(), data.vertexByteSize(), BufferUsage::VERTICES);
+	AssetId indexBufferId = createGPUBuffer((void *)data.indexBegin(), data.indexByteSize(), BufferUsage::INDICES);
 
 	AssetId primBuffId = existingId;
 	if (primBuffId == Asset::NO_ASSET)
 	{
-		primBuffId = primitives.add(PrimitiveBuffers(vertexBuffer, indexBuffer));
+		primBuffId = primitives.add(PrimitiveBuffers(vertexBufferId, indexBufferId));
 	}
 	else
 	{
 		// delete existing buffers and set the new ones in their place
 		PrimitiveBuffers &primitiveBuffers = primitives.get(primBuffId);
-		freeBuffer(primitiveBuffers.getVertexBuffer());
-		freeBuffer(primitiveBuffers.getIndexBuffer());
+		freeBuffer(buffers.get(primitiveBuffers.getVertexBufferId()));
+		freeBuffer(buffers.get(primitiveBuffers.getIndexBufferId()));
 
-		primitiveBuffers.setBuffers(vertexBuffer, indexBuffer);
+		buffers.remove(primitiveBuffers.getVertexBufferId());
+		buffers.remove(primitiveBuffers.getIndexBufferId());
+
+		primitiveBuffers.setBuffers(vertexBufferId, indexBufferId);
 	}
 
 	return primBuffId;
 }
 
-void VulkanRenderer::updateLights(const std::vector<LightSource> &lightSources)
+void VulkanRenderer::updateLights(const std::vector<LightSource> &lightSources) const
 {
 	// copy light source data
+	const BufferInfo lightsBuffer = buffers.get(lightsBufferId);
+
 	void *lightData = nullptr;
-	VkDeviceSize lightsMemSize = maxLights * sizeof(LightSource);
-	vkMapMemory(device, lightsBuffer.memory, 0, lightsMemSize, 0, &lightData);
-	memcpy(lightData, lightSources.data(), lightsMemSize);
+	vkMapMemory(device, lightsBuffer.memory, 0, lightsBuffer.size, 0, &lightData);
+	memcpy(lightData, lightSources.data(), lightsBuffer.size);
 	vkUnmapMemory(device, lightsBuffer.memory);
 }
 
 void VulkanRenderer::updateMaterials(const std::vector<ShaderMaterial> &materials) const
 {
 	assert(materials.size() <= maxMaterials);
-	const VkDeviceSize size = materials.size() * sizeof(ShaderMaterial);
+	const BufferInfo materialBuffer = buffers.get(materialBufferId);
 
 	void *data = nullptr;
-	vkMapMemory(device, materialBuffer.memory, 0, size, 0, &data);
-	memcpy(data, materials.data(), size);
+	vkMapMemory(device, materialBuffer.memory, 0, materialBuffer.size, 0, &data);
+	memcpy(data, materials.data(), materialBuffer.size);
 	vkUnmapMemory(device, materialBuffer.memory);
 }
 
@@ -1903,6 +1958,7 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		vkResetCommandBuffer(deferredCommandBuffers[frameInfo.currentFrame], 0);
 		vkResetCommandBuffer(skyboxCommandBuffers[frameInfo.currentFrame], 0);
 		vkResetCommandBuffer(uiCommandBuffers[frameInfo.currentFrame], 0);
+		vkResetCommandBuffer(debugCommandBuffers[frameInfo.currentFrame], 0);
 
 		VkCommandBufferBeginInfo beginInfo = {};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1940,6 +1996,7 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		beginSecondaryCommandBuffer(deferredCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 2);
 		beginSecondaryCommandBuffer(skyboxCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 3);
 		beginSecondaryCommandBuffer(uiCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 4);
+		beginSecondaryCommandBuffer(debugCommandBuffers[frameInfo.currentFrame], framebuffers[imageIndex], renderPass, 4);
 
 		// update the descriptor sets for this frame / buffers are updated later
 		static std::array<VkDescriptorSet, 2> descriptorSets{};
@@ -1948,6 +2005,7 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		std::array<VkWriteDescriptorSet, 3> dsetWritesFrame{};
 
 		// view and projection matrices
+		const BufferInfo &matrixBuffer = buffers.get(matrixBufferId);
 		VkDescriptorBufferInfo viewProjBuffInfo = {};
 		viewProjBuffInfo.buffer = matrixBuffer.buffer;
 		viewProjBuffInfo.offset = 0;
@@ -1981,6 +2039,7 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		};
 
 		// update shader material data
+		const BufferInfo &materialBuffer = buffers.get(materialBufferId);
 		VkDescriptorBufferInfo materialsBuffInfo = {};
 		materialsBuffInfo.buffer = materialBuffer.buffer;
 		materialsBuffInfo.offset = 0;
@@ -1999,6 +2058,7 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 		vkUpdateDescriptorSets(device, dsetWritesFrame.size(), dsetWritesFrame.data(), 0, nullptr);
 
 		// update lights descriptor
+		const BufferInfo &lightsBuffer = buffers.get(lightsBufferId);
 		VkDescriptorBufferInfo lightsBuffInfo = {};
 		lightsBuffInfo.buffer = lightsBuffer.buffer;
 		lightsBuffInfo.offset = 0;
@@ -2082,7 +2142,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 	const short currentFrame = frameInfo.currentFrame;
 
 	VkCommandBuffer commandBuffer = geometryCommandBuffers[currentFrame];
-	VkPipelineLayout pipelineLayout = gBuffersPipelineLayout;
+	VkPipelineLayout pipelineLayout = gBufferPipeline.vulkanLayout();
 	VkPipeline pipeline = gBufferPipeline.vulkanPipeline();
 	VkSampler sampler = textureSampler.vkSampler();
 	if (stage == RenderStage::ALPHA_BLENDING)
@@ -2103,9 +2163,16 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 	else if (stage == RenderStage::UI)
 	{
 		commandBuffer = uiCommandBuffers[currentFrame];
-		pipelineLayout = uiPipelineLayout;
+		pipelineLayout = uiPipeline.vulkanLayout();
 		pipeline = uiPipeline.vulkanPipeline();
 		sampler = glyphAtlasSampler.vkSampler();
+	}
+	else if (stage == RenderStage::DEBUG)
+	{
+		commandBuffer = debugCommandBuffers[currentFrame];
+		pipelineLayout = debugLinePipeline.vulkanLayout();
+		pipeline = debugLinePipeline.vulkanPipeline();
+		vkCmdSetLineWidth(commandBuffer, 1.0f);
 	}
 	
 	// setup descriptor sets
@@ -2150,7 +2217,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0,
 									bindDescCount, descriptorSets.data(), 0, nullptr);
 			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-								material.baseTexture != Asset::NO_ASSET ? pipeline : gBufferNoTexPipeline.vulkanPipeline());
+							  material.baseTexture == Asset::NO_ASSET && stage != RenderStage::DEBUG ? gBufferNoTexPipeline.vulkanPipeline() : pipeline);
 
 			for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
 			{
@@ -2159,19 +2226,21 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 				constants.matrixId = instance.matrixId;
 				constants.offset = vec4(instance.drawOffset, 0);
 				vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-								0, sizeof(RenderConstants), &constants);
+								   0, sizeof(RenderConstants), &constants);
 
 				// draw the vertex data
 				const Primitive &primitive = assetSet.primitives.get(instance.primitiveId);
 				const PrimitiveBuffers &primitiveBuffers = primitives.get(primitive.bufferId);
+				const BufferInfo &vertexBuffer = buffers.get(primitiveBuffers.getVertexBufferId());
+				const BufferInfo &indexBuffer = buffers.get(primitiveBuffers.getIndexBufferId());
 
 				// TODO: Group bind/draw commands by buffer ID as well
-				const std::array<VkBuffer, 1> buffers = {primitiveBuffers.getVertexBuffer().buffer};
+				const std::array<VkBuffer, 1> buffers = {vertexBuffer.buffer};
 				const std::array<VkDeviceSize, 1> offsets = {instance.vertexBufferStart};
 				uint32_t indexCount = instance.indexCount == 0 ? primitive.indexCount() : instance.indexCount;
 
 				vkCmdBindVertexBuffers(commandBuffer, 0, buffers.size(), buffers.data(), offsets.data());
-				vkCmdBindIndexBuffer(commandBuffer, primitiveBuffers.getIndexBuffer().buffer, instance.indexBufferStart, VK_INDEX_TYPE_UINT32);
+				vkCmdBindIndexBuffer(commandBuffer, indexBuffer.buffer, instance.indexBufferStart, VK_INDEX_TYPE_UINT32);
 
 				// apply scissors if needed
 				if (instance.shouldClip)
@@ -2230,6 +2299,10 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 		{
 			throw std::runtime_error("Error ending the command buffer");
 		}
+		if (vkEndCommandBuffer(debugCommandBuffers[frameInfo.currentFrame]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Error ending the command buffer");
+		}
 
 		// sequence primary command buffer
 		vkCmdExecuteCommands(commandBuffer, 1, &geometryCommandBuffers[frameInfo.currentFrame]);
@@ -2241,6 +2314,7 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 		vkCmdExecuteCommands(commandBuffer, 1, &skyboxCommandBuffers[frameInfo.currentFrame]);
 		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 		vkCmdExecuteCommands(commandBuffer, 1, &uiCommandBuffers[frameInfo.currentFrame]);
+		vkCmdExecuteCommands(commandBuffer, 1, &debugCommandBuffers[frameInfo.currentFrame]);
 
 		// matrix data updates
 		mat4 projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f);
@@ -2252,11 +2326,12 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 			.orthographic = orthographic
 		};
 
-	// update view-matrix data
-	void *viewMatrixData = nullptr;
-	vkMapMemory(device, matrixBuffer.memory, 0, sizeof(RenderMatrices), 0, &viewMatrixData);
-	memcpy(viewMatrixData, &renderMatrices, sizeof(RenderMatrices));
-	vkUnmapMemory(device, matrixBuffer.memory);
+		// update view-matrix data
+		const BufferInfo &matrixBuffer = buffers.get(matrixBufferId);
+		void *viewMatrixData = nullptr;
+		vkMapMemory(device, matrixBuffer.memory, 0, sizeof(RenderMatrices), 0, &viewMatrixData);
+		memcpy(viewMatrixData, &renderMatrices, sizeof(RenderMatrices));
+		vkUnmapMemory(device, matrixBuffer.memory);
 
 		// update matrix data
 		const VkDeviceSize offsetMatrices = offsetUniform(sizeof(RenderMatrices));

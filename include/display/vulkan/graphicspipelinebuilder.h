@@ -21,6 +21,7 @@ class GraphicsPipelineBuilder
 {
 	Logger logger;
 	VkDevice device;
+	VkPipelineLayout layout;
 	VkGraphicsPipelineCreateInfo pipelineInfo = {};
 	VkPipelineVertexInputStateCreateInfo vertInputCreateInfo = {};
 	VkPipelineInputAssemblyStateCreateInfo assemblyCreateInfo = {};
@@ -39,11 +40,12 @@ class GraphicsPipelineBuilder
 	VkBool32 vkUseTexture;
 
 public:
-	GraphicsPipelineBuilder(VkDevice device, VkPipelineLayout pipelineLayout) : logger("Graphics Pipeline Builder")
+	GraphicsPipelineBuilder(VkDevice device, VkPipelineLayout layout) : logger("Graphics Pipeline Builder")
 	{
 		this->device = device;
+		this->layout = layout;
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipelineInfo.layout = pipelineLayout;
+		pipelineInfo.layout = layout;
 		// not deriving a pipeline
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 		pipelineInfo.basePipelineIndex = -1;
@@ -251,7 +253,7 @@ public:
 		}
 		logger.log("Created new pipeline");
 
-		return GraphicsPipeline(pipeline);
+		return GraphicsPipeline(pipeline, layout);
 	}
 };
 

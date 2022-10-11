@@ -1,29 +1,29 @@
 #ifndef PRIMITIVEBUFFERS_H
 #define PRIMITIVEBUFFERS_H
 
-#include "bufferinfo.h"
+#include "core/asset.h"
 
 namespace Boiler { namespace Vulkan {
 
 class PrimitiveBuffers
 {
-	BufferInfo vertexBuffer;
-	BufferInfo indexBuffer;
+	AssetId vertexBufferId, indexBufferId;
 	
 public:
 	PrimitiveBuffers() { }
-    PrimitiveBuffers(BufferInfo vertexBuffer, BufferInfo indexBuffer)
+    PrimitiveBuffers(AssetId vertexBufferId, AssetId indexBufferId)
 	{
-		this->vertexBuffer = vertexBuffer;
-		this->indexBuffer = indexBuffer;
+		this->vertexBufferId = vertexBufferId;
+		this->indexBufferId = indexBufferId;
 	}
 
-	const BufferInfo &getVertexBuffer() const { return vertexBuffer; }
-	const BufferInfo &getIndexBuffer() const { return indexBuffer; }
-	void setBuffers(const BufferInfo &vertexBuffer, const BufferInfo &indexBuffer)
+	AssetId getVertexBufferId() const { return vertexBufferId; }
+	AssetId getIndexBufferId() const { return indexBufferId; }
+
+	void setBuffers(AssetId vertexBufferId, AssetId indexBufferId)
 	{
-		this->vertexBuffer = vertexBuffer;
-		this->indexBuffer = indexBuffer;
+		this->vertexBufferId = vertexBufferId;
+		this->indexBufferId = indexBufferId;
 	}
 };
 

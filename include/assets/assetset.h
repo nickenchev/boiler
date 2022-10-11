@@ -14,7 +14,7 @@ struct AssetSet
 {
 	static const unsigned int MaxAssets = 2048;
 	
-	AssetManager<Material, MaxAssets> materials;
+	AssetManager<Material, 512> materials;
 	AssetManager<Primitive, MaxAssets> primitives;
 	AssetManager<GlyphMap, MaxAssets> glyphs;
 };

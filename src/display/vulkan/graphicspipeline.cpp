@@ -9,13 +9,14 @@ static Boiler::Logger logger("Vulkan Graphics Pipeline");;
 using namespace Boiler::Vulkan;
 
 
-GraphicsPipeline::GraphicsPipeline() : GraphicsPipeline(VK_NULL_HANDLE)
+GraphicsPipeline::GraphicsPipeline() : GraphicsPipeline(VK_NULL_HANDLE, VK_NULL_HANDLE)
 {
 }
 
-GraphicsPipeline::GraphicsPipeline(VkPipeline pipeline)
+GraphicsPipeline::GraphicsPipeline(VkPipeline pipeline, VkPipelineLayout layout)
 {
 	this->pipeline = pipeline;
+	this->layout = layout;
 }
 
 /*

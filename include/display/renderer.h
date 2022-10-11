@@ -34,7 +34,23 @@ enum class RenderStage
 	ALPHA_BLENDING,
 	POST_DEFERRED_LIGHTING,
 	POST_DEPTH_WRITE,
-	UI
+	UI,
+	DEBUG
+};
+
+enum class BufferUsage
+{
+	STAGING,
+	UNIFORM,
+	VERTICES,
+	INDICES
+};
+
+enum class MemoryType
+{
+	DEVICE_LOCAL,
+	HOST_CACHED,
+	DEVICE_LOCAL_HOST_CACHED
 };
 
 class Primitive;
@@ -89,8 +105,9 @@ public:
     virtual AssetId loadTexture(const ImageData &imageData, TextureType type) = 0;
 	virtual AssetId loadCubemap(const std::array<ImageData, 6> &images) = 0;
 	virtual AssetId loadPrimitive(const VertexData &data, AssetId existingId = Asset::NO_ASSET) = 0;
+	virtual AssetId createBuffer(size_t size, BufferUsage usage, MemoryType memType) = 0;
 
-	virtual void updateLights(const std::vector<LightSource> &lightSources) = 0;
+	virtual void updateLights(const std::vector<LightSource> &lightSources) const = 0;
 	virtual void updateMaterials(const std::vector<ShaderMaterial> &materials) const = 0;
 
 	virtual bool prepareFrame(const FrameInfo &frameInfo);

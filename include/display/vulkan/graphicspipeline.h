@@ -13,16 +13,21 @@ struct ShaderStageModules;
 class GraphicsPipeline
 {
 	VkPipeline pipeline;
+	VkPipelineLayout layout;
 
 public:
 	static void destroy(VkDevice device, const GraphicsPipeline &pipeline);
 
 	GraphicsPipeline();
-	GraphicsPipeline(VkPipeline pipeline);
+	GraphicsPipeline(VkPipeline pipeline, VkPipelineLayout layout);
 
 	const VkPipeline &vulkanPipeline() const
 	{
 		return pipeline;
+	}
+	const VkPipelineLayout &vulkanLayout() const
+	{
+		return layout;
 	}
 };
 

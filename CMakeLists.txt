@@ -45,6 +45,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/containers/gridposition.h
   ${INCLUDE_BASE}/core/glyphloader.h
   ${INCLUDE_BASE}/display/systems/textsystem.h
+  ${INCLUDE_BASE}/display/systems/debugrendersystem.h
   ${INCLUDE_BASE}/display/opengl.h
   ${INCLUDE_BASE}/display/renderer.h
   ${INCLUDE_BASE}/display/lightsource.h
@@ -119,6 +120,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/display/systems/textsystem.cpp
   ${SRC_BASE}/display/systems/lightingsystem.cpp
   ${SRC_BASE}/animation/systems/animationsystem.cpp
+  ${SRC_BASE}/display/systems/debugrendersystem.cpp
   ${SRC_BASE}/display/glyphmap.cpp
   ${SRC_BASE}/camera/camera.cpp
   # src/camera/platformercamera.cpp

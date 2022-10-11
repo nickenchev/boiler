@@ -4,6 +4,7 @@
 #include "core/components/transformcomponent.h"
 #include "physics/physicscomponent.h"
 #include "core/entitycomponentsystem.h"
+#include "display/renderer.h"
 
 using namespace Boiler;
 
@@ -21,9 +22,6 @@ void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
         auto &collision = ecs.getComponentStore().retrieve<CollisionComponent>(entity);
         auto &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
         auto &physics = ecs.getComponentStore().retrieve<PhysicsComponent>(entity);
-
-		// generate debug geometry
-		
 
 		// check dynamic bodies for collisions
 		if (collision.isDynamic)
@@ -53,11 +51,13 @@ void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
 					vec3 minB = vec3(newTransformB.getMatrix() * vec4(collisionB.min, 1));
 					vec3 maxB = vec3(newTransformB.getMatrix() * vec4(collisionB.max, 1));
 
+					//logger.log("{}, {}, {} --- {}, {}, {}", minB.x, minB.y, minB.z, maxB.x, maxB.y, maxB.z);
+
 					if (maxA.x > minB.x && minA.x < maxB.x &&
 						maxA.y > minB.y && minA.y < maxB.y &&
 						maxA.z > minB.z && minA.z < maxB.z)
 					{
-						velocity = -velocity * 0.2f;
+						velocity = -velocity * 0.1f;
 					}
 				}
 			}
