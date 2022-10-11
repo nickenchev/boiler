@@ -31,10 +31,10 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 	std::vector<uint32_t> indices;
 
 	std::array<vec4, 4> colours = {
-		Colour::fromRGBA(255, 233, 0, 255),
-		Colour::fromRGBA(255, 0, 233, 255),
-		Colour::fromRGBA(0, 233, 255, 255),
-		Colour::fromRGBA(233, 255, 133, 255)
+		Colour::fromRGBA(255, 233, 0, 100),
+		Colour::fromRGBA(255, 0, 233, 100),
+		Colour::fromRGBA(0, 233, 255, 100),
+		Colour::fromRGBA(233, 255, 133, 100)
 	};
 
 	unsigned int index = 0;
@@ -47,45 +47,43 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
         auto &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
         auto &physics = ecs.getComponentStore().retrieve<PhysicsComponent>(entity);
 
-		TransformComponent newTransformA = transform;
-		newTransformA.setPosition(newTransformA.getPosition() + physics.velocity * frameInfo.deltaTime);
-
-		vec3 min = vec3(newTransformA.getMatrix() * vec4(collision.min, 1));
-		vec3 max = vec3(newTransformA.getMatrix() * vec4(collision.max, 1));
+		TransformComponent newTransform = transform;
+		vec3 min = newTransform.getMatrix() * vec4(collision.min, 1);
+		vec3 max = newTransform.getMatrix() * vec4(collision.max, 1);
 
 		// generate verts
 		const vec4 colour = colours[index++ % colours.size()];
 
-		// horizontal lines x-axis
-		vertices.push_back(Vertex(vec3(min.x, min.y, min.z), colour));
-		vertices.push_back(Vertex(vec3(max.x, min.y, min.z), colour));
-		vertices.push_back(Vertex(vec3(min.x, max.y, min.z), colour));
-		vertices.push_back(Vertex(vec3(max.x, max.y, min.z), colour));
-
-		vertices.push_back(Vertex(vec3(min.x, min.y, max.z), colour));
-		vertices.push_back(Vertex(vec3(max.x, min.y, max.z), colour));
-		vertices.push_back(Vertex(vec3(min.x, max.y, max.z), colour));
-		vertices.push_back(Vertex(vec3(max.x, max.y, max.z), colour));
-
-		// vertical y-axis
+		// min/max x-axis
 		vertices.push_back(Vertex(vec3(min.x, min.y, min.z), colour));
 		vertices.push_back(Vertex(vec3(min.x, max.y, min.z), colour));
-		vertices.push_back(Vertex(vec3(max.x, min.y, min.z), colour));
-		vertices.push_back(Vertex(vec3(max.x, max.y, min.z), colour));
-
 		vertices.push_back(Vertex(vec3(min.x, min.y, max.z), colour));
 		vertices.push_back(Vertex(vec3(min.x, max.y, max.z), colour));
+
+		vertices.push_back(Vertex(vec3(max.x, min.y, min.z), colour));
+		vertices.push_back(Vertex(vec3(max.x, max.y, min.z), colour));
 		vertices.push_back(Vertex(vec3(max.x, min.y, max.z), colour));
 		vertices.push_back(Vertex(vec3(max.x, max.y, max.z), colour));
 
-		// depth lines z-axis
+		// min/max y-axis
 		vertices.push_back(Vertex(vec3(min.x, min.y, min.z), colour));
-		vertices.push_back(Vertex(vec3(min.x, min.y, max.z), colour));
 		vertices.push_back(Vertex(vec3(max.x, min.y, min.z), colour));
+		vertices.push_back(Vertex(vec3(min.x, min.y, max.z), colour));
 		vertices.push_back(Vertex(vec3(max.x, min.y, max.z), colour));
 
 		vertices.push_back(Vertex(vec3(min.x, max.y, min.z), colour));
+		vertices.push_back(Vertex(vec3(max.x, max.y, min.z), colour));
 		vertices.push_back(Vertex(vec3(min.x, max.y, max.z), colour));
+		vertices.push_back(Vertex(vec3(max.x, max.y, max.z), colour));
+
+		// min/max z-axis
+		vertices.push_back(Vertex(vec3(min.x, min.y, min.z), colour));
+		vertices.push_back(Vertex(vec3(min.x, min.y, max.z), colour));
+		vertices.push_back(Vertex(vec3(min.x, max.y, min.z), colour));
+		vertices.push_back(Vertex(vec3(min.x, max.y, max.z), colour));
+
+		vertices.push_back(Vertex(vec3(max.x, min.y, min.z), colour));
+		vertices.push_back(Vertex(vec3(max.x, min.y, max.z), colour));
 		vertices.push_back(Vertex(vec3(max.x, max.y, min.z), colour));
 		vertices.push_back(Vertex(vec3(max.x, max.y, max.z), colour));
 	}
@@ -95,9 +93,6 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 	{
 		indices.push_back(i);
 	}
-
-	matGroups[0].materialId = materialId;
-	matGroups[0].primitives.push_back(MaterialGroup::PrimitiveInstance(Asset::NO_ASSET, renderer.addMatrix(mat4(1)), vec3(0), indices.size() / 2, 0, 0));
 
 	// generate primitive buffers and a primitive asset
 	VertexData vertData(vertices, indices);
@@ -115,10 +110,8 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 		primitiveIds[frameInfo.currentFrame] = renderer.getAssetSet().primitives.add(Primitive(primBuffsId, std::move(vertData), vec3(0, 0, 0), vec3(0, 0, 0))); // TODO: min/max should reflect actual values in vtx buffer
 	}
 
-	for (MaterialGroup::PrimitiveInstance &instance : matGroups[0].primitives)
-	{
-		instance.primitiveId = primitiveIds[frameInfo.currentFrame];
-	}
+	matGroups[0].materialId = materialId;
+	matGroups[0].primitives.push_back(MaterialGroup::PrimitiveInstance(primitiveIds[frameInfo.currentFrame], renderer.addMatrix(mat4(1)), vec3(0), indices.size(), 0, 0));
 
 	renderer.render(renderer.getAssetSet(), frameInfo, matGroups, RenderStage::DEBUG);
 }
