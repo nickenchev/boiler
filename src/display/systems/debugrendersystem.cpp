@@ -30,6 +30,14 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
 
+	std::array<vec4, 4> colours = {
+		Colour::fromRGBA(255, 233, 0, 255),
+		Colour::fromRGBA(255, 0, 233, 255),
+		Colour::fromRGBA(0, 233, 255, 255),
+		Colour::fromRGBA(233, 255, 133, 255)
+	};
+
+	unsigned int index = 0;
     for (const Entity &entity : getEntities())
 	{
 		size_t vertOffset = vertices.size();
@@ -46,7 +54,7 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 		vec3 max = vec3(newTransformA.getMatrix() * vec4(collision.max, 1));
 
 		// generate verts
-		const vec4 colour = Colour::fromRGBA(255, 233, 0, 255);
+		const vec4 colour = colours[index++ % colours.size()];
 
 		// horizontal lines x-axis
 		vertices.push_back(Vertex(vec3(min.x, min.y, min.z), colour));
