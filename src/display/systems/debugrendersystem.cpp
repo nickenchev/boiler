@@ -1,7 +1,6 @@
 #include "core/entitycomponentsystem.h"
 #include "core/components/transformcomponent.h"
 #include "physics/collisioncomponent.h"
-#include "physics/physicscomponent.h"
 #include "display/systems/debugrendersystem.h"
 #include "display/renderer.h"
 #include "util/colour.h"
@@ -12,7 +11,6 @@ DebugRenderSystem::DebugRenderSystem(Renderer &renderer) : System("Debug Renderi
 {
 	expects<TransformComponent>();
 	expects<CollisionComponent>();
-	expects<PhysicsComponent>();
 
 	primitiveIds.resize(renderer.getMaxFramesInFlight());
 	for (AssetId &assetId : primitiveIds)
@@ -45,11 +43,9 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 
         auto &collision = ecs.getComponentStore().retrieve<CollisionComponent>(entity);
         auto &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
-        auto &physics = ecs.getComponentStore().retrieve<PhysicsComponent>(entity);
 
-		TransformComponent newTransform = transform;
-		vec3 min = newTransform.getMatrix() * vec4(collision.min, 1);
-		vec3 max = newTransform.getMatrix() * vec4(collision.max, 1);
+		vec3 min = transform.getMatrix() * vec4(collision.min, 1);
+		vec3 max = transform.getMatrix() * vec4(collision.max, 1);
 
 		// generate verts
 		const vec4 colour = colours[index++ % colours.size()];

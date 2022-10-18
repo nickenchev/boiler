@@ -120,7 +120,6 @@ class VulkanRenderer : public Boiler::Renderer
 
 	void createSwapChain();
 	void createGBuffers();
-	void createRenderBuffers();
 
 	VkShaderModule createShaderModule(const std::vector<char> &contents) const;
 	VkRenderPass createRenderPass();

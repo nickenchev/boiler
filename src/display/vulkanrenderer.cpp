@@ -329,45 +329,6 @@ void VulkanRenderer::initialize(const Size &size)
 {
 	Renderer::initialize(size);
 	
-	// create surface
-	/*
-	VkXcbSurfaceCreateInfoKHR surfaceInfo = {};
-	surfaceInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
-
-	// get platform specific window handle/data
-	SDL_SysWMinfo windowInfo;
-	SDL_VERSION(&windowInfo.version);
-	if (!SDL_GetWindowWMInfo(win, &windowInfo))
-	{
-		throw std::runtime_error("Unable to native window info");
-	}
-
-	switch (windowInfo.subsystem)
-	{
-		case SDL_SYSWM_X11:
-		{
-			surfaceInfo.connection = XGetXCBConnection(windowInfo.info.x11.display);
-			surfaceInfo.window = windowInfo.info.x11.window;
-			break;
-		}
-		default:
-		{
-			throw std::runtime_error("Platform not supported by Boiler Vulkan");
-		}
-	}
-	*/
-
-	/*
-	if (!SDL_Vulkan_CreateSurface(win, instance, &surface))
-	{
-		throw std::runtime_error("Unable to create Vulkan surface");
-	}
-	else
-	{
-		logger.log("Surface created");
-	}
-	*/
-
 	// find compatible GPUs
 	physicalDevice = VK_NULL_HANDLE;
 	uint32_t deviceCount = 0;
@@ -648,10 +609,6 @@ void VulkanRenderer::createGBuffers()
 		createBuffers(gBuffers[i].albedo, albedoFormat);
 		createBuffers(gBuffers[i].normals, normalFormat);
 	}
-}
-
-void VulkanRenderer::createRenderBuffers()
-{
 }
 
 void VulkanRenderer::createSwapChain()
@@ -2172,7 +2129,6 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 		commandBuffer = debugCommandBuffers[currentFrame];
 		pipelineLayout = debugLinePipeline.vulkanLayout();
 		pipeline = debugLinePipeline.vulkanPipeline();
-		vkCmdSetLineWidth(commandBuffer, 1.0f);
 	}
 	
 	// setup descriptor sets

@@ -50,8 +50,7 @@ void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
 					}
 					vec3 minB = vec3(newTransformB.getMatrix() * vec4(collisionB.min, 1));
 					vec3 maxB = vec3(newTransformB.getMatrix() * vec4(collisionB.max, 1));
-
-					//logger.log("{}, {}, {} --- {}, {}, {}", minB.x, minB.y, minB.z, maxB.x, maxB.y, maxB.z);
+					//logger.log("{}: {}, {}, {} --- {}, {}, {}", ecs.nameOf(entityB), minB.x, minB.y, minB.z, maxB.x, maxB.y, maxB.z);
 
 					if (maxA.x > minB.x && minA.x < maxB.x &&
 						maxA.y > minB.y && minA.y < maxB.y &&
