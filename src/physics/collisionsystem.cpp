@@ -27,7 +27,30 @@ void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
 		if (collision.isDynamic)
 		{
             vec3 velocity = physics.velocity;
+			cgfloat diameterA = ((collision.max * transform.getScale()) - (collision.min * transform.getScale())).length();
+			cgfloat radiusA = diameterA / 2;
 
+            for (const Entity &entityB : getEntities())
+			{
+				if (entity != entityB)
+				{
+                    auto &collisionB = ecs.getComponentStore().retrieve<CollisionComponent>(entityB);
+                    auto &transformB = ecs.getComponentStore().retrieve<TransformComponent>(entityB);
+
+					cgfloat diameterB = ((collisionB.max * transformB.getScale()) - (collisionB.min * transformB.getScale())).length();
+					cgfloat radiusB = diameterB / 2;
+
+					cgfloat distance = glm::distance(transform.getPosition() + physics.velocity, transformB.getPosition());
+
+					logger.log("{} vs {}: {} -- {} -- {}", ecs.nameOf(entity), ecs.nameOf(entityB), radiusA, distance, radiusB);
+					if (distance < radiusA + radiusB)
+					{
+						velocity = -velocity * 0.1f;
+					}
+				}
+			}
+
+			/*
 			// predict the transform after object is moved
 			TransformComponent newTransformA = transform;
 			newTransformA.setPosition(newTransformA.getPosition() + physics.velocity * frameInfo.deltaTime);
@@ -60,6 +83,7 @@ void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
 					}
 				}
 			}
+			*/
 			physics.velocity = velocity;
 		}
 	}
