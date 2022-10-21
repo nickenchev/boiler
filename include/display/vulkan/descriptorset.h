@@ -2,6 +2,7 @@
 #define DESCRIPTORSET_H
 
 #include <vector>
+#include <array>
 #include "core/logger.h"
 #include "display/vulkan.h"
 
@@ -36,7 +37,7 @@ public:
 		return sets[descriptorIndex];
 	}
 
-	template<unsigned int Size>
+	template<size_t Size>
 	void createLayout(VkDevice device, const std::array<VkDescriptorSetLayoutBinding, Size> &bindings)
 	{
 		VkDescriptorSetLayoutCreateInfo layoutInfo = {};
@@ -50,7 +51,7 @@ public:
 		}
 	}
 
-	template<unsigned int Size>
+	template<size_t Size>
 	void createPool(VkDevice device, const std::array<VkDescriptorPoolSize, Size> &poolSizes)
 	{
 		VkDescriptorPoolCreateInfo createInfo = {};

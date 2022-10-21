@@ -231,7 +231,7 @@ public:
 		return *this;
 	}
 
-	template<unsigned int Size>
+	template<size_t Size>
 	GraphicsPipelineBuilder &dynamicState(std::array<VkDynamicState, Size> *states)
 	{
 		dynaInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
