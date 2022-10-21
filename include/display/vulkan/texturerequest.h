@@ -37,8 +37,8 @@ struct TextureRequest
 		VkImageCreateInfo imageInfo = {};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.extent.width = size.width;
-		imageInfo.extent.height = size.height;
+		imageInfo.extent.width = static_cast<uint32_t>(size.width);
+		imageInfo.extent.height = static_cast<uint32_t>(size.height);
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = 1;
 		imageInfo.arrayLayers = layers;

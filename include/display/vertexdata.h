@@ -25,7 +25,7 @@ public:
     const uint32_t *indexBegin() const { return &(indices[0]); }
 
 	auto &vertexArray() const { return vertices; }
-	long vertexByteSize() const { return vertices.size() * sizeof(Vertex); }
+	size_t vertexByteSize() const { return vertices.size() * sizeof(Vertex); }
 	auto &indexArray() const { return indices; }
 	long indexByteSize() const { return indices.size() * sizeof(uint32_t); }
 };

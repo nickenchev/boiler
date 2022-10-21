@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "util/filemanager.h"
 #include "core/logger.h"
 

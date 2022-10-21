@@ -223,7 +223,7 @@ public:
 		return *this;
 	}
 
-	GraphicsPipelineBuilder &renderPass(VkRenderPass renderPass, uint32_t subpassIndex)
+	GraphicsPipelineBuilder &renderPass(VkRenderPass renderPass, unsigned int subpassIndex)
 	{
 		pipelineInfo.renderPass = renderPass;
 		pipelineInfo.subpass = subpassIndex;
@@ -231,7 +231,7 @@ public:
 		return *this;
 	}
 
-	template<size_t Size>
+	template<unsigned int Size>
 	GraphicsPipelineBuilder &dynamicState(std::array<VkDynamicState, Size> *states)
 	{
 		dynaInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;

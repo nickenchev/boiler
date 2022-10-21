@@ -123,7 +123,7 @@ VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtension
 	VkInstanceCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo = &appInfo;
-	createInfo.enabledExtensionCount = requestedExtensions.size();
+	createInfo.enabledExtensionCount = static_cast<unsigned int>(requestedExtensions.size());
 	createInfo.ppEnabledExtensionNames = requestedExtensions.data();
 	createInfo.enabledLayerCount = 0;
 
@@ -210,13 +210,13 @@ void VulkanRenderer::shutdown()
 	cleanupSwapchain();
 
 	// command buffers
-	vkFreeCommandBuffers(device, commandPool, commandBuffers.size(), commandBuffers.data());
-	vkFreeCommandBuffers(device, commandPool, geometryCommandBuffers.size(), geometryCommandBuffers.data());
-	vkFreeCommandBuffers(device, commandPool, alphaCommandBuffers.size(), alphaCommandBuffers.data());
-	vkFreeCommandBuffers(device, commandPool, deferredCommandBuffers.size(), deferredCommandBuffers.data());
-	vkFreeCommandBuffers(device, commandPool, skyboxCommandBuffers.size(), skyboxCommandBuffers.data());
-	vkFreeCommandBuffers(device, commandPool, uiCommandBuffers.size(), uiCommandBuffers.data());
-	vkFreeCommandBuffers(device, commandPool, debugCommandBuffers.size(), debugCommandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, static_cast<unsigned int>(commandBuffers.size()), commandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, static_cast<unsigned int>(geometryCommandBuffers.size()), geometryCommandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, static_cast<unsigned int>(alphaCommandBuffers.size()), alphaCommandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, static_cast<unsigned int>(deferredCommandBuffers.size()), deferredCommandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, static_cast<unsigned int>(skyboxCommandBuffers.size()), skyboxCommandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, static_cast<unsigned int>(uiCommandBuffers.size()), uiCommandBuffers.data());
+	vkFreeCommandBuffers(device, commandPool, static_cast<unsigned int>(debugCommandBuffers.size()), debugCommandBuffers.data());
 	logger.log("Destroyed command buffers");
 
 	vkDestroyRenderPass(device, renderPass, nullptr);
@@ -468,14 +468,14 @@ void VulkanRenderer::initialize(const Size &size)
 		VkDeviceCreateInfo deviceCreateInfo = {};
 		deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
-		deviceCreateInfo.queueCreateInfoCount = queueCreateInfos.size();
+		deviceCreateInfo.queueCreateInfoCount = static_cast<unsigned int>(queueCreateInfos.size());
 		deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-		deviceCreateInfo.enabledExtensionCount = requestedDeviceExtensions.size();
+		deviceCreateInfo.enabledExtensionCount = static_cast<unsigned int>(requestedDeviceExtensions.size());
 		deviceCreateInfo.ppEnabledExtensionNames = requestedDeviceExtensions.data();
 
 		if (enableValidationLayers)
 		{
-			deviceCreateInfo.enabledLayerCount = validationLayers.size();
+			deviceCreateInfo.enabledLayerCount = static_cast<unsigned int>(validationLayers.size());
 			deviceCreateInfo.ppEnabledLayerNames = validationLayers.data();
 		}
 		else
@@ -704,7 +704,7 @@ void VulkanRenderer::createSwapChain()
 	{
 		logger.log("Swapchain image sharing set to CONCURRENT");
 		swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-		swapChainCreateInfo.queueFamilyIndexCount = queueIndices.size();
+		swapChainCreateInfo.queueFamilyIndexCount = static_cast<unsigned int>(queueIndices.size());
 		swapChainCreateInfo.pQueueFamilyIndices = queueIndices.data();
 	}
 	else
@@ -799,12 +799,12 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	std::array<VkSubpassDescription, 5> subpasses{};
 	// gbuffer subpass
 	subpasses[0].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpasses[0].colorAttachmentCount = colorAttachmentRefs.size();
+	subpasses[0].colorAttachmentCount = static_cast<unsigned int>(colorAttachmentRefs.size());
 	subpasses[0].pColorAttachments = colorAttachmentRefs.data();
 	subpasses[0].pDepthStencilAttachment = &depthAttachRef;
 	// alpha subpass
 	subpasses[1].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpasses[1].colorAttachmentCount = colorAttachmentRefs.size();
+	subpasses[1].colorAttachmentCount = static_cast<unsigned int>(colorAttachmentRefs.size());
 	subpasses[1].pColorAttachments = colorAttachmentRefs.data();
 	subpasses[1].pDepthStencilAttachment = &depthAttachRef;
 	// deferred subpass
@@ -812,7 +812,7 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	subpasses[2].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpasses[2].colorAttachmentCount = 1;
 	subpasses[2].pColorAttachments = &swapColorAttachRef;
-	subpasses[2].inputAttachmentCount = inputColorAttachRefs.size();
+	subpasses[2].inputAttachmentCount = static_cast<unsigned int>(inputColorAttachRefs.size());
 	subpasses[2].pInputAttachments = inputColorAttachRefs.data();
 	subpasses[2].preserveAttachmentCount = depthPreserve.size();
 	subpasses[2].pPreserveAttachments = depthPreserve.data();
@@ -1301,7 +1301,7 @@ void VulkanRenderer::createDepthResources()
 	depthImages.resize(swapChainImages.size());
 	for (unsigned int i = 0; i < swapChainImages.size(); ++i)
 	{
-		TextureRequest request(Size(swapChainExtent.width, swapChainExtent.height), depthFormat);
+		TextureRequest request(Size(static_cast<cgfloat>(swapChainExtent.width), static_cast<cgfloat>(swapChainExtent.height)), depthFormat);
 		request.tiling = VK_IMAGE_TILING_OPTIMAL;
 		request.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		request.memProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -1480,7 +1480,9 @@ AssetId VulkanRenderer::loadCubemap(const std::array<ImageData, cubeMapSize> &im
 
 	for (const ImageData &imageData : images)
 	{
-		totalSize += imageData.size.width * imageData.size.height * imageData.colorComponents;
+		totalSize += static_cast<unsigned int>(imageData.size.width) *
+			static_cast<unsigned int>(imageData.size.height) *
+			static_cast<unsigned int>(imageData.colorComponents);
 	}
 
 	// create a single image with 6 layers
@@ -1789,7 +1791,7 @@ bool VulkanRenderer::hasStencilComponent(VkFormat format) const
 	return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-AssetId VulkanRenderer::createGPUBuffer(void *data, long size, BufferUsage usage)
+AssetId VulkanRenderer::createGPUBuffer(void *data, size_t size, BufferUsage usage)
 {
 	VkDeviceSize bufferSize = size;
 	// create a staging buffer (host), map memory and copy
@@ -2204,10 +2206,10 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 					assert(stage == RenderStage::UI);
 
 					std::array<VkRect2D, 1> scissors{};
-					scissors[0].offset.x = instance.clip.position.x;
-					scissors[0].offset.y = instance.clip.position.y;
-					scissors[0].extent.width = instance.clip.size.width;
-					scissors[0].extent.height = instance.clip.size.height;
+					scissors[0].offset.x = static_cast<unsigned int>(instance.clip.position.x);
+					scissors[0].offset.y = static_cast<unsigned int>(instance.clip.position.y);
+					scissors[0].extent.width = static_cast<unsigned int>(instance.clip.size.width);
+					scissors[0].extent.height = static_cast<unsigned int>(instance.clip.size.height);
 					vkCmdSetScissor(commandBuffer, 0, scissors.size(), scissors.data());
 				}
 

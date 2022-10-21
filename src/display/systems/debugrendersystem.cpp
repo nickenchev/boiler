@@ -107,7 +107,8 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 	}
 
 	matGroups[0].materialId = materialId;
-	matGroups[0].primitives.push_back(MaterialGroup::PrimitiveInstance(primitiveIds[frameInfo.currentFrame], renderer.addMatrix(mat4(1)), vec3(0), indices.size(), 0, 0));
+	matGroups[0].primitives.push_back(MaterialGroup::PrimitiveInstance(primitiveIds[frameInfo.currentFrame],
+		renderer.addMatrix(mat4(1)), vec3(0), indices.size(), 0, 0));
 
 	renderer.render(renderer.getAssetSet(), frameInfo, matGroups, RenderStage::DEBUG);
 }

@@ -1,7 +1,7 @@
 #ifndef KEYINPUTEVENT_H
 #define KEYINPUTEVENT_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "inputevent.h"
 
 namespace Boiler

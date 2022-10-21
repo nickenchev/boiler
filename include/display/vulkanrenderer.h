@@ -162,7 +162,7 @@ class VulkanRenderer : public Boiler::Renderer
 								 VkFormatFeatureFlags features) const;
 	VkFormat findDepthFormat() const;
 	bool hasStencilComponent(VkFormat format) const;
-	AssetId createGPUBuffer(void *data, long size, BufferUsage usage);
+	AssetId createGPUBuffer(void *data, size_t size, BufferUsage usage);
 
 public:
     VulkanRenderer(const std::vector<const char *> requiredExtensions, bool enableValidationLayers = false);

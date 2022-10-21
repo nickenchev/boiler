@@ -36,7 +36,7 @@ public:
 		return sets[descriptorIndex];
 	}
 
-	template<size_t Size>
+	template<unsigned int Size>
 	void createLayout(VkDevice device, const std::array<VkDescriptorSetLayoutBinding, Size> &bindings)
 	{
 		VkDescriptorSetLayoutCreateInfo layoutInfo = {};
@@ -50,7 +50,7 @@ public:
 		}
 	}
 
-	template<size_t Size>
+	template<unsigned int Size>
 	void createPool(VkDevice device, const std::array<VkDescriptorPoolSize, Size> &poolSizes)
 	{
 		VkDescriptorPoolCreateInfo createInfo = {};

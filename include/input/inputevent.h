@@ -1,7 +1,7 @@
 #ifndef INPUTEVENT_H
 #define INPUTEVENT_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 namespace Boiler
 {

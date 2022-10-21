@@ -2,7 +2,7 @@
 #include <chrono>
 #include <stdexcept>
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "core/common.h"
 #include "display/opengl.h"
 #include "boiler.h"

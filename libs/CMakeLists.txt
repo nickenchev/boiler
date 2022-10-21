@@ -24,37 +24,21 @@ set(JSONCPP_WITH_POST_BUILD_UNITTEST CACHE OFF "Disable JSONCPP post-build runne
 add_subdirectory(${LIBS_ROOT}/jsoncpp)
 
 # build fmt
-#add_subdirectory(${LIBS_ROOT}/fmt-6.0.0)
 add_subdirectory(${LIBS_ROOT}/fmt-9.1.0)
 
 # boiler-gltf
 add_subdirectory(${LIBS_ROOT}/boiler-gltf)
-
-# Vulkan
-if (APPLE)
-  set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/include)
-  set(VULKAN_LIBS ${VULKAN_SDK}/lib/libvulkan.dylib)
-elseif(WIN32)
-  set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/Include)
-  set(VULKAN_LIBS ${VULKAN_SDK}/Lib/vulkan-1.lib)
-else()
-  # Linux
-  set(VULKAN_INCLUDE_DIR ${VULKAN_SDK}/x86_64/include)
-  set(VULKAN_LIBS ${VULKAN_SDK}/x86_64/lib/libvulkan.so ${VULKAN_SDK}/x86_64/lib/libVkLayer_khronos_validation.so)
-endif()
 
 message(${CMAKE_CURRENT_BINARY_DIR}/zlib_build)
 
 include_directories(zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib_build)
 set(boiler_lib_includes
   ${OPENGL_INCLUDE_DIR}
-  ${VULKAN_INCLUDE_DIR}
   ${GLEW_HEADERS_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}/zlib_build
   ${ZLIB_DIR}
   ${JSONCPP_INCLUDE_DIR}
   glm
-  freetype
   fmt
   boiler-gltf)
 
@@ -62,10 +46,8 @@ target_include_directories(boiler_deps PUBLIC ${boiler_lib_includes})
 
 target_link_libraries(boiler_deps
   zlibstatic
-  freetype
   glm
   #glew_s
   jsoncpp_lib
   fmt
-  ${VULKAN_LIBS}
   boiler-gltf)
