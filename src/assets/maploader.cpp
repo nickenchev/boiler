@@ -129,6 +129,13 @@ void MapLoader::load(const std::string &filePath)
 						collisionComponent->min = getVector(volume, "min");
 						collisionComponent->max = getVector(volume, "max");
 					}
+					else if (comp.HasMember("sphere"))
+					{
+						collisionComponent->colliderType = ColliderType::Sphere;
+						const auto &volume = comp["sphere"];
+						collisionComponent->min = getVector(volume, "min");
+						collisionComponent->max = getVector(volume, "max");
+					}
 					else if (comp.HasMember("mesh"))
 					{
 						collisionComponent->colliderType = ColliderType::Mesh;

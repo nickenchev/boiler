@@ -10,15 +10,15 @@ namespace Boiler
 
 enum class ColliderType
 {
-	None,
 	AABB,
+	Sphere,
 	Mesh
 };
 
 struct CollisionComponent : public ComponentType<CollisionComponent>
 {
 	bool isDynamic = false;
-	ColliderType colliderType = ColliderType::None;
+	ColliderType colliderType = ColliderType::AABB;
 	Mesh mesh;
 	vec3 min, max;
 	CollisionComponent() : ComponentType(this) {}

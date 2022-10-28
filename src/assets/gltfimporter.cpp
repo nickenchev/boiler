@@ -280,7 +280,7 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 		// assign mesh
 		if (node.mesh.has_value())
 		{
-			const Mesh &mesh = result.meshes[node.mesh.value()]; // use mesh-id instead of copying
+			const Mesh &mesh = result.meshes[node.mesh.value()]; // TODO: use mesh-id instead of copying
 			auto render = ecs.createComponent<RenderComponent>(nodeEntity);
 			render->mesh = mesh;
 
@@ -290,6 +290,7 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 				auto collision = ecs.createComponent<CollisionComponent>(nodeEntity);
 				collision->min = mesh.min;
 				collision->max = mesh.max;
+				logger.log("Created collision component from GLTF data");
 			}
 		}
 		auto physics = ecs.createComponent<PhysicsComponent>(nodeEntity);

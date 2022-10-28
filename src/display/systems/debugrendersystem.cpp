@@ -103,7 +103,8 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 	{
 		// create new primitive buffers
 		primBuffsId = renderer.loadPrimitive(vertData);
-		primitiveIds[frameInfo.currentFrame] = renderer.getAssetSet().primitives.add(Primitive(primBuffsId, std::move(vertData), vec3(0, 0, 0), vec3(0, 0, 0))); // TODO: min/max should reflect actual values in vtx buffer
+		primitiveIds[frameInfo.currentFrame] = renderer.getAssetSet().primitives
+			.add(Primitive(primBuffsId, std::move(vertData), vec3(0, 0, 0), vec3(0, 0, 0))); // TODO: min/max should reflect actual values in vtx buffer
 	}
 
 	matGroups[0].materialId = materialId;
