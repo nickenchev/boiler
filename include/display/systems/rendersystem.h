@@ -4,19 +4,19 @@
 #include "core/common.h"
 #include "core/frameinfo.h"
 #include "core/system.h"
-#include "core/lightsourceid.h"
-#include "display/material.h"
-#include "display/lightsource.h"
 
 namespace Boiler
 {
 
 class Renderer;
+class MatrixCache;
 
 class RenderSystem : public System
 {
+	MatrixCache &matrixCache;
+
 public:
-	RenderSystem();
+	RenderSystem(MatrixCache &matrixCache);
 
     void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs) override;
 };

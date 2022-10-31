@@ -5,10 +5,11 @@
 #include "physics/physicscomponent.h"
 #include "core/entitycomponentsystem.h"
 #include "display/renderer.h"
+#include "core/matrixcache.h"
 
 using namespace Boiler;
 
-CollisionSystem::CollisionSystem() : System("Collision System")
+CollisionSystem::CollisionSystem(MatrixCache &matrixCache) : System("Collision System"), matrixCache(matrixCache)
 {
 	expects<CollisionComponent>();
 	expects<TransformComponent>();
@@ -30,10 +31,11 @@ void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
 
 			// predict the transform after object is moved
 			TransformComponent newTransformA = transform;
-			newTransformA.setPosition(newTransformA.getPosition() + physics.velocity * frameInfo.deltaTime);
+			newTransformA.setPosition(newTransformA.getPosition() * frameInfo.deltaTime);
 
-			vec3 minA = vec3(newTransformA.getMatrix() * vec4(collision.min, 1));
-			vec3 maxA = vec3(newTransformA.getMatrix() * vec4(collision.max, 1));
+			mat4 matA = matrixCache.getMatrix(entity, ecs.getComponentStore());
+			vec3 minA = vec3(matA * vec4(collision.min, 1));
+			vec3 maxA = vec3(matA * vec4(collision.max, 1));
 
 			for (const Entity &entityB : getEntities())
 			{
@@ -48,11 +50,12 @@ void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
 						if (ecs.getComponentStore().hasComponent<PhysicsComponent>(entityB))
 						{
 							PhysicsComponent &physicsB = ecs.getComponentStore().retrieve<PhysicsComponent>(entityB);
-							newTransformB.setPosition(newTransformB.getPosition() + physicsB.velocity * frameInfo.deltaTime);
+							newTransformB.setPosition(newTransformB.getPosition() * frameInfo.deltaTime);
 						}
-						vec3 minB = vec3(newTransformB.getMatrix() * vec4(collisionB.min, 1));
-						vec3 maxB = vec3(newTransformB.getMatrix() * vec4(collisionB.max, 1));
-						//logger.log("{}: {}, {}, {} --- {}, {}, {}", ecs.nameOf(entityB), minB.x, minB.y, minB.z, maxB.x, maxB.y, maxB.z);
+
+						mat4 matB = matrixCache.getMatrix(entityB, ecs.getComponentStore());
+						vec3 minB = vec3(matB * vec4(collisionB.min, 1));
+						vec3 maxB = vec3(matB * vec4(collisionB.max, 1));
 
 						if (maxA.x > minB.x && minA.x < maxB.x &&
 							maxA.y > minB.y && minA.y < maxB.y &&
@@ -76,7 +79,6 @@ void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
 						if (distance < radiusA + radiusB)
 						{
 							velocity = -velocity * 0.1f;
-							logger.log("{} vs {}: {} -- {} -- {}", ecs.nameOf(entity), ecs.nameOf(entityB), radiusA, distance, radiusB);
 						}
 					}
 				}

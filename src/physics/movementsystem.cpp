@@ -64,5 +64,6 @@ void MovementSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameI
 				physics.velocity *= 0;
 			}
 		}
+		transform.setPosition(transform.getPosition() + physics.velocity * frameInfo.deltaTime);
 	}
 }

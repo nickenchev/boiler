@@ -6,10 +6,13 @@
 namespace Boiler
 {
 
+class MatrixCache;
+
 class CollisionSystem : public System
 {
+	MatrixCache &matrixCache;
 public:
-	CollisionSystem();
+	CollisionSystem(MatrixCache &matrixCache);
 
     void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs) override;
 };

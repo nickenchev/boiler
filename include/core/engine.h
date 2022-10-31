@@ -15,11 +15,11 @@
 #include "input/keyinputevent.h"
 #include "core/entitycomponentsystem.h"
 #include "display/systems/rendersystem.h"
-#include "display/systems/glyphsystem.h"
 #include "display/systems/guisystem.h"
 #include "logger.h"
 #include "animation/common.h"
 #include "animation/animator.h"
+#include "core/matrixcache.h"
 
 namespace Boiler
 {
@@ -39,6 +39,7 @@ class Engine
 	Renderer *renderer;
 	EntityComponentSystem ecs;
     std::string baseDataPath;
+	MatrixCache matrixCache;
     System *renderSystem, *textSystem, *guiSystem, *debugRenderSystem, *lightingSystem, *animationSystem, *collisionSystem, *cameraSystem, *inputSystem, *movementSystem;
 	Animator animator;
 

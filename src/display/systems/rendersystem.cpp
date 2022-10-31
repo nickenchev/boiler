@@ -1,6 +1,7 @@
 #include "display/renderer.h"
 #include "core/components/transformcomponent.h"
 #include "core/components/rendercomponent.h"
+#include "core/matrixcache.h"
 #include "core/components/materialcomponent.h"
 #include "core/components/parentcomponent.h"
 #include "core/entitycomponentsystem.h"
@@ -11,33 +12,10 @@
 
 using namespace Boiler;
 
-RenderSystem::RenderSystem() : System("Render System")
+RenderSystem::RenderSystem(MatrixCache &matrixCache) : System("Render System"), matrixCache(matrixCache)
 {
 	expects<TransformComponent>();
 	expects<RenderComponent>();
-}
-
-mat4 getMatrix(Entity entity, ComponentStore &store, std::array<std::optional<mat4>, 5000> &matrixCache)
-{
-	glm::mat4 modelMatrix;
-	std::optional<mat4> &opt = matrixCache[entity.getId()];
-	if (opt.has_value())
-	{
-		modelMatrix = opt.value();
-	}
-	else if (store.hasComponent<TransformComponent>(entity))
-	{
-		TransformComponent &transform = store.retrieve<TransformComponent>(entity);
-		modelMatrix = transform.getMatrix();
-		if (store.hasComponent<ParentComponent>(entity))
-		{
-			ParentComponent &parentComp = store.retrieve<ParentComponent>(entity);
-			modelMatrix = getMatrix(parentComp.entity, store, matrixCache) * modelMatrix;
-		}
-		matrixCache[entity.getId()] = modelMatrix;
-	}
-
-	return modelMatrix;
 }
 
 void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
@@ -48,9 +26,6 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 	alphaGroups.resize(512);
 	postDepthGroups.resize(512);
 
-	// TODO: Can't be fixed size
-	std::array<std::optional<mat4>, 5000> matrixCache;
-
 	// calculate matrices and setup material groups
 	for (unsigned int i = 0; i < static_cast<unsigned int>(getEntities().size()); ++i)
 	{
@@ -59,7 +34,7 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
         RenderComponent &render = ecs.getComponentStore().retrieve<RenderComponent>(entity);
 
 		// calculate model matrix
-        glm::mat4 modelMatrix = getMatrix(entity, ecs.getComponentStore(), matrixCache);
+        glm::mat4 modelMatrix = matrixCache.getMatrix(entity, ecs.getComponentStore());
 		Entity currentEntity = entity;
 
 		const static Material defaultMaterial;

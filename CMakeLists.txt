@@ -39,6 +39,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/core/components/rendercomponent.h
   ${INCLUDE_BASE}/core/components/spritecomponent.h
   ${INCLUDE_BASE}/core/components/textcomponent.h
+  ${INCLUDE_BASE}/core/matrixcache.h
   ${INCLUDE_BASE}/camera/camera.h
   ${INCLUDE_BASE}/camera/pancamera.h
   ${INCLUDE_BASE}/camera/platformercamera.h
@@ -75,7 +76,6 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/physics/collisionsystem.h
   ${INCLUDE_BASE}/physics/collisioncomponent.h
   ${INCLUDE_BASE}/physics/movementsystem.h
-  ${INCLUDE_BASE}/physics/transformsystem.h
   ${INCLUDE_BASE}/physics/physicscomponent.h
   ${INCLUDE_BASE}/camera/camerasystem.h
 )
@@ -117,7 +117,6 @@ set(BOILER_SOURCES
   ${SRC_BASE}/display/imaging/stb.cpp
   ${SRC_BASE}/display/imaging/imageloader.cpp
   ${SRC_BASE}/display/systems/rendersystem.cpp
-  #${SRC_BASE}/display/systems/glyphsystem.cpp
   ${SRC_BASE}/display/systems/textsystem.cpp
   ${SRC_BASE}/display/systems/lightingsystem.cpp
   ${SRC_BASE}/animation/systems/animationsystem.cpp
@@ -133,7 +132,6 @@ set(BOILER_SOURCES
   ${SRC_BASE}/assets/maploader.cpp
   ${SRC_BASE}/physics/collisionsystem.cpp
   ${SRC_BASE}/physics/movementsystem.cpp
-  ${SRC_BASE}/physics/transformsystem.cpp
   ${SRC_BASE}/camera/camerasystem.cpp
   ${SRC_BASE}/input/inputsystem.cpp
   # ImGui

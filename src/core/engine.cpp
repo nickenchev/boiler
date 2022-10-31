@@ -69,45 +69,36 @@ void Engine::initialize(const Size &initialSize)
 	System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(*this);
 	this->inputSystem = &inputSystem;
 
-	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>();
-	this->cameraSystem = &cameraSystem;
-
 	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>();
 	this->movementSystem = &movementSystem;
 
 	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(animator);
 	this->animationSystem = &animationSystem;
 
-	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>();
+	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>(matrixCache);
 	this->collisionSystem = &collisionSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>();
 	this->lightingSystem = &lightingSys;
 	ecs.getComponentSystems().removeUpdate(lightingSys);
 
-	System &transformSys = ecs.getComponentSystems().registerSystem<TransformSystem>();
-
-	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>();
+	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(matrixCache);
 	ecs.getComponentSystems().removeUpdate(renderSys);
 	this->renderSystem = &renderSys;
 
 	System &textSys = ecs.getComponentSystems().registerSystem<TextSystem>();
 	ecs.getComponentSystems().removeUpdate(textSys);
 	this->textSystem = &textSys;
-	/*
-	System &glyphSys = ecs.getComponentSystems().registerSystem<GlyphSystem>(*renderer)
-		.expects<TransformComponent>()
-		.expects<TextComponent>();
-	ecs.getComponentSystems().removeUpdate(glyphSys);
-	this->glyphSystem = &glyphSys;
-	*/
 
 	System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*renderer)
 		.expects<GUIComponent>();
 	ecs.getComponentSystems().removeUpdate(guiSys);
 	this->guiSystem = &guiSys;
 
-	System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(*renderer);
+	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>();
+	this->cameraSystem = &cameraSystem;
+
+	System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(*renderer, matrixCache);
 	ecs.getComponentSystems().removeUpdate(debugRenderSys);
 	this->debugRenderSystem = &debugRenderSys;
 }
@@ -185,6 +176,7 @@ void Engine::step(FrameInfo &frameInfo)
 
 		renderer->displayFrame(frameInfo, renderer->getAssetSet());
 	}
+	matrixCache.reset();
 	frameCount++;
 }
 
