@@ -91,8 +91,8 @@ public:
 		comp.frame.position += comp2.frame.position;
 		return comp;
 	}
-
 };
+
 }
 
 #endif /* TRANSFORMCOMPONENT_H */

@@ -66,10 +66,10 @@ public:
 	}
 
 	template<typename T, typename... Args>
-	std::shared_ptr<T> createComponent(const Entity &entity, Args&&... args)
+	T &createComponent(const Entity &entity, Args&&... args)
 	{
 		auto entMask = mapper.add<T>(entity);
-		auto component = componentStore.store<T>(entity, std::forward<Args>(args)...);
+		T &component = componentStore.store<T>(entity, std::forward<Args>(args)...);
 		systems.checkEntity(entity, entMask);
 
 		return component;

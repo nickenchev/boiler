@@ -17,7 +17,7 @@ constexpr unsigned short MAX_COMPONENTS = 64;
 class ComponentStore
 {
 	Logger logger;
-	using Components = std::array<std::shared_ptr<Component>, MAX_COMPONENTS>;
+	using Components = std::array<std::unique_ptr<Component>, MAX_COMPONENTS>;
 	std::array<Components, MAX_ENTITIES> entityComponents;
 
 public:
@@ -31,17 +31,17 @@ public:
 	}
 
 	template<typename T, typename... Args>
-	std::shared_ptr<T> store(const Entity &entity, Args&&... args)
+	T &store(const Entity &entity, Args&&... args)
 	{
 		// construct and store the new compnent for this entity
-		auto component = std::make_shared<T>(std::forward<Args>(args)...);
 		unsigned int entityIndex = index(entity);
 		unsigned int storageIndex = T::storageIndex;
-
 		assert(entityIndex < entityComponents.size());
-		entityComponents[entityIndex][T::storageIndex] = component;
 
-		return component;
+		entityComponents[entityIndex][T::storageIndex] = std::make_unique<T>(std::forward<Args>(args)...);
+		T *ptr = static_cast<T*>(entityComponents[entityIndex][T::storageIndex].get());
+
+		return *ptr;
 	}
 
 	template<typename T>
@@ -66,10 +66,10 @@ public:
 	template<typename T>
 	T &retrieve(const Entity &entity)
 	{
-		auto component = entityComponents[index(entity)][T::storageIndex];
+		auto &component = entityComponents[index(entity)][T::storageIndex];
 
 		assert(component != nullptr);
-		return *std::static_pointer_cast<T>(component);
+		return *static_cast<T*>(component.get());
 	}
 
 	template<typename T>

@@ -112,8 +112,8 @@ Entity SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 	AssetId primitiveId = assetSet.primitives.add(std::move(primitive));
 
 	Entity skyBox = ecs.newEntity("skybox");
-	auto renderComponent = ecs.createComponent<RenderComponent>(skyBox);
-	renderComponent->mesh.primitives.push_back(primitiveId);
+	auto &renderComponent = ecs.createComponent<RenderComponent>(skyBox);
+	renderComponent.mesh.primitives.push_back(primitiveId);
 	ecs.createComponent<TransformComponent>(skyBox);
 
 	return skyBox;

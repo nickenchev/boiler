@@ -281,15 +281,15 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 		if (node.mesh.has_value())
 		{
 			const Mesh &mesh = result.meshes[node.mesh.value()]; // TODO: use mesh-id instead of copying
-			auto render = ecs.createComponent<RenderComponent>(nodeEntity);
-			render->mesh = mesh;
+			auto &render = ecs.createComponent<RenderComponent>(nodeEntity);
+			render.mesh = mesh;
 
 			// generate collision component
 			if (!ecs.getComponentStore().hasComponent<CollisionComponent>(nodeEntity))
 			{
-				auto collision = ecs.createComponent<CollisionComponent>(nodeEntity);
-				collision->min = mesh.min;
-				collision->max = mesh.max;
+				auto &collision = ecs.createComponent<CollisionComponent>(nodeEntity);
+				collision.min = mesh.min;
+				collision.max = mesh.max;
 				logger.log("Created collision component from GLTF data");
 			}
 		}
@@ -298,7 +298,7 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 		// create a transform component if one doesn't exist
 		TransformComponent &transform = ecs.getComponentStore().hasComponent<TransformComponent>(nodeEntity)
 			? ecs.getComponentStore().retrieve<TransformComponent>(nodeEntity)
-			: *ecs.createComponent<TransformComponent>(nodeEntity, Rect(0, 0, 0, 0));
+			: ecs.createComponent<TransformComponent>(nodeEntity, Rect(0, 0, 0, 0));
 
 		// decompose a matrix if available, otherwise try to load transformations directly
 		if (node.matrix.has_value())

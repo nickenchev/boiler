@@ -12,6 +12,7 @@ MovementSystem::MovementSystem() : System("Movement System")
 	expects<CameraComponent>();
 	expects<MovementComponent>();
 	expects<TransformComponent>();
+	expects<PhysicsComponent>();
 }
 
 void MovementSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)

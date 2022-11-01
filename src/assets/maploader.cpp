@@ -77,13 +77,13 @@ void MapLoader::load(const std::string &filePath)
 				if (components.HasMember("transform"))
 				{
 					const auto &comp = components["transform"];
-					const auto transformComponent = ecs.getComponentStore().hasComponent<TransformComponent>(entity)
-						? &ecs.getComponentStore().retrieve<TransformComponent>(entity)
-						: ecs.createComponent<TransformComponent>(entity).get();
+					auto &transformComponent = ecs.getComponentStore().hasComponent<TransformComponent>(entity)
+						? ecs.getComponentStore().retrieve<TransformComponent>(entity)
+						: ecs.createComponent<TransformComponent>(entity);
 
 					if (comp.HasMember("translation"))
 					{
-						transformComponent->setPosition(getVector(comp, "translation"));
+						transformComponent.setPosition(getVector(comp, "translation"));
 					}
 
 					if (comp.HasMember("orientation"))
@@ -91,67 +91,67 @@ void MapLoader::load(const std::string &filePath)
 						const auto &orientation = comp["orientation"].GetObject();
 						quat orientationQuat(orientation["w"].GetFloat(), orientation["x"].GetFloat(),
 											 orientation["y"].GetFloat(), orientation["z"].GetFloat());
-						transformComponent->setOrientation(orientationQuat);
+						transformComponent.setOrientation(orientationQuat);
 					}
 					if (comp.HasMember("scale"))
 					{
-						transformComponent->setScale(getVector(comp, "scale"));
+						transformComponent.setScale(getVector(comp, "scale"));
 					}
 				}
 				if (components.HasMember("physics"))
 				{
 					const auto &comp = components["physics"];
-					auto physics = ecs.createComponent<PhysicsComponent>(entity);
+					auto &physics = ecs.createComponent<PhysicsComponent>(entity);
 
 					if (comp.HasMember("speed"))
 					{
-						physics->speed = comp["speed"].GetFloat();
+						physics.speed = comp["speed"].GetFloat();
 					}
 					if (comp.HasMember("acceleration"))
 					{
-						physics->acceleration = comp["acceleration"].GetFloat();
+						physics.acceleration = comp["acceleration"].GetFloat();
 					}
 				}
 				if (components.HasMember("collision"))
 				{
 					const auto &comp = components["collision"];
-					auto collisionComponent = ecs.createComponent<CollisionComponent>(entity);
+					auto &collisionComponent = ecs.createComponent<CollisionComponent>(entity);
 
 					if (comp.HasMember("dynamic"))
 					{
-						collisionComponent->isDynamic = comp["dynamic"].GetBool();
+						collisionComponent.isDynamic = comp["dynamic"].GetBool();
 					}
 
 					if (comp.HasMember("aabb"))
 					{
-						collisionComponent->colliderType = ColliderType::AABB;
+						collisionComponent.colliderType = ColliderType::AABB;
 						const auto &volume = comp["aabb"];
-						collisionComponent->min = getVector(volume, "min");
-						collisionComponent->max = getVector(volume, "max");
+						collisionComponent.min = getVector(volume, "min");
+						collisionComponent.max = getVector(volume, "max");
 					}
 					else if (comp.HasMember("sphere"))
 					{
-						collisionComponent->colliderType = ColliderType::Sphere;
+						collisionComponent.colliderType = ColliderType::Sphere;
 						const auto &volume = comp["sphere"];
-						collisionComponent->min = getVector(volume, "min");
-						collisionComponent->max = getVector(volume, "max");
+						collisionComponent.min = getVector(volume, "min");
+						collisionComponent.max = getVector(volume, "max");
 					}
 					else if (comp.HasMember("mesh"))
 					{
-						collisionComponent->colliderType = ColliderType::Mesh;
+						collisionComponent.colliderType = ColliderType::Mesh;
 						assert(ecs.getComponentStore().hasComponent<RenderComponent>(entity));
 						const auto &volume = comp["mesh"];
 						const auto &renderComponent = ecs.getComponentStore().retrieve<RenderComponent>(entity);
-						collisionComponent->mesh = renderComponent.mesh;
+						collisionComponent.mesh = renderComponent.mesh;
 
 						for (Entity childEntity : childEntities)
 						{
 							if (ecs.getComponentStore().hasComponent<RenderComponent>(childEntity))
 							{
 								const RenderComponent &childRender = ecs.getComponentStore().retrieve<RenderComponent>(childEntity);
-								auto childCollision = ecs.createComponent<CollisionComponent>(childEntity);
-								childCollision->colliderType = ColliderType::Mesh;
-								childCollision->mesh = childRender.mesh;
+								auto &childCollision = ecs.createComponent<CollisionComponent>(childEntity);
+								childCollision.colliderType = ColliderType::Mesh;
+								childCollision.mesh = childRender.mesh;
 							}
 						}
 					}
@@ -159,14 +159,14 @@ void MapLoader::load(const std::string &filePath)
 				if (components.HasMember("camera"))
 				{
 					const auto &comp = components["camera"];
-					const auto cameraComponent = ecs.createComponent<CameraComponent>(entity);
-					cameraComponent->direction = getVector(comp, "direction");
-					cameraComponent->up = getVector(comp, "up");
+					auto &cameraComponent = ecs.createComponent<CameraComponent>(entity);
+					cameraComponent.direction = getVector(comp, "direction");
+					cameraComponent.up = getVector(comp, "up");
 				}
 				if (components.HasMember("movement"))
 				{
 					const auto &comp = components["movement"];
-					const auto moveComponent = ecs.createComponent<MovementComponent>(entity);
+					auto &moveComponent = ecs.createComponent<MovementComponent>(entity);
 				}
 				if (components.HasMember("input"))
 				{
