@@ -11,52 +11,76 @@
 namespace Boiler
 {
 
+enum class SystemStage
+{
+	PRE_COLLISION,
+	PRE_RENDER,
+	RENDER
+};
+
 class EntityComponentSystem;
 
 class ComponentSystems
 {
 	Logger logger;
 	std::vector<std::unique_ptr<System>> systems;
-	std::vector<System *> updateSystems;
+	std::vector<System *> preCollisionSystems, preRenderSystems, renderSystems;
 
 public:
     ComponentSystems() : logger{"Component Systems"} { }
     virtual ~ComponentSystems() { }
 
-    void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
+    void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, SystemStage stage, EntityComponentSystem &ecs)
 	{
-		for (auto &system : updateSystems)
+		if (stage == SystemStage::PRE_COLLISION)
 		{
-            system->update(renderer, assetSet, frameInfo, ecs);
+			for (auto &system : preCollisionSystems)
+			{
+				system->update(renderer, assetSet, frameInfo, ecs);
+			}
+		}
+		else if (stage == SystemStage::PRE_RENDER)
+		{
+			for (auto &system : preRenderSystems)
+			{
+				system->update(renderer, assetSet, frameInfo, ecs);
+			}
+		}
+		else if (stage == SystemStage::RENDER)
+		{
+			for (auto &system : renderSystems)
+			{
+				system->update(renderer, assetSet, frameInfo, ecs);
+			}
 		}
 	}
 
 	template<typename T, typename... Args>
-	T &registerSystem(Args&&... args)
+	T &registerSystem(SystemStage stage, Args&&... args)
 	{
 		static_assert(std::is_base_of<System, T>(), "Specified type is not a System");
+
 		// TODO: Check if any of the existing entities fit into the newly registered system
 		auto system = std::make_unique<T>(std::forward<Args>(args)...);
 		T &sysRef = static_cast<T &>(*system);
 		systems.push_back(std::move(system));
-		updateSystems.push_back(&sysRef);
-		logger.log("System Registered: " + sysRef.getName());
+
+		if (stage == SystemStage::PRE_COLLISION)
+		{
+			preCollisionSystems.push_back(&sysRef);
+		}
+		else if (stage == SystemStage::PRE_RENDER)
+		{
+			preRenderSystems.push_back(&sysRef);
+		}
+		else if (stage == SystemStage::RENDER)
+		{
+			renderSystems.push_back(&sysRef);
+		}
+
+		logger.log("System Registered: {}", sysRef.getName());
 
 		return sysRef;
-	}
-
-	void removeUpdate(const System &system)
-	{
-		auto itr = std::find(updateSystems.begin(), updateSystems.end(), &system);
-		if (itr != updateSystems.end())
-		{
-			updateSystems.erase(itr);
-			logger.log("Removed " + system.getName() + " from update list.");
-		}
-		else
-		{
-			logger.error("Error finding system in update list.");
-		}
 	}
 
 	void checkEntity(const Entity &entity, const ComponentMask &mask)

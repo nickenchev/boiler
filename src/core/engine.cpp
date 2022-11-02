@@ -28,7 +28,7 @@
 #include "physics/movementsystem.h"
 #include "physics/collisionsystem.h"
 #include "physics/collisioncomponent.h"
-#include "physics/transformsystem.h"
+#include "physics/physicssystem.h"
 
 using namespace Boiler;
 
@@ -66,41 +66,38 @@ void Engine::initialize(const Size &initialSize)
 	// initialize basic engine stuff
 	renderer->initialize(initialSize);
 
-	System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(*this);
+	System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(SystemStage::PRE_COLLISION, *this);
 	this->inputSystem = &inputSystem;
 
-	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>();
-	this->movementSystem = &movementSystem;
-
-	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(animator);
+	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(SystemStage::PRE_COLLISION, animator);
 	this->animationSystem = &animationSystem;
 
-	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>(matrixCache);
+	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>(SystemStage::PRE_COLLISION);
+	this->movementSystem = &movementSystem;
+
+	System &physicsSystem = ecs.getComponentSystems().registerSystem<PhysicsSystem>(SystemStage::PRE_COLLISION);
+	this->physicsSystem = &physicsSystem;
+
+	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>(SystemStage::PRE_COLLISION, matrixCache);
 	this->collisionSystem = &collisionSystem;
 
-	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>();
+	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(SystemStage::RENDER);
 	this->lightingSystem = &lightingSys;
-	ecs.getComponentSystems().removeUpdate(lightingSys);
 
-	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(matrixCache);
-	ecs.getComponentSystems().removeUpdate(renderSys);
+	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(SystemStage::RENDER, matrixCache);
 	this->renderSystem = &renderSys;
 
-	System &textSys = ecs.getComponentSystems().registerSystem<TextSystem>();
-	ecs.getComponentSystems().removeUpdate(textSys);
+	System &textSys = ecs.getComponentSystems().registerSystem<TextSystem>(SystemStage::RENDER);
 	this->textSystem = &textSys;
 
-	System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(*renderer)
-		.expects<GUIComponent>();
-	ecs.getComponentSystems().removeUpdate(guiSys);
+	System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(SystemStage::RENDER, *renderer, matrixCache);
+	this->debugRenderSystem = &debugRenderSys;
+
+	System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(SystemStage::RENDER, *renderer);
 	this->guiSystem = &guiSys;
 
-	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>();
+	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(SystemStage::RENDER);
 	this->cameraSystem = &cameraSystem;
-
-	System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(*renderer, matrixCache);
-	ecs.getComponentSystems().removeUpdate(debugRenderSys);
-	this->debugRenderSystem = &debugRenderSys;
 }
 
 void Engine::start(std::shared_ptr<Part> part)
@@ -158,26 +155,20 @@ void Engine::step(FrameInfo &frameInfo)
 	frameInfo.globalTime = globalTime;
 	frameInfo.frameCount = frameCount;
 
-	update(renderer->getAssetSet(), frameInfo);
-	globalTime += deltaTime;
+	part->update(frameInfo);
+	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::PRE_COLLISION);
+	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::PRE_RENDER);
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data
 	if (renderer->prepareFrame(frameInfo))
 	{
-		lightingSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
-		renderSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
-		textSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
-		if (guiSystem)
-		{
-			guiSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
-		}
-		debugRenderSystem->update(*renderer, renderer->getAssetSet(), frameInfo, ecs);
-
+		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::RENDER);
 		renderer->displayFrame(frameInfo, renderer->getAssetSet());
 	}
 	matrixCache.reset();
 	frameCount++;
+	globalTime += deltaTime;
 }
 
 void Engine::processEvents(FrameInfo &frameInfo)
@@ -302,6 +293,7 @@ void Engine::processEvents(FrameInfo &frameInfo)
 				{
 					mouseRelativeMode = !mouseRelativeMode;
 					SDL_SetRelativeMouseMode(mouseRelativeMode ? SDL_TRUE : SDL_FALSE);
+					static_cast<DebugRenderSystem *>(debugRenderSystem)->setEnabled(!mouseRelativeMode);
 				}
 				static_cast<GUISystem *>(guiSystem)->keyEvent(event.key.keysym.sym, false);
 
@@ -317,10 +309,4 @@ void Engine::processEvents(FrameInfo &frameInfo)
 			}
 		}
 	}
-}
-
-void Engine::update(AssetSet &assetSet, const FrameInfo &frameInfo)
-{
-	ecs.update(*renderer, assetSet, frameInfo);
-	part->update(frameInfo);
 }

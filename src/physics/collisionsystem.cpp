@@ -61,7 +61,7 @@ void CollisionSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
 							maxA.y > minB.y && minA.y < maxB.y &&
 							maxA.z > minB.z && minA.z < maxB.z)
 						{
-							velocity = -velocity * 0.1f;
+							velocity = -velocity * collision.damping;
 						}
 					}
 					else if (collisionB.colliderType == ColliderType::Sphere)

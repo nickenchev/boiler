@@ -2271,8 +2271,8 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 		vkCmdExecuteCommands(commandBuffer, 1, &skyboxCommandBuffers[frameInfo.currentFrame]);
 		vkCmdNextSubpass(commandBuffer, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
-		vkCmdExecuteCommands(commandBuffer, 1, &uiCommandBuffers[frameInfo.currentFrame]);
 		vkCmdExecuteCommands(commandBuffer, 1, &debugCommandBuffers[frameInfo.currentFrame]);
+		vkCmdExecuteCommands(commandBuffer, 1, &uiCommandBuffers[frameInfo.currentFrame]);
 
 		// matrix data updates
 		mat4 projection = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 500.0f);

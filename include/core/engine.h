@@ -40,7 +40,7 @@ class Engine
 	EntityComponentSystem ecs;
     std::string baseDataPath;
 	MatrixCache matrixCache;
-    System *renderSystem, *textSystem, *guiSystem, *debugRenderSystem, *lightingSystem, *animationSystem, *collisionSystem, *cameraSystem, *inputSystem, *movementSystem;
+    System *renderSystem, *textSystem, *guiSystem, *debugRenderSystem, *lightingSystem, *animationSystem, *physicsSystem, *collisionSystem, *cameraSystem, *inputSystem, *movementSystem;
 	Animator animator;
 
     bool running;
@@ -48,7 +48,6 @@ class Engine
     Time updateInterval;
 
     void processEvents(FrameInfo &frameInfo);
-	void update(AssetSet &assetSet, const FrameInfo &frameInfo);
 
     std::shared_ptr<Part> part;
 

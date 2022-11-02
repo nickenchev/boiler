@@ -13,10 +13,10 @@ static ImGuiKey ImGui_ImplSDL2_KeycodeToImGuiKey(int keycode);
 
 GUISystem::GUISystem(Renderer &renderer) : System("ImGui System")
 {
+	expects<GUIComponent>();
+
 	logger.log("Initializing");
 	ImGui::CreateContext();
-
-	ImGui::GetStyle().Alpha = 0.95f;
 
 	ImGuiIO &io = ImGui::GetIO();
 

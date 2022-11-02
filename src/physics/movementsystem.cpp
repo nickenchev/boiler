@@ -19,6 +19,7 @@ void MovementSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameI
 {
 	for (const Entity &entity : getEntities())
 	{
+		logger.log(ecs.nameOf(entity));
         CameraComponent &camera = ecs.getComponentStore().retrieve<CameraComponent>(entity);
         MovementComponent &movement = ecs.getComponentStore().retrieve<MovementComponent>(entity);
         TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
@@ -65,6 +66,5 @@ void MovementSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameI
 				physics.velocity *= 0;
 			}
 		}
-		transform.setPosition(transform.getPosition() + physics.velocity * frameInfo.deltaTime);
 	}
 }

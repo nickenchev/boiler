@@ -26,9 +26,9 @@ public:
 	EntityComponentSystem(const EntityComponentSystem &ecs) = delete;
 	EntityComponentSystem &operator=(const EntityComponentSystem &) = delete;
 
-	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo)
+	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, SystemStage stage)
 	{
-        systems.update(renderer, assetSet, frameInfo, *this);
+        systems.update(renderer, assetSet, frameInfo, stage, *this);
 	}
 
 	Entity newEntity(const std::string &name)

@@ -9,7 +9,6 @@
 #include "core/components/transformcomponent.h"
 #include "display/renderer.h"
 #include "physics/collisioncomponent.h"
-#include "physics/physicscomponent.h"
 #include "animation/components/animationcomponent.h"
 #include "gltf.h"
 #include "display/vertexdata.h"
@@ -293,7 +292,6 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 				logger.log("Created collision component from GLTF data");
 			}
 		}
-		auto physics = ecs.createComponent<PhysicsComponent>(nodeEntity);
 
 		// create a transform component if one doesn't exist
 		TransformComponent &transform = ecs.getComponentStore().hasComponent<TransformComponent>(nodeEntity)

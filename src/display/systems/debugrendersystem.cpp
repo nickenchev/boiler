@@ -22,11 +22,12 @@ DebugRenderSystem::DebugRenderSystem(Renderer &renderer, MatrixCache &matrixCach
 
 	Material material;
 	materialId = renderer.getAssetSet().materials.add(std::move(material));
+	enabled = false;
 }
 
 void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
-	if (getEntities().size())
+	if (enabled && getEntities().size())
 	{
 		std::vector<MaterialGroup> matGroups(1);
 		std::vector<Vertex> vertices;

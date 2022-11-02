@@ -21,6 +21,7 @@ struct CollisionComponent : public ComponentType<CollisionComponent>
 	ColliderType colliderType = ColliderType::AABB;
 	Mesh mesh;
 	vec3 min, max;
+	cgfloat damping = 0.2f;
 	CollisionComponent() : ComponentType(this) {}
 };
 

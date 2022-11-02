@@ -1,21 +1,18 @@
-#ifndef TRANSFORMSYSTEM_H
-#define TRANSFORMSYSTEM_H
+#ifndef PHYSICSSYSTEM_H
+#define PHYSICSSYSTEM_H
 
 #include "core/system.h"
 
 namespace Boiler
 {
 
-struct FrameInfo;
-
-class TransformSystem : public System
+class PhysicsSystem : public System
 {
 public:
-	TransformSystem();
-
+    PhysicsSystem();
     void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs) override;
 };
 
 }
 
-#endif /* TRANSFORMSYSTEM_H */
+#endif /* PHYSICSSYSTEM_H */
