@@ -26,8 +26,6 @@
 #include "animation/systems/animationsystem.h"
 #include "camera/camerasystem.h"
 #include "physics/movementsystem.h"
-#include "physics/collisionsystem.h"
-#include "physics/collisioncomponent.h"
 #include "physics/physicssystem.h"
 
 using namespace Boiler;
@@ -66,20 +64,17 @@ void Engine::initialize(const Size &initialSize)
 	// initialize basic engine stuff
 	renderer->initialize(initialSize);
 
-	System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(SystemStage::PRE_COLLISION, *this);
+	System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(SystemStage::PRE_RENDER, *this);
 	this->inputSystem = &inputSystem;
 
-	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(SystemStage::PRE_COLLISION, animator);
+	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(SystemStage::PRE_RENDER, animator);
 	this->animationSystem = &animationSystem;
 
-	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>(SystemStage::PRE_COLLISION);
+	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>(SystemStage::PRE_RENDER);
 	this->movementSystem = &movementSystem;
 
-	System &physicsSystem = ecs.getComponentSystems().registerSystem<PhysicsSystem>(SystemStage::PRE_COLLISION);
+	System &physicsSystem = ecs.getComponentSystems().registerSystem<PhysicsSystem>(SystemStage::PRE_RENDER, matrixCache);
 	this->physicsSystem = &physicsSystem;
-
-	System &collisionSystem = ecs.getComponentSystems().registerSystem<CollisionSystem>(SystemStage::PRE_COLLISION, matrixCache);
-	this->collisionSystem = &collisionSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(SystemStage::RENDER);
 	this->lightingSystem = &lightingSys;
@@ -156,7 +151,6 @@ void Engine::step(FrameInfo &frameInfo)
 	frameInfo.frameCount = frameCount;
 
 	part->update(frameInfo);
-	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::PRE_COLLISION);
 	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::PRE_RENDER);
 
 	// render related systems only run during render phase

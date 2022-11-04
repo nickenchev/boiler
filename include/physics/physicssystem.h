@@ -5,11 +5,13 @@
 
 namespace Boiler
 {
+class MatrixCache;
 
 class PhysicsSystem : public System
 {
+	MatrixCache &matrixCache;
 public:
-    PhysicsSystem();
+    PhysicsSystem(MatrixCache &matrixCache);
     void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs) override;
 };
 

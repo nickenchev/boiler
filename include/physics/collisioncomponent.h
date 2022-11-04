@@ -19,6 +19,7 @@ struct CollisionComponent : public ComponentType<CollisionComponent>
 {
 	bool isDynamic = false;
 	ColliderType colliderType = ColliderType::AABB;
+	vec3 normal = vec3(0, 0, 0);
 	Mesh mesh;
 	vec3 min, max;
 	cgfloat damping = 0.2f;

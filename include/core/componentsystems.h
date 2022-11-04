@@ -13,7 +13,6 @@ namespace Boiler
 
 enum class SystemStage
 {
-	PRE_COLLISION,
 	PRE_RENDER,
 	RENDER
 };
@@ -24,7 +23,7 @@ class ComponentSystems
 {
 	Logger logger;
 	std::vector<std::unique_ptr<System>> systems;
-	std::vector<System *> preCollisionSystems, preRenderSystems, renderSystems;
+	std::vector<System *> preRenderSystems, renderSystems;
 
 public:
     ComponentSystems() : logger{"Component Systems"} { }
@@ -32,14 +31,7 @@ public:
 
     void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, SystemStage stage, EntityComponentSystem &ecs)
 	{
-		if (stage == SystemStage::PRE_COLLISION)
-		{
-			for (auto &system : preCollisionSystems)
-			{
-				system->update(renderer, assetSet, frameInfo, ecs);
-			}
-		}
-		else if (stage == SystemStage::PRE_RENDER)
+		if (stage == SystemStage::PRE_RENDER)
 		{
 			for (auto &system : preRenderSystems)
 			{
@@ -65,11 +57,7 @@ public:
 		T &sysRef = static_cast<T &>(*system);
 		systems.push_back(std::move(system));
 
-		if (stage == SystemStage::PRE_COLLISION)
-		{
-			preCollisionSystems.push_back(&sysRef);
-		}
-		else if (stage == SystemStage::PRE_RENDER)
+		if (stage == SystemStage::PRE_RENDER)
 		{
 			preRenderSystems.push_back(&sysRef);
 		}

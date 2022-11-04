@@ -73,7 +73,6 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/animation/components/animationcomponent.h
   ${INCLUDE_BASE}/animation/systems/animationsystem.h
   ${INCLUDE_BASE}/json/jsonloader.h
-  ${INCLUDE_BASE}/physics/collisionsystem.h
   ${INCLUDE_BASE}/physics/collisioncomponent.h
   ${INCLUDE_BASE}/physics/movementsystem.h
   ${INCLUDE_BASE}/physics/physicscomponent.h
@@ -131,7 +130,6 @@ set(BOILER_SOURCES
   ${SRC_BASE}/util/tinyxml2.cpp
   ${SRC_BASE}/assets/gltfimporter.cpp
   ${SRC_BASE}/assets/maploader.cpp
-  ${SRC_BASE}/physics/collisionsystem.cpp
   ${SRC_BASE}/physics/movementsystem.cpp
   ${SRC_BASE}/physics/physicssystem.cpp
   ${SRC_BASE}/camera/camerasystem.cpp
