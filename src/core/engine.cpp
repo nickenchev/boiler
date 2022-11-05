@@ -64,16 +64,16 @@ void Engine::initialize(const Size &initialSize)
 	// initialize basic engine stuff
 	renderer->initialize(initialSize);
 
-	System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(SystemStage::PRE_RENDER, *this);
+	System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(SystemStage::IO, *this);
 	this->inputSystem = &inputSystem;
 
-	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(SystemStage::PRE_RENDER, animator);
+	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(SystemStage::SIMULATION, animator);
 	this->animationSystem = &animationSystem;
 
-	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>(SystemStage::PRE_RENDER);
+	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>(SystemStage::SIMULATION);
 	this->movementSystem = &movementSystem;
 
-	System &physicsSystem = ecs.getComponentSystems().registerSystem<PhysicsSystem>(SystemStage::PRE_RENDER, matrixCache);
+	System &physicsSystem = ecs.getComponentSystems().registerSystem<PhysicsSystem>(SystemStage::SIMULATION, matrixCache);
 	this->physicsSystem = &physicsSystem;
 
 	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(SystemStage::RENDER);
@@ -111,13 +111,25 @@ void Engine::start(std::shared_ptr<Part> part)
 
 void Engine::run()
 {
-	updateInterval = (1.0f / 90);
+	updateInterval = (1.0f / 60);
 	running = true;
+
+	auto currentTime = std::chrono::high_resolution_clock::now();
 
 	while(running)
 	{
 		FrameInfo frameInfo;
 		processEvents(frameInfo);
+
+		auto newTime = std::chrono::high_resolution_clock::now();
+		frameInfo.currentFrame = currentFrame;
+		frameInfo.deltaTime = updateInterval;
+		frameInfo.frameTime = std::chrono::duration<Time, std::chrono::seconds::period>(newTime - currentTime).count();
+		frameInfo.globalTime = globalTime;
+		frameInfo.frameCount = frameCount;
+
+		currentTime = newTime;
+
 		step(frameInfo);
 		currentFrame = (currentFrame + 1) % renderer->getMaxFramesInFlight();
 	}
@@ -129,29 +141,17 @@ void Engine::run()
 
 void Engine::step(FrameInfo &frameInfo)
 {
-	//get the delta time
-	Time64 currentTime = SDL_GetTicks64();
-	Time deltaTime = (currentTime - prevTime) / 1000.0f;
-	prevTime = currentTime;
-
+	frameLag += frameInfo.frameTime;
 	// frame update / catchup phase if lagging
-	/*
-	FrameInfo frameInfo(currentFrame, updateInterval, globalTime);
-	frameLag += frameDelta;
 	while (frameLag >= updateInterval)
 	{
-		update(frameInfo);
+		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
+		part->update(frameInfo);
+		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::SIMULATION);
+
 		globalTime += updateInterval;
 		frameLag -= updateInterval;
 	}
-	*/
-	frameInfo.currentFrame = currentFrame;
-	frameInfo.deltaTime = deltaTime;
-	frameInfo.globalTime = globalTime;
-	frameInfo.frameCount = frameCount;
-
-	part->update(frameInfo);
-	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::PRE_RENDER);
 
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data
@@ -162,7 +162,6 @@ void Engine::step(FrameInfo &frameInfo)
 	}
 	matrixCache.reset();
 	frameCount++;
-	globalTime += deltaTime;
 }
 
 void Engine::processEvents(FrameInfo &frameInfo)

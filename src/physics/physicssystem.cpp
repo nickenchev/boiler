@@ -20,8 +20,9 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 	{
 		TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
 		PhysicsComponent &physics = ecs.getComponentStore().retrieve<PhysicsComponent>(entity);
-		transform.setPosition(transform.getPosition() + physics.velocity);
 		CollisionComponent &collision = ecs.getComponentStore().retrieve<CollisionComponent>(entity);
+
+		transform.setPosition(transform.getPosition() + physics.velocity * frameInfo.deltaTime);
 
 		// check dynamic bodies for collisions
 		if (collision.isDynamic)
@@ -30,9 +31,7 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 
 			// predict the transform after object is moved
 			TransformComponent newTransformA = transform;
-			newTransformA.setPosition(newTransformA.getPosition() * frameInfo.deltaTime);
-
-			mat4 matA = matrixCache.getMatrix(entity, ecs.getComponentStore());
+			mat4 matA = newTransformA.getMatrix();
 			vec3 minA = vec3(matA * vec4(collision.min, 1));
 			vec3 maxA = vec3(matA * vec4(collision.max, 1));
 
@@ -52,7 +51,7 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 							newTransformB.setPosition(newTransformB.getPosition() * frameInfo.deltaTime);
 						}
 
-						mat4 matB = matrixCache.getMatrix(entityB, ecs.getComponentStore());
+						mat4 matB = newTransformB.getMatrix();
 						vec3 minB = vec3(matB * vec4(collisionB.min, 1));
 						vec3 maxB = vec3(matB * vec4(collisionB.max, 1));
 

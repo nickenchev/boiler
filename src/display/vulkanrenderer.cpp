@@ -37,8 +37,8 @@ using namespace Boiler;
 using namespace Boiler::Vulkan;
 
 constexpr bool enableDebugMessages = true;
-//constexpr VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-constexpr VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+constexpr VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+//constexpr VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 constexpr unsigned int maxLights = 64;
 constexpr unsigned int maxMaterials = 512;
 constexpr unsigned int maxSamplers = 1;

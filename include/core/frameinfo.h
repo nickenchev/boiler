@@ -39,6 +39,7 @@ struct FrameInfo
 
 	short currentFrame;
 	double globalTime;
+	Time frameTime;
 	Time deltaTime;
 	int mouseXDistance, mouseYDistance;
 	unsigned long frameCount;

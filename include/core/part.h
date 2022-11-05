@@ -9,6 +9,7 @@ namespace Boiler
 
 class Engine;
 struct FrameInfo;
+class EntityComponentSystem;
 
 class Part
 {
