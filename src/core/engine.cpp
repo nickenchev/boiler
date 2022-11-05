@@ -130,6 +130,7 @@ void Engine::run()
 
 		currentTime = newTime;
 
+		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
 		step(frameInfo);
 		currentFrame = (currentFrame + 1) % renderer->getMaxFramesInFlight();
 	}
@@ -143,8 +144,6 @@ void Engine::step(FrameInfo &frameInfo)
 {
 	frameLag += frameInfo.frameTime;
 	// frame update / catchup phase if lagging
-
-	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
 	while (frameLag >= updateInterval)
 	{
 		part->update(frameInfo);
