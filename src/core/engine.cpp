@@ -70,8 +70,8 @@ void Engine::initialize(const Size &initialSize)
 	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(SystemStage::SIMULATION, animator);
 	this->animationSystem = &animationSystem;
 
-	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>(SystemStage::SIMULATION);
-	this->movementSystem = &movementSystem;
+	// System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>(SystemStage::SIMULATION);
+	// this->movementSystem = &movementSystem;
 
 	System &physicsSystem = ecs.getComponentSystems().registerSystem<PhysicsSystem>(SystemStage::SIMULATION, matrixCache);
 	this->physicsSystem = &physicsSystem;
@@ -143,10 +143,12 @@ void Engine::step(FrameInfo &frameInfo)
 {
 	frameLag += frameInfo.frameTime;
 	// frame update / catchup phase if lagging
+
+	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
 	while (frameLag >= updateInterval)
 	{
-		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
 		part->update(frameInfo);
+		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::USER_SIMULATION);
 		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::SIMULATION);
 
 		globalTime += updateInterval;

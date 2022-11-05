@@ -14,6 +14,7 @@ namespace Boiler
 enum class SystemStage
 {
 	IO,
+	USER_SIMULATION,
 	SIMULATION,
 	RENDER
 };
@@ -24,7 +25,7 @@ class ComponentSystems
 {
 	Logger logger;
 	std::vector<std::unique_ptr<System>> systems;
-	std::vector<System *> ioSystems, simulationSystems, renderSystems;
+	std::vector<System *> ioSystems, userSimulationSystems, simulationSystems, renderSystems;
 
 public:
     ComponentSystems() : logger{"Component Systems"} { }
@@ -34,6 +35,13 @@ public:
 		if (stage == SystemStage::IO)
 		{
 			for (auto &system : ioSystems)
+			{
+				system->update(renderer, assetSet, frameInfo, ecs);
+			}
+		}
+		else if (stage == SystemStage::USER_SIMULATION)
+		{
+			for (auto &system : userSimulationSystems)
 			{
 				system->update(renderer, assetSet, frameInfo, ecs);
 			}
@@ -67,6 +75,10 @@ public:
 		if (stage == SystemStage::IO)
 		{
 			ioSystems.push_back(&sysRef);
+		}
+		else if (stage == SystemStage::USER_SIMULATION)
+		{
+			userSimulationSystems.push_back(&sysRef);
 		}
 		else if (stage == SystemStage::SIMULATION)
 		{

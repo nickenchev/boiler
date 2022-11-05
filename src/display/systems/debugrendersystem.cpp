@@ -49,8 +49,10 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 			auto &collision = ecs.getComponentStore().retrieve<CollisionComponent>(entity);
 			auto &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
 
-			vec3 min = matrixCache.getMatrix(entity, ecs.getComponentStore()) * vec4(collision.min, 1);
-			vec3 max = matrixCache.getMatrix(entity, ecs.getComponentStore()) * vec4(collision.max, 1);
+			// vec3 min = matrixCache.getMatrix(entity, ecs.getComponentStore()) * vec4(collision.min, 1);
+			// vec3 max = matrixCache.getMatrix(entity, ecs.getComponentStore()) * vec4(collision.max, 1);
+			vec3 min = transform.getMatrix() * vec4(collision.min, 1);
+			vec3 max = transform.getMatrix() * vec4(collision.max, 1);
 
 			// generate verts
 			const vec4 colour = colours[index++ % colours.size()];
