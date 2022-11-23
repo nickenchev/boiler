@@ -9,6 +9,7 @@
 #include "core/components/transformcomponent.h"
 #include "display/renderer.h"
 #include "physics/collisioncomponent.h"
+#include "physics/physicscomponent.h"
 #include "animation/components/animationcomponent.h"
 #include "gltf.h"
 #include "display/vertexdata.h"
@@ -290,6 +291,7 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 				collision.min = mesh.min;
 				collision.max = mesh.max;
 				logger.log("Created collision component from GLTF data");
+				ecs.createComponent<PhysicsComponent>(nodeEntity);
 			}
 		}
 

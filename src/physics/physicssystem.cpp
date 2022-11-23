@@ -22,12 +22,13 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 		PhysicsComponent &physics = ecs.getComponentStore().retrieve<PhysicsComponent>(entity);
 		CollisionComponent &collision = ecs.getComponentStore().retrieve<CollisionComponent>(entity);
 
+		const vec3 prevPos = transform.getPosition();
+		transform.setPosition(transform.getPosition() + physics.velocity * frameInfo.deltaTime);
+
 		// check dynamic bodies for collisions
 		if (collision.isDynamic)
 		{
 			vec3 velocity = physics.velocity;
-			const vec3 prevPos = transform.getPosition();
-			transform.setPosition(transform.getPosition() + velocity * frameInfo.deltaTime);
 
 			// predict the transform after object is moved
 			mat4 matA = matrixCache.getMatrix(entity, ecs.getComponentStore());
@@ -45,7 +46,7 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 					{
 						TransformComponent newTransformB = transformB;
 						PhysicsComponent &physicsB = ecs.getComponentStore().retrieve<PhysicsComponent>(entityB);
-						newTransformB.setPosition(newTransformB.getPosition() * frameInfo.deltaTime);
+						newTransformB.setPosition(newTransformB.getPosition() * physicsB.velocity * frameInfo.deltaTime);
 
 						mat4 matB = matrixCache.getMatrix(entityB, ecs.getComponentStore());
 						vec3 minB = vec3(matB * vec4(collisionB.min, 1));
@@ -55,7 +56,10 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 							maxA.y > minB.y && minA.y < maxB.y &&
 							maxA.z > minB.z && minA.z < maxB.z)
 						{
-							velocity = -velocity * collision.damping;
+							vec3 direction = transform.getPosition() - newTransformB.getPosition();
+							logger.log("{}, {}, {}", direction.x, direction.y, direction.z);
+
+							transform.setPosition(prevPos);
 						}
 					}
 					else if (collisionB.colliderType == ColliderType::Sphere)
@@ -73,6 +77,7 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 						if (distance < radiusA + radiusB)
 						{
 							velocity = -velocity * 0.1f;
+							transform.setPosition(prevPos);
 						}
 					}
 				}

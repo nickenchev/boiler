@@ -70,8 +70,8 @@ void Engine::initialize(const Size &initialSize)
 	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(SystemStage::SIMULATION, animator);
 	this->animationSystem = &animationSystem;
 
-	// System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>(SystemStage::SIMULATION);
-	// this->movementSystem = &movementSystem;
+	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>(SystemStage::SIMULATION);
+	this->movementSystem = &movementSystem;
 
 	System &physicsSystem = ecs.getComponentSystems().registerSystem<PhysicsSystem>(SystemStage::SIMULATION, matrixCache);
 	this->physicsSystem = &physicsSystem;
