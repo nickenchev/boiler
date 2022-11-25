@@ -7,7 +7,6 @@
 #include "logger.h"
 #include "entity.h"
 #include "core/ecstypes.h"
-#include "core/component.h"
 
 namespace Boiler
 {
@@ -26,7 +25,7 @@ public:
 	const ComponentMask &add(const Entity &entity)
 	{
 		// update the entity mask
-		ComponentMask &entMask = componentMap[entity.getId()];
+		ComponentMask &entMask = componentMap[entity.index()];
 		entMask = entMask | T::mask;
 		return entMask;
 	}
@@ -34,7 +33,7 @@ public:
 	const ComponentMask &add(const Entity &entity, ComponentMask componentMask)
 	{
 		// update the entity mask
-		ComponentMask &entMask = componentMap[entity.getId()];
+		ComponentMask &entMask = componentMap[entity.index()];
 		entMask = entMask | componentMask;
 		return entMask;
 	}
@@ -42,14 +41,14 @@ public:
 
 	const ComponentMask &getMask(const Entity entity)
 	{
-		return componentMap[entity.getId()];
+		return componentMap[entity.index()];
 	}
 
 	template<typename T>
-	const ComponentMask & remove(const Entity &entity)
+	const ComponentMask &remove(const Entity &entity)
 	{
 		// update the entity mask
-		ComponentMask &entMask = componentMap[entity.getId()];
+		ComponentMask &entMask = componentMap[entity.index()];
 		entMask = entMask & ~T::mask;
 		return entMask;
 	}

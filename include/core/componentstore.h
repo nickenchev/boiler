@@ -25,16 +25,11 @@ public:
 	{
 	}
 
-	inline size_t index(const Entity entity) const
-	{
-		return entity.getId() - 1;
-	}
-
 	template<typename T, typename... Args>
 	T &store(const Entity &entity, Args&&... args)
 	{
 		// construct and store the new compnent for this entity
-		unsigned int entityIndex = index(entity);
+		unsigned int entityIndex = entity.index();
 		unsigned int storageIndex = T::storageIndex;
 		assert(entityIndex < entityComponents.size());
 
@@ -47,7 +42,7 @@ public:
 	template<typename T>
 	void remove(const Entity &entity)
 	{
-		entityComponents[index(entity)][T::storageIndex] = nullptr;
+		entityComponents[entity.index()][T::storageIndex] = nullptr;
 	}
 
 	void removeAll(const Entity &)
@@ -66,7 +61,7 @@ public:
 	template<typename T>
 	T &retrieve(const Entity &entity)
 	{
-		auto &component = entityComponents[index(entity)][T::storageIndex];
+		auto &component = entityComponents[entity.index()][T::storageIndex];
 
 		assert(component != nullptr);
 		return *static_cast<T*>(component.get());
@@ -75,7 +70,7 @@ public:
 	template<typename T>
 	bool hasComponent(const Entity &entity)
 	{
-		return entityComponents[index(entity)][T::storageIndex] != nullptr;
+		return entityComponents[entity.index()][T::storageIndex] != nullptr;
 	}
 
 	template<typename T>

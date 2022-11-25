@@ -22,7 +22,9 @@ class EntityComponentSystem
 	ComponentStore componentStore;
 
 public:
-	EntityComponentSystem() : logger("ECS") { }
+	EntityComponentSystem() : logger("ECS")
+	{
+	}
 	EntityComponentSystem(const EntityComponentSystem &ecs) = delete;
 	EntityComponentSystem &operator=(const EntityComponentSystem &) = delete;
 

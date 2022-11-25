@@ -28,7 +28,7 @@ class ComponentSystems
 	std::vector<System *> ioSystems, userSimulationSystems, simulationSystems, renderSystems;
 
 public:
-    ComponentSystems() : logger{"Component Systems"} { }
+    ComponentSystems() : logger{"Component Systems"} {}
 
     void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, SystemStage stage, EntityComponentSystem &ecs)
 	{
@@ -100,14 +100,6 @@ public:
 		for (auto &system : systems)
 		{
 			system->checkEntity(entity, mask);
-		}
-	}
-
-	void removeEntity(const Entity &entity)
-	{
-		for (auto &system : systems)
-		{
-			system->removeEntity(entity);
 		}
 	}
 };

@@ -1,6 +1,8 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include <stddef.h>
+
 constexpr unsigned int MAX_ENTITIES = 5000;
 
 namespace Boiler
@@ -29,6 +31,12 @@ public:
 	bool operator<(const Entity &entity) const { return getId() < entity.getId(); }
 	operator bool() const { return getId() != 0; }
 	EntityId getId() const { return id; }
+
+	inline size_t index() const
+	{
+		return getId() - 1;
+	}
+
 };
 
 }

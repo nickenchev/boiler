@@ -12,6 +12,7 @@
 #include "core/componentmapper.h"
 #include "core/logger.h"
 #include "assets/assetset.h"
+#include "core/component.h"
 
 namespace Boiler
 {
