@@ -47,7 +47,7 @@ public:
 	template<typename T>
 	void remove(const Entity &entity)
 	{
-		entityComponents[index(entity)][T::mask.to_ulong()] = nullptr;
+		entityComponents[index(entity)][T::storageIndex] = nullptr;
 	}
 
 	void removeAll(const Entity &)
