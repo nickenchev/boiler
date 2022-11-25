@@ -4,6 +4,7 @@
 #include "core/components/transformcomponent.h"
 #include "core/entitycomponentsystem.h"
 #include "core/matrixcache.h"
+#include "core/components/rendercomponent.h"
 
 using namespace Boiler;
 
@@ -14,8 +15,15 @@ PhysicsSystem::PhysicsSystem(MatrixCache &matrixCache) : System("Physics System"
 	expects<CollisionComponent>();
 }
 
+cgfloat clamp(cgfloat value, cgfloat min, cgfloat max)
+{
+	return std::max(min, std::min(max, value));
+}
+
 void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
+	std::vector<Entity> bricksDestroyed(5);
+
 	for (Entity entity : getEntities())
 	{
 		TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
@@ -52,14 +60,45 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 						vec3 minB = vec3(matB * vec4(collisionB.min, 1));
 						vec3 maxB = vec3(matB * vec4(collisionB.max, 1));
 
+						/*
+						if (collision.colliderType == ColliderType::Sphere)
+						{
+							vec3 halfA = (maxA - minA) / 2.0f;
+							cgfloat radius = std::max(std::max(halfA.x, halfA.y), halfA.z);
+
+							// get vector pointing from box centre to sphere center
+							vec3 d = transform.getPosition() - newTransformB.getPosition();
+
+							vec3 halfAABB = vec3(maxB.x - minB.x, maxB.y - minB.y, maxB.z - minB.z) / 2.0f;
+							vec3 clamped = vec3(clamp(d.x, -halfAABB.x, halfAABB.x),
+												clamp(d.y, -halfAABB.y, halfAABB.y),
+												clamp(d.z, -halfAABB.z, halfAABB.z));
+
+							logger.log("{}  {}", glm::length(clamped), radius);
+							if (glm::length(clamped) < radius)
+							{
+								logger.log("HIT {}", ecs.nameOf(entityB));
+							}
+
+						}
+						*/
+
 						if (maxA.x > minB.x && minA.x < maxB.x &&
 							maxA.y > minB.y && minA.y < maxB.y &&
 							maxA.z > minB.z && minA.z < maxB.z)
 						{
-							vec3 direction = transform.getPosition() - newTransformB.getPosition();
-							logger.log("{}, {}, {}", direction.x, direction.y, direction.z);
+							vec3 up(0, 1, 0);
+							vec3 ballDir = glm::normalize(transform.getPosition() - newTransformB.getPosition());
+							cgfloat d = glm::dot(up, ballDir);
+							logger.log("{}-->{}:{} ({}, {}, {}) -- d: {}", ecs.nameOf(entity), ecs.nameOf(entityB), entityB.getId(), ballDir.x, ballDir.y, ballDir.z, d);
 
+							if (ecs.nameOf(entityB) == "Brick")
+							{
+								bricksDestroyed.push_back(entityB);
+							}
+							
 							transform.setPosition(prevPos);
+							velocity = -velocity * collision.damping;
 						}
 					}
 					else if (collisionB.colliderType == ColliderType::Sphere)
@@ -84,5 +123,11 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 			}
 			physics.velocity = velocity;
 		}
+	}
+
+	for (Entity entity : bricksDestroyed)
+	{
+		ecs.removeComponent<RenderComponent>(entity);
+		ecs.removeComponent<CollisionComponent>(entity);
 	}
 }
