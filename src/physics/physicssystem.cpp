@@ -55,7 +55,7 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 					{
 						TransformComponent newTransformB = transformB;
 						PhysicsComponent &physicsB = ecs.getComponentStore().retrieve<PhysicsComponent>(entityB);
-						newTransformB.setPosition(newTransformB.getPosition() * physicsB.velocity * frameInfo.deltaTime);
+						newTransformB.setPosition(newTransformB.getPosition() + physicsB.velocity * frameInfo.deltaTime);
 
 						mat4 matB = matrixCache.getMatrix(entityB, ecs.getComponentStore());
 						vec3 minB = vec3(matB * vec4(collisionB.min, 1));
@@ -89,9 +89,16 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 							maxA.z > minB.z && minA.z < maxB.z)
 						{
 							vec3 up(0, 1, 0);
+							vec3 left(1, 0, 0);
 							vec3 ballDir = glm::normalize(transform.getPosition() - newTransformB.getPosition());
-							cgfloat d = glm::dot(up, ballDir);
-							logger.log("{}-->{}:{} ({}, {}, {}) -- d: {}", ecs.nameOf(entity), ecs.nameOf(entityB), entityB.getId(), ballDir.x, ballDir.y, ballDir.z, d);
+							cgfloat dUp = glm::dot(up, ballDir);
+							cgfloat dLeft = glm::dot(left, ballDir);
+							cgfloat wRatio = (maxB.x - minB.x) / (maxB.y - minB.y);
+							cgfloat hRatio = (maxB.y - minB.y) / (maxB.x - minB.x);
+
+							logger.log("{}: ({}, {}, {}) -- {}: ({}, {}, {}) -- dUp: {}, dLeft: {}", ecs.nameOf(entity), transform.getPosition().x,
+									   transform.getPosition().y, transform.getPosition().z, ecs.nameOf(entityB), newTransformB.getPosition().x,
+									   newTransformB.getPosition().y, newTransformB.getPosition().z, dUp, dLeft);
 
 							if (ecs.nameOf(entityB) == "Brick")
 							{
@@ -99,6 +106,15 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 							}
 							
 							transform.setPosition(prevPos);
+
+							if (abs(dUp * wRatio) > abs(dLeft * hRatio))
+							{
+								velocity.x = -velocity.x * collision.damping;
+							}
+							else
+							{
+								velocity.y = -velocity.y * collision.damping;
+							}
 							velocity = -velocity * collision.damping;
 						}
 					}
