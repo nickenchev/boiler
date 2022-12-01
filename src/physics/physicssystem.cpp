@@ -23,7 +23,8 @@ cgfloat clamp(cgfloat value, cgfloat min, cgfloat max)
 
 void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
-	std::vector<Entity> bricksDestroyed(5);
+	std::vector<Entity> bricksDestroyed;
+	bricksDestroyed.reserve(5);
 
 	for (Entity entity : getEntities())
 	{
