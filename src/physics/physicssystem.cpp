@@ -5,6 +5,7 @@
 #include "core/entitycomponentsystem.h"
 #include "core/matrixcache.h"
 #include "core/components/rendercomponent.h"
+#include "physics/aabb.h"
 
 using namespace Boiler;
 
@@ -60,61 +61,36 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 						vec3 minB = vec3(matB * vec4(collisionB.min, 1));
 						vec3 maxB = vec3(matB * vec4(collisionB.max, 1));
 
-						/*
-						if (collision.colliderType == ColliderType::Sphere)
+						if (AABB::intersects(minA, maxA, minB, maxB))
 						{
-							vec3 halfA = (maxA - minA) / 2.0f;
-							cgfloat radius = std::max(std::max(halfA.x, halfA.y), halfA.z);
+							vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
+							vec3 normBallDir = glm::normalize(ballDir);
+							/* p2 ---- p1
+							      |  |
+							   p3 ---- p4 */
 
-							// get vector pointing from box centre to sphere center
-							vec3 d = transform.getPosition() - newTransformB.getPosition();
+							vec3 xHat(1, 0, 0);
+							vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.getPosition());
+							vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.getPosition());
 
-							vec3 halfAABB = vec3(maxB.x - minB.x, maxB.y - minB.y, maxB.z - minB.z) / 2.0f;
-							vec3 clamped = vec3(clamp(d.x, -halfAABB.x, halfAABB.x),
-												clamp(d.y, -halfAABB.y, halfAABB.y),
-												clamp(d.z, -halfAABB.z, halfAABB.z));
+							cgfloat p1Theta = glm::acos(glm::dot(xHat, p1));
+							cgfloat p2Theta = glm::pi<float>() - p1Theta;
+							cgfloat ballTheta = glm::acos(glm::dot(xHat, normBallDir));
 
-							logger.log("{}  {}", glm::length(clamped), radius);
-							if (glm::length(clamped) < radius)
+							if (ballTheta > p1Theta && ballTheta < p2Theta)
 							{
-								logger.log("HIT {}", ecs.nameOf(entityB));
+								velocity.y = -velocity.y;
 							}
-
-						}
-						*/
-
-						if (maxA.x > minB.x && minA.x < maxB.x &&
-							maxA.y > minB.y && minA.y < maxB.y &&
-							maxA.z > minB.z && minA.z < maxB.z)
-						{
-							vec3 up(0, 1, 0);
-							vec3 left(1, 0, 0);
-							vec3 ballDir = glm::normalize(transform.getPosition() - newTransformB.getPosition());
-							cgfloat dUp = glm::dot(up, ballDir);
-							cgfloat dLeft = glm::dot(left, ballDir);
-							cgfloat wRatio = (maxB.x - minB.x) / (maxB.y - minB.y);
-							cgfloat hRatio = (maxB.y - minB.y) / (maxB.x - minB.x);
-
-							logger.log("{}: ({}, {}, {}) -- {}: ({}, {}, {}) -- dUp: {}, dLeft: {}", ecs.nameOf(entity), transform.getPosition().x,
-									   transform.getPosition().y, transform.getPosition().z, ecs.nameOf(entityB), newTransformB.getPosition().x,
-									   newTransformB.getPosition().y, newTransformB.getPosition().z, dUp, dLeft);
+							else
+							{
+								velocity.x = -velocity.x;
+							}
 
 							if (ecs.nameOf(entityB) == "Brick")
 							{
 								bricksDestroyed.push_back(entityB);
 							}
-							
 							transform.setPosition(prevPos);
-
-							if (abs(dUp * wRatio) > abs(dLeft * hRatio))
-							{
-								velocity.x = -velocity.x * collision.damping;
-							}
-							else
-							{
-								velocity.y = -velocity.y * collision.damping;
-							}
-							velocity = -velocity * collision.damping;
 						}
 					}
 					else if (collisionB.colliderType == ColliderType::Sphere)
