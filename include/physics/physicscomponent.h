@@ -9,11 +9,12 @@ namespace Boiler {
 
 struct PhysicsComponent : public ComponentType<PhysicsComponent>
 {
-	cgfloat speed, acceleration;
+	cgfloat speed, acceleration, mass;
 	vec3 velocity;
 
 	PhysicsComponent() : ComponentType(this)
 	{
+		mass = 0;
 		speed = 0;
 		acceleration = 0;
 		velocity = {0, 0, 0};

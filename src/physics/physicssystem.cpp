@@ -6,6 +6,7 @@
 #include "core/matrixcache.h"
 #include "core/components/rendercomponent.h"
 #include "physics/aabb.h"
+#include "physics/sphere.h"
 
 using namespace Boiler;
 
@@ -51,18 +52,56 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 				{
 					auto &collisionB = ecs.getComponentStore().retrieve<CollisionComponent>(entityB);
 					auto &transformB = ecs.getComponentStore().retrieve<TransformComponent>(entityB);
+					mat4 matB = matrixCache.getMatrix(entityB, ecs.getComponentStore());
+					vec3 minB = vec3(matB * vec4(collisionB.min, 1));
+					vec3 maxB = vec3(matB * vec4(collisionB.max, 1));
 
 					if (collisionB.colliderType == ColliderType::AABB)
 					{
 						TransformComponent newTransformB = transformB;
 						PhysicsComponent &physicsB = ecs.getComponentStore().retrieve<PhysicsComponent>(entityB);
-						newTransformB.setPosition(newTransformB.getPosition() + physicsB.velocity * frameInfo.deltaTime);
 
-						mat4 matB = matrixCache.getMatrix(entityB, ecs.getComponentStore());
-						vec3 minB = vec3(matB * vec4(collisionB.min, 1));
-						vec3 maxB = vec3(matB * vec4(collisionB.max, 1));
+						if (collision.colliderType == ColliderType::Sphere)
+						{
+							vec3 size = collision.max - collision.min;
+							float radius = std::max(std::max(size.x, size.y), size.z) / 2.0f;
 
-						if (AABB::intersects(minA, maxA, minB, maxB))
+							if (Sphere::intersects(transform.getPosition(), radius, minB, maxB))
+							{
+								vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
+								vec3 normBallDir = glm::normalize(ballDir);
+								/* p2 ---- p1
+								   |  |
+								   p3 ---- p4 */
+
+								vec3 xHat(1, 0, 0);
+								vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.getPosition());
+								vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.getPosition());
+
+								cgfloat p1Theta = glm::acos(glm::dot(xHat, p1));
+								cgfloat p2Theta = glm::pi<float>() - p1Theta;
+								cgfloat ballTheta = glm::acos(glm::dot(xHat, normBallDir));
+
+								// bounce depending on mass / material
+								if (physics.mass == 0)
+								{
+									if (ballTheta > p1Theta && ballTheta < p2Theta)
+									{
+										velocity.y = -velocity.y;
+									}
+									else
+									{
+										velocity.x = -velocity.x;
+									}
+								}
+								if (ecs.nameOf(entityB) == "Brick")
+								{
+									bricksDestroyed.push_back(entityB);
+								}
+								transform.setPosition(prevPos);
+							}
+						}
+						else if (AABB::intersects(minA, maxA, minB, maxB))
 						{
 							vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
 							vec3 normBallDir = glm::normalize(ballDir);
@@ -78,15 +117,18 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 							cgfloat p2Theta = glm::pi<float>() - p1Theta;
 							cgfloat ballTheta = glm::acos(glm::dot(xHat, normBallDir));
 
-							if (ballTheta > p1Theta && ballTheta < p2Theta)
+							// bounce depending on mass / material
+							if (physics.mass == 0)
 							{
-								velocity.y = -velocity.y;
+								if (ballTheta > p1Theta && ballTheta < p2Theta)
+								{
+									velocity.y = -velocity.y;
+								}
+								else
+								{
+									velocity.x = -velocity.x;
+								}
 							}
-							else
-							{
-								velocity.x = -velocity.x;
-							}
-
 							if (ecs.nameOf(entityB) == "Brick")
 							{
 								bricksDestroyed.push_back(entityB);
@@ -94,24 +136,24 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 							transform.setPosition(prevPos);
 						}
 					}
-					else if (collisionB.colliderType == ColliderType::Sphere)
-					{
-						vec3 minB = vec3(transformB.getMatrix() * vec4(collisionB.min, 1));
-						vec3 maxB = vec3(transformB.getMatrix() * vec4(collisionB.max, 1));
+					// else if (collisionB.colliderType == ColliderType::Sphere)
+					// {
+					// 	vec3 minB = vec3(transformB.getMatrix() * vec4(collisionB.min, 1));
+					// 	vec3 maxB = vec3(transformB.getMatrix() * vec4(collisionB.max, 1));
 
-						cgfloat diameterA = glm::length(minA - maxA);
-						cgfloat radiusA = diameterA / 2;
-						cgfloat diameterB = glm::length(minB - maxB);
-						cgfloat radiusB = diameterB / 2;
+					// 	cgfloat diameterA = glm::length(minA - maxA);
+					// 	cgfloat radiusA = diameterA / 2;
+					// 	cgfloat diameterB = glm::length(minB - maxB);
+					// 	cgfloat radiusB = diameterB / 2;
 
-						cgfloat distance = glm::distance(transform.getPosition() + velocity * frameInfo.deltaTime, transformB.getPosition());
+					// 	cgfloat distance = glm::distance(transform.getPosition() + velocity * frameInfo.deltaTime, transformB.getPosition());
 
-						if (distance < radiusA + radiusB)
-						{
-							velocity = -velocity * 0.1f;
-							transform.setPosition(prevPos);
-						}
-					}
+					// 	if (distance < radiusA + radiusB)
+					// 	{
+					// 		velocity = -velocity * 0.1f;
+					// 		transform.setPosition(prevPos);
+					// 	}
+					// }
 				}
 			}
 			physics.velocity = velocity;

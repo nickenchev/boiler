@@ -78,6 +78,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/physics/physicscomponent.h
   ${INCLUDE_BASE}/physics/physicssystem.h
   ${INCLUDE_BASE}/physics/aabb.h
+  ${INCLUDE_BASE}/physics/sphere.h
   ${INCLUDE_BASE}/camera/camerasystem.h
 )
 
@@ -134,6 +135,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/physics/movementsystem.cpp
   ${SRC_BASE}/physics/physicssystem.cpp
   ${SRC_BASE}/physics/aabb.cpp
+  ${SRC_BASE}/physics/sphere.cpp
   ${SRC_BASE}/camera/camerasystem.cpp
   ${SRC_BASE}/input/inputsystem.cpp
   # ImGui
