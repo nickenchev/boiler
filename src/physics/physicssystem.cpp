@@ -63,7 +63,7 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 
 						if (collision.colliderType == ColliderType::Sphere)
 						{
-							vec3 size = collision.max - collision.min;
+							vec3 size = maxA - minA;
 							float radius = std::max(std::max(size.x, size.y), size.z) / 2.0f;
 
 							if (Sphere::intersects(transform.getPosition(), radius, minB, maxB))
