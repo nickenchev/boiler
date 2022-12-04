@@ -78,12 +78,11 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 								vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.getPosition());
 								vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.getPosition());
 
-								cgfloat p1Theta = glm::acos(glm::dot(xHat, p1));
-								cgfloat p2Theta = glm::pi<float>() - p1Theta;
-								cgfloat ballTheta = glm::acos(glm::dot(xHat, normBallDir));
+								float p1Theta = glm::acos(glm::dot(xHat, p1));
+								float p2Theta = glm::pi<float>() - p1Theta;
+								float ballTheta = glm::acos(glm::dot(xHat, normBallDir));
 
-								// bounce depending on mass / material
-								if (physics.mass == 0)
+								if (ecs.nameOf(entityB) == "Paddle")
 								{
 									if (ballTheta > p1Theta && ballTheta < p2Theta)
 									{
@@ -94,9 +93,22 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 										velocity.x = -velocity.x;
 									}
 								}
-								if (ecs.nameOf(entityB) == "Brick")
+								else
 								{
-									bricksDestroyed.push_back(entityB);
+									if (ballTheta > p1Theta && ballTheta < p2Theta)
+									{
+										velocity.y = -velocity.y;
+									}
+									else
+									{
+										velocity.x = -velocity.x;
+									}
+
+									// remove the brick
+									if (ecs.nameOf(entityB) == "Brick")
+									{
+										bricksDestroyed.push_back(entityB);
+									}
 								}
 								transform.setPosition(prevPos);
 							}
