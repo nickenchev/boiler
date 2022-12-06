@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "physics/sphere.h"
 
 float clampAxis(float val, float min, float max)
