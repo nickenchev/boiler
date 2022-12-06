@@ -2352,6 +2352,10 @@ void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet
 
 		vkQueuePresentKHR(presentationQueue, &presentInfo);
 	}
+	else
+	{
+		logger.error("Unable to display frame, image wasn't acquired");
+	}
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
