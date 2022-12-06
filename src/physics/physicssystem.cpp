@@ -84,13 +84,15 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 
 								if (ecs.nameOf(entityB) == "Paddle")
 								{
-									if (ballTheta > p1Theta && ballTheta < p2Theta)
+									float d = std::clamp(glm::dot(normBallDir, xHat), -0.8f, 0.8f);
+									logger.log("{}", d);
+									if (d > -0.6f && d < 0.6f)
 									{
 										velocity.y = -velocity.y;
 									}
 									else
 									{
-										velocity.x = -velocity.x;
+										velocity = vec3(cos(acos(d)), sin(acos(d)), 0) * glm::length(velocity);
 									}
 								}
 								else
