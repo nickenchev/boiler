@@ -18,6 +18,8 @@
 #include "core/assetmanager.h"
 #include "assets/assetset.h"
 
+#define MAX_OBJECTS 1000
+
 namespace Boiler
 {
 
@@ -77,7 +79,7 @@ protected:
 	vec3 cameraPosition;
 	glm::mat4 viewMatrix;
 	unsigned int frameLightIdx;
-	AssetManager<mat4, 5000> matrices;
+	AssetManager<mat4, MAX_OBJECTS> matrices;
 	AssetSet assetSet;
 
 public:

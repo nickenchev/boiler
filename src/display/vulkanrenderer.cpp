@@ -1596,7 +1596,7 @@ AssetId VulkanRenderer::createBuffer(size_t size, BufferUsage usage, MemoryType 
 	}
 	else if (memType == MemoryType::DEVICE_LOCAL_HOST_CACHED)
 	{
-		memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+		memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	}
 	else if (memType == MemoryType::HOST_CACHED)
 	{

@@ -20,8 +20,6 @@ struct SDL_Window;
 #include "display/vulkan/descriptorset.h"
 #include "display/vulkan/sampler.h"
 
-#define MAX_OBJECTS 5000
-
 namespace Boiler
 {
 	struct MaterialGroup;
