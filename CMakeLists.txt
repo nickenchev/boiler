@@ -151,6 +151,7 @@ add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
 target_include_directories(boiler
   INTERFACE
+  ${SRC_BASE}/ext
   ${INCLUDE_BASE}
   PRIVATE
   ${INCLUDE_BASE}

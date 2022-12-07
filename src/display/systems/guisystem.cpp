@@ -104,8 +104,6 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 		}
 	}
 
-	ImGui::ShowDemoWindow();
-
 	ImGui::EndFrame();
 	ImGui::Render();
 
