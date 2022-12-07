@@ -55,13 +55,12 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 					mat4 matB = matrixCache.getMatrix(entityB, ecs.getComponentStore());
 					vec3 minB = vec3(matB * vec4(collisionB.min, 1));
 					vec3 maxB = vec3(matB * vec4(collisionB.max, 1));
+					TransformComponent newTransformB = transformB;
+					PhysicsComponent &physicsB = ecs.getComponentStore().retrieve<PhysicsComponent>(entityB);
 
-					if (collisionB.colliderType == ColliderType::AABB)
+					if (collision.colliderType == ColliderType::Sphere)
 					{
-						TransformComponent newTransformB = transformB;
-						PhysicsComponent &physicsB = ecs.getComponentStore().retrieve<PhysicsComponent>(entityB);
-
-						if (collision.colliderType == ColliderType::Sphere)
+						if (collisionB.colliderType == ColliderType::AABB)
 						{
 							vec3 size = maxA - minA;
 							float radius = std::max(std::max(size.x, size.y), size.z) / 2.0f;
@@ -115,59 +114,84 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 								transform.setPosition(prevPos);
 							}
 						}
-						else if (AABB::intersects(minA, maxA, minB, maxB))
+						else if (collisionB.colliderType == ColliderType::AABB)
 						{
-							vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
-							vec3 normBallDir = glm::normalize(ballDir);
-							/* p2 ---- p1
-							      |  |
-							   p3 ---- p4 */
-
-							vec3 xHat(1, 0, 0);
-							vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.getPosition());
-							vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.getPosition());
-
-							cgfloat p1Theta = glm::acos(glm::dot(xHat, p1));
-							cgfloat p2Theta = glm::pi<float>() - p1Theta;
-							cgfloat ballTheta = glm::acos(glm::dot(xHat, normBallDir));
-
-							// bounce depending on mass / material
-							if (physics.mass == 0)
+							if (AABB::intersects(minA, maxA, minB, maxB))
 							{
-								if (ballTheta > p1Theta && ballTheta < p2Theta)
+								vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
+								vec3 normBallDir = glm::normalize(ballDir);
+								/* p2 ---- p1
+								   |  |
+								   p3 ---- p4 */
+
+								vec3 xHat(1, 0, 0);
+								vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.getPosition());
+								vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.getPosition());
+
+								cgfloat p1Theta = glm::acos(glm::dot(xHat, p1));
+								cgfloat p2Theta = glm::pi<float>() - p1Theta;
+								cgfloat ballTheta = glm::acos(glm::dot(xHat, normBallDir));
+
+								// bounce depending on mass / material
+								if (physics.mass == 0)
 								{
-									velocity.y = -velocity.y;
+									if (ballTheta > p1Theta && ballTheta < p2Theta)
+									{
+										velocity.y = -velocity.y;
+									}
+									else
+									{
+										velocity.x = -velocity.x;
+									}
 								}
-								else
+								if (ecs.nameOf(entityB) == "Brick")
 								{
-									velocity.x = -velocity.x;
+									bricksDestroyed.push_back(entityB);
 								}
+								transform.setPosition(prevPos);
 							}
-							if (ecs.nameOf(entityB) == "Brick")
-							{
-								bricksDestroyed.push_back(entityB);
-							}
-							transform.setPosition(prevPos);
 						}
 					}
-					// else if (collisionB.colliderType == ColliderType::Sphere)
-					// {
-					// 	vec3 minB = vec3(transformB.getMatrix() * vec4(collisionB.min, 1));
-					// 	vec3 maxB = vec3(transformB.getMatrix() * vec4(collisionB.max, 1));
+					else if (collision.colliderType == ColliderType::AABB)
+					{
+						if (collisionB.colliderType == ColliderType::AABB)
+						{
+							if (AABB::intersects(minA, maxA, minB, maxB))
+							{
+								vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
+								vec3 normBallDir = glm::normalize(ballDir);
+								/* p2 ---- p1
+								   |  |
+								   p3 ---- p4 */
 
-					// 	cgfloat diameterA = glm::length(minA - maxA);
-					// 	cgfloat radiusA = diameterA / 2;
-					// 	cgfloat diameterB = glm::length(minB - maxB);
-					// 	cgfloat radiusB = diameterB / 2;
+								vec3 xHat(1, 0, 0);
+								vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.getPosition());
+								vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.getPosition());
 
-					// 	cgfloat distance = glm::distance(transform.getPosition() + velocity * frameInfo.deltaTime, transformB.getPosition());
+								cgfloat p1Theta = glm::acos(glm::dot(xHat, p1));
+								cgfloat p2Theta = glm::pi<float>() - p1Theta;
+								cgfloat ballTheta = glm::acos(glm::dot(xHat, normBallDir));
 
-					// 	if (distance < radiusA + radiusB)
-					// 	{
-					// 		velocity = -velocity * 0.1f;
-					// 		transform.setPosition(prevPos);
-					// 	}
-					// }
+								// bounce depending on mass / material
+								if (physics.mass == 0)
+								{
+									if (ballTheta > p1Theta && ballTheta < p2Theta)
+									{
+										velocity.y = -velocity.y;
+									}
+									else
+									{
+										velocity.x = -velocity.x;
+									}
+								}
+								if (ecs.nameOf(entityB) == "Brick")
+								{
+									bricksDestroyed.push_back(entityB);
+								}
+								transform.setPosition(prevPos);
+							}
+						}
+					}
 				}
 			}
 			physics.velocity = velocity;
