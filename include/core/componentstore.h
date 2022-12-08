@@ -45,7 +45,7 @@ public:
 		entityComponents[entity.index()][T::storageIndex] = nullptr;
 	}
 
-	void removeAll(const Entity &)
+	void removeComponents(const Entity &)
 	{
 		// remove all components first and then the entity
 		/*

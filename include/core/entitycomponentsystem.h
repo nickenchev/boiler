@@ -2,16 +2,16 @@
 #define ENTITYCOMPONENTSYSTEM_H
 
 #include <string>
+#include "core/entity.h"
 #include "core/entityworld.h"
 #include "core/componentmapper.h"
 #include "core/componentsystems.h"
 #include "core/componentstore.h"
 #include "core/components/parentcomponent.h"
+#include "physics/collisioncomponent.h"
 
 namespace Boiler
 {
-
-class Entity;
 
 class EntityComponentSystem
 {
@@ -65,6 +65,12 @@ public:
 		componentStore.removeAll(entity);
 		entityWorld.removeEntity(entity);
 		*/
+	}
+
+	template<typename T>
+	T &retrieve(const Entity &entity)
+	{
+		return getComponentStore().retrieve<T>(entity);
 	}
 
 	template<typename T, typename... Args>

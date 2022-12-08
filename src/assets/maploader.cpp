@@ -10,7 +10,7 @@
 #include "core/components/rendercomponent.h"
 #include "camera/cameracomponent.h"
 #include "physics/movementcomponent.h"
-#include "physics/collisioncomponent.h"
+#include "physics/collidercomponent.h"
 #include "physics/physicscomponent.h"
 #include "input/inputcomponent.h"
 #include "rapidjson/encodings.h"
@@ -115,41 +115,41 @@ void MapLoader::load(const std::string &filePath)
 				if (components.HasMember("collision"))
 				{
 					const auto &comp = components["collision"];
-					auto &collisionComponent = ecs.createComponent<CollisionComponent>(entity);
+					auto &colliderComponent = ecs.createComponent<ColliderComponent>(entity);
 
 					if (comp.HasMember("dynamic"))
 					{
-						collisionComponent.isDynamic = comp["dynamic"].GetBool();
+						colliderComponent.isDynamic = comp["dynamic"].GetBool();
 					}
 
 					if (comp.HasMember("aabb"))
 					{
-						collisionComponent.colliderType = ColliderType::AABB;
+						colliderComponent.colliderType = ColliderType::AABB;
 						const auto &volume = comp["aabb"];
-						collisionComponent.min = getVector(volume, "min");
-						collisionComponent.max = getVector(volume, "max");
+						colliderComponent.min = getVector(volume, "min");
+						colliderComponent.max = getVector(volume, "max");
 					}
 					else if (comp.HasMember("sphere"))
 					{
-						collisionComponent.colliderType = ColliderType::Sphere;
+						colliderComponent.colliderType = ColliderType::Sphere;
 						const auto &volume = comp["sphere"];
-						collisionComponent.min = getVector(volume, "min");
-						collisionComponent.max = getVector(volume, "max");
+						colliderComponent.min = getVector(volume, "min");
+						colliderComponent.max = getVector(volume, "max");
 					}
 					else if (comp.HasMember("mesh"))
 					{
-						collisionComponent.colliderType = ColliderType::Mesh;
+						colliderComponent.colliderType = ColliderType::Mesh;
 						assert(ecs.getComponentStore().hasComponent<RenderComponent>(entity));
 						const auto &volume = comp["mesh"];
 						const auto &renderComponent = ecs.getComponentStore().retrieve<RenderComponent>(entity);
-						collisionComponent.mesh = renderComponent.mesh;
+						colliderComponent.mesh = renderComponent.mesh;
 
 						for (Entity childEntity : childEntities)
 						{
 							if (ecs.getComponentStore().hasComponent<RenderComponent>(childEntity))
 							{
 								const RenderComponent &childRender = ecs.getComponentStore().retrieve<RenderComponent>(childEntity);
-								auto &childCollision = ecs.createComponent<CollisionComponent>(childEntity);
+								auto &childCollision = ecs.createComponent<ColliderComponent>(childEntity);
 								childCollision.colliderType = ColliderType::Mesh;
 								childCollision.mesh = childRender.mesh;
 							}

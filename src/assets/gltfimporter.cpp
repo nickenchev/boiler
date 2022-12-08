@@ -8,7 +8,7 @@
 #include "core/components/rendercomponent.h"
 #include "core/components/transformcomponent.h"
 #include "display/renderer.h"
-#include "physics/collisioncomponent.h"
+#include "physics/collidercomponent.h"
 #include "physics/physicscomponent.h"
 #include "animation/components/animationcomponent.h"
 #include "gltf.h"
@@ -284,12 +284,12 @@ Entity GLTFImporter::loadNode(std::vector<Entity> &nodeEntities, const Entity no
 			auto &render = ecs.createComponent<RenderComponent>(nodeEntity);
 			render.mesh = mesh;
 
-			// generate collision component
-			if (!ecs.getComponentStore().hasComponent<CollisionComponent>(nodeEntity))
+			// generate collider component
+			if (!ecs.getComponentStore().hasComponent<ColliderComponent>(nodeEntity))
 			{
-				auto &collision = ecs.createComponent<CollisionComponent>(nodeEntity);
-				collision.min = mesh.min;
-				collision.max = mesh.max;
+				auto &collider = ecs.createComponent<ColliderComponent>(nodeEntity);
+				collider.min = mesh.min;
+				collider.max = mesh.max;
 				logger.log("Created collision component from GLTF data");
 				ecs.createComponent<PhysicsComponent>(nodeEntity);
 			}

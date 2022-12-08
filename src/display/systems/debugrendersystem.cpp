@@ -2,7 +2,7 @@
 #include "core/components/transformcomponent.h"
 #include "core/matrixcache.h"
 #include "physics/physicscomponent.h"
-#include "physics/collisioncomponent.h"
+#include "physics/collidercomponent.h"
 #include "display/systems/debugrendersystem.h"
 #include "display/renderer.h"
 #include "util/colour.h"
@@ -12,7 +12,7 @@ using namespace Boiler;
 DebugRenderSystem::DebugRenderSystem(Renderer &renderer, MatrixCache &matrixCache) : System("Debug Rendering System"), matrixCache(matrixCache)
 {
 	expects<TransformComponent>();
-	expects<CollisionComponent>();
+	expects<ColliderComponent>();
 
 	primitiveIds.resize(renderer.getMaxFramesInFlight());
 	for (AssetId &assetId : primitiveIds)
@@ -46,11 +46,11 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 			size_t vertOffset = vertices.size();
 			size_t idxOffset = indices.size();
 
-			auto &collision = ecs.getComponentStore().retrieve<CollisionComponent>(entity);
+			auto &collider = ecs.getComponentStore().retrieve<ColliderComponent>(entity);
 			auto &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
 
-			vec3 min = matrixCache.getMatrix(entity, ecs.getComponentStore()) * vec4(collision.min, 1);
-			vec3 max = matrixCache.getMatrix(entity, ecs.getComponentStore()) * vec4(collision.max, 1);
+			vec3 min = matrixCache.getMatrix(entity, ecs.getComponentStore()) * vec4(collider.min, 1);
+			vec3 max = matrixCache.getMatrix(entity, ecs.getComponentStore()) * vec4(collider.max, 1);
 
 			// generate verts
 			const vec4 colour = colours[index++ % colours.size()];

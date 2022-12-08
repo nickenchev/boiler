@@ -73,6 +73,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/animation/components/animationcomponent.h
   ${INCLUDE_BASE}/animation/systems/animationsystem.h
   ${INCLUDE_BASE}/json/jsonloader.h
+  ${INCLUDE_BASE}/physics/collidercomponent.h
   ${INCLUDE_BASE}/physics/collisioncomponent.h
   ${INCLUDE_BASE}/physics/movementsystem.h
   ${INCLUDE_BASE}/physics/physicscomponent.h

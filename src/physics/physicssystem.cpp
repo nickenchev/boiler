@@ -1,5 +1,6 @@
 #include "physics/physicssystem.h"
 #include "physics/physicscomponent.h"
+#include "physics/collidercomponent.h"
 #include "physics/collisioncomponent.h"
 #include "core/components/transformcomponent.h"
 #include "core/entitycomponentsystem.h"
@@ -14,7 +15,7 @@ PhysicsSystem::PhysicsSystem(MatrixCache &matrixCache) : System("Physics System"
 {
 	expects<TransformComponent>();
 	expects<PhysicsComponent>();
-	expects<CollisionComponent>();
+	expects<ColliderComponent>();
 }
 
 cgfloat clamp(cgfloat value, cgfloat min, cgfloat max)
@@ -31,42 +32,45 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 	{
 		TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
 		PhysicsComponent &physics = ecs.getComponentStore().retrieve<PhysicsComponent>(entity);
-		CollisionComponent &collision = ecs.getComponentStore().retrieve<CollisionComponent>(entity);
+		ColliderComponent &collider = ecs.getComponentStore().retrieve<ColliderComponent>(entity);
 
 		const vec3 prevPos = transform.getPosition();
 		transform.setPosition(transform.getPosition() + physics.velocity * frameInfo.deltaTime);
 
 		// check dynamic bodies for collisions
-		if (collision.isDynamic)
+		//if (collider.isDynamic)
 		{
 			vec3 velocity = physics.velocity;
 
 			// predict the transform after object is moved
 			mat4 matA = matrixCache.getMatrix(entity, ecs.getComponentStore());
-			vec3 minA = vec3(matA * vec4(collision.min, 1));
-			vec3 maxA = vec3(matA * vec4(collision.max, 1));
+			vec3 minA = vec3(matA * vec4(collider.min, 1));
+			vec3 maxA = vec3(matA * vec4(collider.max, 1));
 
 			for (const Entity &entityB : getEntities())
 			{
 				if (entity != entityB)
 				{
-					auto &collisionB = ecs.getComponentStore().retrieve<CollisionComponent>(entityB);
+					auto &colliderB = ecs.getComponentStore().retrieve<ColliderComponent>(entityB);
 					auto &transformB = ecs.getComponentStore().retrieve<TransformComponent>(entityB);
 					mat4 matB = matrixCache.getMatrix(entityB, ecs.getComponentStore());
-					vec3 minB = vec3(matB * vec4(collisionB.min, 1));
-					vec3 maxB = vec3(matB * vec4(collisionB.max, 1));
+					vec3 minB = vec3(matB * vec4(colliderB.min, 1));
+					vec3 maxB = vec3(matB * vec4(colliderB.max, 1));
 					TransformComponent newTransformB = transformB;
 					PhysicsComponent &physicsB = ecs.getComponentStore().retrieve<PhysicsComponent>(entityB);
 
-					if (collision.colliderType == ColliderType::Sphere)
+					if (collider.colliderType == ColliderType::Sphere)
 					{
-						if (collisionB.colliderType == ColliderType::AABB)
-						{
-							vec3 size = maxA - minA;
-							float radius = std::max(std::max(size.x, size.y), size.z) / 2.0f;
+						vec3 size = maxA - minA;
+						float radius = std::max(std::max(size.x, size.y), size.z) / 2.0f;
 
+						if (colliderB.colliderType == ColliderType::AABB)
+						{
 							if (Sphere::intersects(transform.getPosition(), radius, minB, maxB))
 							{
+								ecs.createComponent<CollisionComponent>(entity);
+								ecs.createComponent<CollisionComponent>(entityB);
+
 								vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
 								vec3 normBallDir = glm::normalize(ballDir);
 								/* p2 ---- p1
@@ -84,7 +88,6 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 								if (ecs.nameOf(entityB) == "Paddle")
 								{
 									float d = std::clamp(glm::dot(normBallDir, xHat), -0.8f, 0.8f);
-									logger.log("{}", d);
 									if (d > -0.6f && d < 0.6f)
 									{
 										velocity.y = -velocity.y;
@@ -114,7 +117,7 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 								transform.setPosition(prevPos);
 							}
 						}
-						else if (collisionB.colliderType == ColliderType::AABB)
+						else if (colliderB.colliderType == ColliderType::AABB)
 						{
 							if (AABB::intersects(minA, maxA, minB, maxB))
 							{
@@ -152,9 +155,9 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 							}
 						}
 					}
-					else if (collision.colliderType == ColliderType::AABB)
+					else if (collider.colliderType == ColliderType::AABB)
 					{
-						if (collisionB.colliderType == ColliderType::AABB)
+						if (colliderB.colliderType == ColliderType::AABB)
 						{
 							if (AABB::intersects(minA, maxA, minB, maxB))
 							{
@@ -198,9 +201,9 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 		}
 	}
 
-	for (Entity entity : bricksDestroyed)
-	{
-		ecs.removeComponent<RenderComponent>(entity);
-		ecs.removeComponent<CollisionComponent>(entity);
-	}
+	// for (Entity entity : bricksDestroyed)
+	// {
+	// 	ecs.removeComponent<RenderComponent>(entity);
+	// 	ecs.removeComponent<ColliderComponent>(entity);
+	// }
 }

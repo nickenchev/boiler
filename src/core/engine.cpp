@@ -147,8 +147,16 @@ void Engine::step(FrameInfo &frameInfo)
 	while (frameLag >= updateInterval)
 	{
 		part->update(frameInfo);
-		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::USER_SIMULATION);
 		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::SIMULATION);
+		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::USER_SIMULATION);
+
+		for (Entity entity : ecs.getEntityWorld().getEntities())
+		{
+			if (ecs.getComponentStore().hasComponent<CollisionComponent>(entity))
+			{
+				ecs.removeComponent<CollisionComponent>(entity);
+			}
+		}
 
 		globalTime += updateInterval;
 		frameLag -= updateInterval;
