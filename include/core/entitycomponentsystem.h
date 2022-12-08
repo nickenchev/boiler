@@ -20,53 +20,22 @@ class EntityComponentSystem
 	ComponentMapper mapper;
 	ComponentSystems systems;
 	ComponentStore componentStore;
+	std::vector<std::tuple<Entity, ComponentMask, unsigned int>> removeComponents;
+
+	void removeComponent(const Entity &entity, ComponentMask mask, unsigned int storageIndex);
 
 public:
-	EntityComponentSystem() : logger("ECS")
-	{
-	}
+	EntityComponentSystem();
 	EntityComponentSystem(const EntityComponentSystem &ecs) = delete;
+
 	EntityComponentSystem &operator=(const EntityComponentSystem &) = delete;
 
-	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, SystemStage stage)
-	{
-        systems.update(renderer, assetSet, frameInfo, stage, *this);
-	}
-
-	Entity newEntity(const std::string &name)
-	{
-		return entityWorld.createEntity(name);
-	}
-
-	const std::string &nameOf(Entity entity)
-	{
-		return entityWorld.getName(entity);
-	}
-
-	void removeEntity(const Entity &entity)
-	{
-		throw std::runtime_error("Unimplemented");
-		logger.log("Deleting entity #: " + std::to_string(entity.getId()));
-
-		/*
-		// find children and remove
-		auto children = componentStore.find<ParentComponent>();
-		for (auto child : children)
-		{
-			ParentComponent &parent = componentStore.retrieve<ParentComponent>(child);
-			if (parent.entity == entity)
-			{
-				removeEntity(child);
-			}
-		}
-
-		// remove entity itself
-		systems.removeEntity(entity);
-		componentStore.removeAll(entity);
-		entityWorld.removeEntity(entity);
-		*/
-	}
-
+	void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, SystemStage stage);
+	void endFrame();
+	Entity newEntity(const std::string &name);
+	const std::string &nameOf(Entity entity);
+	void removeEntity(const Entity &entity);
+	
 	template<typename T>
 	T &retrieve(const Entity &entity)
 	{
@@ -84,11 +53,15 @@ public:
 	}
 
 	template<typename T>
+	void removeComponentImmediate(const Entity &entity)
+	{
+		removeComponent(entity, T::mask, T::storageIndex);
+	}
+
+	template<typename T>
 	void removeComponent(const Entity &entity)
 	{
-		auto entMask = mapper.remove<T>(entity);
-		componentStore.remove<T>(entity);
-		systems.checkEntity(entity, entMask);
+		removeComponents.push_back(std::make_tuple(entity, T::mask, T::storageIndex));
 	}
 
 	ComponentStore &getComponentStore() { return componentStore; }

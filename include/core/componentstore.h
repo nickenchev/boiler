@@ -39,10 +39,9 @@ public:
 		return *ptr;
 	}
 
-	template<typename T>
-	void remove(const Entity &entity)
+	void remove(const Entity &entity, unsigned int storageIndex)
 	{
-		entityComponents[entity.index()][T::storageIndex] = nullptr;
+		entityComponents[entity.index()][storageIndex] = nullptr;
 	}
 
 	void removeComponents(const Entity &)

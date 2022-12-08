@@ -88,6 +88,7 @@ set(SRC_BASE ${CMAKE_CURRENT_LIST_DIR}/src)
 set(BOILER_SOURCES
   ${SRC_BASE}/core/engine.cpp
   ${SRC_BASE}/core/entityworld.cpp
+  ${SRC_BASE}/core/entitycomponentsystem.cpp
   ${SRC_BASE}/core/tmxloader.cpp
   ${SRC_BASE}/core/spritesheet.cpp
   ${SRC_BASE}/core/spriteframe.cpp

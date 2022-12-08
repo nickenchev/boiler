@@ -44,12 +44,11 @@ public:
 		return componentMap[entity.index()];
 	}
 
-	template<typename T>
-	const ComponentMask &remove(const Entity &entity)
+	const ComponentMask &remove(const Entity &entity, ComponentMask mask)
 	{
 		// update the entity mask
 		ComponentMask &entMask = componentMap[entity.index()];
-		entMask = entMask & ~T::mask;
+		entMask = entMask & ~mask;
 		return entMask;
 	}
 };

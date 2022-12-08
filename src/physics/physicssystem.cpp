@@ -25,9 +25,6 @@ cgfloat clamp(cgfloat value, cgfloat min, cgfloat max)
 
 void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
-	std::vector<Entity> bricksDestroyed;
-	bricksDestroyed.reserve(5);
-
 	for (Entity entity : getEntities())
 	{
 		TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
@@ -57,6 +54,7 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 					vec3 minB = vec3(matB * vec4(colliderB.min, 1));
 					vec3 maxB = vec3(matB * vec4(colliderB.max, 1));
 					TransformComponent newTransformB = transformB;
+					
 					PhysicsComponent &physicsB = ecs.getComponentStore().retrieve<PhysicsComponent>(entityB);
 
 					if (collider.colliderType == ColliderType::Sphere)
@@ -70,6 +68,8 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 							{
 								CollisionComponent &collision = ecs.createComponent<CollisionComponent>(entity);
 								collision.target = entityB;
+								CollisionComponent &collisionB = ecs.createComponent<CollisionComponent>(entityB);
+								collisionB.target = entity;
 
 								vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
 								vec3 normBallDir = glm::normalize(ballDir);
@@ -107,12 +107,6 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 									{
 										velocity.x = -velocity.x;
 									}
-
-									// remove the brick
-									if (ecs.nameOf(entityB) == "Brick")
-									{
-										bricksDestroyed.push_back(entityB);
-									}
 								}
 								transform.setPosition(prevPos);
 							}
@@ -146,10 +140,6 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 									{
 										velocity.x = -velocity.x;
 									}
-								}
-								if (ecs.nameOf(entityB) == "Brick")
-								{
-									bricksDestroyed.push_back(entityB);
 								}
 								transform.setPosition(prevPos);
 							}
@@ -187,10 +177,6 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 										velocity.x = -velocity.x;
 									}
 								}
-								if (ecs.nameOf(entityB) == "Brick")
-								{
-									bricksDestroyed.push_back(entityB);
-								}
 								transform.setPosition(prevPos);
 							}
 						}
@@ -200,10 +186,4 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 			physics.velocity = velocity;
 		}
 	}
-
-	// for (Entity entity : bricksDestroyed)
-	// {
-	// 	ecs.removeComponent<RenderComponent>(entity);
-	// 	ecs.removeComponent<ColliderComponent>(entity);
-	// }
 }
