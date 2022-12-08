@@ -68,8 +68,8 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 						{
 							if (Sphere::intersects(transform.getPosition(), radius, minB, maxB))
 							{
-								ecs.createComponent<CollisionComponent>(entity);
-								ecs.createComponent<CollisionComponent>(entityB);
+								CollisionComponent &collision = ecs.createComponent<CollisionComponent>(entity);
+								collision.target = entityB;
 
 								vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
 								vec3 normBallDir = glm::normalize(ballDir);

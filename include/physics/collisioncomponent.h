@@ -8,6 +8,7 @@ namespace Boiler
 
 struct CollisionComponent : public ComponentType<CollisionComponent>
 {
+	Entity target;
 	CollisionComponent() : ComponentType(this) {}
 };
 
