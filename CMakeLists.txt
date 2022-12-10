@@ -13,6 +13,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 find_package(SDL2 REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(Vulkan REQUIRED)
+find_package(ZLIB REQUIRED)
 
 # Build libraries
 if (NOT DEFINED ${LIBS_ROOT})

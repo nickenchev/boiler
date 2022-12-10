@@ -14,13 +14,9 @@ set(GLEW_LIB_DIR ${LIBS_ROOT}/glew-2.1.0)
 #add_subdirectory(${GLEW_LIB_DIR}/build/cmake)
 set(GLEW_HEADERS_DIR ${GLEW_LIB_DIR}/include)
 
-# build zlib
-set(ZLIB_DIR ${LIBS_ROOT}/zlib-1.2.11)
-add_subdirectory(${ZLIB_DIR} ${CMAKE_CURRENT_BINARY_DIR}/zlib_build)
-
 # build jsoncpp
-set(JSONCPP_WITH_TESTS CACHE OFF "Disable JSONCPP unit tests")
-set(JSONCPP_WITH_POST_BUILD_UNITTEST CACHE OFF "Disable JSONCPP post-build runner")
+set(JSONCPP_WITH_TESTS OFF CACHE BOOL "Disable JSONCPP unit tests")
+set(JSONCPP_WITH_POST_BUILD_UNITTEST OFF CACHE BOOL "Disable JSONCPP post-build runner")
 add_subdirectory(${LIBS_ROOT}/jsoncpp)
 
 # build fmt
@@ -29,9 +25,6 @@ add_subdirectory(${LIBS_ROOT}/fmt-9.1.0)
 # boiler-gltf
 add_subdirectory(${LIBS_ROOT}/boiler-gltf)
 
-message(${CMAKE_CURRENT_BINARY_DIR}/zlib_build)
-
-include_directories(zlib ${CMAKE_CURRENT_BINARY_DIR}/zlib_build)
 set(boiler_lib_includes
   ${OPENGL_INCLUDE_DIR}
   ${GLEW_HEADERS_DIR}
