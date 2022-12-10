@@ -28,8 +28,6 @@ add_subdirectory(${LIBS_ROOT}/boiler-gltf)
 set(boiler_lib_includes
   ${OPENGL_INCLUDE_DIR}
   ${GLEW_HEADERS_DIR}
-  ${CMAKE_CURRENT_BINARY_DIR}/zlib_build
-  ${ZLIB_DIR}
   ${JSONCPP_INCLUDE_DIR}
   glm
   fmt
@@ -38,7 +36,6 @@ set(boiler_lib_includes
 target_include_directories(boiler_deps PUBLIC ${boiler_lib_includes})
 
 target_link_libraries(boiler_deps
-  zlibstatic
   glm
   #glew_s
   jsoncpp_lib
