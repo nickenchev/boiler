@@ -1,7 +1,6 @@
 #ifndef COMPONENTTYPE_H
 #define COMPONENTTYPE_H
 
-#include <iostream>
 #include "component.h"
 
 namespace Boiler
