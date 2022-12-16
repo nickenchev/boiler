@@ -17,6 +17,7 @@
 namespace Boiler
 {
 
+class Entity;
 class Renderer;
 class EntityComponentSystem;
 
