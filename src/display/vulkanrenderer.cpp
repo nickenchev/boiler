@@ -263,6 +263,8 @@ void VulkanRenderer::shutdown()
 	vkDestroyShaderModule(device, deferredModules.fragment, nullptr);
 	vkDestroyShaderModule(device, uiModules.vertex, nullptr);
 	vkDestroyShaderModule(device, uiModules.fragment, nullptr);
+	vkDestroyShaderModule(device, glyphModules.vertex, nullptr);
+	vkDestroyShaderModule(device, glyphModules.fragment, nullptr);
 	vkDestroyShaderModule(device, debugModules.vertex, nullptr);
 	vkDestroyShaderModule(device, debugModules.fragment, nullptr);
 	logger.log("Destroyed shader modules");
@@ -536,6 +538,12 @@ void VulkanRenderer::initialize(const Size &size)
 		uiModules.vertex = createShaderModule(uiVertData);
 		auto uiFragData = FileManager::readBinaryFile("shaders/ui.frag.spv");
 		uiModules.fragment = createShaderModule(uiFragData);
+
+		// shader modules to compose final image
+		auto glyphVertData = FileManager::readBinaryFile("shaders/ui.vert.spv");
+		glyphModules.vertex = createShaderModule(glyphVertData);
+		auto glyphFragData = FileManager::readBinaryFile("shaders/glyph.frag.spv");
+		glyphModules.fragment = createShaderModule(glyphFragData);
 
 		auto debugVertData = FileManager::readBinaryFile("shaders/debug.vert.spv");
 		debugModules.vertex = createShaderModule(debugVertData);
@@ -1054,6 +1062,17 @@ void VulkanRenderer::createGraphicsPipelines()
 		.renderPass(renderPass, 4)
 		.dynamicState(&dynamicStates)
 		.build();
+
+	glyphPipeline = GraphicsPipelineBuilder<1>(device, uiPipelineLayout)
+		.assembly(&standardInputBind, &standardAttrDesc, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+		.viewport(true, swapChainExtent)
+		.rasterizer(VK_CULL_MODE_NONE)
+		.multisampling()
+		.blending({AttachmentBlendInfo { .enabled = true }})
+		.depth(false, VK_COMPARE_OP_LESS_OR_EQUAL)
+		.shaderModules(glyphModules, true)
+		.renderPass(renderPass, 4)
+		.build();
 }
 
 VkPipelineLayout VulkanRenderer::createGraphicsPipelineLayout(const VkPipelineLayoutCreateInfo &createInfo) const
@@ -1382,6 +1401,7 @@ void VulkanRenderer::cleanupSwapchain()
 	GraphicsPipeline::destroy(device, skyboxPipeline);
 	GraphicsPipeline::destroy(device, deferredPipeline);
 	GraphicsPipeline::destroy(device, uiPipeline);
+	GraphicsPipeline::destroy(device, glyphPipeline);
 	GraphicsPipeline::destroy(device, debugLinePipeline);
 
 	vkDestroyPipelineLayout(device, gBuffersPipelineLayout, nullptr);
@@ -2124,6 +2144,13 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 		commandBuffer = uiCommandBuffers[currentFrame];
 		pipelineLayout = uiPipeline.vulkanLayout();
 		pipeline = uiPipeline.vulkanPipeline();
+		sampler = glyphAtlasSampler.vkSampler();
+	}
+	else if (stage == RenderStage::TEXT)
+	{
+		commandBuffer = uiCommandBuffers[currentFrame];
+		pipelineLayout = glyphPipeline.vulkanLayout();
+		pipeline = glyphPipeline.vulkanPipeline();
 		sampler = glyphAtlasSampler.vkSampler();
 	}
 	else if (stage == RenderStage::DEBUG)

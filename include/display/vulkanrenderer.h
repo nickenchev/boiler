@@ -93,7 +93,7 @@ class VulkanRenderer : public Boiler::Renderer
 	DescriptorSet renderDescriptors, materialDescriptors, deferredDescriptors;
 
 	VkPipelineLayout gBuffersPipelineLayout, deferredPipelineLayout, uiPipelineLayout;
-	GraphicsPipeline skyboxPipeline, gBufferPipeline, alphaBufferPipeline, gBufferNoTexPipeline, deferredPipeline, uiPipeline, debugLinePipeline;
+	GraphicsPipeline skyboxPipeline, gBufferPipeline, alphaBufferPipeline, gBufferNoTexPipeline, deferredPipeline, uiPipeline, glyphPipeline, debugLinePipeline;
 
 	std::vector<VkFramebuffer> framebuffers;
 	VkCommandPool commandPool, transferPool;
@@ -109,7 +109,7 @@ class VulkanRenderer : public Boiler::Renderer
 	void updateLights(const std::vector<LightSource> &lightSources) const override;
 	void updateMaterials(const std::vector<ShaderMaterial> &materials) const override;
 
-	ShaderStageModules gBufferModules, deferredModules, skyboxModules, uiModules, debugModules;
+	ShaderStageModules gBufferModules, deferredModules, skyboxModules, uiModules, glyphModules, debugModules;
 	uint32_t imageIndex;
 	VkResult nextImageResult;
 	Sampler textureSampler, cubemapSampler, glyphAtlasSampler;

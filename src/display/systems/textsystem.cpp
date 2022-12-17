@@ -41,6 +41,6 @@ void TextSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo 
 
 			xOffset += (glyph.getAdvance() >> 6);
 		}
-		renderer.render(assetSet, frameInfo, group, RenderStage::UI);
+		renderer.render(assetSet, frameInfo, group, RenderStage::TEXT);
 	}
 }

@@ -35,7 +35,7 @@ class GraphicsPipelineBuilder
 	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
 	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages{};
 	VkPipelineDynamicStateCreateInfo dynaInfo{};
-	std::array<VkSpecializationMapEntry, 1> mapEntries;
+	std::array<VkSpecializationMapEntry, 2> mapEntries;
 	VkSpecializationInfo specializationCreateInfo = {};
 	VkBool32 vkUseTexture;
 
@@ -186,6 +186,11 @@ public:
 			VkSpecializationMapEntry
 			{
 				.constantID = 0,
+				.offset = 0,
+				.size = sizeof(VkBool32),
+			},
+			{
+				.constantID = 1,
 				.offset = 0,
 				.size = sizeof(VkBool32),
 			}

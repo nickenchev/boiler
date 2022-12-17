@@ -37,6 +37,7 @@ enum class RenderStage
 	POST_DEFERRED_LIGHTING,
 	POST_DEPTH_WRITE,
 	UI,
+	TEXT,
 	DEBUG
 };
 
