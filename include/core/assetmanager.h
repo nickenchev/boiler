@@ -44,6 +44,10 @@ public:
 		assetStates[id] = false;
 	}
 
+	AssetType &operator()(AssetId assetId)
+	{
+		return get(assetId);
+	}
 	AssetType &get(AssetId assetId)
 	{
 		assert(assetStates[assetId] != false);

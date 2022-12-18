@@ -1,7 +1,6 @@
 #ifndef COLOUR_H
 #define COLOUR_H
 
-#include <string>
 #include "core/math.h"
 
 namespace Boiler { namespace Colour {

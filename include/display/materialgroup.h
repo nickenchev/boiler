@@ -46,6 +46,10 @@ struct MaterialGroup
 	{
 		materialId = Asset::NO_ASSET;
 	}
+	MaterialGroup(AssetId materialId)
+	{
+		this->materialId = materialId;
+	}
 };
 
 }
