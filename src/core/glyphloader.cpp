@@ -164,6 +164,7 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 	glyphMat.baseTexture = renderer.loadTexture(ImageData(atlasBuffer, atlasSize, 1, false), TextureType::FREETYPE_ATLAS);
 	AssetId materialId = assetSet.materials.add(std::move(glyphMat));
 
+	delete [] atlasBuffer;
 	logger.log("Generated font atlas with dimensions {}x{} ", static_cast<int>(atlasSize.width), static_cast<int>(atlasSize.height));
 	return assetSet.glyphs.add(GlyphMap(materialId, glyphMap));
 }
