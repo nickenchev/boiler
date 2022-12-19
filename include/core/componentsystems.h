@@ -7,6 +7,7 @@
 #include "core/ecstypes.h"
 #include "core/system.h"
 #include "core/logger.h"
+#include "core/entityworld.h"
 
 namespace Boiler
 {
@@ -28,7 +29,7 @@ class ComponentSystems
 	std::vector<System *> ioSystems, userSimulationSystems, simulationSystems, renderSystems;
 
 public:
-    ComponentSystems() : logger{"Component Systems"} {}
+    ComponentSystems(const EntityWorld &entityWorld) : logger{"Component Systems"} {}
 
     void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, SystemStage stage, EntityComponentSystem &ecs)
 	{
@@ -88,7 +89,7 @@ public:
 		{
 			renderSystems.push_back(&sysRef);
 		}
-
+		
 		logger.log("System Registered: {}", sysRef.getName());
 
 		return sysRef;

@@ -2,7 +2,7 @@
 
 using namespace Boiler;
 
-EntityComponentSystem::EntityComponentSystem() : logger("ECS")
+EntityComponentSystem::EntityComponentSystem() : logger("ECS"), systems(entityWorld)
 {
 	removeComponents.reserve(100);
 }

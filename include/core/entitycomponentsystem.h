@@ -64,6 +64,19 @@ public:
 		removeComponents.push_back(std::make_tuple(entity, T::mask, T::storageIndex));
 	}
 
+	template<typename T, typename... Args>
+	T &registerSystem(SystemStage stage, Args&&... args)
+	{
+		auto &sys = getComponentSystems().registerSystem<T>(stage, std::forward<Args>(args)...);
+
+		for (Entity entity : getEntityWorld().getEntities())
+		{
+			getComponentSystems().checkEntity(entity, mapper.getMask(entity));
+		}
+
+		return sys;
+	}
+
 	ComponentStore &getComponentStore() { return componentStore; }
 	ComponentSystems &getComponentSystems() { return systems; }
 	const EntityWorld &getEntityWorld() const { return entityWorld; }
