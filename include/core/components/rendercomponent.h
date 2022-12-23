@@ -13,8 +13,9 @@ namespace Boiler
 struct RenderComponent : public ComponentType<RenderComponent>
 {
 	Mesh mesh;
+	bool hidden;
 
-	RenderComponent() : ComponentType(this) { }
+	RenderComponent() : ComponentType(this) { hidden = false; }
 };
 
 }

@@ -12,7 +12,8 @@ enum class ColliderType
 {
 	AABB,
 	Sphere,
-	Mesh
+	Mesh,
+	None
 };
 
 struct ColliderComponent : public ComponentType<ColliderComponent>
