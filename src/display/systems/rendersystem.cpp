@@ -33,32 +33,35 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
         TransformComponent &transform = ecs.getComponentStore().retrieve<TransformComponent>(entity);
         RenderComponent &render = ecs.getComponentStore().retrieve<RenderComponent>(entity);
 
-		// calculate model matrix
-        glm::mat4 modelMatrix = matrixCache.getMatrix(entity, ecs.getComponentStore());
-		Entity currentEntity = entity;
-
-		const static Material defaultMaterial;
-		for (const auto &primitiveId : render.mesh.primitives)
+		if (!render.hidden)
 		{
-			const Primitive &primitive = assetSet.primitives.get(primitiveId);
-			const Material &material = assetSet.materials.get(primitive.materialId);
+			// calculate model matrix
+			glm::mat4 modelMatrix = matrixCache.getMatrix(entity, ecs.getComponentStore());
+			Entity currentEntity = entity;
 
-			MaterialGroup *matGroup = &materialGroups[primitive.materialId];
-			if (!material.depth)
+			const static Material defaultMaterial;
+			for (const auto &primitiveId : render.mesh.primitives)
 			{
-				matGroup = &postDepthGroups[primitive.materialId];
-			}
-			else if (material.alphaMode == AlphaMode::BLEND || material.alphaMode == AlphaMode::MASK) // TODO: Mask should be handled with discard
-			{
-				matGroup = &alphaGroups[primitive.materialId];
-			}
+				const Primitive &primitive = assetSet.primitives(primitiveId);
+				const Material &material = assetSet.materials(primitive.materialId);
 
-			matGroup->materialId = primitive.materialId;
+				MaterialGroup *matGroup = &materialGroups[primitive.materialId];
+				if (!material.depth)
+				{
+					matGroup = &postDepthGroups[primitive.materialId];
+				}
+				else if (material.alphaMode == AlphaMode::BLEND || material.alphaMode == AlphaMode::MASK) // TODO: Mask should be handled with discard
+				{
+					matGroup = &alphaGroups[primitive.materialId];
+				}
 
-			if (primitive.materialId != Asset::NO_ASSET)
-			{
-				AssetId matrixId = renderer.addMatrix(modelMatrix);
-				matGroup->primitives.push_back(MaterialGroup::PrimitiveInstance(primitiveId, matrixId));
+				matGroup->materialId = primitive.materialId;
+
+				if (primitive.materialId != Asset::NO_ASSET)
+				{
+					AssetId matrixId = renderer.addMatrix(modelMatrix);
+					matGroup->primitives.push_back(MaterialGroup::PrimitiveInstance(primitiveId, matrixId));
+				}
 			}
 		}
 	}
