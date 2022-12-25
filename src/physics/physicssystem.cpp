@@ -44,6 +44,7 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 			vec3 minA = vec3(matA * vec4(collider.min, 1));
 			vec3 maxA = vec3(matA * vec4(collider.max, 1));
 
+			// iterate targets
 			for (const Entity &entityB : getEntities())
 			{
 				if (entity != entityB)
