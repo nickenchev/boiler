@@ -11,7 +11,7 @@ EntityWorld::EntityWorld() : logger("Entity World")
 Entity EntityWorld::createEntity(const std::string &name)
 {
 	Entity entity(++entityCount);
-	names[entity.getId() - 1] = name;
+	names[entity.index()] = name;
 	entities.push_back(entity);
 
 	logger.log("Created entity with ID: {}", entity.getId());
@@ -41,5 +41,5 @@ bool EntityWorld::exists(const Entity &entity) const
 
 const std::string &EntityWorld::getName(Entity entity) const
 {
-	return names[entity.getId() - 1];
+	return names[entity.index()];
 }
