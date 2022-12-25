@@ -77,6 +77,12 @@ public:
 		return sys;
 	}
 
+	template<typename T>
+	bool hasComponent(const Entity &entity)
+	{
+		return getComponentStore().hasComponent<T>(entity);
+	}
+
 	ComponentStore &getComponentStore() { return componentStore; }
 	ComponentSystems &getComponentSystems() { return systems; }
 	const EntityWorld &getEntityWorld() const { return entityWorld; }
