@@ -31,6 +31,8 @@ set(INCLUDE_BASE ${CMAKE_CURRENT_LIST_DIR}/include)
 set(BOILER_HEADERS
   ${INCLUDE_BASE}/boiler.h
   ${INCLUDE_BASE}/core/common.h
+  ${INCLUDE_BASE}/core/glyphloader.h
+  ${INCLUDE_BASE}/core/logger.h
   ${INCLUDE_BASE}/core/components/guicomponent.h
   ${INCLUDE_BASE}/core/components/lightingcomponent.h
   ${INCLUDE_BASE}/core/components/materialcomponent.h
@@ -46,7 +48,6 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/camera/platformercamera.h
   ${INCLUDE_BASE}/containers/array2d.h
   ${INCLUDE_BASE}/containers/gridposition.h
-  ${INCLUDE_BASE}/core/glyphloader.h
   ${INCLUDE_BASE}/display/systems/textsystem.h
   ${INCLUDE_BASE}/display/systems/debugrendersystem.h
   ${INCLUDE_BASE}/display/opengl.h
@@ -95,6 +96,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/core/spriteframe.cpp
   ${SRC_BASE}/core/base64.cpp
   ${SRC_BASE}/core/glyphloader.cpp
+  ${SRC_BASE}/core/logger.cpp
   #${SRC_BASE}/core/quadtree.cpp
   ${SRC_BASE}/core/rect.cpp
   #${SRC_BASE}/core/raycaster.cpp

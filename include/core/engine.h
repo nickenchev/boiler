@@ -30,7 +30,6 @@ class Part;
 
 class Engine
 {
-	Time64 prevTime;
 	Time globalTime, frameLag;
 	short currentFrame;
 	unsigned long frameCount;
@@ -57,10 +56,10 @@ public:
     Engine(const Engine &) = delete;
     void operator=(const Engine &s) = delete;
 
-    void initialize(const Size &initialSize);
+	void initialize(const Size &initialSize);
 	void shutdown();
-    void start(std::shared_ptr<Part> part);
-    void run();
+    void start(std::shared_ptr<Part> part, std::function<void()> platformCallback);
+    void run(std::function<void()> platformCallback);
 	void step(FrameInfo &frameInfo);
     void quit() { running = false; }
 
@@ -74,10 +73,7 @@ public:
 	Animator &getAnimator() { return animator; }
 
     std::shared_ptr<Part> getPart() const { return part; }
-    void setPart(std::shared_ptr<Part> part)
-	{
-		this->part = part;
-	}
+    void setPart(std::shared_ptr<Part> part);
 };
 
 }

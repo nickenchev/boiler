@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <array>
+#include "display/vulkan.h"
 #include "display/vulkan/graphicspipeline.h"
 #include "display/vulkan/shaderstagemodules.h"
 #include "core/logger.h"
