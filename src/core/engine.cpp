@@ -37,10 +37,6 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 	logger.log("Engine instance created");
 	logger.log("Using renderer: " + this->renderer->getVersion());
 
-    if (SDL_Init(SDL_INIT_TIMER) != 0)
-	{
-		throw std::runtime_error("Error initializing timer");
-	}
 	frameLag = 0;
 	globalTime = 0;
 	currentFrame = 0;
@@ -50,66 +46,60 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 	running = false;
 }
 
+void Engine::initialize(const Size &initialSize)
+{
+	renderer->initialize(initialSize);
+
+    // TODO: Figure out base path stuff
+    //baseDataPath = std::string(SDL_GetBasePath());
+
+    // initialize basic engine stuff
+    System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(SystemStage::IO, *this);
+    this->inputSystem = &inputSystem;
+
+    System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(SystemStage::SIMULATION, animator);
+    this->animationSystem = &animationSystem;
+
+    System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>(SystemStage::SIMULATION);
+    this->movementSystem = &movementSystem;
+
+    System &physicsSystem = ecs.getComponentSystems().registerSystem<PhysicsSystem>(SystemStage::SIMULATION, matrixCache);
+    this->physicsSystem = &physicsSystem;
+
+    System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(SystemStage::RENDER);
+    this->lightingSystem = &lightingSys;
+
+    System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(SystemStage::RENDER, matrixCache);
+    this->renderSystem = &renderSys;
+
+    System &textSys = ecs.getComponentSystems().registerSystem<TextSystem>(SystemStage::RENDER);
+    this->textSystem = &textSys;
+
+    System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(SystemStage::RENDER, *renderer, matrixCache);
+    this->debugRenderSystem = &debugRenderSys;
+
+    System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(SystemStage::RENDER, *renderer);
+    this->guiSystem = &guiSys;
+
+    System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(SystemStage::RENDER);
+    this->cameraSystem = &cameraSystem;
+}
+
 Engine::~Engine()
 {
 	logger.log("Cleaning up");
 	SDL_Quit();
 }
 
-void Engine::initialize(const Size &initialSize)
+void Engine::start(std::shared_ptr<Part> part, std::function<void()> platformCallback)
 {
-	// TODO: Figure out base path stuff
-	//baseDataPath = std::string(SDL_GetBasePath());
-
-	// initialize basic engine stuff
-	renderer->initialize(initialSize);
-
-	System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(SystemStage::IO, *this);
-	this->inputSystem = &inputSystem;
-
-	System &animationSystem = ecs.getComponentSystems().registerSystem<AnimationSystem>(SystemStage::SIMULATION, animator);
-	this->animationSystem = &animationSystem;
-
-	System &movementSystem = ecs.getComponentSystems().registerSystem<MovementSystem>(SystemStage::SIMULATION);
-	this->movementSystem = &movementSystem;
-
-	System &physicsSystem = ecs.getComponentSystems().registerSystem<PhysicsSystem>(SystemStage::SIMULATION, matrixCache);
-	this->physicsSystem = &physicsSystem;
-
-	System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(SystemStage::RENDER);
-	this->lightingSystem = &lightingSys;
-
-	System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(SystemStage::RENDER, matrixCache);
-	this->renderSystem = &renderSys;
-
-	System &textSys = ecs.getComponentSystems().registerSystem<TextSystem>(SystemStage::RENDER);
-	this->textSystem = &textSys;
-
-	System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(SystemStage::RENDER, *renderer, matrixCache);
-	this->debugRenderSystem = &debugRenderSys;
-
-	System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(SystemStage::RENDER, *renderer);
-	this->guiSystem = &guiSys;
-
-	System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(SystemStage::RENDER);
-	this->cameraSystem = &cameraSystem;
-}
-
-void Engine::start(std::shared_ptr<Part> part)
-{
-	prevTime = SDL_GetTicks();
-
-	//store the incoming part and start it
-	this->part = part;
-	this->part->onStart();
+    setPart(part);
 
 	logger.log("Running main loop");
-	
-	//start processing events
-	run();
+    run(platformCallback);
 }
 
-void Engine::run()
+void Engine::run(std::function<void()> platformCallback)
 {
 	updateInterval = (1.0f / 60);
 	running = true;
@@ -119,6 +109,7 @@ void Engine::run()
 	while(running)
 	{
 		FrameInfo frameInfo;
+        platformCallback();
 		processEvents(frameInfo);
 
 		auto newTime = std::chrono::high_resolution_clock::now();
@@ -134,10 +125,7 @@ void Engine::run()
 		step(frameInfo);
 		currentFrame = (currentFrame + 1) % renderer->getMaxFramesInFlight();
 	}
-	
-	// wait for any renderer commands to finish before destructors kick in
-	renderer->prepareShutdown();
-	renderer->shutdown();
+	shutdown();
 }
 
 void Engine::step(FrameInfo &frameInfo)
@@ -146,7 +134,7 @@ void Engine::step(FrameInfo &frameInfo)
 	// frame update / catchup phase if lagging
 	while (frameLag >= updateInterval)
 	{
-		part->update(frameInfo);
+        part->update(frameInfo);
 		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::SIMULATION);
 		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::USER_SIMULATION);
 		ecs.endFrame();
@@ -304,4 +292,17 @@ void Engine::processEvents(FrameInfo &frameInfo)
 			}
 		}
 	}
+}
+
+void Engine::setPart(std::shared_ptr<Part> part)
+{
+    this->part = part;
+    part->onStart();
+}
+
+void Engine::shutdown()
+{
+	// wait for any renderer commands to finish before destructors kick in
+	renderer->prepareShutdown();
+	renderer->shutdown();
 }
