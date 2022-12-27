@@ -653,11 +653,12 @@ void VulkanRenderer::createSwapChain()
 	}
 
 	// choose surface format
-	VkSurfaceFormatKHR selectedFormat = formats[0];
+    VkSurfaceFormatKHR selectedFormat = formats[0];
 	for (const auto &format : formats)
 	{
-		if (format.format == VK_FORMAT_R8G8B8A8_UNORM &&
-			format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        //if (format.format == VK_FORMAT_R8G8B8A8_UNORM &&
+        if (format.format == VK_FORMAT_B8G8R8A8_UNORM &&
+            format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 		{
 			selectedFormat = format;
 			logger.log("Found preferred surface image format");
@@ -1927,7 +1928,8 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 	nextImageResult = vkAcquireNextImageKHR(device, swapChain, UINT32_MAX, imageSemaphores[frameInfo.currentFrame],
 											VK_NULL_HANDLE, &imageIndex);
 
-	if (nextImageResult == VK_SUCCESS && shouldRender)
+    if (nextImageResult == VK_SUCCESS || nextImageResult == VK_SUBOPTIMAL_KHR
+            && shouldRender && !resizeOccured)
 	{
 		// setup the command buffers
 		const VkCommandBuffer commandBuffer = commandBuffers[frameInfo.currentFrame];
@@ -2248,7 +2250,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 
 void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet)
 {
-	if (nextImageResult == VK_SUCCESS)
+    if (nextImageResult == VK_SUCCESS || nextImageResult == VK_SUBOPTIMAL_KHR)
 	{
 		const VkCommandBuffer commandBuffer = commandBuffers[frameInfo.currentFrame];
 
