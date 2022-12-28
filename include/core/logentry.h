@@ -1,6 +1,7 @@
 #ifndef LOGENTRY_H
 #define LOGENTRY_H
 
+#include <ctime>
 #include <string>
 #include <chrono>
 
@@ -21,6 +22,8 @@ class LogEntry
 public:
 	LogEntry(LogLevel level, std::string source, std::string message)
 	{
+        timestamp = std::time(nullptr);
+		this->level = level;
 		this->source = source;
 		this->message = message;
 	}
