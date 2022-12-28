@@ -43,6 +43,8 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/core/components/spritecomponent.h
   ${INCLUDE_BASE}/core/components/textcomponent.h
   ${INCLUDE_BASE}/core/matrixcache.h
+  ${INCLUDE_BASE}/core/logdestination.h
+  ${INCLUDE_BASE}/core/logentry.h
   ${INCLUDE_BASE}/camera/camera.h
   ${INCLUDE_BASE}/camera/pancamera.h
   ${INCLUDE_BASE}/camera/platformercamera.h
