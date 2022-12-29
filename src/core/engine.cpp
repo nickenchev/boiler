@@ -95,37 +95,7 @@ Engine::~Engine()
 	SDL_Quit();
 }
 
-void Engine::start(std::shared_ptr<Part> part)
-{
-    setPart(part);
-
-	logger.log("Running main loop");
-    run();
-}
-
-void Engine::run()
-{
-	// auto currentTime = std::chrono::high_resolution_clock::now();
-
-	// while(running)
-	// {
-	// 	auto newTime = std::chrono::high_resolution_clock::now();
-	// 	frameInfo.currentFrame = currentFrame;
-	// 	frameInfo.deltaTime = updateInterval;
-	// 	frameInfo.frameTime = std::chrono::duration<Time, std::chrono::seconds::period>(newTime - currentTime).count();
-	// 	frameInfo.globalTime = globalTime;
-	// 	frameInfo.frameCount = frameCount;
-
-	// 	currentTime = newTime;
-
-	// 	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
-	// 	step(frameInfo);
-	// 	currentFrame = (currentFrame + 1) % renderer->getMaxFramesInFlight();
-	// }
-	// shutdown();
-}
-
-void Engine::step()
+bool Engine::step()
 {
 	auto newTime = std::chrono::high_resolution_clock::now();
 
@@ -136,13 +106,14 @@ void Engine::step()
 	frameInfo.globalTime = globalTime;
 	frameInfo.frameCount = frameCount;
 
+	// input and IO systems
 	processEvents(frameInfo);
-
 	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
+
 	currentFrame = (currentFrame + 1) % renderer->getMaxFramesInFlight();
 
-	frameLag += frameInfo.frameTime;
 	// frame update / catchup phase if lagging
+	frameLag += frameInfo.frameTime;
 	while (frameLag >= updateInterval)
 	{
         part->update(frameInfo);
@@ -164,6 +135,8 @@ void Engine::step()
 	matrixCache.reset();
 	frameCount++;
 	prevTime = newTime;
+
+	return running;
 }
 
 void Engine::processEvents(FrameInfo &frameInfo)

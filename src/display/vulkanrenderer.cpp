@@ -320,11 +320,7 @@ void VulkanRenderer::shutdown()
 
 VulkanRenderer::~VulkanRenderer()
 {
-	// in case shutdown is explicitly called
-	if (!cleanedUp)
-	{
-		shutdown();
-	}
+	assert(cleanedUp);
 }
 
 void VulkanRenderer::initialize(const Size &size)

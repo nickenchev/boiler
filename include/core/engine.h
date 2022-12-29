@@ -61,8 +61,7 @@ public:
 	void initialize(const Size &initialSize);
 	void shutdown();
     void start(std::shared_ptr<Part> part);
-    void run();
-	void step();
+	bool step();
     void quit() { running = false; }
 
 	RenderSystem &getRenderSystem()
