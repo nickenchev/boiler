@@ -50,6 +50,10 @@ void Engine::initialize(const Size &initialSize)
 {
 	renderer->initialize(initialSize);
 
+	updateInterval = (1.0f / 60);
+	running = true;
+	prevTime = std::chrono::high_resolution_clock::now();
+
     // TODO: Figure out base path stuff
     //baseDataPath = std::string(SDL_GetBasePath());
 
@@ -91,45 +95,52 @@ Engine::~Engine()
 	SDL_Quit();
 }
 
-void Engine::start(std::shared_ptr<Part> part, std::function<void()> platformCallback)
+void Engine::start(std::shared_ptr<Part> part)
 {
     setPart(part);
 
 	logger.log("Running main loop");
-    run(platformCallback);
+    run();
 }
 
-void Engine::run(std::function<void()> platformCallback)
+void Engine::run()
 {
-	updateInterval = (1.0f / 60);
-	running = true;
+	// auto currentTime = std::chrono::high_resolution_clock::now();
 
-	auto currentTime = std::chrono::high_resolution_clock::now();
+	// while(running)
+	// {
+	// 	auto newTime = std::chrono::high_resolution_clock::now();
+	// 	frameInfo.currentFrame = currentFrame;
+	// 	frameInfo.deltaTime = updateInterval;
+	// 	frameInfo.frameTime = std::chrono::duration<Time, std::chrono::seconds::period>(newTime - currentTime).count();
+	// 	frameInfo.globalTime = globalTime;
+	// 	frameInfo.frameCount = frameCount;
 
-	while(running)
-	{
-		FrameInfo frameInfo;
-        platformCallback();
-		processEvents(frameInfo);
+	// 	currentTime = newTime;
 
-		auto newTime = std::chrono::high_resolution_clock::now();
-		frameInfo.currentFrame = currentFrame;
-		frameInfo.deltaTime = updateInterval;
-		frameInfo.frameTime = std::chrono::duration<Time, std::chrono::seconds::period>(newTime - currentTime).count();
-		frameInfo.globalTime = globalTime;
-		frameInfo.frameCount = frameCount;
-
-		currentTime = newTime;
-
-		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
-		step(frameInfo);
-		currentFrame = (currentFrame + 1) % renderer->getMaxFramesInFlight();
-	}
-	shutdown();
+	// 	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
+	// 	step(frameInfo);
+	// 	currentFrame = (currentFrame + 1) % renderer->getMaxFramesInFlight();
+	// }
+	// shutdown();
 }
 
-void Engine::step(FrameInfo &frameInfo)
+void Engine::step()
 {
+	auto newTime = std::chrono::high_resolution_clock::now();
+
+	FrameInfo frameInfo;
+	frameInfo.currentFrame = currentFrame;
+	frameInfo.deltaTime = updateInterval;
+	frameInfo.frameTime = std::chrono::duration<Time, std::chrono::seconds::period>(newTime - prevTime).count();
+	frameInfo.globalTime = globalTime;
+	frameInfo.frameCount = frameCount;
+
+	processEvents(frameInfo);
+
+	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
+	currentFrame = (currentFrame + 1) % renderer->getMaxFramesInFlight();
+
 	frameLag += frameInfo.frameTime;
 	// frame update / catchup phase if lagging
 	while (frameLag >= updateInterval)
@@ -152,6 +163,7 @@ void Engine::step(FrameInfo &frameInfo)
 	}
 	matrixCache.reset();
 	frameCount++;
+	prevTime = newTime;
 }
 
 void Engine::processEvents(FrameInfo &frameInfo)

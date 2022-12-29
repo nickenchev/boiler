@@ -1,6 +1,7 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+#include <chrono>
 #include <memory>
 #include <vector>
 #include <string>
@@ -45,6 +46,7 @@ class Engine
     bool running;
 	bool mouseRelativeMode;
     Time updateInterval;
+	std::chrono::steady_clock::time_point prevTime;
 
     void processEvents(FrameInfo &frameInfo);
 
@@ -58,9 +60,9 @@ public:
 
 	void initialize(const Size &initialSize);
 	void shutdown();
-    void start(std::shared_ptr<Part> part, std::function<void()> platformCallback);
-    void run(std::function<void()> platformCallback);
-	void step(FrameInfo &frameInfo);
+    void start(std::shared_ptr<Part> part);
+    void run();
+	void step();
     void quit() { running = false; }
 
 	RenderSystem &getRenderSystem()
