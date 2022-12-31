@@ -35,7 +35,7 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 {
 	guiSystem = nullptr;
 	logger.log("Engine instance created");
-	logger.log("Using renderer: " + this->renderer->getVersion());
+	logger.log("Using renderer: {}", this->renderer->getVersion());
 
 	frameLag = 0;
 	globalTime = 0;

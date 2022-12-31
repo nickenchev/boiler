@@ -41,7 +41,7 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 
 	assert(face->charmap != nullptr);
 
-	logger.log("Building glyph atlas for " + fontPath);
+	logger.log("Building glyph atlas for {}", fontPath);
 
 	FT_Set_Pixel_Sizes(face, 0, fontSize);
 

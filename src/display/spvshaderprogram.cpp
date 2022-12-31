@@ -25,9 +25,9 @@ SPVShaderProgram::SPVShaderProgram(VkDevice &device, std::string path,
 																						   vertStageInfo({}), fragStageInfo({})
 {
 	auto vertContents = FileManager::readBinaryFile(path + vertexShader);
-	logger.log("Loaded " + vertexShader + " (" + std::to_string(vertContents.size()) + " bytes)");
+	logger.log("Loaded {} ({} bytes)", vertexShader, std::to_string(vertContents.size()));
 	auto fragContents = FileManager::readBinaryFile(path + fragmentShader);
-	logger.log("Loaded " + fragmentShader + " (" + std::to_string(fragContents.size()) + " bytes)");
+	logger.log("Loaded {} ({} bytes)", fragmentShader, std::to_string(fragContents.size()));
 
 	vertexModule = createShaderModule(vertContents);
 	logger.log("Created vertex shader module");

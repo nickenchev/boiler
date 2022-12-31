@@ -79,14 +79,14 @@ Boiler::tmx::Properties loadProperties(XMLElement *sourceElement)
 std::unique_ptr<Boiler::tmx::Map> Boiler::tmx::TmxLoader::loadMap(std::string filename)
 {
 	Logger logger("TMX Loader");
-	logger.log("Loading " + filename);
+	logger.log("Loading {}", filename);
     XMLDocument doc;
     XMLError error = doc.LoadFile(filename.c_str());
     std::unique_ptr<Boiler::tmx::Map> map;
 
     if (error != XMLError::XML_NO_ERROR)
     {
-		logger.error("Error code: " + std::to_string(error));
+		logger.error("Error code: {}", std::to_string(error));
     }
     else
     {

@@ -160,7 +160,7 @@ VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtension
 		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 		createInfo.ppEnabledLayerNames = validationLayers.data();
 
-		logger.log(std::to_string(validationLayers.size()) + " layer(s) will be enabled");
+		logger.log("{} layer(s) will be enabled", std::to_string(validationLayers.size()));
 		logger.log("Validation layers are enabled");
 	}
 
@@ -359,7 +359,7 @@ void VulkanRenderer::initialize(const Size &size)
 			{
 				deviceProperties = devProps;
 				deviceFeatures = devFeats;
-				logger.log("Using: " + std::string(devProps.deviceName));
+				logger.log("Using: {}", std::string(devProps.deviceName));
 				physicalDevice = device;
 				break;
 			}
@@ -430,7 +430,7 @@ void VulkanRenderer::initialize(const Size &size)
 				{
 					isSupported = true;
 					requestedDeviceExtensions.push_back(extension);
-					logger.log(std::string(extension) + " device extension will be enabled");
+					logger.log("{} device extension will be enabled", std::string(extension));
 				}
 			}
 			if (!isSupported)
@@ -2395,7 +2395,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 	}
 	else
 	{
-		logger->log(callbackData->pMessage);
+		logger->log("{}", callbackData->pMessage);
 	}
 
 	return VK_FALSE;
