@@ -95,7 +95,7 @@ Engine::~Engine()
 	SDL_Quit();
 }
 
-bool Engine::step()
+void Engine::step()
 {
 	auto newTime = std::chrono::high_resolution_clock::now();
 
@@ -135,8 +135,6 @@ bool Engine::step()
 	matrixCache.reset();
 	frameCount++;
 	prevTime = newTime;
-
-	return running;
 }
 
 void Engine::processEvents(FrameInfo &frameInfo)

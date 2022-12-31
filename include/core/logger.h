@@ -7,13 +7,14 @@
 #include <utility>
 #include <fmt/core.h>
 #include "core/logentry.h"
-#include "core/logdestination.h"
+#include "core/stdoutdestination.h"
 
 namespace Boiler
 {
 
 class Logger
 {
+	static StdOutDestination stdDestination;
 	static LogDestination *destination;
 	const std::string name;
 
