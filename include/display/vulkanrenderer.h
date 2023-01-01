@@ -69,7 +69,7 @@ class VulkanRenderer : public Boiler::Renderer
 	VkFormat positionFormat, albedoFormat, normalFormat;
 	std::vector<GBuffer> gBuffers;
 
-	bool enableValidationLayers, cleanedUp;
+	bool enableValidationLayers, cleanedUp, ownedSurface;
 	bool resizeOccured;
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -191,6 +191,7 @@ public:
 	void setSurface(VkSurfaceKHR surface)
 	{
 		this->surface = surface;
+		ownedSurface = false;
 	}
 	void setInstance(VkInstance instance)
 	{

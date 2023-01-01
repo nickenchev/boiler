@@ -71,6 +71,7 @@ VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtension
 	this->enableValidationLayers = enableValidationLayers;
 	cleanedUp = false;
 	resizeOccured = false;
+	ownedSurface = true;
 	commandPool = VK_NULL_HANDLE;
 
 	// query supported extensions
@@ -305,7 +306,7 @@ void VulkanRenderer::shutdown()
 		vkDestroyDevice(device, nullptr);
 		logger.log("Device destroyed");
 	}
-    if (surface != VK_NULL_HANDLE)
+    if (surface != VK_NULL_HANDLE && ownedSurface)
     {
         vkDestroySurfaceKHR(instance, surface, nullptr);
         logger.log("Surface destroyed");

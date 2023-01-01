@@ -40,10 +40,12 @@ class Engine
 	EntityComponentSystem ecs;
     std::string baseDataPath;
 	MatrixCache matrixCache;
-    System *renderSystem, *textSystem, *guiSystem, *debugRenderSystem, *lightingSystem, *animationSystem, *physicsSystem, *collisionSystem, *cameraSystem, *inputSystem, *movementSystem;
+    System *renderSystem, *textSystem, *guiSystem, *debugRenderSystem,
+		*lightingSystem, *animationSystem, *physicsSystem, *collisionSystem,
+		*cameraSystem, *inputSystem, *movementSystem;
 	Animator animator;
 
-    bool running;
+    bool cleanedUp;
 	bool mouseRelativeMode;
     Time updateInterval;
 	std::chrono::steady_clock::time_point prevTime;
@@ -62,7 +64,6 @@ public:
 	void shutdown();
     void start(std::shared_ptr<Part> part);
 	bool step();
-    void quit() { running = false; }
 
 	RenderSystem &getRenderSystem()
 	{

@@ -43,15 +43,15 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 	frameCount = 0;
 	mouseRelativeMode = true;
 	SDL_SetRelativeMouseMode(SDL_TRUE);
-	running = false;
+	cleanedUp = false;
 }
 
 void Engine::initialize(const Size &initialSize)
 {
+	cleanedUp = false;
 	renderer->initialize(initialSize);
 
 	updateInterval = (1.0f / 60);
-	running = true;
 	prevTime = std::chrono::high_resolution_clock::now();
 
     // TODO: Figure out base path stuff
@@ -136,7 +136,7 @@ bool Engine::step()
 	frameCount++;
 	prevTime = newTime;
 
-	return running;
+	return true;
 }
 
 void Engine::processEvents(FrameInfo &frameInfo)
@@ -149,7 +149,6 @@ void Engine::processEvents(FrameInfo &frameInfo)
 		{
 			case SDL_QUIT:
 			{
-				quit();
 				break;
 			}
 			case SDL_WINDOWEVENT:
@@ -165,7 +164,6 @@ void Engine::processEvents(FrameInfo &frameInfo)
 					}
 					case SDL_WINDOWEVENT_CLOSE:
 					{
-						quit();
 						break;
 					}
 					case SDL_WINDOWEVENT_MINIMIZED:
@@ -287,7 +285,12 @@ void Engine::setPart(std::shared_ptr<Part> part)
 
 void Engine::shutdown()
 {
-	// wait for any renderer commands to finish before destructors kick in
-	renderer->prepareShutdown();
-	renderer->shutdown();
+	if (!cleanedUp)
+	{
+		// wait for any renderer commands to finish before destructors kick in
+		renderer->prepareShutdown();
+		renderer->shutdown();
+
+		cleanedUp = true;
+	}
 }
