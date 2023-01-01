@@ -45,7 +45,7 @@ class Engine
 		*cameraSystem, *inputSystem, *movementSystem;
 	Animator animator;
 
-    bool cleanedUp;
+    bool cleanedUp, running;
 	bool mouseRelativeMode;
     Time updateInterval;
 	std::chrono::steady_clock::time_point prevTime;

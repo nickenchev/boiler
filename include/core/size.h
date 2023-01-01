@@ -12,12 +12,12 @@ struct Size
 	Size() { width = 0; height = 0; }
 	Size(cgfloat width, cgfloat height) : width(width), height(height) { }
 
-	bool operator==(const Size &size)
+	bool operator==(const Size &size) const
 	{
 		return size.width == width && size.height == height;
 	}
 
-	bool operator!=(const Size &size)
+	bool operator!=(const Size &size) const
 	{
 		return size.width != width && size.height != height;
 	}

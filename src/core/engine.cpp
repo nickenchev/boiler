@@ -44,11 +44,13 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 	mouseRelativeMode = true;
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	cleanedUp = false;
+	running = false;
 }
 
 void Engine::initialize(const Size &initialSize)
 {
 	cleanedUp = false;
+	running = true;
 	renderer->initialize(initialSize);
 
 	updateInterval = (1.0f / 60);
