@@ -35,7 +35,7 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 {
 	guiSystem = nullptr;
 	logger.log("Engine instance created");
-	logger.log("Using renderer: " + this->renderer->getVersion());
+	logger.log("Using renderer: {}", this->renderer->getVersion());
 
 	frameLag = 0;
 	globalTime = 0;
@@ -95,7 +95,7 @@ Engine::~Engine()
 	SDL_Quit();
 }
 
-bool Engine::step()
+void Engine::step()
 {
 	auto newTime = std::chrono::high_resolution_clock::now();
 
@@ -135,8 +135,6 @@ bool Engine::step()
 	matrixCache.reset();
 	frameCount++;
 	prevTime = newTime;
-
-	return true;
 }
 
 void Engine::processEvents(FrameInfo &frameInfo)
