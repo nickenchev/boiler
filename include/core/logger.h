@@ -14,8 +14,7 @@ namespace Boiler
 
 class Logger
 {
-	static StdOutDestination stdDestination;
-	static LogDestination *destination;
+	LogDestination *destination;
 	const std::string name;
 
 public:
@@ -25,23 +24,14 @@ public:
 	void log(fmt::format_string<Args...> fmtString, Args&&... args) const
 	{
 		LogEntry entry(LogLevel::INFO, name, fmt::format(fmtString, std::forward<Args>(args)...));
-		Logger::getDestination()->log(entry);
+		//Logger::getDestination()->log(entry);
 	}
 
 	template<typename... Args>
 	void error(fmt::format_string<Args...> fmtString, Args&&... args) const
 	{
 		LogEntry entry(LogLevel::ERROR, name, fmt::format(fmtString, std::forward<Args>(args)...));
-		Logger::getDestination()->log(entry);
-	}
-
-	static LogDestination *getDestination()
-	{
-		return destination;
-	}
-	static void setDestination(LogDestination *dest)
-	{
-		Logger::destination = dest;
+		//Logger::getDestination()->log(e//ntry);
 	}
 };
 

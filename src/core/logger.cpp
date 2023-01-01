@@ -6,8 +6,4 @@ using namespace Boiler;
 
 Logger::Logger(std::string name) : name(name)
 {
-	Logger::setDestination(&stdDestination);
 }
-
-StdOutDestination Logger::stdDestination;
-LogDestination *Logger::destination;
