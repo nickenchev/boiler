@@ -5,12 +5,10 @@
 #include <iostream>
 
 #include "core/common.h"
-#include "core/logger.h"
 
 namespace Boiler {
 
 using SamplerId = size_t;
-static Logger logger("Animation Sampler");
 
 class AnimationSampler
 {

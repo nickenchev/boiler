@@ -6,6 +6,7 @@
 #include <iostream>
 #include <utility>
 #include <fmt/core.h>
+#include "core/logdestination.h"
 #include "core/logentry.h"
 #include "core/stdoutdestination.h"
 
@@ -14,8 +15,10 @@ namespace Boiler
 
 class Logger
 {
-	LogDestination *destination;
+	static LogDestination *destination;
 	const std::string name;
+
+	void printEntry(const LogEntry &entry) const;
 
 public:
     Logger(std::string name);
@@ -24,14 +27,24 @@ public:
 	void log(fmt::format_string<Args...> fmtString, Args&&... args) const
 	{
 		LogEntry entry(LogLevel::INFO, name, fmt::format(fmtString, std::forward<Args>(args)...));
-		//Logger::getDestination()->log(entry);
+		printEntry(entry);
 	}
 
 	template<typename... Args>
 	void error(fmt::format_string<Args...> fmtString, Args&&... args) const
 	{
 		LogEntry entry(LogLevel::ERROR, name, fmt::format(fmtString, std::forward<Args>(args)...));
-		//Logger::getDestination()->log(e//ntry);
+		printEntry(entry);
+	}
+
+	static void setDestination(LogDestination *dest)
+	{
+		destination = dest;
+	}
+
+	static LogDestination *getDestination()
+	{
+		return destination;
 	}
 };
 
