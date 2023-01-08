@@ -100,6 +100,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/core/base64.cpp
   ${SRC_BASE}/core/glyphloader.cpp
   ${SRC_BASE}/core/logger.cpp
+  ${SRC_BASE}/core/logdestination.cpp
   #${SRC_BASE}/core/quadtree.cpp
   ${SRC_BASE}/core/rect.cpp
   #${SRC_BASE}/core/raycaster.cpp
