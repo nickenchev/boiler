@@ -765,8 +765,11 @@ VkRenderPass VulkanRenderer::createRenderPass()
 	};
 	// framebuffer attachments
 	VkAttachmentDescription positionAttachment = createAttachment(positionFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	positionAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	VkAttachmentDescription albedoAttachment = createAttachment(albedoFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	albedoAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	VkAttachmentDescription normalAttachment = createAttachment(normalFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	normalAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	VkAttachmentDescription colorAttachment = createAttachment(swapChainFormat, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	VkAttachmentDescription depthAttachment = createAttachment(findDepthFormat(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
