@@ -34,6 +34,7 @@ public:
 	void endFrame();
 	Entity newEntity(const std::string &name);
 	const std::string &nameOf(Entity entity);
+	void setName(Entity entity, const std::string &name);
 	void removeEntity(const Entity &entity);
 	
 	template<typename T>

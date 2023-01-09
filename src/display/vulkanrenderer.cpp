@@ -1951,12 +1951,12 @@ bool VulkanRenderer::prepareFrame(const FrameInfo &frameInfo)
 			throw std::runtime_error("Could not begin command buffer");
 		}
 
-		// clear colour
+		// clear values: colorAttachment, depthAttachment, positionAttachment, albedoAttachment, normalAttachment
 		std::array<VkClearValue, 5> clearValues = {};
         clearValues[0].color = {{getClearColor().r, getClearColor().g, getClearColor().b, 1.0f}};
 		clearValues[1].depthStencil = {1.0f, 0};
         clearValues[2].color = {{0, 0, 0, 0}};
-        clearValues[3].color = {{1, 1, 1, 1}};
+        clearValues[3].color = {{0, 0, 0, 1}};
         clearValues[4].color = {{0, 0, 0, 0}};
 
 		// begin the render pass

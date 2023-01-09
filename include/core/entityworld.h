@@ -30,6 +30,7 @@ public:
 	bool exists(const Entity &entity) const;
 
 	const std::string &getName(Entity entity) const;
+	void setName(Entity entity, const std::string &name);
 };
 
 }

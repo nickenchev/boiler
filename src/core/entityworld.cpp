@@ -43,3 +43,8 @@ const std::string &EntityWorld::getName(Entity entity) const
 {
 	return names[entity.index()];
 }
+
+void EntityWorld::setName(Entity entity, const std::string &name)
+{
+	names[entity.index()] = name;
+}

@@ -52,6 +52,11 @@ const std::string &EntityComponentSystem::nameOf(Entity entity)
 	return entityWorld.getName(entity);
 }
 
+void EntityComponentSystem::setName(Entity entity, const std::string &name)
+{
+	return entityWorld.setName(entity, name);
+}
+
 void EntityComponentSystem::removeEntity(const Entity &entity)
 {
 	throw std::runtime_error("Unimplemented");

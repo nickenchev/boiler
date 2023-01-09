@@ -9,10 +9,11 @@ namespace Boiler
 	
 struct LightingComponent : public ComponentType<LightingComponent>
 {
-	LightSource source;
+	vec4 color;
 
-	LightingComponent(const LightSource &source) : ComponentType(this), source(source)
+	LightingComponent(const vec4 &color) : ComponentType(this)
 	{
+		this->color = color;
 	}
 };
 
