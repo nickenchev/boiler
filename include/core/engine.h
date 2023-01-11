@@ -7,6 +7,7 @@
 #include <string>
 #include <functional>
 #include "core/common.h"
+#include "core/frameinfo.h"
 #include "spriteloader.h"
 #include "display/imaging/imageloader.h"
 #include "display/fontloader.h"

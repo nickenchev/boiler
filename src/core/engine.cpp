@@ -149,6 +149,7 @@ void Engine::processEvents(FrameInfo &frameInfo)
 		{
 			case SDL_QUIT:
 			{
+				quit();
 				break;
 			}
 			case SDL_WINDOWEVENT:
@@ -251,6 +252,8 @@ void Engine::processEvents(FrameInfo &frameInfo)
 				KeyInputEvent event(keyCode, ButtonState::DOWN);
 				frameInfo.keyInputEvents.addEvent(event);
 
+				logger.log("{} DOWN", keyCode);
+
 				break;
 			}
 			case SDL_KEYUP:
@@ -266,6 +269,8 @@ void Engine::processEvents(FrameInfo &frameInfo)
 				SDL_Keycode keyCode = event.key.keysym.sym;
 				KeyInputEvent event(keyCode, ButtonState::UP);
 				frameInfo.keyInputEvents.addEvent(event);
+
+				logger.log("{} UP", keyCode);
 				break;
 			}
 			case SDL_TEXTINPUT:

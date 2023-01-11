@@ -10,9 +10,11 @@ class LogEntry;
 
 class LogDestination
 {
+	std::vector<LogEntry> entries;
+
 public:
 	virtual void log(const LogEntry &entry);
-	virtual const std::vector<LogEntry> &getEntries() const = 0;
+	virtual const std::vector<LogEntry> &getEntries() const;
 };
 
 }
