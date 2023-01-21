@@ -49,7 +49,7 @@ class Engine
     bool cleanedUp, running;
 	bool mouseRelativeMode;
     Time updateInterval;
-	std::chrono::steady_clock::time_point prevTime;
+	std::chrono::high_resolution_clock::time_point prevTime;
 
     void processEvents(FrameInfo &frameInfo);
 

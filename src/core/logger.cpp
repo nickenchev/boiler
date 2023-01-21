@@ -1,7 +1,8 @@
+#include <cassert>
+
 #include "core/logger.h"
 #include "core/logdestination.h"
 #include "core/logentry.h"
-#include "core/stdoutdestination.h"
 
 using namespace Boiler;
 
