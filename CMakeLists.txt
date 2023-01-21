@@ -166,7 +166,6 @@ target_include_directories(boiler
   ${INCLUDE_BASE}
   ${INCLUDE_BASE}/tinyxml2
   Freetype::Freetype
-  ${ZLIB_INCLUDE_DIRS}
   boiler_deps)
 
 #target_compile_options(boiler PRIVATE -Werror -Wall -Wextra)
@@ -176,5 +175,5 @@ target_link_libraries(boiler
   SDL2::SDL2 SDL2::SDL2main
   Freetype::Freetype
   Vulkan::Vulkan
-  ${ZLIB_LIBRARIES}
+  ZLIB::ZLIB
 )
