@@ -66,7 +66,7 @@ Function getFunctionPointer(VkInstance instance, std::string funcName)
 	return func;
 }
 
-VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtensions, bool enableValidationLayers) : Renderer("Vulkan Renderer", 3)
+VulkanRenderer::VulkanRenderer(const std::vector<const char *> requiredExtensions, bool enableValidationLayers) : Renderer("Vulkan Renderer", 2)
 {
 	this->enableValidationLayers = enableValidationLayers;
 	cleanedUp = false;
