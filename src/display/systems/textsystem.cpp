@@ -28,14 +28,14 @@ void TextSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo 
 		assert(glyphMap.materialId != Asset::NO_ASSET);
 
 		// setup material group
-		auto result = std::find_if(groups.begin(), groups.end(), [&glyphMap](const MaterialGroup &group) {
+		auto iter = std::find_if(groups.begin(), groups.end(), [&glyphMap](const MaterialGroup &group) {
 			return group.materialId == glyphMap.materialId;
 		});
 
 		MaterialGroup *group = nullptr;
-		if (result != groups.end())
+		if (iter != groups.end())
 		{
-			group = result.base();
+			group = &groups[iter - groups.begin()];
 		}
 		else
 		{

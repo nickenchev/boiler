@@ -172,6 +172,7 @@ public:
 	void shutdown() override;
 	void prepareShutdown() override;
 	void resize(const Boiler::Size &size) override;
+	void setOwnedSurface(bool owned) { ownedSurface = owned; }
 
     AssetId loadTexture(const ImageData &imageData, TextureType type) override;
 	AssetId loadCubemap(const std::array<ImageData, 6> &images) override;
@@ -191,7 +192,6 @@ public:
 	void setSurface(VkSurfaceKHR surface)
 	{
 		this->surface = surface;
-		ownedSurface = false;
 	}
 	void setInstance(VkInstance instance)
 	{
