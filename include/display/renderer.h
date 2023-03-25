@@ -26,6 +26,7 @@ namespace Boiler
 enum class TextureType
 {
 	FREETYPE_ATLAS,
+	RGB_SRGB,
 	RGBA_SRGB,
 	RGBA_UNORM
 };

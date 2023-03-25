@@ -1,6 +1,7 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <regex>
 
 #include "animation/animation.h"
 #include "animation/channel.h"
@@ -26,6 +27,8 @@
 #include <glm/gtx/matrix_decompose.hpp>
 
 using namespace Boiler;
+
+std::string fixSpaces(std::string input);
 
 GLTFImporter::GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std::string &gltfPath) : engine(engine), logger("GLTF Importer") 
 {
@@ -53,7 +56,8 @@ GLTFImporter::GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std
 		assert(image.uri.length() > 0);
 		filesystem::path imagePath = basePath;
 		imagePath.append(image.uri);
-		const ImageData imageData = ImageLoader::load(imagePath.string());
+		logger.log("Loading image: {}", imagePath.string());
+		const ImageData imageData = ImageLoader::load(fixSpaces(imagePath.string()));
 
 		// load the texture into GPU mem
 		texturesIds.push_back(engine.getRenderer().loadTexture(imageData, TextureType::RGBA_SRGB));
@@ -76,7 +80,7 @@ GLTFImporter::GLTFImporter(AssetSet &assetSet, Boiler::Engine &engine, const std
 			newMaterial.diffuse = vec4(1, 1, 1, 1);
 			if (material.pbrMetallicRoughness->baseColorFactor.has_value())
 			{
-				auto colorFactor = material.pbrMetallicRoughness->baseColorFactor.value();
+				auto &colorFactor = material.pbrMetallicRoughness->baseColorFactor.value();
 				newMaterial.diffuse = {colorFactor[0], colorFactor[1], colorFactor[2], colorFactor[3]};
 			}
 			if (material.alphaMode == "BLEND")
@@ -369,7 +373,7 @@ std::vector<Entity> GLTFImporter::createInstance(const Entity &rootEntity) const
 
 	if (scene.nodes.size() == 1)
 	{
-		loadNode(nodeEntities, rootEntity, 0, Entity::NO_ENTITY);
+		loadNode(nodeEntities, rootEntity, scene.nodes[0], Entity::NO_ENTITY);
 	}
 	else
 	{
@@ -390,3 +394,13 @@ std::vector<Entity> GLTFImporter::createInstance(const Entity &rootEntity) const
 
 	return nodeEntities;
 }
+
+std::string fixSpaces(std::string input)
+{
+	std::string enc = "%20";
+	std::string dec = " ";
+	std::string output = std::regex_replace(input, std::regex(enc), dec);
+
+	return output;
+}
+

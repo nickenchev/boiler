@@ -16,7 +16,8 @@ void AnimationSystem::update(Renderer &renderer, AssetSet &assetSet, const Frame
 {
 	for (const Entity &entity : getEntities())
 	{
-        auto &animationComp = ecs.getComponentStore().retrieve<AnimationComponent>(entity);
-		animator.animate(frameInfo.globalTime, frameInfo.deltaTime, animationComp);
+		// Disabled due to skeletal unimplemented skeletal animation
+        //auto &animationComp = ecs.getComponentStore().retrieve<AnimationComponent>(entity);
+		//animator.animate(frameInfo.globalTime, frameInfo.deltaTime, animationComp);
 	}
 }
