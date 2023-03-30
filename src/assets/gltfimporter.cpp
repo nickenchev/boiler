@@ -366,7 +366,12 @@ std::vector<Entity> GLTFImporter::createInstance(const Entity &rootEntity) const
 	
 	// grab the default scene and load the node heirarchy
 	const gltf::Scene &scene = model.scenes[model.scene];
-	//engine.getEcs().createComponent<TransformComponent>(rootEntity);
+
+	// root entity MUST have a transform
+	if (!engine.getEcs().hasComponent<TransformComponent>(rootEntity))
+	{
+		engine.getEcs().createComponent<TransformComponent>(rootEntity);
+	}
 
 	// used to map between node indexes (glTF) and entity system IDs
 	std::vector<Entity> nodeEntities(model.nodes.size(), Entity::NO_ENTITY);
