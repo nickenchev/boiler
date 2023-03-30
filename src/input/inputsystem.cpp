@@ -19,6 +19,7 @@ InputSystem::InputSystem(Engine &engine) : System("Input System"), engine(engine
 	moveBackward = false;
 	moveUp = false;
 	moveDown = false;
+	prevXFactor = prevYFactor = 0;
 }
 
 void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
