@@ -43,6 +43,8 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 			for (const auto &primitiveId : render.mesh.primitives)
 			{
 				const Primitive &primitive = assetSet.primitives(primitiveId);
+
+				assert(primitive.materialId != -1);
 				const Material &material = assetSet.materials(primitive.materialId);
 
 				MaterialGroup *matGroup = &materialGroups[primitive.materialId];

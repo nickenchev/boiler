@@ -109,7 +109,7 @@ void Engine::step()
 	frameInfo.frameCount = frameCount;
 
 	// input and IO systems
-	processEvents(frameInfo);
+    processEvents(frameInfo);
 	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
 
 	currentFrame = (currentFrame + 1) % renderer->getMaxFramesInFlight();
@@ -252,8 +252,6 @@ void Engine::processEvents(FrameInfo &frameInfo)
 				KeyInputEvent event(keyCode, ButtonState::DOWN);
 				frameInfo.keyInputEvents.addEvent(event);
 
-				logger.log("{} DOWN", keyCode);
-
 				break;
 			}
 			case SDL_KEYUP:
@@ -270,7 +268,6 @@ void Engine::processEvents(FrameInfo &frameInfo)
 				KeyInputEvent event(keyCode, ButtonState::UP);
 				frameInfo.keyInputEvents.addEvent(event);
 
-				logger.log("{} UP", keyCode);
 				break;
 			}
 			case SDL_TEXTINPUT:
