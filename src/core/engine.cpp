@@ -219,11 +219,14 @@ void Engine::processEvents(FrameInfo &frameInfo)
 			}
 			case SDL_MOUSEMOTION:
 			{
-				frameInfo.mouseXDistance += event.motion.xrel;
-				frameInfo.mouseYDistance += event.motion.yrel;
 				if (!mouseRelativeMode)
 				{
 					static_cast<GUISystem *>(guiSystem)->mouseMove(event.motion.x, event.motion.y);
+				}
+				else
+				{
+					frameInfo.mouseXDistance += event.motion.xrel;
+					frameInfo.mouseYDistance += event.motion.yrel;
 				}
 				break;
 			}

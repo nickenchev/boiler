@@ -29,7 +29,9 @@ void MapLoader::load(const std::string &filePath)
 	doc.Parse(jsonData.c_str());
 
 	// preload all assets
-	std::vector<GLTFImporter> assetsLoaded;
+    GLTFImporter gltfImporter(engine);
+    std::vector<std::shared_ptr<GLTFModel>> assetsLoaded;
+
 	if (doc.HasMember("assets"))
 	{
 		const auto &assets = doc["assets"].GetArray();
@@ -37,7 +39,7 @@ void MapLoader::load(const std::string &filePath)
 		{
 			if (strcmp(asset["type"].GetString(), "gltf") == 0)
 			{
-				assetsLoaded.push_back(GLTFImporter(assetSet, engine, asset["file"].GetString()));
+                assetsLoaded.push_back(gltfImporter.import(assetSet, asset["file"].GetString()));
 			}
 		}
 	}
@@ -60,9 +62,9 @@ void MapLoader::load(const std::string &filePath)
 					const auto &comp = components["render"];
 					const auto renderComponent = ecs.createComponent<RenderComponent>(entity);
 					const int assetIndex = comp["assetIndex"].GetInt();
-					const GLTFImporter &asset = assetsLoaded[assetIndex];
+                    const GLTFModel &asset = *assetsLoaded[assetIndex];
 
-					childEntities = asset.createInstance(entity);
+                    childEntities = gltfImporter.createInstance(entity);
 
 					if (asset.getImportResult().animations.size())
 					{

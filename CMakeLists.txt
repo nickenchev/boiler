@@ -86,7 +86,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/physics/aabb.h
   ${INCLUDE_BASE}/physics/sphere.h
   ${INCLUDE_BASE}/camera/camerasystem.h
-)
+ ${INCLUDE_BASE}/assets/gltfmodel.h)
 
 # Engine related sources
 set(SRC_BASE ${CMAKE_CURRENT_LIST_DIR}/src)
@@ -154,7 +154,8 @@ set(BOILER_SOURCES
   ${SRC_BASE}/ext/imgui/imgui_tables.cpp
   ${SRC_BASE}/ext/imgui/imgui_widgets.cpp
   ${SRC_BASE}/ext/imgui/imgui_demo.cpp
-  ${SRC_BASE}/ext/imgui/imgui_impl_vulkan.cpp)
+  ${SRC_BASE}/ext/imgui/imgui_impl_vulkan.cpp
+  ${SRC_BASE}/assets/gltfmodel.cpp)
 
 add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
