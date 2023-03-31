@@ -53,7 +53,24 @@ void GUISystem::mouseMove(uint32_t x, uint32_t y)
 void GUISystem::mouseButton(uint8_t button, bool isDown)
 {
 	ImGuiIO &io = ImGui::GetIO();
-	io.AddMouseButtonEvent(button - 1, isDown);
+	switch (button)
+	{
+		case 1:
+		{
+			io.AddMouseButtonEvent(0, isDown);
+			break;
+		}
+		case 2:
+		{
+			io.AddMouseButtonEvent(2, isDown);
+			break;
+		}
+		case 3:
+		{
+			io.AddMouseButtonEvent(1, isDown);
+			break;
+		}
+	}
 }
 
 void GUISystem::mouseWheel(cgfloat x, cgfloat y)
