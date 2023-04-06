@@ -80,6 +80,7 @@ public:
     void setPart(std::shared_ptr<Part> part);
 
 	bool isRunning() const { return running; }
+	void setMouseRelativeMode(bool enabled);
 };
 
 }

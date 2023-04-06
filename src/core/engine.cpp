@@ -261,9 +261,7 @@ void Engine::processEvents(FrameInfo &frameInfo)
 			{
 				if (event.key.keysym.sym == SDLK_BACKQUOTE)
 				{
-					mouseRelativeMode = !mouseRelativeMode;
-					SDL_SetRelativeMouseMode(mouseRelativeMode ? SDL_TRUE : SDL_FALSE);
-					static_cast<DebugRenderSystem *>(debugRenderSystem)->setEnabled(!mouseRelativeMode);
+					setMouseRelativeMode(!mouseRelativeMode);
 				}
 				static_cast<GUISystem *>(guiSystem)->keyEvent(event.key.keysym.sym, false);
 
@@ -280,6 +278,13 @@ void Engine::processEvents(FrameInfo &frameInfo)
 			}
 		}
 	}
+}
+
+void Engine::setMouseRelativeMode(bool enabled)
+{
+	mouseRelativeMode = enabled;
+	SDL_SetRelativeMouseMode(mouseRelativeMode ? SDL_TRUE : SDL_FALSE);
+	static_cast<DebugRenderSystem *>(debugRenderSystem)->setEnabled(!mouseRelativeMode);
 }
 
 void Engine::setPart(std::shared_ptr<Part> part)
