@@ -51,11 +51,12 @@ void MovementSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameI
 			moving = true;
 		}
 		vec3 moveDirection = normalize(strafe + move);
-		cgfloat acceleration = physics.speed * physics.acceleration;
+		cgfloat frameAccelerate = physics.speed * physics.acceleration;
 
 		if (moving)
 		{
-			physics.velocity += moveDirection * acceleration;
+			// TODO: Optimize and avoid length
+			physics.velocity += moveDirection * frameAccelerate;
 		}
 		else
 		{

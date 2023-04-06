@@ -72,16 +72,16 @@ public:
 
 					if (channel.getPath() == Path::TRANSLATION)
 					{
-						transform.setPosition(sampler.sample<vec3>(clip.getLocalTime()));
+						transform.translation = sampler.sample<vec3>(clip.getLocalTime());
 					}
 					else if (channel.getPath() == Path::ROTATION)
 					{
 						const auto value = sampler.sample<vec4>(clip.getLocalTime());
-						transform.setOrientation(quat(value.w, value.x, value.y, value.z));
+						transform.orientation = quat(value.w, value.x, value.y, value.z);
 					}
 					else if (channel.getPath() == Path::SCALE)
 					{
-						transform.setScale(sampler.sample<vec3>(clip.getLocalTime()));
+						transform.scale = sampler.sample<vec3>(clip.getLocalTime());
 					}
 				}
 				clip.advance(deltaTime);

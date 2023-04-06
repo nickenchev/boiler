@@ -21,7 +21,7 @@ void LightingSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameI
         LightingComponent &lightComp = ecs.getComponentStore().retrieve<LightingComponent>(getEntities()[i]);
         TransformComponent &transformComp = ecs.getComponentStore().retrieve<TransformComponent>(getEntities()[i]);
 
-		lightSources.push_back(LightSource(transformComp.getPosition(), lightComp.color));
+		lightSources.push_back(LightSource(transformComp.translation, lightComp.color));
 	}
 	if (lightSources.size())
 	{

@@ -31,11 +31,11 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 		PhysicsComponent &physics = ecs.getComponentStore().retrieve<PhysicsComponent>(entity);
 		ColliderComponent &collider = ecs.getComponentStore().retrieve<ColliderComponent>(entity);
 
-		const vec3 prevPos = transform.getPosition();
-		transform.setPosition(transform.getPosition() + physics.velocity * frameInfo.deltaTime);
+		const vec3 prevPos = transform.translation;
+		transform.translation = transform.translation + physics.velocity * frameInfo.deltaTime;
 
 		// check dynamic bodies for collisions
-		//if (collider.isDynamic)
+		if (collider.isDynamic)
 		{
 			vec3 velocity = physics.velocity;
 
@@ -65,22 +65,22 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 
 						if (colliderB.colliderType == ColliderType::AABB)
 						{
-							if (Sphere::intersects(transform.getPosition(), radius, minB, maxB))
+							if (Sphere::intersects(transform.translation, radius, minB, maxB))
 							{
 								CollisionComponent &collision = ecs.createComponent<CollisionComponent>(entity);
 								collision.target = entityB;
 								CollisionComponent &collisionB = ecs.createComponent<CollisionComponent>(entityB);
 								collisionB.target = entity;
 
-								vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
+								vec3 ballDir = transform.translation - newTransformB.translation;
 								vec3 normBallDir = glm::normalize(ballDir);
 								/* p2 ---- p1
 								   |  |
 								   p3 ---- p4 */
 
 								vec3 xHat(1, 0, 0);
-								vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.getPosition());
-								vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.getPosition());
+								vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.translation);
+								vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.translation);
 
 								float p1Theta = glm::acos(glm::dot(xHat, p1));
 								float p2Theta = glm::pi<float>() - p1Theta;
@@ -109,22 +109,22 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 										velocity.x = -velocity.x;
 									}
 								}
-								transform.setPosition(prevPos);
+								transform.translation = prevPos;
 							}
 						}
 						else if (colliderB.colliderType == ColliderType::AABB)
 						{
 							if (AABB::intersects(minA, maxA, minB, maxB))
 							{
-								vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
+								vec3 ballDir = transform.translation - newTransformB.translation;
 								vec3 normBallDir = glm::normalize(ballDir);
 								/* p2 ---- p1
 								   |  |
 								   p3 ---- p4 */
 
 								vec3 xHat(1, 0, 0);
-								vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.getPosition());
-								vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.getPosition());
+								vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.translation);
+								vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.translation);
 
 								cgfloat p1Theta = glm::acos(glm::dot(xHat, p1));
 								cgfloat p2Theta = glm::pi<float>() - p1Theta;
@@ -142,7 +142,7 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 										velocity.x = -velocity.x;
 									}
 								}
-								transform.setPosition(prevPos);
+								transform.translation = prevPos;
 							}
 						}
 					}
@@ -152,15 +152,15 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 						{
 							if (AABB::intersects(minA, maxA, minB, maxB))
 							{
-								vec3 ballDir = transform.getPosition() - newTransformB.getPosition();
+								vec3 ballDir = transform.translation - newTransformB.translation;
 								vec3 normBallDir = glm::normalize(ballDir);
 								/* p2 ---- p1
 								   |  |
 								   p3 ---- p4 */
 
 								vec3 xHat(1, 0, 0);
-								vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.getPosition());
-								vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.getPosition());
+								vec3 p1 = glm::normalize(vec3(maxB.x, minB.y, 0) - newTransformB.translation);
+								vec3 p2 = glm::normalize(vec3(minB.x, minB.y, 0) - newTransformB.translation);
 
 								cgfloat p1Theta = glm::acos(glm::dot(xHat, p1));
 								cgfloat p2Theta = glm::pi<float>() - p1Theta;
@@ -178,7 +178,7 @@ void PhysicsSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameIn
 										velocity.x = -velocity.x;
 									}
 								}
-								transform.setPosition(prevPos);
+								transform.translation = prevPos;
 							}
 						}
 					}

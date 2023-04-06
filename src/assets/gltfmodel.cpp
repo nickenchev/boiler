@@ -96,7 +96,7 @@ Entity GLTFModel::loadNode(EntityComponentSystem &ecs, std::vector<Entity> &node
         // create a transform component if one doesn't exist
         TransformComponent &transform = ecs.getComponentStore().hasComponent<TransformComponent>(nodeEntity)
             ? ecs.getComponentStore().retrieve<TransformComponent>(nodeEntity)
-            : ecs.createComponent<TransformComponent>(nodeEntity, Rect(0, 0, 0, 0));
+            : ecs.createComponent<TransformComponent>(nodeEntity, vec3(0, 0, 0));
 
         // decompose a matrix if available, otherwise try to load transformations directly
         if (node.matrix.has_value())
@@ -108,37 +108,37 @@ Entity GLTFModel::loadNode(EntityComponentSystem &ecs, std::vector<Entity> &node
             vec4 perspective;
 
             glm::decompose(matrix, scale, orientation, position, skew, perspective);
-            transform.setPosition(position);
-            transform.setScale(scale);
-            transform.setOrientation(orientation);
+            transform.translation = position;
+            transform.scale = scale;
+            transform.orientation = orientation;
         }
         else
         {
             // otherwise load transformation directly
             if (node.scale.has_value())
             {
-                transform.setScale({
+                transform.scale = {
                     node.scale.value()[0],
                     node.scale.value()[1],
                     node.scale.value()[2]
-                });
+                };
             }
             if (node.translation.has_value())
             {
-                transform.setPosition({
+                transform.translation = {
                     node.translation.value()[0],
                     node.translation.value()[1],
                     node.translation.value()[2]
-                });
+                };
             }
             if (node.rotation.has_value())
             {
-                transform.setOrientation(quat{
+                transform.orientation = quat{
                     node.rotation.value()[3],
                     node.rotation.value()[0],
                     node.rotation.value()[1],
                     node.rotation.value()[2]
-                });
+                };
             }
         }
 

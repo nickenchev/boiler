@@ -60,7 +60,7 @@ void MapLoader::load(const std::string &filePath)
 				if (components.HasMember("render"))
 				{
 					const auto &comp = components["render"];
-					const auto renderComponent = ecs.createComponent<RenderComponent>(entity);
+					const auto &renderComponent = ecs.createComponent<RenderComponent>(entity);
 					const int assetIndex = comp["assetIndex"].GetInt();
                     const GLTFModel &asset = *assetsLoaded[assetIndex];
 
@@ -85,7 +85,7 @@ void MapLoader::load(const std::string &filePath)
 
 					if (comp.HasMember("translation"))
 					{
-						transformComponent.setPosition(getVector(comp, "translation"));
+						transformComponent.translation = getVector(comp, "translation");
 					}
 
 					if (comp.HasMember("orientation"))
@@ -93,11 +93,11 @@ void MapLoader::load(const std::string &filePath)
 						const auto &orientation = comp["orientation"].GetObject();
 						quat orientationQuat(orientation["w"].GetFloat(), orientation["x"].GetFloat(),
 											 orientation["y"].GetFloat(), orientation["z"].GetFloat());
-						transformComponent.setOrientation(orientationQuat);
+						transformComponent.orientation = orientationQuat;
 					}
 					if (comp.HasMember("scale"))
 					{
-						transformComponent.setScale(getVector(comp, "scale"));
+						transformComponent.scale = getVector(comp, "scale");
 					}
 				}
 				if (components.HasMember("physics"))

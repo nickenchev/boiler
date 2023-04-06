@@ -89,7 +89,7 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 			vertices.push_back(Vertex(vec3(max.x, max.y, max.z), colour));
 
 			// center crosses
-			vec3 pos = transform.getPosition();
+			vec3 pos = transform.translation;
 			float crossSize = 0.3f;
 			vec4 crossColour(1, 1, 1, 1);
 			vertices.push_back(Vertex(vec3(pos.x - crossSize, pos.y, pos.z), crossColour));
