@@ -86,7 +86,8 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/physics/aabb.h
   ${INCLUDE_BASE}/physics/sphere.h
   ${INCLUDE_BASE}/camera/camerasystem.h
- ${INCLUDE_BASE}/assets/gltfmodel.h)
+  ${INCLUDE_BASE}/assets/gltfmodel.h
+  ${INCLUDE_BASE}/assets/maps/sceneobject.h)
 
 # Engine related sources
 set(SRC_BASE ${CMAKE_CURRENT_LIST_DIR}/src)

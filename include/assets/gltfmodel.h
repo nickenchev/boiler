@@ -21,6 +21,7 @@ class GLTFModel
 public:
     GLTFModel(const std::string &filePath, const std::vector<std::vector<std::byte>> &&buffers, gltf::Model &&model, ImportResult &&result);
 
+    const gltf::Model &getModel() const { return model; }
     const std::string &getFilePath() const { return filePath; }
 	const ImportResult &getImportResult() const { return result; }
     std::vector<Entity> createInstance(EntityComponentSystem &ecs, const Entity &rootEntity) const;
