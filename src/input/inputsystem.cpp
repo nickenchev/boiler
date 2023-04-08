@@ -29,6 +29,7 @@ void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo
 	for (unsigned int i = 0; i < frameInfo.keyInputEvents.getCount(); ++i)
 	{
 		const KeyInputEvent event = frameInfo.keyInputEvents[i];
+		/*
 		if (event.keyCode == SDLK_a)
 		{
 			moveLeft = event.state == ButtonState::DOWN;
@@ -49,6 +50,7 @@ void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo
 		{
 			jump = event.state == ButtonState::DOWN;
 		}
+		*/
 	}
 
 	// calculate mouse diff

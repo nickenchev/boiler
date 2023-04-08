@@ -27,6 +27,7 @@ GUISystem::GUISystem(Renderer &renderer) : System("ImGui System")
 	ImageData imageData(pixels, Size(width, height), 4, true);
 	AssetId textureId = renderer.loadTexture(imageData, TextureType::RGBA_UNORM);
 
+
 	Material material;
 	material.baseTexture = textureId;
 	materialId = renderer.getAssetSet().materials.add(std::move(material));

@@ -2,7 +2,6 @@
 #define SYSTEM_H
 
 #include <type_traits>
-#include <SDL.h>
 #include <vector>
 #include <algorithm>
 #include <string>

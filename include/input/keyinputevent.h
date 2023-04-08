@@ -1,15 +1,17 @@
 #ifndef KEYINPUTEVENT_H
 #define KEYINPUTEVENT_H
 
-#include <SDL.h>
+#include <stdint.h>
 #include "inputevent.h"
 
 namespace Boiler
 {
 
+    using Keycode = uint32_t;
+
 struct KeyInputEvent : public InputEvent
 {
-    SDL_Keycode keyCode;
+    Keycode keyCode;
     ButtonState state;
 
 	KeyInputEvent()
@@ -18,7 +20,7 @@ struct KeyInputEvent : public InputEvent
 		state = ButtonState::NONE;
 	}
 
-    KeyInputEvent(SDL_Keycode keyCode, ButtonState state)
+    KeyInputEvent(Keycode keycode, ButtonState state)
     {
         this->keyCode = keyCode;
         this->state = state;
