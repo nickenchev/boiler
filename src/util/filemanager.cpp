@@ -1,4 +1,4 @@
-#include <SDL.h>
+#include <fstream>
 #include "util/filemanager.h"
 #include "core/logger.h"
 
@@ -6,49 +6,34 @@ using namespace Boiler;
 
 std::string FileManager::readTextFile(const std::string &filePath)
 {
-    std::string output;
-    SDL_RWops *file = SDL_RWFromFile(filePath.c_str(), "r");
+	std::ifstream infile(filePath);
+	std::stringstream buffer;
+	buffer << infile.rdbuf();
+	const std::string output = buffer.str();
+	infile.close();
 
-    if (file != NULL)
-    {
-        const Sint64 size = SDL_RWsize(file);
-
-        char *buffer = new char[size + 1];
-        char *buffOffset = buffer;
-        int totalRead = 0, charsRead = 1;
-        while (totalRead < size && charsRead != 0)
-        {
-            charsRead = SDL_RWread(file, buffer, (size - totalRead), 1);
-            totalRead += charsRead;
-            buffOffset += charsRead;
-        }
-        SDL_RWclose(file);
-        buffer[size] = '\0';
-        output = buffer;
-		delete[] buffer;
-    }
-
-    return output;
+	return output;
 }
 
 std::vector<char> FileManager::readBinaryFile(const std::string &filePath)
 {
-	std::vector<char> output;
-	SDL_RWops *file = SDL_RWFromFile(filePath.c_str(), "rb");
+    std::ostringstream buff;
+    std::ifstream inFile(filePath, std::ios::binary | std::ios::ate);
 
-	if (file != nullptr)
-	{
-		Sint64 fileSize = SDL_RWsize(file);
-		output.resize(fileSize);
+    std::vector<char> output;
+    if (inFile)
+    {
+		std::streamsize fileSize = inFile.tellg();
+        output.resize(fileSize);
 
-		size_t objsRead = 0;
-		do
-		{
-			objsRead = SDL_RWread(file, output.data(), fileSize, 1);
-		} while (objsRead > 0);
+        inFile.seekg(std::ios::beg);
+        if (!inFile.read(output.data(), fileSize))
+        {
+            throw std::runtime_error("Error reading entire file");
+        }
 
-		SDL_RWclose(file);
-	}
+		inFile.close();
+    }
 
 	return output;
 }

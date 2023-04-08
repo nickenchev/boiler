@@ -1,8 +1,6 @@
-#ifndef JSONLOADER_H
-#define JSONLOADER_H
+#pragma once
 
-#include <fstream>
-#include <sstream>
+#include "util/filemanager.h"
 
 namespace Boiler
 {
@@ -11,15 +9,7 @@ namespace Boiler
 	public:
 		static std::string loadJson(const std::string &gltfPath)
 		{
-			std::ifstream infile(gltfPath);
-			std::stringstream buffer;
-			buffer << infile.rdbuf();
-			const std::string jsonString = buffer.str();
-			infile.close();
-
-			return jsonString;
+			return FileManager::readTextFile(gltfPath);
 		}
 	};
 }
-
-#endif // !JSONLOADER_H
