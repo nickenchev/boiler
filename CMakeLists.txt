@@ -10,7 +10,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
-find_package(SDL2 REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -148,15 +147,16 @@ set(BOILER_SOURCES
   ${SRC_BASE}/physics/sphere.cpp
   ${SRC_BASE}/camera/camerasystem.cpp
   ${SRC_BASE}/input/inputsystem.cpp
-  # ImGui
-  ${SRC_BASE}/display/systems/guisystem.cpp
-  ${SRC_BASE}/ext/imgui/imgui.cpp
-  ${SRC_BASE}/ext/imgui/imgui_draw.cpp
-  ${SRC_BASE}/ext/imgui/imgui_tables.cpp
-  ${SRC_BASE}/ext/imgui/imgui_widgets.cpp
-  ${SRC_BASE}/ext/imgui/imgui_demo.cpp
-  ${SRC_BASE}/ext/imgui/imgui_impl_vulkan.cpp
+  # Assets
   ${SRC_BASE}/assets/gltfmodel.cpp)
+  # ImGui
+  #${SRC_BASE}/display/systems/guisystem.cpp
+  #${SRC_BASE}/ext/imgui/imgui.cpp
+  #${SRC_BASE}/ext/imgui/imgui_draw.cpp
+  #${SRC_BASE}/ext/imgui/imgui_tables.cpp
+  #${SRC_BASE}/ext/imgui/imgui_widgets.cpp
+  #${SRC_BASE}/ext/imgui/imgui_demo.cpp
+  #${SRC_BASE}/ext/imgui/imgui_impl_vulkan.cpp)
 
 add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
@@ -174,7 +174,7 @@ target_include_directories(boiler
 
 target_link_libraries(boiler
   boiler_deps
-  SDL2::SDL2main SDL2::SDL2
+  #SDL2::SDL2main SDL2::SDL2
   Freetype::Freetype
   Vulkan::Vulkan
   ZLIB::ZLIB
