@@ -1,350 +1,330 @@
-#include <string>
-#include <iostream>
-#include "core/math.h"
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <vector>
+#include <display/openglrenderer.h>
+#include <glad/glad.h>
+#include <util/filemanager.h>
 
-#include "core/engine.h"
-#include "video/openglrenderer.h"
-#include "video/opengltexture.h"
-#include "video/openglmodel.h"
-#include "video/vertexdata.h"
-#include "video/opengltextureinfo.h"
-#include "core/spritesheetframe.h"
-#include "core/part.h"
-#include "core/components/positioncomponent.h"
-#include "core/components/spritecomponent.h"
-#include "core/components/textcomponent.h"
-#include "camera/camera.h"
-#include "video/glslshaderprogram.h"
+void configureOpenGL();
+void createVertexData();
+GLuint loadShader(const std::string &shaderPath, GLuint shaderType);
+GLuint createProgram(std::vector<GLuint> &shaders);
+std::string readTextFile(const std::string &filePath);
+void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *user_param);
 
-using namespace Boiler;
+const GLuint width = 1920;
+const GLuint height = 1080;
+GLuint vao, vertsVbo, program;
+glm::mat4 perspective(1), view(1);
 
-OpenGLRenderer::OpenGLRenderer(bool useGLES) : Renderer(std::string(COMPONENT_NAME))
+struct Vert
 {
-    this->useGLES = useGLES;
+	glm::vec4 position;
+	glm::vec4 color;
+
+	Vert()
+	{
+	}
+
+	Vert(glm::vec4 position, glm::vec4 color)
+	{
+		this->position = position;
+		this->color = color;
+	}
+
+	Vert(glm::vec4 position)
+	{
+		this->position = position;
+		this->color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	}
+};
+
+static const std::array<glm::vec3, 36> vertex_positions =
+{
+	glm::vec3
+	{-0.25f,  0.25f, -0.25f},
+	{-0.25f, -0.25f, -0.25f},
+	{0.25f, -0.25f, -0.25f},
+
+	{ 0.25f, -0.25f, -0.25f },
+	{ 0.25f,  0.25f, -0.25f },
+	{ -0.25f,  0.25f, -0.25f },
+
+	{ 0.25f, -0.25f, -0.25f },
+	{ 0.25f, -0.25f,  0.25f },
+	{ 0.25f,  0.25f, -0.25f },
+
+	{ 0.25f, -0.25f,  0.25f },
+	{ 0.25f,  0.25f,  0.25f },
+	{ 0.25f,  0.25f, -0.25f },
+
+	{ 0.25f, -0.25f,  0.25f },
+	{ -0.25f, -0.25f,  0.25f },
+	{ 0.25f,  0.25f,  0.25f },
+
+	{ -0.25f, -0.25f,  0.25f },
+	{ -0.25f,  0.25f,  0.25f },
+	{ 0.25f,  0.25f,  0.25f },
+
+	{ -0.25f, -0.25f,  0.25f },
+	{ -0.25f, -0.25f, -0.25f },
+	{ -0.25f,  0.25f,  0.25f },
+
+	{ -0.25f, -0.25f, -0.25f },
+	{ -0.25f,  0.25f, -0.25f },
+	{ -0.25f,  0.25f,  0.25f },
+
+	{ -0.25f, -0.25f,  0.25f },
+	{ 0.25f, -0.25f,  0.25f },
+	{ 0.25f, -0.25f, -0.25f },
+
+	{ 0.25f, -0.25f, -0.25f },
+	{ -0.25f, -0.25f, -0.25f },
+	{ -0.25f, -0.25f,  0.25f },
+
+	{ -0.25f,  0.25f, -0.25f },
+	{ 0.25f,  0.25f, -0.25f },
+	{ 0.25f,  0.25f,  0.25f },
+
+	{ 0.25f,  0.25f,  0.25f },
+	{ -0.25f,  0.25f,  0.25f },
+	{ -0.25f,  0.25f, -0.25f }
+};
+
+std::vector<Vert> verts;
+
+Boiler::OpenGLRenderer::OpenGLRenderer() : Renderer("OpenGL Renderer", 1)
+{
 }
 
-void setupGLExtensions()
+Boiler::OpenGLRenderer::~OpenGLRenderer()
 {
-#ifdef __APPLE__
-    // require "experimental" as not all OpenGL features are marked "standard"
-    glewExperimental = GL_TRUE;
-#endif
-
-	GLenum initStatus = glewInit();
-    if (initStatus != GLEW_OK)
-    {
-		const GLubyte *errString = glewGetErrorString(initStatus);
-        std::cerr << "GLEW Init Error: " << errString << std::endl;
-    }
-    // glewInit() queries extensions incorrectly, clearing errors here
-    glGetError();
 }
 
-void checkOpenGLErrors()
+void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 {
-    GLenum err = GL_NO_ERROR;
-    while((err = glGetError()) != GL_NO_ERROR)
-    {
-        std::string errorString;
-        switch (err)
-        {
-            case GL_INVALID_ENUM:
-            {
-                errorString = "GL_INVALID_ENUM";
-                break;
-            }
-            case GL_INVALID_VALUE:
-            {
-                errorString = "GL_INVALID_VALUE";
-                break;
-            }
-            case GL_INVALID_OPERATION:
-            {
-                errorString = "GL_INVALID_OPERATION";
-                break;
-            }
-            case GL_OUT_OF_MEMORY:
-            {
-                errorString = "GL_OUT_OF_MEMORY";
-                break;
-            }
-            case GL_INVALID_FRAMEBUFFER_OPERATION:
-            {
-                errorString = "GL_INVALID_FRAMEBUFFER_OPERATION";
-                break;
-            }
-            default:
-            {
-                errorString = "Other";
-                break;
-            }
-        }
-    }
-}
+	Renderer::initialize(size);
+	resize(size);
 
-void OpenGLRenderer::initialize(const Size &screenSize)
-{
-	Renderer::initialize(screenSize);
+	std::vector<GLuint> shaders;
+	shaders.push_back(loadShader("shaders/gl/shader.vert", GL_VERTEX_SHADER));
+	shaders.push_back(loadShader("shaders/gl/shader.frag", GL_FRAGMENT_SHADER));
+	program = createProgram(shaders);
 
-    bool success = false;
-
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
-    {
-		if (useGLES)
-		{
-			SDL_DisplayMode displayMode;
-			SDL_GetCurrentDisplayMode(0, &displayMode);
-			
-			win = SDL_CreateWindow("Boiler", 0, 0, displayMode.w, displayMode.h, SDL_WINDOW_OPENGL);
-			setScreenSize(Size(displayMode.w, displayMode.h));
-		}
-		else
-		{
-			SDL_WindowFlags winFlags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-			win = SDL_CreateWindow("Boiler", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenSize.width, screenSize.height, winFlags);
-			setScreenSize(screenSize);
-		}
-
-        if (win)
-        {
-            // setup opengl
-            std::string shaderPath;
-            if (useGLES)
-            {
-                shaderPath = "data/shaders/es3/";
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-            }
-            else
-            {
-                shaderPath = "data/shaders/";
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-                SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-            }
-
-            glContext = SDL_GL_CreateContext(win);
-            if (glContext)
-            {
-                logger.log("Using Context: OpenGL " + std::string((const char *)glGetString(GL_VERSION)));
-                setupGLExtensions();
-
-				try
-				{
-					// compile the default shader program
-					program = std::make_unique<GLSLShaderProgram>(shaderPath, "basic.vert", "basic.frag");
-					success = true;
-				}
-				catch (int exception)
-				{
-				}
-            }
-        }
-    }
-
-    if (!success)
-    {
-        std::cout << "Error Initializing SDL: " << SDL_GetError() << std::endl;
-    }
-    // setup a RBO for a colour target
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, getScreenSize().width, getScreenSize().height);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-    // setup the FBO
-    glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rbo);
-
-    // make sure FBO is all good
-    GLenum fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
-    {
-        logger.error("Error initializing FBO / RBO target.");
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // enable blending on all buffers
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	// depth testing
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEBUG_OUTPUT);
+
+	glDebugMessageCallback(message_callback, nullptr);
+
+	for (auto v : vertex_positions)
+	{
+		verts.push_back(Vert(glm::vec4(v, 1), glm::vec4(1, 1, 1, 1)));
+	}
+
+	glCreateVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glCreateBuffers(1, &vertsVbo);
+	glNamedBufferStorage(vertsVbo, sizeof(Vert) * verts.size(), verts.data(), 0);
+
+	// setup position attribute
+	glEnableVertexArrayAttrib(vao, 0);
+	glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, offsetof(Vert, position));
+	glVertexArrayAttribBinding(vao, 0, 0);
+
+	// setup color attribute
+	glEnableVertexArrayAttrib(vao, 1);
+	glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, offsetof(Vert, color));
+	glVertexArrayAttribBinding(vao, 1, 0);
+
+	// single buffer binding
+	glVertexArrayVertexBuffer(vao, 0, vertsVbo, 0, sizeof(Vert));
 }
 
-void OpenGLRenderer::resize(const Size &size)
+void Boiler::OpenGLRenderer::shutdown()
+{
+	glDeleteBuffers(1, &vertsVbo);
+	glDeleteVertexArrays(1, &vao);
+	glDeleteProgram(program);
+}
+
+void Boiler::OpenGLRenderer::prepareShutdown()
+{
+}
+
+void Boiler::OpenGLRenderer::resize(const Boiler::Size &size)
 {
 	Renderer::resize(size);
-	throw std::runtime_error("Resize not implemented!");
+	glViewport(0, 0, size.width, size.height);
+	perspective = glm::perspective(45.0f, static_cast<float>(size.width) / size.height, 0.1f, 1000.0f);
 }
 
-std::shared_ptr<const Texture> OpenGLRenderer::createTexture(const std::string &filePath, const Size &textureSize,
-															 const void *pixelData, uint8_t bytesPerPixel) const
+std::string Boiler::OpenGLRenderer::getVersion() const
 {
-    GLuint texId;
-    // create the opengl texture and fill it with surface data
-    glGenTextures(1, &texId);
-
-    glBindTexture(GL_TEXTURE_2D, texId);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, textureSize.width, textureSize.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelData);
-
-    // set nearest neighbour filtering
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    // unbind the texId 
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    if (glGetError() != GL_NO_ERROR)
-    {
-        logger.error("Unable to create GL texId.");
-    }
-    else
-    {
-        logger.log("Created texture with ID: " + std::to_string(texId));
-    }
-
-    return std::make_shared<OpenGLTexture>(filePath, texId);
+	return "1.0";
 }
 
-void OpenGLRenderer::setActiveTexture(const std::shared_ptr<const Texture> texture) const
+Boiler::AssetId Boiler::OpenGLRenderer::loadTexture(const Boiler::ImageData &imageData, Boiler::TextureType type)
 {
-    auto tex = std::static_pointer_cast<const OpenGLTexture>(texture);
-    // the sprite becomes TEXTURE0 in the shader
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex->getOpenGLTextureId());
+	return 0;
 }
 
-/*
-std::shared_ptr<const Model> OpenGLRenderer::loadModel(const VertexData &data) const
+Boiler::AssetId Boiler::OpenGLRenderer::loadCubemap(const std::array<ImageData, 6> &images)
 {
-    return std::make_shared<OpenGLModel>(data);
-}
-*/
-
-void OpenGLRenderer::beginRender()
-{
-    if (program)
-    {
-		renderDetails.shaderProgram = program.get();
-        // grab the uniform locations
-        glUseProgram(program->getShaderProgram());
-        renderDetails.mvpUniform = glGetUniformLocation(program->getShaderProgram(), "MVP");
-        renderDetails.colorUniform = glGetUniformLocation(program->getShaderProgram(), "entityColor");
-		
-		// prepare the matrices
-		const Size screenSize = getScreenSize();
-		const GLfloat orthoW = screenSize.width /  getGlobalScale().x;
-		const GLfloat orthoH = screenSize.height / getGlobalScale().y;
-
-		::mat4 projection = glm::perspective(glm::radians(45.0f), screenSize.width / screenSize.height, 0.1f, 100.0f);
-		::mat4 view = ::mat4(1.0f);
-		view = translate(view, vec3(0, 0, -3.0f));
-		renderDetails.viewProjection = projection * view;
-		//renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f);
-		//renderDetails.viewProjection = glm::ortho(0.0f, static_cast<GLfloat>(orthoW), static_cast<GLfloat>(orthoH), 0.0f, -1.0f, 1.0f);
-    }
-
-	const GLfloat color[] = { getClearColor().r, getClearColor().g, getClearColor().b, 1.0f};
-	const GLfloat depth[] = { 0, 0, 0, 0 };
-	glClearBufferfv(GL_COLOR, 0, color);
-	//glClearBufferfv(GL_DEPTH, 0, depth);
-	glClear(GL_DEPTH_BUFFER_BIT);
+	return 0;
 }
 
-void OpenGLRenderer::endRender()
+Boiler::AssetId Boiler::OpenGLRenderer::loadPrimitive(const Boiler::VertexData &data, Boiler::AssetId existingId)
 {
-    SDL_GL_SwapWindow(win);
-    glUseProgram(0);
+	return 0;
 }
 
-void OpenGLRenderer::render(const mat4 modelMatrix, const std::shared_ptr<const Model> model,
-							const std::shared_ptr<const Texture> sourceTexture, const TextureInfo *textureInfo,
-							const vec4 &colour)
+Boiler::AssetId Boiler::OpenGLRenderer::createBuffer(size_t size, Boiler::BufferUsage usage, Boiler::MemoryType memType)
 {
-	glUseProgram(program->getShaderProgram());
-	if (model)
-    {
-        auto oglModel = std::static_pointer_cast<const OpenGLModel>(model);
-
-        // set the vao for the current sprite
-        glBindVertexArray(oglModel->getVao());
-
-		if (textureInfo)
-		{
-			auto *oglTexInfo = static_cast<const OpenGLTextureInfo *>(textureInfo);
-
-			// binds the current frames texture VBO and ensure it is linked to the current VAO
-			glBindBuffer(GL_ARRAY_BUFFER, oglTexInfo->getTexCoordsVbo());
-            glVertexAttribPointer((GLuint)AttribArray::Texture, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-			// set the current texture
-			setActiveTexture(sourceTexture);
-		}
-		glUniform4fv(renderDetails.colorUniform, 1, glm::value_ptr(colour));
-
-		//const glm::mat4 mvpMatrix = renderDetails.viewProjection * modelMatrix;
-		const mat4 mvpMatrix = renderDetails.viewProjection * modelMatrix;
-		glUniformMatrix4fv(renderDetails.mvpUniform, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
-
-		// draw the entity
-		//glDrawArrays(GL_TRIANGLES, 0, model->getNumVertices());
-		glBindVertexArray(0);
-
-		GLenum glError = glGetError();
-		if (glError != GL_NO_ERROR)
-		{
-			logger.error("GL Error returned: " + std::to_string(glError));
-		}
-	}
+	return 0;
 }
 
-/*
-void OpenGLRenderer::render(const PositionComponent &position, const SpriteComponent &sprite) const
+void Boiler::OpenGLRenderer::updateLights(const std::vector<LightSource> &lightSources) const
 {
-	render(position.toAbsolute(), sprite.model, sprite.spriteFrame->getSourceTexture(),
-		   sprite.spriteFrame->getTexCoordsVbo(), sprite.colour);
+
 }
 
-void OpenGLRenderer::render(const PositionComponent &position, const TextComponent &text) const
+void Boiler::OpenGLRenderer::updateMaterials(const std::vector<ShaderMaterial> &materials) const
 {
-	const GlyphMap &glyphMap = *text.glyphMap;
+}
 
-	float xOffset = 0;
-    for (char character : text.text)
+bool Boiler::OpenGLRenderer::prepareFrame(const Boiler::FrameInfo &frameInfo)
+{
+	if (Renderer::prepareFrame(frameInfo))
 	{
-        const Glyph &glyph = glyphMap[static_cast<unsigned long>(character)];
-
-		PositionComponent glyphPos = position.toAbsolute();
-		glyphPos.frame.position.x += xOffset + glyph.getBearing().x;
-		glyphPos.frame.position.y += -glyph.getBearing().y;
-
-		render(glyphPos, glyph.getModel(), glyphMap.getSourceTexture(), glyph.getTexCoordsVbo(), text.colour);
-
-		// move to the next character position
-		xOffset += (glyph.getAdvance() >> 6);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		return true;
 	}
+	return false;
 }
-*/
 
-OpenGLRenderer::~OpenGLRenderer()
+void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::FrameInfo &frameInfo,
+	const std::vector<MaterialGroup> &materialGroups, Boiler::RenderStage stage)
 {
-    if (glContext)
-    {
-		logger.log("Destroying GL Context");
-        SDL_GL_DeleteContext(glContext);
-    }
-    if (win)
-    {
-		logger.log("Destroing Window");
-        SDL_DestroyWindow(win);
-    }
-    glDeleteRenderbuffers(1, &rbo);
-    glDeleteFramebuffers(1, &fbo);
 
-	SDL_VideoQuit();
+	const GLfloat clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearBufferfv(GL_COLOR, 0, clearColor);
+
+	glUseProgram(program);
+	float f = (float)frameInfo.globalTime * glm::pi<float>() * 0.2f;
+
+	glm::vec3 eye(0, 0, fabs(sinf(f)) - 2.0f);
+	view = glm::lookAt(eye, eye + glm::vec3(0, 0, 1), glm::vec3(0, 1, 0));
+
+	glm::mat4 modelMat = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0)) *
+		glm::scale(glm::mat4(1), glm::vec3(1, 1, 1)) *
+		glm::rotate(glm::mat4(1), f, glm::vec3(0, 1, 0));
+
+	glm::mat4 mv = perspective * view * modelMat;
+
+	glUniformMatrix4fv(2, 1, GL_FALSE, &mv[0][0]);
+
+	glDrawArrays(GL_TRIANGLES, 0, (GLuint)verts.size());
+}
+
+void Boiler::OpenGLRenderer::displayFrame(const Boiler::FrameInfo &frameInfo, Boiler::AssetSet &assetSet)
+{
+}
+
+GLuint loadShader(const std::string &shaderPath, GLuint shaderType)
+{
+	std::string source = Boiler::FileManager::readTextFile(shaderPath);
+	GLuint shader = glCreateShader(shaderType);
+	const GLchar *srcPtr = source.c_str();
+	glShaderSource(shader, 1, &srcPtr, nullptr);
+	glCompileShader(shader);
+
+	GLint compileStatus;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
+	if (compileStatus != GL_TRUE)
+	{
+		GLint maxLength = 0;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+
+		std::vector<GLchar> infoLog(maxLength);
+		glGetShaderInfoLog(shader, maxLength, &maxLength, infoLog.data());
+		std::cout << infoLog.data() << std::endl;
+
+		glDeleteShader(shader);
+		exit(EXIT_FAILURE);
+	}
+
+	return shader;
+}
+
+GLuint createProgram(std::vector<GLuint> &shaders)
+{
+	GLuint program = glCreateProgram();
+	for (GLuint shader : shaders)
+	{
+		glAttachShader(program, shader);
+	}
+	glLinkProgram(program);
+
+	GLint linkStatus;
+	glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+	if (linkStatus == GL_FALSE)
+	{
+		GLint maxLength = 0;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
+
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(program, maxLength, &maxLength, infoLog.data());
+		std::cout << infoLog.data() << std::endl;
+
+		glDeleteProgram(program);
+		exit(EXIT_FAILURE);
+	}
+
+	for (GLuint shader : shaders)
+	{
+		glDeleteShader(shader);
+	}
+
+	return program;
+}
+
+void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *user_param)
+{
+	auto const src_str = [source]() {
+		switch (source)
+		{
+			case GL_DEBUG_SOURCE_API: return "API";
+			case GL_DEBUG_SOURCE_WINDOW_SYSTEM: return "WINDOW SYSTEM";
+			case GL_DEBUG_SOURCE_SHADER_COMPILER: return "SHADER COMPILER";
+			case GL_DEBUG_SOURCE_THIRD_PARTY: return "THIRD PARTY";
+			case GL_DEBUG_SOURCE_APPLICATION: return "APPLICATION";
+			case GL_DEBUG_SOURCE_OTHER:
+			default: return "OTHER";
+		}
+	}();
+
+	auto const type_str = [type]() {
+		switch (type)
+		{
+			case GL_DEBUG_TYPE_ERROR: return "ERROR";
+			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: return "DEPRECATED_BEHAVIOR";
+			case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: return "UNDEFINED_BEHAVIOR";
+			case GL_DEBUG_TYPE_PORTABILITY: return "PORTABILITY";
+			case GL_DEBUG_TYPE_PERFORMANCE: return "PERFORMANCE";
+			case GL_DEBUG_TYPE_MARKER: return "MARKER";
+			case GL_DEBUG_TYPE_OTHER:
+			default:return "OTHER";
+		}
+	}();
+
+	auto const severity_str = [severity]() {
+		switch (severity) {
+			case GL_DEBUG_SEVERITY_NOTIFICATION: return "NOTIFICATION";
+			case GL_DEBUG_SEVERITY_LOW: return "LOW";
+			case GL_DEBUG_SEVERITY_MEDIUM: return "MEDIUM";
+			case GL_DEBUG_SEVERITY_HIGH: return "HIGH";
+			default: return "UNKNOWN";
+		}
+	}();
+	std::cout << src_str << ", " << type_str << ", " << severity_str << ", " << id << ": " << message << '\n';
 }

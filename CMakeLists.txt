@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2)
-project(boiler CXX)
+project(boiler C CXX)
 
 include(ExternalProject)
 
@@ -10,6 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
+find_package(OpenGL REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -54,6 +55,8 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/display/systems/debugrendersystem.h
   ${INCLUDE_BASE}/display/opengl.h
   ${INCLUDE_BASE}/display/renderer.h
+  ${INCLUDE_BASE}/display/openglrenderer.h
+  ${INCLUDE_BASE}/display/vulkanrenderer.h
   ${INCLUDE_BASE}/display/lightsource.h
   ${INCLUDE_BASE}/display/texture.h
   ${INCLUDE_BASE}/display/imaging/imagedata.h
@@ -86,7 +89,8 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/physics/sphere.h
   ${INCLUDE_BASE}/camera/camerasystem.h
   ${INCLUDE_BASE}/assets/gltfmodel.h
-  ${INCLUDE_BASE}/assets/maps/sceneobject.h)
+  ${INCLUDE_BASE}/assets/maps/sceneobject.h
+  ${INCLUDE_BASE}/external/glad/glad.h)
 
 # Engine related sources
 set(SRC_BASE ${CMAKE_CURRENT_LIST_DIR}/src)
@@ -119,7 +123,8 @@ set(BOILER_SOURCES
   ${SRC_BASE}/platform/sdlwindow.cpp
 
   # display and Rendering
-  #${SRC_BASE}/display/openglrenderer.cpp
+  ${SRC_BASE}/ext/glad/glad.c
+  ${SRC_BASE}/display/openglrenderer.cpp
   #${SRC_BASE}/display/opengltexture.cpp
   #${SRC_BASE}/display/openglmodel.cpp
   #${SRC_BASE}/display/glslshaderprogram.cpp
@@ -162,19 +167,19 @@ add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
 target_include_directories(boiler
   INTERFACE
+  ${INCLUDE_BASE}/external
   ${SRC_BASE}/ext
   ${INCLUDE_BASE}
   PRIVATE
   ${INCLUDE_BASE}
+  ${INCLUDE_BASE}/external
   ${INCLUDE_BASE}/tinyxml2
   Freetype::Freetype
   boiler_deps)
 
-#target_compile_options(boiler PRIVATE -Werror -Wall -Wextra)
-
 target_link_libraries(boiler
   boiler_deps
-  #SDL2::SDL2main SDL2::SDL2
+  OpenGL::GL
   Freetype::Freetype
   Vulkan::Vulkan
   ZLIB::ZLIB

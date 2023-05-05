@@ -12,7 +12,7 @@
 
 #elif _WIN32
 
-#include <GL/glew.h>
+#include "external/glad/glad.h"
 #include <GL/gl.h>
 
 #else

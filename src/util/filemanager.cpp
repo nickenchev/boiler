@@ -1,4 +1,5 @@
 #include <fstream>
+#include  <sstream>
 #include "util/filemanager.h"
 #include "core/logger.h"
 
