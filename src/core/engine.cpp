@@ -117,6 +117,7 @@ void Engine::step()
 
 	// frame update / catchup phase if lagging
 	frameLag += frameInfo.frameTime;
+	frameInfo.globalTime = globalTime;
 	while (frameLag >= updateInterval)
 	{
         part->update(frameInfo);
