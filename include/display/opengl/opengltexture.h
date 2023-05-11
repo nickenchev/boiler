@@ -2,7 +2,7 @@
 #define OPENGLTEXTURE_H
 
 #include <string>
-#include "texture.h"
+#include "../texture.h"
 
 namespace Boiler
 {

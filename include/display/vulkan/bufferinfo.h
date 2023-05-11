@@ -1,7 +1,7 @@
 #ifndef BUFFERINFO_H
 #define BUFFERINFO_H
 
-#include "display/vulkan.h"
+#include "vulkan.h"
 
 namespace Boiler { namespace Vulkan {
 struct BufferInfo

@@ -3,8 +3,8 @@
 
 #include <vector>
 #include <array>
-#include "core/logger.h"
-#include "display/vulkan.h"
+#include <core/logger.h>
+#include "vulkan.h"
 
 namespace Boiler { namespace Vulkan {
 

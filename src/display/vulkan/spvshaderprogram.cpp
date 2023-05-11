@@ -1,4 +1,4 @@
-#include "display/spvshaderprogram.h"
+#include "display/vulkan/spvshaderprogram.h"
 #include "util/filemanager.h"
 
 using namespace Boiler::Vulkan;

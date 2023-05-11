@@ -9,16 +9,15 @@
 struct SDL_Window;
 
 #include "core/assetmanager.h"
-#include "display/vulkan.h"
-#include "display/renderer.h"
-
-#include "display/vulkan/bufferinfo.h"
-#include "display/vulkan/primitivebuffers.h"
-#include "display/vulkan/textureimage.h"
-#include "display/vulkan/shaderstagemodules.h"
-#include "display/vulkan/graphicspipelinebuilder.h"
-#include "display/vulkan/descriptorset.h"
-#include "display/vulkan/sampler.h"
+#include "vulkan.h"
+#include "../renderer.h"
+#include "bufferinfo.h"
+#include "primitivebuffers.h"
+#include "textureimage.h"
+#include "shaderstagemodules.h"
+#include "graphicspipelinebuilder.h"
+#include "descriptorset.h"
+#include "sampler.h"
 
 namespace Boiler
 {

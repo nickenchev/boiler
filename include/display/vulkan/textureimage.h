@@ -1,7 +1,7 @@
 #ifndef TEXTUREIMAGE_H
 #define TEXTUREIMAGE_H
 
-#include "display/vulkan.h"
+#include "vulkan.h"
 
 namespace Boiler {
 

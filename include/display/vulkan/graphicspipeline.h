@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "display/vulkan.h"
+#include "display/vulkan/vulkan.h"
 
 namespace Boiler { namespace Vulkan {
 

@@ -1,12 +1,43 @@
 #pragma once
 
 #include <display/renderer.h>
+#include <display/primitive.h>
+#include <display/opengl/opengl.h>
 
 namespace Boiler
 {
 
+class PrimitiveBuffers : public Asset
+{
+	GLuint vertexArrayObject, vertexBuffer, indexBuffer;
+	unsigned int indices;
+
+public:
+	PrimitiveBuffers()
+	{
+		vertexArrayObject = 0;
+		vertexBuffer = 0;
+		indexBuffer = 0;
+		indices = 0;
+	}
+
+	PrimitiveBuffers(GLuint vertexArrayObject, GLuint vertexBuffer, GLuint indexBuffer)
+	{
+		this->vertexArrayObject = vertexArrayObject;
+		this->vertexBuffer = vertexBuffer;
+		this->indexBuffer = indexBuffer;
+	}
+
+	GLuint getVertexArrayObject() const { return vertexArrayObject; }
+	GLuint getVertexBuffer() const { return vertexBuffer; }
+	GLuint getIndexBuffer() const { return indexBuffer; }
+};
+
 class OpenGLRenderer : public Renderer
 {
+	Boiler::AssetManager<PrimitiveBuffers, 2048> primitiveBuffers;
+	Boiler::AssetManager<Boiler::Primitive, 2048> primitives;
+
 public:
     OpenGLRenderer();
     ~OpenGLRenderer() override;

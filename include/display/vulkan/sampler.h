@@ -2,7 +2,7 @@
 #define SAMPLER_H
 
 #include <stdexcept>
-#include "display/vulkan.h"
+#include "vulkan.h"
 
 constexpr int maxAnistrophy = 16;
 

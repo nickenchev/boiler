@@ -3,7 +3,6 @@
 #include <stdexcept>
 
 #include "core/common.h"
-#include "display/opengl.h"
 #include "boiler.h"
 #include "display/renderer.h"
 #include "core/part.h"

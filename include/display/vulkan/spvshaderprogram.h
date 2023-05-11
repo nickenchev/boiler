@@ -3,9 +3,9 @@
 
 #include <string>
 #include <vector>
-#include "display/vulkan.h"
+#include "vulkan.h"
 
-#include "shaderprogram.h"
+#include "../shaderprogram.h"
 #include "core/logger.h"
 
 namespace Boiler { namespace Vulkan {

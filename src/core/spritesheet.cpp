@@ -1,6 +1,6 @@
 #include <iostream>
 #include "core/spritesheet.h"
-#include "display/opengl.h"
+#include "display/opengl/opengl.h"
 
 using namespace Boiler;
 

@@ -53,10 +53,10 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/containers/gridposition.h
   ${INCLUDE_BASE}/display/systems/textsystem.h
   ${INCLUDE_BASE}/display/systems/debugrendersystem.h
-  ${INCLUDE_BASE}/display/opengl.h
+  ${INCLUDE_BASE}/display/opengl/opengl.h
   ${INCLUDE_BASE}/display/renderer.h
-  ${INCLUDE_BASE}/display/openglrenderer.h
-  ${INCLUDE_BASE}/display/vulkanrenderer.h
+  ${INCLUDE_BASE}/display/opengl/openglrenderer.h
+  ${INCLUDE_BASE}/display/vulkan/vulkanrenderer.h
   ${INCLUDE_BASE}/display/lightsource.h
   ${INCLUDE_BASE}/display/texture.h
   ${INCLUDE_BASE}/display/imaging/imagedata.h
@@ -116,7 +116,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/display/renderer.cpp
   ${SRC_BASE}/display/primitive.cpp
   # Vulkan Rendering
-  ${SRC_BASE}/display/vulkanrenderer.cpp
+  ${SRC_BASE}/display/vulkan/vulkanrenderer.cpp
   ${SRC_BASE}/display/vulkan/graphicspipeline.cpp
 
   # Platform Support
@@ -124,11 +124,11 @@ set(BOILER_SOURCES
 
   # display and Rendering
   ${SRC_BASE}/ext/glad/glad.c
-  ${SRC_BASE}/display/openglrenderer.cpp
+  ${SRC_BASE}/display/opengl/openglrenderer.cpp
   #${SRC_BASE}/display/opengltexture.cpp
   #${SRC_BASE}/display/openglmodel.cpp
   #${SRC_BASE}/display/glslshaderprogram.cpp
-  ${SRC_BASE}/display/spvshaderprogram.cpp
+  ${SRC_BASE}/display/vulkan/spvshaderprogram.cpp
   ${SRC_BASE}/display/skyboxloader.cpp
   ${SRC_BASE}/display/imaging/stb.cpp
   ${SRC_BASE}/display/imaging/imageloader.cpp

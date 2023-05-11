@@ -26,7 +26,7 @@ class GLTFImporter
 	Logger logger;
 
     Entity loadNode(const gltf::Model &model, std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const;
-	VertexData loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive);
+	VertexData getPrimitiveData(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive);
 
 public:
     GLTFImporter(Boiler::Engine &engine);

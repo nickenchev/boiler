@@ -1,95 +1,15 @@
 #include <vector>
-#include <display/openglrenderer.h>
-#include <glad/glad.h>
+#include <display/opengl/openglrenderer.h>
 #include <util/filemanager.h>
 
-void configureOpenGL();
-void createVertexData();
+using namespace Boiler;
+
 GLuint loadShader(const std::string &shaderPath, GLuint shaderType);
 GLuint createProgram(std::vector<GLuint> &shaders);
-std::string readTextFile(const std::string &filePath);
-void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *user_param);
+void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *user_param);
 
-const GLuint width = 1920;
-const GLuint height = 1080;
-GLuint vao, vertsVbo, program;
+GLuint program;
 glm::mat4 perspective(1), view(1);
-
-struct Vert
-{
-	glm::vec4 position;
-	glm::vec4 color;
-
-	Vert()
-	{
-	}
-
-	Vert(glm::vec4 position, glm::vec4 color)
-	{
-		this->position = position;
-		this->color = color;
-	}
-
-	Vert(glm::vec4 position)
-	{
-		this->position = position;
-		this->color = { 1.0f, 1.0f, 1.0f, 1.0f };
-	}
-};
-
-static const std::array<glm::vec3, 36> vertex_positions =
-{
-	glm::vec3
-	{-0.25f,  0.25f, -0.25f},
-	{-0.25f, -0.25f, -0.25f},
-	{0.25f, -0.25f, -0.25f},
-
-	{ 0.25f, -0.25f, -0.25f },
-	{ 0.25f,  0.25f, -0.25f },
-	{ -0.25f,  0.25f, -0.25f },
-
-	{ 0.25f, -0.25f, -0.25f },
-	{ 0.25f, -0.25f,  0.25f },
-	{ 0.25f,  0.25f, -0.25f },
-
-	{ 0.25f, -0.25f,  0.25f },
-	{ 0.25f,  0.25f,  0.25f },
-	{ 0.25f,  0.25f, -0.25f },
-
-	{ 0.25f, -0.25f,  0.25f },
-	{ -0.25f, -0.25f,  0.25f },
-	{ 0.25f,  0.25f,  0.25f },
-
-	{ -0.25f, -0.25f,  0.25f },
-	{ -0.25f,  0.25f,  0.25f },
-	{ 0.25f,  0.25f,  0.25f },
-
-	{ -0.25f, -0.25f,  0.25f },
-	{ -0.25f, -0.25f, -0.25f },
-	{ -0.25f,  0.25f,  0.25f },
-
-	{ -0.25f, -0.25f, -0.25f },
-	{ -0.25f,  0.25f, -0.25f },
-	{ -0.25f,  0.25f,  0.25f },
-
-	{ -0.25f, -0.25f,  0.25f },
-	{ 0.25f, -0.25f,  0.25f },
-	{ 0.25f, -0.25f, -0.25f },
-
-	{ 0.25f, -0.25f, -0.25f },
-	{ -0.25f, -0.25f, -0.25f },
-	{ -0.25f, -0.25f,  0.25f },
-
-	{ -0.25f,  0.25f, -0.25f },
-	{ 0.25f,  0.25f, -0.25f },
-	{ 0.25f,  0.25f,  0.25f },
-
-	{ 0.25f,  0.25f,  0.25f },
-	{ -0.25f,  0.25f,  0.25f },
-	{ -0.25f,  0.25f, -0.25f }
-};
-
-std::vector<Vert> verts;
 
 Boiler::OpenGLRenderer::OpenGLRenderer() : Renderer("OpenGL Renderer", 1)
 {
@@ -112,37 +32,27 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT);
 
-	glDebugMessageCallback(message_callback, nullptr);
-
-	for (auto v : vertex_positions)
-	{
-		verts.push_back(Vert(glm::vec4(v, 1), glm::vec4(1, 1, 1, 1)));
-	}
-
-	glCreateVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-	glCreateBuffers(1, &vertsVbo);
-	glNamedBufferStorage(vertsVbo, sizeof(Vert) * verts.size(), verts.data(), 0);
-
-	// setup position attribute
-	glEnableVertexArrayAttrib(vao, 0);
-	glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, offsetof(Vert, position));
-	glVertexArrayAttribBinding(vao, 0, 0);
-
-	// setup color attribute
-	glEnableVertexArrayAttrib(vao, 1);
-	glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, offsetof(Vert, color));
-	glVertexArrayAttribBinding(vao, 1, 0);
-
-	// single buffer binding
-	glVertexArrayVertexBuffer(vao, 0, vertsVbo, 0, sizeof(Vert));
+	glDebugMessageCallback(messageCallback, nullptr);
 }
 
 void Boiler::OpenGLRenderer::shutdown()
 {
-	glDeleteBuffers(1, &vertsVbo);
-	glDeleteVertexArrays(1, &vao);
+	for (int i = 0; i < primitives.getSize(); ++i)
+	{
+		if (primitives.isOccupied(i))
+		{
+			const Primitive prim = primitives[i];
+			const PrimitiveBuffers pb = primitiveBuffers[prim.bufferId];
+			// vertex and index buffer
+			std::array<GLuint, 2> buffers = { pb.getVertexBuffer(), pb.getIndexBuffer() };
+			glDeleteBuffers(buffers.size(), buffers.data());
+
+			// VBO
+			std::array<GLuint, 1> vbos = { pb.getVertexArrayObject() };
+			glDeleteVertexArrays(vbos.size(), vbos.data());
+
+		}
+	}
 	glDeleteProgram(program);
 }
 
@@ -174,7 +84,37 @@ Boiler::AssetId Boiler::OpenGLRenderer::loadCubemap(const std::array<ImageData, 
 
 Boiler::AssetId Boiler::OpenGLRenderer::loadPrimitive(const Boiler::VertexData &data, Boiler::AssetId existingId)
 {
-	return 0;
+	GLuint vao, buffers[2];
+	glCreateVertexArrays(1, &vao);
+
+	// create index and vertex buffers
+	glCreateBuffers(2, buffers);
+	glNamedBufferStorage(buffers[0], data.vertexByteSize(), data.vertexBegin(), 0);
+	glNamedBufferStorage(buffers[1], data.indexByteSize(), data.indexBegin(), 0);
+
+	// bind buffers
+	glVertexArrayVertexBuffer(vao, 0, buffers[0], 0, sizeof(Vertex));
+	glVertexArrayElementBuffer(vao, buffers[1]);
+
+	// setup array attributes and their associated buffers
+	glEnableVertexArrayAttrib(vao, 0);
+	glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
+	glVertexArrayAttribBinding(vao, 0, 0);
+
+	glEnableVertexArrayAttrib(vao, 1);
+	glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, colour));
+	glVertexArrayAttribBinding(vao, 1, 0);
+
+	glEnableVertexArrayAttrib(vao, 2);
+	glVertexArrayAttribFormat(vao, 2, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, textureCoordinates));
+	glVertexArrayAttribBinding(vao, 2, 0);
+
+	glEnableVertexArrayAttrib(vao, 3);
+	glVertexArrayAttribFormat(vao, 3, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, normal));
+	glVertexArrayAttribBinding(vao, 3, 0);
+
+	// return the asset ID grouping these buffers
+	return primitiveBuffers.add(PrimitiveBuffers(vao, buffers[0], buffers[1]));
 }
 
 Boiler::AssetId Boiler::OpenGLRenderer::createBuffer(size_t size, Boiler::BufferUsage usage, Boiler::MemoryType memType)
@@ -204,26 +144,26 @@ bool Boiler::OpenGLRenderer::prepareFrame(const Boiler::FrameInfo &frameInfo)
 void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::FrameInfo &frameInfo,
 	const std::vector<MaterialGroup> &materialGroups, Boiler::RenderStage stage)
 {
+	if (stage == RenderStage::PRE_DEFERRED_LIGHTING)
+	{
+		glUseProgram(program);
 
-	const GLfloat clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glClearBufferfv(GL_COLOR, 0, clearColor);
+		for (const MaterialGroup &matGroup : materialGroups)
+		{
+			for (const auto &primitiveInstance : matGroup.primitives)
+			{
+				const Primitive &primitive = assetSet.primitives.get(primitiveInstance.primitiveId);
+				const PrimitiveBuffers &buffers = primitiveBuffers.get(primitive.bufferId);
 
-	glUseProgram(program);
-	float f = (float)frameInfo.globalTime * glm::pi<float>() * 0.2f;
+				glm::mat4 matrix = matrices.get(primitiveInstance.matrixId);
+				glm::mat4 mv = perspective * viewMatrix * matrix;
+				glUniformMatrix4fv(0, 1, GL_FALSE, &mv[0][0]);
 
-	glm::vec3 eye(0, 0, fabs(sinf(f)) - 2.0f);
-	view = glm::lookAt(eye, eye + glm::vec3(0, 0, 1), glm::vec3(0, 1, 0));
-
-	glm::mat4 modelMat = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0)) *
-		glm::scale(glm::mat4(1), glm::vec3(1, 1, 1)) *
-		glm::rotate(glm::mat4(1), f, glm::vec3(0, 1, 0));
-
-	glm::mat4 mv = perspective * view * modelMat;
-
-	glUniformMatrix4fv(2, 1, GL_FALSE, &mv[0][0]);
-
-	glDrawArrays(GL_TRIANGLES, 0, (GLuint)verts.size());
+				glBindVertexArray(buffers.getVertexArrayObject());
+				glDrawElements(GL_TRIANGLES, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
+			}
+		}
+	}
 }
 
 void Boiler::OpenGLRenderer::displayFrame(const Boiler::FrameInfo &frameInfo, Boiler::AssetSet &assetSet)
@@ -288,7 +228,7 @@ GLuint createProgram(std::vector<GLuint> &shaders)
 	return program;
 }
 
-void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *user_param)
+void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *user_param)
 {
 	auto const src_str = [source]() {
 		switch (source)

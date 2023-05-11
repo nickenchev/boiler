@@ -16,7 +16,6 @@ public:
 
 	GlyphMap()
 	{
-		materialId = Asset::NO_ASSET;
 	}
 	
     GlyphMap(AssetId materialId, const std::unordered_map<unsigned long, const Glyph> &map) : materialId(materialId), map(std::move(map))

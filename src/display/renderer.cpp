@@ -4,7 +4,6 @@ using namespace Boiler;
 
 Renderer::Renderer(std::string name, unsigned short maxFramesInFlight) : clearColor(0, 0, 0), globalScale(1.0f, 1.0f), logger(name)
 {
-	assetId = 0;
 	frameLightIdx = 0;
 	this->maxFramesInFlight = maxFramesInFlight;
 }
@@ -25,7 +24,6 @@ bool Renderer::prepareFrame(const FrameInfo &frameInfo)
 	matrices.reset();
 	return true;
 }
-
 
 AssetId Renderer::addMatrix(mat4 matrix)
 {

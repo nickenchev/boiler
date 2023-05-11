@@ -71,7 +71,6 @@ class Renderer
 {
     vec3 clearColor;
     vec2 globalScale;
-	AssetId assetId;
 	unsigned short maxFramesInFlight;
 
 protected:

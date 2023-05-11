@@ -20,7 +20,7 @@ RenderSystem::RenderSystem(MatrixCache &matrixCache) : System("Render System"), 
 
 void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
-	// TODO: none of these can be fixed sizes
+	// TODO: none of these should be fixed sizes
 	std::vector<MaterialGroup> materialGroups, alphaGroups, postDepthGroups;
 	materialGroups.resize(512);
 	alphaGroups.resize(512);
@@ -52,7 +52,7 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 				{
 					matGroup = &postDepthGroups[primitive.materialId];
 				}
-				else if (material.alphaMode == AlphaMode::BLEND || material.alphaMode == AlphaMode::MASK) // TODO: Mask should be handled with discard
+				else if (material.alphaMode == AlphaMode::BLEND || material.alphaMode == AlphaMode::MASK) // TODO: Mask should be handled with discard in GLSL
 				{
 					matGroup = &alphaGroups[primitive.materialId];
 				}

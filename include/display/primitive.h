@@ -1,6 +1,4 @@
-#ifndef PRIMITIVE_H
-#define PRIMITIVE_H
-
+#pragma once
 #include "core/asset.h"
 #include "display/vertexdata.h"
 
@@ -12,11 +10,10 @@ class Primitive : public Asset
 	VertexData vertexData;
 
 public:
-	AssetId bufferId = Asset::NO_ASSET;
-	AssetId materialId = Asset::NO_ASSET;
+	AssetId bufferId, materialId;
 	vec3 min, max;
 
-	Primitive() { }
+	Primitive();
     Primitive(AssetId bufferId, VertexData &&vertexData, vec3 min, vec3 max);
 
 	const VertexData &getVertexData() const { return vertexData; }
@@ -24,5 +21,3 @@ public:
 };
 
 }
-
-#endif /* PRIMITIVE_H */

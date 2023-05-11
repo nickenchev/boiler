@@ -114,7 +114,7 @@ std::shared_ptr<GLTFModel> GLTFImporter::import(AssetSet &assetSet, const std::s
 
         for (auto &gltfPrimitive : mesh.primitives)
         {
-            VertexData vertexData = loadPrimitive(engine, modelAccess, gltfPrimitive);
+            VertexData vertexData = getPrimitiveData(engine, modelAccess, gltfPrimitive);
             AssetId bufferId = engine.getRenderer().loadPrimitive(vertexData);
 
             // TODO: generate collision volumes
@@ -188,7 +188,7 @@ std::shared_ptr<GLTFModel> GLTFImporter::import(AssetSet &assetSet, const std::s
     return std::make_shared<GLTFModel>(gltfPath, std::move(buffers), std::move(model), std::move(result));
 }
 
-VertexData GLTFImporter::loadPrimitive(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive)
+VertexData GLTFImporter::getPrimitiveData(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive)
 {
 	if (primitive.mode.has_value())
 	{

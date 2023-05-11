@@ -3,10 +3,10 @@
 
 #include <vector>
 #include <array>
-#include "display/vulkan.h"
-#include "display/vulkan/graphicspipeline.h"
-#include "display/vulkan/shaderstagemodules.h"
-#include "core/logger.h"
+#include <core/logger.h>
+#include "vulkan.h"
+#include "graphicspipeline.h"
+#include "shaderstagemodules.h"
 
 namespace Boiler { namespace Vulkan {
 

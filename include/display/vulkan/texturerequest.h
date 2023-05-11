@@ -2,7 +2,7 @@
 #define TEXTUREREQUEST_H
 
 #include "core/size.h"
-#include "display/vulkan.h"
+#include "vulkan.h"
 
 namespace Boiler { namespace Vulkan {
 
