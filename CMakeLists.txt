@@ -54,6 +54,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/display/systems/textsystem.h
   ${INCLUDE_BASE}/display/systems/debugrendersystem.h
   ${INCLUDE_BASE}/display/opengl/opengl.h
+  ${INCLUDE_BASE}/display/opengl/opengltexture.h
   ${INCLUDE_BASE}/display/renderer.h
   ${INCLUDE_BASE}/display/opengl/openglrenderer.h
   ${INCLUDE_BASE}/display/vulkan/vulkanrenderer.h
@@ -125,7 +126,7 @@ set(BOILER_SOURCES
   # display and Rendering
   ${SRC_BASE}/ext/glad/glad.c
   ${SRC_BASE}/display/opengl/openglrenderer.cpp
-  #${SRC_BASE}/display/opengltexture.cpp
+  ${SRC_BASE}/display/opengl/opengltexture.cpp
   #${SRC_BASE}/display/openglmodel.cpp
   #${SRC_BASE}/display/glslshaderprogram.cpp
   ${SRC_BASE}/display/vulkan/spvshaderprogram.cpp

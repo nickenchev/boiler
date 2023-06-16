@@ -1,24 +1,19 @@
 #ifndef OPENGLTEXTURE_H
 #define OPENGLTEXTURE_H
 
-#include <string>
-#include "../texture.h"
-
 namespace Boiler
 {
-
 struct Size;
 
-class OpenGLTexture : public Texture
+class OpenGLTexture
 {
-    unsigned int textureId;
+    unsigned int texture;
 
 public:
-    OpenGLTexture(const std::string filePath, unsigned int textureId);
-    OpenGLTexture(unsigned int textureId) : OpenGLTexture("", textureId) { }
-    ~OpenGLTexture();
+    OpenGLTexture() = default;
+    OpenGLTexture(unsigned int texture);
     
-    unsigned int getOpenGLTextureId() const { return textureId; }
+    unsigned int getOpenGLTextureId() const { return texture; }
 };
 
 }

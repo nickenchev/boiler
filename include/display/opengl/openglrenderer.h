@@ -3,6 +3,7 @@
 #include <display/renderer.h>
 #include <display/primitive.h>
 #include <display/opengl/opengl.h>
+#include "opengltexture.h"
 
 namespace Boiler
 {
@@ -37,6 +38,7 @@ class OpenGLRenderer : public Renderer
 {
 	Boiler::AssetManager<PrimitiveBuffers, 2048> primitiveBuffers;
 	Boiler::AssetManager<Boiler::Primitive, 2048> primitives;
+	AssetManager<OpenGLTexture, 512> textures;
 
 public:
     OpenGLRenderer();

@@ -40,7 +40,6 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 	currentFrame = 0;
 	frameCount = 0;
 	mouseRelativeMode = true;
-	//SDL_SetRelativeMouseMode(SDL_TRUE);
 	cleanedUp = false;
 	running = false;
 }
@@ -79,8 +78,8 @@ void Engine::initialize(const Size &initialSize)
     System &textSys = ecs.getComponentSystems().registerSystem<TextSystem>(SystemStage::RENDER);
     this->textSystem = &textSys;
 
-    System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(SystemStage::RENDER, *renderer, matrixCache);
-    this->debugRenderSystem = &debugRenderSys;
+    //System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(SystemStage::RENDER, *renderer, matrixCache);
+    //this->debugRenderSystem = &debugRenderSys;
 
 	/*
     System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(SystemStage::RENDER, *renderer);
@@ -94,7 +93,6 @@ void Engine::initialize(const Size &initialSize)
 Engine::~Engine()
 {
 	logger.log("Cleaning up");
-	//SDL_Quit();
 }
 
 void Engine::step()
@@ -285,7 +283,7 @@ void Engine::setMouseRelativeMode(bool enabled)
 {
 	mouseRelativeMode = enabled;
 	//SDL_SetRelativeMouseMode(mouseRelativeMode ? SDL_TRUE : SDL_FALSE);
-	static_cast<DebugRenderSystem *>(debugRenderSystem)->setEnabled(!mouseRelativeMode);
+	//static_cast<DebugRenderSystem *>(debugRenderSystem)->setEnabled(!mouseRelativeMode);
 }
 
 void Engine::setPart(std::shared_ptr<Part> part)

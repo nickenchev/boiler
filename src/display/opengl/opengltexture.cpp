@@ -1,20 +1,10 @@
 #include <iostream>
-#include "video/opengl.h"
-#include "video/opengltexture.h"
+#include <display/opengl/opengltexture.h>
 #include "core/rect.h"
 
 using namespace Boiler;
 
-OpenGLTexture::OpenGLTexture(const std::string filePath, unsigned int textureId) : Texture(filePath)
+OpenGLTexture::OpenGLTexture(unsigned int texture)
 {
-    this->textureId = textureId;
-}
-
-OpenGLTexture::~OpenGLTexture()
-{
-    std::cout << "* Deleting OpenGL Texture: " << textureId << " (" << getFilePath() << ")" << std::endl;
-    if (textureId)
-    {
-        glDeleteTextures(1, &textureId);
-    }
+    this->texture = texture;
 }

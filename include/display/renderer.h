@@ -18,7 +18,7 @@
 #include "core/assetmanager.h"
 #include "assets/assetset.h"
 
-#define MAX_OBJECTS 1000
+#define MAX_OBJECTS 4000
 
 namespace Boiler
 {

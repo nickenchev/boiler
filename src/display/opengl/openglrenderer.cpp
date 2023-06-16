@@ -1,6 +1,7 @@
 #include <vector>
 #include <display/opengl/openglrenderer.h>
 #include <util/filemanager.h>
+#include <display/imaging/imagedata.h>
 
 using namespace Boiler;
 
@@ -37,6 +38,7 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 
 void Boiler::OpenGLRenderer::shutdown()
 {
+	logger.log("Deleting primitives");
 	for (int i = 0; i < primitives.getSize(); ++i)
 	{
 		if (primitives.isOccupied(i))
@@ -53,6 +55,18 @@ void Boiler::OpenGLRenderer::shutdown()
 
 		}
 	}
+
+	logger.log("Deleting textures");
+	for (int i = 0; i < textures.getSize(); ++i)
+	{
+		if (textures.isOccupied(i))
+		{
+			const OpenGLTexture &texture = textures[i];
+			const GLuint oglTex = texture.getOpenGLTextureId();
+			glDeleteTextures(1, &oglTex);
+		}
+	}
+
 	glDeleteProgram(program);
 }
 
@@ -74,7 +88,13 @@ std::string Boiler::OpenGLRenderer::getVersion() const
 
 Boiler::AssetId Boiler::OpenGLRenderer::loadTexture(const Boiler::ImageData &imageData, Boiler::TextureType type)
 {
-	return 0;
+	GLuint texture;
+	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+	glTextureStorage2D(texture, 1, GL_SRGB8, imageData.size.width, imageData.size.height);
+	glTextureSubImage2D(texture, 0, 0, 0, imageData.size.width, imageData.size.height, GL_RGBA, GL_UNSIGNED_BYTE, imageData.pixelData);
+
+	AssetId texturerAssetId = textures.add(OpenGLTexture(texture));
+	return texturerAssetId;
 }
 
 Boiler::AssetId Boiler::OpenGLRenderer::loadCubemap(const std::array<ImageData, 6> &images)
@@ -115,6 +135,7 @@ Boiler::AssetId Boiler::OpenGLRenderer::loadPrimitive(const Boiler::VertexData &
 
 	// return the asset ID grouping these buffers
 	return primitiveBuffers.add(PrimitiveBuffers(vao, buffers[0], buffers[1]));
+	logger.log("Loaded primitive with vertex data size");
 }
 
 Boiler::AssetId Boiler::OpenGLRenderer::createBuffer(size_t size, Boiler::BufferUsage usage, Boiler::MemoryType memType)
@@ -150,17 +171,25 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 
 		for (const MaterialGroup &matGroup : materialGroups)
 		{
-			for (const auto &primitiveInstance : matGroup.primitives)
+			if (matGroup.materialId != Asset::NO_ASSET)
 			{
-				const Primitive &primitive = assetSet.primitives.get(primitiveInstance.primitiveId);
-				const PrimitiveBuffers &buffers = primitiveBuffers.get(primitive.bufferId);
+				const Material &material = assetSet.materials.get(matGroup.materialId);
+				const OpenGLTexture &texture = textures.get(material.baseTexture);
 
-				glm::mat4 matrix = matrices.get(primitiveInstance.matrixId);
-				glm::mat4 mv = perspective * viewMatrix * matrix;
-				glUniformMatrix4fv(0, 1, GL_FALSE, &mv[0][0]);
+				glBindTextureUnit(0, texture.getOpenGLTextureId());
+				for (const auto &primitiveInstance : matGroup.primitives)
+				{
+					const Primitive &primitive = assetSet.primitives.get(primitiveInstance.primitiveId);
+					const PrimitiveBuffers &buffers = primitiveBuffers.get(primitive.bufferId);
 
-				glBindVertexArray(buffers.getVertexArrayObject());
-				glDrawElements(GL_TRIANGLES, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
+					glm::mat4 matrix = matrices.get(primitiveInstance.matrixId);
+					glm::mat4 mv = perspective * viewMatrix * matrix;
+					glUniformMatrix4fv(0, 1, GL_FALSE, &mv[0][0]);
+
+					glBindVertexArray(buffers.getVertexArrayObject());
+					glDrawElements(GL_TRIANGLES, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
+				}
+				glBindTextureUnit(0, 0);
 			}
 		}
 	}
