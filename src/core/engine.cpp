@@ -31,10 +31,21 @@ using namespace Boiler;
 Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 									 baseDataPath(""), animator(ecs)
 {
+	animationSystem = nullptr;
+	cameraSystem = nullptr;
+	collisionSystem = nullptr;
+	debugRenderSystem = nullptr;
 	guiSystem = nullptr;
+	inputSystem = nullptr;
+	lightingSystem = nullptr;
+	movementSystem = nullptr;
+	physicsSystem = nullptr;
+	renderSystem = nullptr;
+	textSystem = nullptr;
 	logger.log("Engine instance created");
 	logger.log("Using renderer: {}", this->renderer->getVersion());
 
+	updateInterval = 1 / 60.0f;
 	frameLag = 0;
 	globalTime = 0;
 	currentFrame = 0;
