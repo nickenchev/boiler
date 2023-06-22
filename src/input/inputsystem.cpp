@@ -29,28 +29,22 @@ void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo
 	for (unsigned int i = 0; i < frameInfo.keyInputEvents.getCount(); ++i)
 	{
 		const KeyInputEvent event = frameInfo.keyInputEvents[i];
-		/*
-		if (event.keyCode == SDLK_a)
+		if (event.keyCode == KeyCode::a)
 		{
 			moveLeft = event.state == ButtonState::DOWN;
 		}
-		else if (event.keyCode == SDLK_d)
+		else if (event.keyCode == KeyCode::d)
 		{
 			moveRight = event.state == ButtonState::DOWN;
 		}
-		else if (event.keyCode == SDLK_s)
+		else if (event.keyCode == KeyCode::s)
 		{
 			moveBackward = event.state == ButtonState::DOWN;
 		}
-		else if (event.keyCode == SDLK_w)
+		else if (event.keyCode == KeyCode::w)
 		{
 			moveForward = event.state == ButtonState::DOWN;
 		}
-		else if (event.keyCode == SDLK_SPACE)
-		{
-			jump = event.state == ButtonState::DOWN;
-		}
-		*/
 	}
 
 	// calculate mouse diff

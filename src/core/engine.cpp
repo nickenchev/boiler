@@ -64,9 +64,6 @@ void Engine::initialize(const Size &initialSize)
 	updateInterval = (1.0f / 60);
 	prevTime = std::chrono::high_resolution_clock::now();
 
-    // TODO: Figure out base path stuff
-    //baseDataPath = std::string(SDL_GetBasePath());
-
     // initialize basic engine stuff
     System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(SystemStage::IO, *this);
     this->inputSystem = &inputSystem;
@@ -106,11 +103,9 @@ Engine::~Engine()
 	logger.log("Cleaning up");
 }
 
-void Engine::step()
+void Engine::step(FrameInfo &frameInfo)
 {
 	auto newTime = std::chrono::high_resolution_clock::now();
-
-	FrameInfo frameInfo;
 	frameInfo.currentFrame = currentFrame;
 	frameInfo.deltaTime = updateInterval;
 	frameInfo.frameTime = std::chrono::duration<Time, std::chrono::seconds::period>(newTime - prevTime).count();
@@ -151,143 +146,6 @@ void Engine::step()
 
 void Engine::processEvents(FrameInfo &frameInfo)
 {
-	// poll input events
-	//SDL_Event event;
-	//while (SDL_PollEvent(&event))
-	//{
-	//	switch(event.type)
-	//	{
-	//		case SDL_QUIT:
-	//		{
-	//			quit();
-	//			break;
-	//		}
-	//		case SDL_WINDOWEVENT:
-	//		{
-	//			switch (event.window.event)
-	//			{
-	//				case SDL_WINDOWEVENT_RESIZED:
-	//				{
-	//					const Size newSize(static_cast<cgfloat>(event.window.data1), static_cast<cgfloat>(event.window.data2));
-	//					renderer->resize(newSize);
-
-	//					break;
-	//				}
-	//				case SDL_WINDOWEVENT_CLOSE:
-	//				{
-	//					break;
-	//				}
-	//				case SDL_WINDOWEVENT_MINIMIZED:
-	//				{
-	//					break;
-	//				}
-	//				case SDL_WINDOWEVENT_SHOWN:
-	//				{
-	//					break;
-	//				}
-	//			}
-	//			break;
-	//		}
-	//		case SDL_FINGERUP:
-	//		{
-	//			/*
-	//			TouchTapEvent event(TapState::UP);
-	//			for (const TouchTapEventListener &listener : touchTapEventListeners)
-	//			{
-	//				listener(event);
-	//			}
-	//			*/
-	//			break;
-	//		}
-	//		case SDL_FINGERDOWN:
-	//		{
-	//			/*
-	//			TouchTapEvent event(TapState::DOWN);
-	//			for (const TouchTapEventListener &listener : touchTapEventListeners)
-	//			{
-	//				listener(event);
-	//			}
-	//			*/
-	//			break;
-	//		}
-	//		case SDL_FINGERMOTION:
-	//		{
-	//			/*
-	//			TouchMotionEvent motionEvent(event.tfinger.x, event.tfinger.y,
-	//										 event.tfinger.dx, event.tfinger.dy);
-	//			for (const TouchMotionListener &listener : touchMotionListeners)
-	//			{
-	//				listener(motionEvent);
-	//			}
-	//			*/
-	//			break;
-	//		}
-	//		case SDL_MOUSEWHEEL:
-	//		{
-	//			static_cast<GUISystem *>(guiSystem)->mouseWheel(event.wheel.preciseX, event.wheel.preciseY);
-	//			break;
-	//		}
-	//		case SDL_MOUSEMOTION:
-	//		{
-	//			if (!mouseRelativeMode)
-	//			{
-	//				static_cast<GUISystem *>(guiSystem)->mouseMove(event.motion.x, event.motion.y);
-	//			}
-	//			else
-	//			{
-	//				frameInfo.mouseXDistance += event.motion.xrel;
-	//				frameInfo.mouseYDistance += event.motion.yrel;
-	//			}
-	//			break;
-	//		}
-	//		case SDL_MOUSEBUTTONDOWN:
-	//		{
-	//			if (!mouseRelativeMode)
-	//			{
-	//				static_cast<GUISystem *>(guiSystem)->mouseButton(event.button.button, true);
-	//			}
-	//			break;
-	//		}
-	//		case SDL_MOUSEBUTTONUP:
-	//		{
-	//			if (!mouseRelativeMode)
-	//			{
-	//				static_cast<GUISystem *>(guiSystem)->mouseButton(event.button.button, false);
-	//			}
-	//			break;
-	//		}
-	//		case SDL_KEYDOWN:
-	//		{
-	//			static_cast<GUISystem *>(guiSystem)->keyEvent(event.key.keysym.sym, true);
-	//			static_cast<GUISystem *>(guiSystem)->keyMods(event.key.keysym.mod);
-
-	//			SDL_Keycode keyCode = event.key.keysym.sym;
-	//			KeyInputEvent event(keyCode, ButtonState::DOWN);
-	//			frameInfo.keyInputEvents.addEvent(event);
-
-	//			break;
-	//		}
-	//		case SDL_KEYUP:
-	//		{
-	//			if (event.key.keysym.sym == SDLK_BACKQUOTE)
-	//			{
-	//				setMouseRelativeMode(!mouseRelativeMode);
-	//			}
-	//			static_cast<GUISystem *>(guiSystem)->keyEvent(event.key.keysym.sym, false);
-
-	//			SDL_Keycode keyCode = event.key.keysym.sym;
-	//			KeyInputEvent event(keyCode, ButtonState::UP);
-	//			frameInfo.keyInputEvents.addEvent(event);
-
-	//			break;
-	//		}
-	//		case SDL_TEXTINPUT:
-	//		{
-	//			static_cast<GUISystem *>(guiSystem)->textInput(event.text.text);
-	//			break;
-	//		}
-	//	}
-	//}
 }
 
 void Engine::setMouseRelativeMode(bool enabled)

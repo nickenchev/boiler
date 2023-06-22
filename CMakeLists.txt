@@ -69,6 +69,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/display/skyboxloader.h
   ${INCLUDE_BASE}/input/inputsystem.h
   ${INCLUDE_BASE}/input/inputcomponent.h
+  ${INCLUDE_BASE}/input/keys.h
   ${INCLUDE_BASE}/assets/maps/maploader.h
   ${INCLUDE_BASE}/assets/maps/gamemap.h
   # Animation related

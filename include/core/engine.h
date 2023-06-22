@@ -32,7 +32,8 @@ class Part;
 
 class Engine
 {
-	Time globalTime, frameLag;
+	Time globalTime;
+	Time frameLag;
 	short currentFrame;
 	unsigned long frameCount;
 
@@ -64,7 +65,7 @@ public:
 	void initialize(const Size &initialSize);
 	void shutdown();
     void start(std::shared_ptr<Part> part);
-	void step();
+	void step(FrameInfo &frameInfo);
     void quit() { running = false; }
 
 	RenderSystem &getRenderSystem()

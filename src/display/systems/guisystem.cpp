@@ -1,5 +1,6 @@
 #include "core/entitycomponentsystem.h"
 #include "core/components/guicomponent.h"
+#include "input/inputcomponent.h"
 #include "display/renderer.h"
 #include "display/systems/guisystem.h"
 
@@ -13,7 +14,7 @@ static ImGuiKey ImGui_ImplSDL2_KeycodeToImGuiKey(int keycode);
 
 GUISystem::GUISystem(Renderer &renderer) : System("ImGui System")
 {
-	expects<GUIComponent>();
+	expects<GUIComponent>().expects<InputComponent>();
 
 	logger.log("Initializing");
 	ImGui::CreateContext();

@@ -3,24 +3,22 @@
 
 #include <stdint.h>
 #include "inputevent.h"
+#include "input/keys.h"
 
 namespace Boiler
 {
 
-    using Keycode = uint32_t;
-
 struct KeyInputEvent : public InputEvent
 {
-    Keycode keyCode;
+    KeyCode keyCode;
     ButtonState state;
 
 	KeyInputEvent()
 	{
-		keyCode = -1;
 		state = ButtonState::NONE;
 	}
 
-    KeyInputEvent(Keycode keycode, ButtonState state)
+    KeyInputEvent(KeyCode keyCode, ButtonState state)
     {
         this->keyCode = keyCode;
         this->state = state;

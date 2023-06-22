@@ -48,6 +48,7 @@ struct FrameInfo
 	{
 		currentFrame = 0;
 		deltaTime = 0;
+		frameTime = 0;
 		globalTime = 0;
 		mouseXDistance = 0;
 		mouseYDistance = 0;
