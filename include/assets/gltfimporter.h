@@ -27,6 +27,8 @@ class GLTFImporter
 
     Entity loadNode(const gltf::Model &model, std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const;
 	VertexData getPrimitiveData(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive);
+	std::string fixSpaces(std::string input);
+	AssetId loadImage(const gltf::Model &model, int imageIndex, std::vector<AssetId> textureIds);
 
 public:
     GLTFImporter(Boiler::Engine &engine);

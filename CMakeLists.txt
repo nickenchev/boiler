@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.5)
 project(boiler C CXX)
 
 include(ExternalProject)
@@ -155,15 +155,15 @@ set(BOILER_SOURCES
   ${SRC_BASE}/camera/camerasystem.cpp
   ${SRC_BASE}/input/inputsystem.cpp
   # Assets
-  ${SRC_BASE}/assets/gltfmodel.cpp)
+  ${SRC_BASE}/assets/gltfmodel.cpp
   # ImGui
-  #${SRC_BASE}/display/systems/guisystem.cpp
-  #${SRC_BASE}/ext/imgui/imgui.cpp
-  #${SRC_BASE}/ext/imgui/imgui_draw.cpp
-  #${SRC_BASE}/ext/imgui/imgui_tables.cpp
-  #${SRC_BASE}/ext/imgui/imgui_widgets.cpp
-  #${SRC_BASE}/ext/imgui/imgui_demo.cpp
-  #${SRC_BASE}/ext/imgui/imgui_impl_vulkan.cpp)
+  ${SRC_BASE}/display/systems/guisystem.cpp
+  ${SRC_BASE}/ext/imgui/imgui.cpp
+  ${SRC_BASE}/ext/imgui/imgui_draw.cpp
+  ${SRC_BASE}/ext/imgui/imgui_tables.cpp
+  ${SRC_BASE}/ext/imgui/imgui_widgets.cpp
+  ${SRC_BASE}/ext/imgui/imgui_demo.cpp
+  ${SRC_BASE}/ext/imgui/imgui_impl_vulkan.cpp)
 
 add_library(boiler STATIC ${BOILER_SOURCES} ${BOILER_HEADERS})
 
