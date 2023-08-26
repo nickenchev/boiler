@@ -100,7 +100,7 @@ Entity SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 	}
 
 	Material material;
-	material.baseTexture = renderer.loadCubemap(images);
+	material.albedoTexture = renderer.loadCubemap(images);
 	material.depth = false; // TODO: TEMP
 	material.diffuse = vec4(1, 1, 1, 1);
 	AssetId matAssetId = assetSet.materials.add(std::move(material));

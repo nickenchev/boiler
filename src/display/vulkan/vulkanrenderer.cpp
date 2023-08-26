@@ -2179,11 +2179,11 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 			descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
 			const int bindDescCount = descriptorSets.size();
 
-			if (material.baseTexture != Asset::NO_ASSET) // TODO: Add pipeline and descriptor layout without base texture sampler
+			if (material.albedoTexture != Asset::NO_ASSET) // TODO: Add pipeline and descriptor layout without base texture sampler
 			{
 				VkDescriptorImageInfo imageInfo = {};
 				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				imageInfo.imageView = textures.get(material.baseTexture).imageView;
+				imageInfo.imageView = textures.get(material.albedoTexture).imageView;
 				imageInfo.sampler = sampler;
 
 				// update the per-material descriptor
@@ -2204,7 +2204,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0,
 									bindDescCount, descriptorSets.data(), 0, nullptr);
 			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-							  material.baseTexture == Asset::NO_ASSET && stage != RenderStage::DEBUG ? gBufferNoTexPipeline.vulkanPipeline() : pipeline);
+							  material.albedoTexture == Asset::NO_ASSET && stage != RenderStage::DEBUG ? gBufferNoTexPipeline.vulkanPipeline() : pipeline);
 
 			for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
 			{

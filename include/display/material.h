@@ -16,7 +16,8 @@ struct Material : public Asset
     vec4 specular;
     float shininess;
 
-	AssetId baseTexture = Asset::NO_ASSET;
+	AssetId albedoTexture;
+	AssetId normalTexture;
 	AlphaMode alphaMode;
 	bool depth;
 	
@@ -28,6 +29,8 @@ struct Material : public Asset
 		specular = vec4(1, 1, 1, 1);
 		shininess = 0;
 		alphaMode = AlphaMode::OPAQUE;
+		albedoTexture = Asset::NO_ASSET;
+		normalTexture = Asset::NO_ASSET;
 	}
     virtual ~Material() { }
 };

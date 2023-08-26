@@ -161,7 +161,7 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 	FT_Done_FreeType(ft);
 
 	Material glyphMat;
-	glyphMat.baseTexture = renderer.loadTexture(ImageData(atlasBuffer, atlasSize, 1, false), TextureType::FREETYPE_ATLAS);
+	glyphMat.albedoTexture = renderer.loadTexture(ImageData(atlasBuffer, atlasSize, 1, false), TextureType::FREETYPE_ATLAS);
 	AssetId materialId = assetSet.materials.add(std::move(glyphMat));
 
 	delete [] atlasBuffer;
