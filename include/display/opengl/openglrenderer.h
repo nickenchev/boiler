@@ -40,6 +40,10 @@ class OpenGLRenderer : public Renderer
 	Boiler::AssetManager<Boiler::Primitive, 2048> primitives;
 	AssetManager<OpenGLTexture, 512> textures;
 
+
+	GLuint loadShader(const std::string& shaderPath, GLuint shaderType);
+	GLuint createProgram(std::vector<GLuint> &shaders);
+
 public:
     OpenGLRenderer();
     ~OpenGLRenderer() override;

@@ -33,7 +33,7 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT);
 
-	glDebugMessageCallback(messageCallback, nullptr);
+	glDebugMessageCallback(messageCallback, &logger);
 }
 
 void Boiler::OpenGLRenderer::shutdown()
@@ -77,8 +77,8 @@ void Boiler::OpenGLRenderer::prepareShutdown()
 void Boiler::OpenGLRenderer::resize(const Boiler::Size &size)
 {
 	Renderer::resize(size);
-	glViewport(0, 0, size.width, size.height);
-	perspective = glm::perspective(45.0f, static_cast<float>(size.width) / size.height, 0.1f, 1000.0f);
+	glViewport(0, 0, static_cast<int>(size.width), static_cast<int>(size.height));
+	perspective = glm::perspective(45.0f, size.width / size.height, 0.1f, 1000.0f);
 }
 
 std::string Boiler::OpenGLRenderer::getVersion() const
@@ -88,10 +88,12 @@ std::string Boiler::OpenGLRenderer::getVersion() const
 
 Boiler::AssetId Boiler::OpenGLRenderer::loadTexture(const Boiler::ImageData &imageData, Boiler::TextureType type)
 {
+	const unsigned short numMipMaps = 4;
 	GLuint texture;
 	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-	glTextureStorage2D(texture, 1, GL_SRGB8, imageData.size.width, imageData.size.height);
+	glTextureStorage2D(texture, numMipMaps, GL_SRGB8, imageData.size.width, imageData.size.height);
 	glTextureSubImage2D(texture, 0, 0, 0, imageData.size.width, imageData.size.height, GL_RGBA, GL_UNSIGNED_BYTE, imageData.pixelData);
+	glGenerateTextureMipmap(texture);
 
 	AssetId texturerAssetId = textures.add(OpenGLTexture(texture));
 	return texturerAssetId;
@@ -134,8 +136,8 @@ Boiler::AssetId Boiler::OpenGLRenderer::loadPrimitive(const Boiler::VertexData &
 	glVertexArrayAttribBinding(vao, 3, 0);
 
 	// return the asset ID grouping these buffers
+	logger.log("Loaded primitive with vertex data size: {} bytes", data.vertexByteSize());
 	return primitiveBuffers.add(PrimitiveBuffers(vao, buffers[0], buffers[1]));
-	logger.log("Loaded primitive with vertex data size");
 }
 
 Boiler::AssetId Boiler::OpenGLRenderer::createBuffer(size_t size, Boiler::BufferUsage usage, Boiler::MemoryType memType)
@@ -165,31 +167,43 @@ bool Boiler::OpenGLRenderer::prepareFrame(const Boiler::FrameInfo &frameInfo)
 void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::FrameInfo &frameInfo,
 	const std::vector<MaterialGroup> &materialGroups, Boiler::RenderStage stage)
 {
+	glUseProgram(program);
+
 	if (stage == RenderStage::PRE_DEFERRED_LIGHTING)
 	{
-		glUseProgram(program);
-
 		for (const MaterialGroup &matGroup : materialGroups)
 		{
 			if (matGroup.materialId != Asset::NO_ASSET)
 			{
 				const Material &material = assetSet.materials.get(matGroup.materialId);
-				const OpenGLTexture &texture = textures.get(material.baseTexture);
-
-				glBindTextureUnit(0, texture.getOpenGLTextureId());
-				for (const auto &primitiveInstance : matGroup.primitives)
+				if (material.albedoTexture != Asset::NO_ASSET)
 				{
-					const Primitive &primitive = assetSet.primitives.get(primitiveInstance.primitiveId);
-					const PrimitiveBuffers &buffers = primitiveBuffers.get(primitive.bufferId);
+					if (material.albedoTexture != Asset::NO_ASSET)
+					{
+						const OpenGLTexture &texture = textures.get(material.albedoTexture);
+						glBindTextureUnit(0, texture.getOpenGLTextureId());
+					}
+					if (material.normalTexture != Asset::NO_ASSET)
+					{
+						const OpenGLTexture &texture = textures.get(material.normalTexture);
+						glBindTextureUnit(1, texture.getOpenGLTextureId());
+					}
 
-					glm::mat4 matrix = matrices.get(primitiveInstance.matrixId);
-					glm::mat4 mv = perspective * viewMatrix * matrix;
-					glUniformMatrix4fv(0, 1, GL_FALSE, &mv[0][0]);
+					for (const auto &primitiveInstance : matGroup.primitives)
+					{
+						const Primitive &primitive = assetSet.primitives.get(primitiveInstance.primitiveId);
+						const PrimitiveBuffers &buffers = primitiveBuffers.get(primitive.bufferId);
 
-					glBindVertexArray(buffers.getVertexArrayObject());
-					glDrawElements(GL_TRIANGLES, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
+						glm::mat4 matrix = matrices.get(primitiveInstance.matrixId);
+						glm::mat4 mv = perspective * viewMatrix * matrix;
+						glUniformMatrix4fv(0, 1, GL_FALSE, &mv[0][0]);
+						glUniformMatrix4fv(1, 1, GL_FALSE, &matrix[0][0]);
+						glUniform3fv(2, 1, &cameraPosition[0]);
+
+						glBindVertexArray(buffers.getVertexArrayObject());
+						glDrawElements(GL_TRIANGLES, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
+					}
 				}
-				glBindTextureUnit(0, 0);
 			}
 		}
 	}
@@ -199,7 +213,7 @@ void Boiler::OpenGLRenderer::displayFrame(const Boiler::FrameInfo &frameInfo, Bo
 {
 }
 
-GLuint loadShader(const std::string &shaderPath, GLuint shaderType)
+GLuint OpenGLRenderer::loadShader(const std::string &shaderPath, GLuint shaderType)
 {
 	std::string source = Boiler::FileManager::readTextFile(shaderPath);
 	GLuint shader = glCreateShader(shaderType);
@@ -216,7 +230,7 @@ GLuint loadShader(const std::string &shaderPath, GLuint shaderType)
 
 		std::vector<GLchar> infoLog(maxLength);
 		glGetShaderInfoLog(shader, maxLength, &maxLength, infoLog.data());
-		std::cout << infoLog.data() << std::endl;
+		logger.error("{}", infoLog.data());
 
 		glDeleteShader(shader);
 		exit(EXIT_FAILURE);
@@ -225,7 +239,7 @@ GLuint loadShader(const std::string &shaderPath, GLuint shaderType)
 	return shader;
 }
 
-GLuint createProgram(std::vector<GLuint> &shaders)
+GLuint OpenGLRenderer::createProgram(std::vector<GLuint> &shaders)
 {
 	GLuint program = glCreateProgram();
 	for (GLuint shader : shaders)
@@ -243,7 +257,7 @@ GLuint createProgram(std::vector<GLuint> &shaders)
 
 		std::vector<GLchar> infoLog(maxLength);
 		glGetProgramInfoLog(program, maxLength, &maxLength, infoLog.data());
-		std::cout << infoLog.data() << std::endl;
+		logger.error("{}", infoLog.data());
 
 		glDeleteProgram(program);
 		exit(EXIT_FAILURE);
@@ -257,8 +271,9 @@ GLuint createProgram(std::vector<GLuint> &shaders)
 	return program;
 }
 
-void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *user_param)
+void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *userParam)
 {
+	const Logger *logger = static_cast<const Logger *>(userParam);
 	auto const src_str = [source]() {
 		switch (source)
 		{
@@ -295,5 +310,5 @@ void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLs
 			default: return "UNKNOWN";
 		}
 	}();
-	std::cout << src_str << ", " << type_str << ", " << severity_str << ", " << id << ": " << message << '\n';
+	logger->error("{} {} {}, {}: {}", src_str, type_str, severity_str, id, message);
 }
