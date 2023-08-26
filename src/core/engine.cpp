@@ -89,10 +89,8 @@ void Engine::initialize(const Size &initialSize)
     //System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(SystemStage::RENDER, *renderer, matrixCache);
     //this->debugRenderSystem = &debugRenderSys;
 
-	/*
     System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(SystemStage::RENDER, *renderer);
     this->guiSystem = &guiSys;
-	*/
 
     System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(SystemStage::RENDER);
     this->cameraSystem = &cameraSystem;

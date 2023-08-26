@@ -65,7 +65,7 @@ void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo
 
 	for (Entity entity : getEntities())
 	{
-        MovementComponent &movement = ecs.getComponentStore().retrieve<MovementComponent>(entity);
+		MovementComponent &movement = ecs.getComponentStore().retrieve<MovementComponent>(entity);
 		movement.moveLeft = moveLeft;
 		movement.moveRight = moveRight;
 		movement.moveForward = moveForward;
