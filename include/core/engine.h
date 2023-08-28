@@ -57,12 +57,12 @@ class Engine
     std::shared_ptr<Part> part;
 
 public:
-	Engine(Renderer *renderer);
+	Engine();
 	~Engine();
     Engine(const Engine &) = delete;
     void operator=(const Engine &s) = delete;
 
-	void initialize(const Size &initialSize);
+	void initialize(Renderer *renderer);
 	void shutdown();
     void start(std::shared_ptr<Part> part);
 	void step(FrameInfo &frameInfo);

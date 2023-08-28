@@ -10,17 +10,17 @@ namespace Boiler
 
 enum class LogLevel
 {
-	INFO, WARNING, ERROR
+    info, warning, error
 };
 
 class LogEntry
 {
 	std::time_t timestamp;
-	LogLevel level;
+	Boiler::LogLevel level;
 	std::string source, message;
 
 public:
-	LogEntry(LogLevel level, std::string source, std::string message)
+	LogEntry(Boiler::LogLevel level, std::string source, std::string message)
 	{
         timestamp = std::time(nullptr);
 		this->level = level;
@@ -29,7 +29,7 @@ public:
 	}
 
 	std::time_t getTimestamp() const { return timestamp; }
-	LogLevel getLevel() const { return level; }
+	Boiler::LogLevel getLevel() const { return this->level;  }
 	std::string getSource() const { return source; }
 	std::string getMessage() const { return message; }
 };

@@ -26,14 +26,14 @@ public:
 	template<typename... Args>
 	void log(fmt::format_string<Args...> fmtString, Args&&... args) const
 	{
-		LogEntry entry(LogLevel::INFO, name, fmt::format(fmtString, std::forward<Args>(args)...));
+		LogEntry entry(LogLevel::info, name, fmt::format(fmtString, std::forward<Args>(args)...));
 		printEntry(entry);
 	}
 
 	template<typename... Args>
 	void error(fmt::format_string<Args...> fmtString, Args&&... args) const
 	{
-		LogEntry entry(LogLevel::ERROR, name, fmt::format(fmtString, std::forward<Args>(args)...));
+		LogEntry entry(LogLevel::error, name, fmt::format(fmtString, std::forward<Args>(args)...));
 		printEntry(entry);
 	}
 

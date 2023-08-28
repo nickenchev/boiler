@@ -28,8 +28,7 @@
 
 using namespace Boiler;
 
-Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
-									 baseDataPath(""), animator(ecs)
+Engine::Engine() : logger("Engine"),baseDataPath(""), animator(ecs)
 {
 	animationSystem = nullptr;
 	cameraSystem = nullptr;
@@ -43,7 +42,6 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 	renderSystem = nullptr;
 	textSystem = nullptr;
 	logger.log("Engine instance created");
-	logger.log("Using renderer: {}", this->renderer->getVersion());
 
 	updateInterval = 1 / 60.0f;
 	frameLag = 0;
@@ -55,11 +53,13 @@ Engine::Engine(Renderer *renderer) : logger("Engine"), renderer(renderer),
 	running = false;
 }
 
-void Engine::initialize(const Size &initialSize)
+void Engine::initialize(Renderer *renderer)
 {
+	this->renderer = renderer;
+	logger.log("Using renderer: {}", this->renderer->getVersion());
+
 	cleanedUp = false;
 	running = true;
-	renderer->initialize(initialSize);
 
 	updateInterval = (1.0f / 60);
 	prevTime = std::chrono::high_resolution_clock::now();

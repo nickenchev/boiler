@@ -2,7 +2,7 @@
 
 #include <display/renderer.h>
 #include <display/primitive.h>
-#include <display/opengl/opengl.h>
+#include <glad/glad.h>
 #include "opengltexture.h"
 
 namespace Boiler

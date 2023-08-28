@@ -6,9 +6,9 @@ namespace Boiler
 	
 enum class AlphaMode
 {
-	OPAQUE,
-	MASK,
-	BLEND
+	opaque,
+	mask,
+	blend
 };
 
 }

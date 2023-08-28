@@ -52,7 +52,7 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 				{
 					matGroup = &postDepthGroups[primitive.materialId];
 				}
-				else if (material.alphaMode == AlphaMode::BLEND || material.alphaMode == AlphaMode::MASK) // TODO: Mask should be handled with discard in GLSL
+				else if (material.alphaMode == AlphaMode::blend || material.alphaMode == AlphaMode::mask) // TODO: Mask should be handled with discard in GLSL
 				{
 					matGroup = &alphaGroups[primitive.materialId];
 				}

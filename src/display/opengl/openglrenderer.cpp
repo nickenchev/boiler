@@ -5,8 +5,6 @@
 
 using namespace Boiler;
 
-GLuint loadShader(const std::string &shaderPath, GLuint shaderType);
-GLuint createProgram(std::vector<GLuint> &shaders);
 void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *user_param);
 
 GLuint program;
@@ -22,10 +20,12 @@ Boiler::OpenGLRenderer::~OpenGLRenderer()
 
 void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 {
+	logger.log("Initializing Boiler OpenGL Renderer");
 	Renderer::initialize(size);
 	resize(size);
 
 	std::vector<GLuint> shaders;
+	logger.log("Creating shaders");
 	shaders.push_back(loadShader("shaders/gl/shader.vert", GL_VERTEX_SHADER));
 	shaders.push_back(loadShader("shaders/gl/shader.frag", GL_FRAGMENT_SHADER));
 	program = createProgram(shaders);
@@ -83,7 +83,7 @@ void Boiler::OpenGLRenderer::resize(const Boiler::Size &size)
 
 std::string Boiler::OpenGLRenderer::getVersion() const
 {
-	return "1.0";
+	return "OpenGL Renderer 1.0";
 }
 
 Boiler::AssetId Boiler::OpenGLRenderer::loadTexture(const Boiler::ImageData &imageData, Boiler::TextureType type)

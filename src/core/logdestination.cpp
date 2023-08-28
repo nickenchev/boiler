@@ -12,17 +12,17 @@ void LogDestination::log(const LogEntry &entry)
 	std::string level;
 	switch (entry.getLevel())
 	{
-		case LogLevel::INFO:
+		case LogLevel::info:
 		{
 			level = "INFO";
 			break;
 		}
-		case LogLevel::WARNING:
+		case LogLevel::warning:
 		{
 			level = "WARN";
 			break;
 		}
-		case LogLevel::ERROR:
+		case LogLevel::error:
 		{
 			level = "ERROR";
 			break;

@@ -110,15 +110,15 @@ std::shared_ptr<GLTFModel> GLTFImporter::import(AssetSet &assetSet, const std::s
 			}
 			if (material.alphaMode == "BLEND")
 			{
-				newMaterial.alphaMode = AlphaMode::BLEND;
+				newMaterial.alphaMode = AlphaMode::blend;
 			}
 			else if (material.alphaMode == "MASK")
 			{
-				newMaterial.alphaMode = AlphaMode::MASK;
+				newMaterial.alphaMode = AlphaMode::mask;
 			}
 			else
 			{
-				newMaterial.alphaMode = AlphaMode::OPAQUE;
+				newMaterial.alphaMode = AlphaMode::opaque;
 			}
 		}
 		AssetId materialId = assetSet.materials.add(std::move(newMaterial));

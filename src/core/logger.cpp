@@ -8,6 +8,7 @@ using namespace Boiler;
 
 Logger::Logger(std::string name) : name(name)
 {
+
 }
 
 void Logger::printEntry(const LogEntry &entry) const

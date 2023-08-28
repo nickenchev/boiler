@@ -28,7 +28,7 @@ struct Material : public Asset
 		diffuse = vec4(1, 1, 1, 1);
 		specular = vec4(1, 1, 1, 1);
 		shininess = 0;
-		alphaMode = AlphaMode::OPAQUE;
+		alphaMode = AlphaMode::opaque;
 		albedoTexture = Asset::NO_ASSET;
 		normalTexture = Asset::NO_ASSET;
 	}
