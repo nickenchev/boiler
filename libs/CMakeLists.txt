@@ -17,7 +17,7 @@ set(GLEW_HEADERS_DIR ${GLEW_LIB_DIR}/include)
 # build jsoncpp
 set(JSONCPP_WITH_TESTS OFF CACHE BOOL "Disable JSONCPP unit tests")
 set(JSONCPP_WITH_POST_BUILD_UNITTEST OFF CACHE BOOL "Disable JSONCPP post-build runner")
-add_subdirectory(${LIBS_ROOT}/jsoncpp)
+add_subdirectory(${LIBS_ROOT}/jsoncpp-1.9.5)
 
 # build fmt
 add_subdirectory(${LIBS_ROOT}/fmt-9.1.0)
@@ -38,6 +38,6 @@ target_include_directories(boiler_deps PUBLIC ${boiler_lib_includes})
 target_link_libraries(boiler_deps
   glm
   #glew_s
-  jsoncpp_lib
+  ${JSONCPP_LIBRARIES}
   fmt
   boiler-gltf)

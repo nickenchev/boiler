@@ -4,6 +4,7 @@ namespace Boiler
 {
 	enum class KeyCode
 	{
+		none,
 		a = 'a',
 		b = 'b',
 		c = 'c',

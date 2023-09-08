@@ -10,6 +10,7 @@ namespace Boiler
 	
 struct Mesh
 {
+	std::string name;
 	std::vector<AssetId> primitives;
 	vec3 min, max;
 

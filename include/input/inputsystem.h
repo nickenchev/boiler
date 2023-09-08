@@ -12,7 +12,7 @@ class InputSystem : public System
 {
 	Engine &engine;
 	bool moveLeft, moveRight, moveForward, moveBackward, moveUp, moveDown;
-	float prevXFactor, prevYFactor;
+	float prevXPos, prevYPos, prevXFactor, prevYFactor;
 	
 public:
     InputSystem(Engine &engine);

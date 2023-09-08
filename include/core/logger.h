@@ -8,7 +8,6 @@
 #include <fmt/core.h>
 #include "core/logdestination.h"
 #include "core/logentry.h"
-#include "core/stdoutdestination.h"
 
 namespace Boiler
 {

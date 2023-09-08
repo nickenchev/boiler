@@ -2,6 +2,7 @@
 #define LOGDESTINATION_H
 
 #include <vector>
+#include "core/logentry.h"
 
 namespace Boiler
 {

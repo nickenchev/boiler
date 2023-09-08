@@ -10,7 +10,7 @@ class Renderer;
 
 class CameraSystem : public Boiler::System
 {
-	float prevXFactor, prevYFactor;
+	float prevXPos, prevYPos, prevXFactor, prevYFactor;
 
 public:
 	CameraSystem();

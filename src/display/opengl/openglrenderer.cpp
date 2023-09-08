@@ -79,6 +79,7 @@ void Boiler::OpenGLRenderer::resize(const Boiler::Size &size)
 	Renderer::resize(size);
 	glViewport(0, 0, static_cast<int>(size.width), static_cast<int>(size.height));
 	perspective = glm::perspective(45.0f, size.width / size.height, 0.1f, 1000.0f);
+	logger.log("Resized renderer to {}x{}", size.width, size.height);
 }
 
 std::string Boiler::OpenGLRenderer::getVersion() const
@@ -165,7 +166,7 @@ bool Boiler::OpenGLRenderer::prepareFrame(const Boiler::FrameInfo &frameInfo)
 }
 
 void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::FrameInfo &frameInfo,
-	const std::vector<MaterialGroup> &materialGroups, Boiler::RenderStage stage)
+									const std::vector<MaterialGroup> &materialGroups, Boiler::RenderStage stage)
 {
 	glUseProgram(program);
 

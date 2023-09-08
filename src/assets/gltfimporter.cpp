@@ -133,6 +133,7 @@ std::shared_ptr<GLTFModel> GLTFImporter::import(AssetSet &assetSet, const std::s
 	{
 		logger.log("Loading mesh: {}", mesh.name);
 		Mesh newMesh;
+		newMesh.name = mesh.name;
 		std::optional<vec3> meshMin, meshMax;
 
 		for (int i = 0; i < mesh.primitives.size(); ++i)

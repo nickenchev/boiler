@@ -16,8 +16,14 @@ class KeyInputEvents
 public:
 	KeyInputEvents()
 	{
+		reset();
+	}
+
+	void reset()
+	{
 		count = 0;
 	}
+
 	void addEvent(KeyInputEvent event)
 	{
 		keyEvents[count++] = event;
@@ -41,7 +47,7 @@ struct FrameInfo
 	double globalTime;
 	Time frameTime;
 	Time deltaTime;
-	int mouseXDistance, mouseYDistance;
+	int mouseXPos, mouseYPos;
 	unsigned long frameCount;
 
 	FrameInfo()
@@ -50,8 +56,8 @@ struct FrameInfo
 		deltaTime = 0;
 		frameTime = 0;
 		globalTime = 0;
-		mouseXDistance = 0;
-		mouseYDistance = 0;
+		mouseXPos = 0;
+		mouseYPos = 0;
 		frameCount = 0;
 	}
 };
