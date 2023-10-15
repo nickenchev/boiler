@@ -11,9 +11,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
 find_package(OpenGL REQUIRED)
+find_package(glm REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(fmt REQUIRED)
+find_package(boiler-gltf REQUIRED)
+find_package(RapidJSON REQUIRED)
 
 # Build libraries
 if (NOT DEFINED ${LIBS_ROOT})
@@ -176,13 +180,18 @@ target_include_directories(boiler
   ${INCLUDE_BASE}
   ${INCLUDE_BASE}/external
   ${INCLUDE_BASE}/tinyxml2
+  BoilerGLTF::boiler-gltf
   Freetype::Freetype
+  ${RAPIDJSON_INCLUDE_DIRS}
   boiler_deps)
 
 target_link_libraries(boiler
   boiler_deps
+  BoilerGLTF::boiler-gltf
+  glm::glm
   OpenGL::GL
   Freetype::Freetype
   Vulkan::Vulkan
   ZLIB::ZLIB
+  fmt::fmt
 )

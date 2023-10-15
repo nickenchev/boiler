@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <gltf.h>
 #include "importresult.h"
-#include "gltf.h"
 #include "core/logger.h"
 
 namespace Boiler

@@ -1,5 +1,4 @@
-#ifndef ENGINE_H
-#define ENGINE_H
+#pragma once
 
 #include <chrono>
 #include <memory>
@@ -85,5 +84,3 @@ public:
 };
 
 }
-
-#endif // ENGINE_H
