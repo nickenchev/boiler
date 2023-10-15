@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <rapidjson/document.h>
+#include <rapidjson/encodings.h>
+#include <rapidjson/rapidjson.h>
 
 #include "assets/gltfimporter.h"
 #include "json/jsonloader.h"
@@ -13,17 +15,14 @@
 #include "physics/collidercomponent.h"
 #include "physics/physicscomponent.h"
 #include "input/inputcomponent.h"
-#include "rapidjson/encodings.h"
-#include "rapidjson/rapidjson.h"
 
 using namespace Boiler;
+using namespace rapidjson;
 
 vec3 getVector(const GenericValue<UTF8<>> &object, const std::string &name);
 
 void MapLoader::load(const std::string &filePath)
 {
-	using namespace rapidjson;
-
 	const std::string jsonData = JsonLoader::loadJson(filePath);
 	Document doc;
 	doc.Parse(jsonData.c_str());

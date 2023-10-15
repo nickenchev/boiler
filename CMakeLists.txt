@@ -24,8 +24,6 @@ if (NOT DEFINED ${LIBS_ROOT})
   set(LIBS_ROOT ${CMAKE_CURRENT_LIST_DIR}/libs)
 endif()
 
-add_subdirectory(${LIBS_ROOT})
-
 # Shader files
 set(SHADER_FILES data/shaders/basic.vert data/shaders/basic.frag)
 
@@ -180,13 +178,11 @@ target_include_directories(boiler
   ${INCLUDE_BASE}
   ${INCLUDE_BASE}/external
   ${INCLUDE_BASE}/tinyxml2
-  BoilerGLTF::boiler-gltf
   Freetype::Freetype
   ${RAPIDJSON_INCLUDE_DIRS}
-  boiler_deps)
+)
 
 target_link_libraries(boiler
-  boiler_deps
   BoilerGLTF::boiler-gltf
   glm::glm
   OpenGL::GL

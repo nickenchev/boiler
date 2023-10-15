@@ -27,6 +27,14 @@ DebugRenderSystem::DebugRenderSystem(Renderer &renderer, MatrixCache &matrixCach
 
 void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
+	for (unsigned int i = 0; i < frameInfo.keyInputEvents.getCount(); ++i)
+	{
+		if (frameInfo.keyInputEvents[i].keyCode == KeyCode::graveAccent && frameInfo.keyInputEvents[i].state == ButtonState::UP)
+		{
+			enabled = !enabled;
+		}
+	}
+
 	if (enabled && getEntities().size())
 	{
 		std::vector<MaterialGroup> matGroups(1);

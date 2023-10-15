@@ -86,8 +86,8 @@ void Engine::initialize(Renderer *renderer)
     System &textSys = ecs.getComponentSystems().registerSystem<TextSystem>(SystemStage::RENDER);
     this->textSystem = &textSys;
 
-    //System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(SystemStage::RENDER, *renderer, matrixCache);
-    //this->debugRenderSystem = &debugRenderSys;
+    System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(SystemStage::RENDER, *renderer, matrixCache);
+    this->debugRenderSystem = &debugRenderSys;
 
     System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(SystemStage::RENDER, *renderer);
     this->guiSystem = &guiSys;
@@ -107,7 +107,6 @@ void Engine::step(FrameInfo &frameInfo)
 	frameInfo.currentFrame = currentFrame;
 	frameInfo.deltaTime = updateInterval;
 	frameInfo.frameTime = std::chrono::duration<Time, std::chrono::seconds::period>(newTime - prevTime).count();
-	frameInfo.globalTime = globalTime;
 	frameInfo.frameCount = frameCount;
 
 	// input and IO systems
@@ -118,16 +117,16 @@ void Engine::step(FrameInfo &frameInfo)
 
 	// frame update / catchup phase if lagging
 	frameLag += frameInfo.frameTime;
-	frameInfo.globalTime = globalTime;
 	while (frameLag >= updateInterval)
 	{
         part->update(frameInfo);
 		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::SIMULATION);
 		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::USER_SIMULATION);
-		ecs.endFrame();
 
-		globalTime += updateInterval;
 		frameLag -= updateInterval;
+		globalTime += updateInterval;
+		frameInfo.globalTime = globalTime;
+		ecs.endFrame();
 	}
 
 	// render related systems only run during render phase
@@ -140,6 +139,7 @@ void Engine::step(FrameInfo &frameInfo)
 	matrixCache.reset();
 	frameCount++;
 	prevTime = newTime;
+	frameInfo.keyInputEvents.reset();
 }
 
 void Engine::processEvents(FrameInfo &frameInfo)

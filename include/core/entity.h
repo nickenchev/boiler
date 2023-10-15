@@ -32,7 +32,7 @@ public:
 	operator bool() const { return getId() != 0; }
 	EntityId getId() const { return id; }
 
-	inline size_t index() const
+	inline int index() const
 	{
 		return getId() - 1;
 	}

@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <regex>
+#include <gltf.h>
 
 #include "animation/animation.h"
 #include "animation/channel.h"
@@ -12,12 +13,10 @@
 #include "physics/collidercomponent.h"
 #include "physics/physicscomponent.h"
 #include "animation/components/animationcomponent.h"
-#include "gltf.h"
 #include "display/vertexdata.h"
 #include "assets/gltfimporter.h"
 #include "assets/importresult.h"
 #include "animation/animation.h"
-#include "typedaccessor.h"
 #include "json/jsonloader.h"
 #include "assets/assetset.h"
 
