@@ -29,21 +29,28 @@ void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo
 	for (unsigned int i = 0; i < frameInfo.keyInputEvents.getCount(); ++i)
 	{
 		const KeyInputEvent event = frameInfo.keyInputEvents[i];
-		if (event.keyCode == KeyCode::a)
+		switch (event.keyCode)
 		{
-			moveLeft = event.state == ButtonState::DOWN;
-		}
-		else if (event.keyCode == KeyCode::d)
-		{
-			moveRight = event.state == ButtonState::DOWN;
-		}
-		else if (event.keyCode == KeyCode::s)
-		{
-			moveBackward = event.state == ButtonState::DOWN;
-		}
-		else if (event.keyCode == KeyCode::w)
-		{
-			moveForward = event.state == ButtonState::DOWN;
+			case KeyCode::a:
+			{
+				moveLeft = event.state == ButtonState::DOWN;
+				break;
+			}
+			case KeyCode::d:
+			{
+				moveRight = event.state == ButtonState::DOWN;
+				break;
+			}
+			case KeyCode::s:
+			{
+				moveBackward = event.state == ButtonState::DOWN;
+				break;
+			}
+			case KeyCode::w:
+			{
+				moveForward = event.state == ButtonState::DOWN;
+				break;
+			}
 		}
 	}
 
@@ -67,7 +74,7 @@ void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo
 	prevXFactor = xFactorNew;
 	prevYFactor = yFactorNew;
 
-	for (Entity entity : getEntities())
+	for (const Entity &entity : getEntities())
 	{
 		MovementComponent &movement = ecs.getComponentStore().retrieve<MovementComponent>(entity);
 		movement.moveLeft = moveLeft;

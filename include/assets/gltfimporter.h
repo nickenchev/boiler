@@ -3,13 +3,13 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <gltf.h>
 
 #include "core/asset.h"
 #include "core/logger.h"
 #include "display/vertexdata.h"
 #include "assets/importresult.h"
 
-#include "gltf.h"
 #include "modelaccessors.h"
 #include "assets/gltfmodel.h"
 
