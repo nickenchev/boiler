@@ -167,6 +167,7 @@ void Engine::shutdown()
 		renderer->prepareShutdown();
 		renderer->shutdown();
 
+		logger.log("Shutdown complete");
 		cleanedUp = true;
 	}
 }

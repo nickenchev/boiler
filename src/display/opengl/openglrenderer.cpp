@@ -27,7 +27,7 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 	std::vector<GLuint> shaders;
 	logger.log("Creating shaders");
 	shaders.push_back(loadShader("shaders/gl/shader.vert", GL_VERTEX_SHADER));
-	shaders.push_back(loadShader("shaders/gl/shader.frag", GL_FRAGMENT_SHADER));
+	shaders.push_back(loadShader("shaders/gl/gltut.frag", GL_FRAGMENT_SHADER));
 	program = createProgram(shaders);
 
 	glEnable(GL_DEPTH_TEST);
@@ -170,6 +170,11 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 {
 	glUseProgram(program);
 
+	GLint uniformLocationMvp = glGetUniformLocation(program, "mvp");
+	GLint uniformLocationModelMatrix = glGetUniformLocation(program, "modelMatrix");
+	GLint uniformLocationViewMatrix = glGetUniformLocation(program, "viewMatrix");
+	GLint uniformLocationCameraPosition = glGetUniformLocation(program, "cameraPosition");
+
 	if (stage == RenderStage::PRE_DEFERRED_LIGHTING)
 	{
 		for (const MaterialGroup &matGroup : materialGroups)
@@ -196,10 +201,20 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 						const PrimitiveBuffers &buffers = primitiveBuffers.get(primitive.bufferId);
 
 						glm::mat4 matrix = matrices.get(primitiveInstance.matrixId);
-						glm::mat4 mv = perspective * viewMatrix * matrix;
-						glUniformMatrix4fv(0, 1, GL_FALSE, &mv[0][0]);
-						glUniformMatrix4fv(1, 1, GL_FALSE, &matrix[0][0]);
-						glUniform3fv(2, 1, &cameraPosition[0]);
+						glm::mat4 mvp = perspective * viewMatrix * matrix;
+
+						glUniformMatrix4fv(uniformLocationMvp, 1, GL_FALSE, &mvp[0][0]);
+						glUniformMatrix4fv(uniformLocationModelMatrix, 1, GL_FALSE, &matrix[0][0]);
+
+						if (uniformLocationViewMatrix != -1)
+						{
+							glUniformMatrix4fv(uniformLocationViewMatrix, 1, GL_FALSE, &viewMatrix[0][0]);
+						}
+
+						if (uniformLocationCameraPosition != -1)
+						{
+							glUniform3fv(uniformLocationCameraPosition, 1, &cameraPosition[0]);
+						}
 
 						glBindVertexArray(buffers.getVertexArrayObject());
 						glDrawElements(GL_TRIANGLES, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
