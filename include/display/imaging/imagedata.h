@@ -12,14 +12,14 @@ namespace Boiler
 		short colorComponents;
 		bool hasAlpha;
 
-		ImageData(unsigned char *pixelData, const Size &size, short colorComponents, bool hasAlpha) : size(size)
+		ImageData(unsigned char *pixelData, const Size &size, short colorComponents) : size(size)
 		{
 			const size_t byteSize = (size.width * size.height) * colorComponents;
 			this->pixelData = new unsigned char[byteSize];
 			std::copy(pixelData, pixelData + byteSize, this->pixelData);
 
 			this->colorComponents = colorComponents;
-			this->hasAlpha = hasAlpha;
+			this->hasAlpha = colorComponents > 3;
 		}
 
 		ImageData(ImageData &&imageData)

@@ -18,6 +18,7 @@ struct Material : public Asset
 
 	AssetId albedoTexture;
 	AssetId normalTexture;
+	AssetId metallicRougnessTexture;
 	AlphaMode alphaMode;
 	bool depth;
 	
@@ -31,6 +32,7 @@ struct Material : public Asset
 		alphaMode = AlphaMode::opaque;
 		albedoTexture = Asset::NO_ASSET;
 		normalTexture = Asset::NO_ASSET;
+		metallicRougnessTexture = Asset::NO_ASSET;
 	}
     virtual ~Material() { }
 };

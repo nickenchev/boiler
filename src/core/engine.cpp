@@ -134,7 +134,7 @@ void Engine::step(FrameInfo &frameInfo)
 	if (renderer->prepareFrame(frameInfo))
 	{
 		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::RENDER);
-		renderer->displayFrame(frameInfo, renderer->getAssetSet());
+		renderer->finalizeFrame(frameInfo, renderer->getAssetSet());
 	}
 	matrixCache.reset();
 	frameCount++;

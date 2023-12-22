@@ -28,9 +28,7 @@ void LogDestination::log(const LogEntry &entry)
 			break;
 		}
 	}
-	std::cout << std::left << std::setw(10) << level
-			  << std::setw(28) << entry.getSource()
-			  << entry.getMessage() << std::endl;
+	std::cout << std::left << std::setw(10) << level << std::setw(28) << entry.getSource() << entry.getMessage() << std::endl;
 }
 
 

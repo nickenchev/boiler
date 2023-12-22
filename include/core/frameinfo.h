@@ -47,7 +47,7 @@ struct FrameInfo
 	double globalTime;
 	Time frameTime;
 	Time deltaTime;
-	int mouseXPos, mouseYPos;
+	int mouseXPos, mouseYPos, mouseXDiff, mouseYDiff;
 	unsigned long frameCount;
 
 	FrameInfo()
@@ -56,8 +56,8 @@ struct FrameInfo
 		deltaTime = 0;
 		frameTime = 0;
 		globalTime = 0;
-		mouseXPos = 0;
-		mouseYPos = 0;
+		mouseXPos = mouseYPos = 0;
+		mouseXDiff = mouseYDiff = 0;
 		frameCount = 0;
 	}
 };
