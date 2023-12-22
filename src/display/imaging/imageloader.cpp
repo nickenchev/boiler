@@ -39,15 +39,14 @@ ImageData ImageLoader::load(const std::string &filePath)
 	Logger logger("Image Loader");
 	assert(filePath.length() > 0);
 
-	const int dstColorChannels = STBI_rgb_alpha;
 	int width, height, channels;
-	unsigned char *pixelData = stbi_load(filePath.c_str(), &width, &height, &channels, dstColorChannels);
+	unsigned char *pixelData = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
 	if (!pixelData)
 	{
 		logger.error("Unable to load image: {} -- {}", filePath, stbi_failure_reason());
 	}
 
-	ImageData imageData(pixelData, Size(width, height), dstColorChannels, channels > 3);
+	ImageData imageData(pixelData, Size(width, height), channels);
 	stbi_image_free(pixelData);
 
 	std::string fileName = std::filesystem::path{ filePath }.filename().string();

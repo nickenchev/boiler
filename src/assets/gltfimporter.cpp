@@ -45,12 +45,8 @@ AssetId GLTFImporter::loadImage(const gltf::Model &model, int imageIndex, std::v
 		const ImageData imageData = ImageLoader::load(fixSpaces(imagePath.string()));
 
 		// load the texture into GPU mem
-		textureId = engine.getRenderer().loadTexture(imageData, TextureType::RGBA_SRGB);
+		textureId = engine.getRenderer().loadTexture(imageData, imageData.hasAlpha ? TextureType::RGBA_SRGB : TextureType::RGB_SRGB);
 		textureIds[imageIndex] = textureId;
-	}
-	else
-	{
-		logger.log("Image {} is already loaded, continuing.", imagePath.string());
 	}
 
 	return textureId;
@@ -91,6 +87,14 @@ std::shared_ptr<GLTFModel> GLTFImporter::import(AssetSet &assetSet, const std::s
 				const gltf::MaterialTexture &matTexture = material.pbrMetallicRoughness.value().baseColorTexture.value();
 				const gltf::Texture &texture = model.textures[matTexture.index.value()];
 				newMaterial.albedoTexture = loadImage(model, texture.source.value(), textureIds);
+			}
+
+			// metallic roughness texture
+			if (material.pbrMetallicRoughness.value().metallicRoughnessTexture.has_value())
+			{
+				const gltf::MaterialTexture &matTexture = material.pbrMetallicRoughness.value().metallicRoughnessTexture.value();
+				const gltf::Texture &texture = model.textures[matTexture.index.value()];
+				newMaterial.metallicRougnessTexture = loadImage(model, texture.source.value(), textureIds);
 			}
 
 			// normal map texture
