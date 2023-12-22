@@ -10,6 +10,15 @@ void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLs
 GLuint program;
 glm::mat4 perspective(1), view(1);
 
+struct Light
+{
+	vec4 position;
+	vec4 ambient;
+	vec4 diffuse;
+	vec4 specular;
+};
+std::array<Light, 1> lights{};
+
 Boiler::OpenGLRenderer::OpenGLRenderer() : Renderer("OpenGL Renderer", 1)
 {
 }
@@ -24,16 +33,19 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 	Renderer::initialize(size);
 	resize(size);
 
+	glDebugMessageCallback(messageCallback, &logger);
+
 	std::vector<GLuint> shaders;
 	logger.log("Creating shaders");
 	shaders.push_back(loadShader("shaders/gl/shader.vert", GL_VERTEX_SHADER));
-	shaders.push_back(loadShader("shaders/gl/gltut.frag", GL_FRAGMENT_SHADER));
+	shaders.push_back(loadShader("shaders/gl/shader.frag", GL_FRAGMENT_SHADER));
 	program = createProgram(shaders);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT);
 
-	glDebugMessageCallback(messageCallback, &logger);
+	glCreateBuffers(1, &lightsBuffer);
+	glNamedBufferStorage(lightsBuffer, sizeof(lights), nullptr, GL_DYNAMIC_STORAGE_BIT);
 }
 
 void Boiler::OpenGLRenderer::shutdown()
@@ -52,9 +64,10 @@ void Boiler::OpenGLRenderer::shutdown()
 			// VBO
 			std::array<GLuint, 1> vbos = { pb.getVertexArrayObject() };
 			glDeleteVertexArrays(vbos.size(), vbos.data());
-
 		}
 	}
+	// delete other buffers
+	glDeleteBuffers(1, &lightsBuffer);
 
 	logger.log("Deleting textures");
 	for (int i = 0; i < textures.getSize(); ++i)
@@ -89,11 +102,21 @@ std::string Boiler::OpenGLRenderer::getVersion() const
 
 Boiler::AssetId Boiler::OpenGLRenderer::loadTexture(const Boiler::ImageData &imageData, Boiler::TextureType type)
 {
+	if (type == TextureType::RGB_SRGB)
+	{
+	}
+	else if (type == TextureType::RGBA_SRGB)
+	{
+	}
+	else if (type == TextureType::RGBA_UNORM)
+	{
+	}
+
 	const unsigned short numMipMaps = 4;
 	GLuint texture;
 	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-	glTextureStorage2D(texture, numMipMaps, GL_SRGB8, imageData.size.width, imageData.size.height);
-	glTextureSubImage2D(texture, 0, 0, 0, imageData.size.width, imageData.size.height, GL_RGBA, GL_UNSIGNED_BYTE, imageData.pixelData);
+	glTextureStorage2D(texture, numMipMaps, imageData.hasAlpha ? GL_SRGB_ALPHA : GL_SRGB8, imageData.size.width, imageData.size.height);
+	glTextureSubImage2D(texture, 0, 0, 0, imageData.size.width, imageData.size.height, imageData.hasAlpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageData.pixelData);
 	glGenerateTextureMipmap(texture);
 
 	AssetId texturerAssetId = textures.add(OpenGLTexture(texture));
@@ -121,7 +144,7 @@ Boiler::AssetId Boiler::OpenGLRenderer::loadPrimitive(const Boiler::VertexData &
 
 	// setup array attributes and their associated buffers
 	glEnableVertexArrayAttrib(vao, 0);
-	glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
+	glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, position));
 	glVertexArrayAttribBinding(vao, 0, 0);
 
 	glEnableVertexArrayAttrib(vao, 1);
@@ -129,11 +152,11 @@ Boiler::AssetId Boiler::OpenGLRenderer::loadPrimitive(const Boiler::VertexData &
 	glVertexArrayAttribBinding(vao, 1, 0);
 
 	glEnableVertexArrayAttrib(vao, 2);
-	glVertexArrayAttribFormat(vao, 2, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, textureCoordinates));
+	glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex, textureCoordinates));
 	glVertexArrayAttribBinding(vao, 2, 0);
 
 	glEnableVertexArrayAttrib(vao, 3);
-	glVertexArrayAttribFormat(vao, 3, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex, normal));
+	glVertexArrayAttribFormat(vao, 3, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, normal));
 	glVertexArrayAttribBinding(vao, 3, 0);
 
 	// return the asset ID grouping these buffers
@@ -169,11 +192,24 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 									const std::vector<MaterialGroup> &materialGroups, Boiler::RenderStage stage)
 {
 	glUseProgram(program);
+	GLint uniformMvp = glGetUniformLocation(program, "mvp");
+	GLint uniformModelMatrix = glGetUniformLocation(program, "modelMatrix");
+	GLint uniformCameraMatrix = glGetUniformLocation(program, "cameraMatrix");
+	GLint uniformNormalMatrix = glGetUniformLocation(program, "normalMatrix");
+	GLint uniformCameraPosition = glGetUniformLocation(program, "cameraPosition");
 
-	GLint uniformLocationMvp = glGetUniformLocation(program, "mvp");
-	GLint uniformLocationModelMatrix = glGetUniformLocation(program, "modelMatrix");
-	GLint uniformLocationViewMatrix = glGetUniformLocation(program, "viewMatrix");
-	GLint uniformLocationCameraPosition = glGetUniformLocation(program, "cameraPosition");
+	// update lights
+	GLint lightingBlockIndex = glad_glGetUniformBlockIndex(program, "Lighting");
+	lights[0].position = vec4(-10, 10, 0, 1);
+	lights[0].ambient = vec4(1);
+	lights[0].diffuse = vec4(1);
+	lights[0].specular = vec4(1);
+	GLuint lightsSize = sizeof(lights);
+	glNamedBufferSubData(lightsBuffer, 0, lightsSize, lights.data());
+	glUniformBlockBinding(program, lightingBlockIndex, 0);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, lightsBuffer);
+
+	glUniform3fv(uniformCameraPosition, 1, &cameraPosition.x);
 
 	if (stage == RenderStage::PRE_DEFERRED_LIGHTING)
 	{
@@ -194,26 +230,33 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 						const OpenGLTexture &texture = textures.get(material.normalTexture);
 						glBindTextureUnit(1, texture.getOpenGLTextureId());
 					}
+					if (material.metallicRougnessTexture != Asset::NO_ASSET)
+					{
+						const OpenGLTexture &texture = textures.get(material.metallicRougnessTexture);
+						glBindTextureUnit(2, texture.getOpenGLTextureId());
+					}
 
 					for (const auto &primitiveInstance : matGroup.primitives)
 					{
 						const Primitive &primitive = assetSet.primitives.get(primitiveInstance.primitiveId);
 						const PrimitiveBuffers &buffers = primitiveBuffers.get(primitive.bufferId);
 
-						glm::mat4 matrix = matrices.get(primitiveInstance.matrixId);
-						glm::mat4 mvp = perspective * viewMatrix * matrix;
+						const mat4 modelMatrix = matrices.get(primitiveInstance.matrixId);
+						const mat4 mvp = perspective * viewMatrix * modelMatrix;
 
-						glUniformMatrix4fv(uniformLocationMvp, 1, GL_FALSE, &mvp[0][0]);
-						glUniformMatrix4fv(uniformLocationModelMatrix, 1, GL_FALSE, &matrix[0][0]);
+						// TODO: switch to glProgramUniform DSA methods
+						glUniformMatrix4fv(uniformMvp, 1, GL_FALSE, &mvp[0][0]);
+						glUniformMatrix4fv(uniformModelMatrix, 1, GL_FALSE, &modelMatrix[0][0]);
 
-						if (uniformLocationViewMatrix != -1)
+						if (uniformCameraMatrix != -1)
 						{
-							glUniformMatrix4fv(uniformLocationViewMatrix, 1, GL_FALSE, &viewMatrix[0][0]);
+							const mat4 cameraMatrix = viewMatrix * modelMatrix;
+							glUniformMatrix4fv(uniformCameraMatrix, 1, GL_FALSE, &cameraMatrix[0][0]);
 						}
-
-						if (uniformLocationCameraPosition != -1)
+						if (uniformNormalMatrix != -1)
 						{
-							glUniform3fv(uniformLocationCameraPosition, 1, &cameraPosition[0]);
+							const mat4 normalMatrix = glm::transpose(glm::inverse(modelMatrix));
+							glUniformMatrix4fv(uniformNormalMatrix, 1, GL_FALSE, &normalMatrix[0][0]);
 						}
 
 						glBindVertexArray(buffers.getVertexArrayObject());
@@ -225,7 +268,7 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 	}
 }
 
-void Boiler::OpenGLRenderer::displayFrame(const Boiler::FrameInfo &frameInfo, Boiler::AssetSet &assetSet)
+void Boiler::OpenGLRenderer::finalizeFrame(const Boiler::FrameInfo &frameInfo, Boiler::AssetSet &assetSet)
 {
 }
 
@@ -237,6 +280,7 @@ GLuint OpenGLRenderer::loadShader(const std::string &shaderPath, GLuint shaderTy
 	glShaderSource(shader, 1, &srcPtr, nullptr);
 	glCompileShader(shader);
 
+	// check shader compilation status
 	GLint compileStatus;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
 	if (compileStatus != GL_TRUE)
