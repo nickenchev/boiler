@@ -16,8 +16,9 @@ find_package(Freetype REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(fmt REQUIRED)
-find_package(boiler-gltf REQUIRED)
 find_package(RapidJSON REQUIRED)
+
+add_subdirectory(libs/boiler-gltf)
 
 # Build libraries
 if (NOT DEFINED ${LIBS_ROOT})
@@ -183,7 +184,8 @@ target_include_directories(boiler
 )
 
 target_link_libraries(boiler
-  BoilerGLTF::boiler-gltf
+  #BoilerGLTF::boiler-gltf
+  boiler-gltf
   glm::glm
   OpenGL::GL
   Freetype::Freetype

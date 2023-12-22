@@ -2247,7 +2247,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 	}
 }
 
-void VulkanRenderer::displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet)
+void VulkanRenderer::finalizeFrame(const FrameInfo &frameInfo, AssetSet &assetSet)
 {
 	if (nextImageResult == VK_SUCCESS || nextImageResult == VK_SUBOPTIMAL_KHR)
 	{
