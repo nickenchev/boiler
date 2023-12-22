@@ -116,7 +116,7 @@ public:
 	virtual bool prepareFrame(const FrameInfo &frameInfo);
 	virtual void render(AssetSet &assetSet, const FrameInfo &frameInfo,
 						const std::vector<MaterialGroup> &materialGroups, RenderStage stage) = 0;
-	virtual void displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet) = 0;
+	virtual void finalizeFrame(const FrameInfo &frameInfo, AssetSet &assetSet) = 0;
 	unsigned short getMaxFramesInFlight() const { return maxFramesInFlight; }
 };
 

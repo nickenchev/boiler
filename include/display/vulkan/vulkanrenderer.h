@@ -180,7 +180,7 @@ public:
 	bool prepareFrame(const FrameInfo &frameInfo) override;
 	void render(AssetSet &assetSet, const FrameInfo &frameInfo,
 				const std::vector<MaterialGroup> &materialGroups, RenderStage stage) override;
-	void displayFrame(const FrameInfo &frameInfo, AssetSet &assetSet) override;
+	void finalizeFrame(const FrameInfo &frameInfo, AssetSet &assetSet) override;
 
 	// TODO: This needs to be improved
 	VkInstance getVulkanInstance() const { return instance; }
