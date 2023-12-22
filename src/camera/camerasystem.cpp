@@ -17,15 +17,13 @@ CameraSystem::CameraSystem() : System("Camera System")
 	expects<MovementComponent>();
 	expects<PhysicsComponent>();
 
-	prevXPos = 0;
-	prevYPos = 0;
 	prevXFactor = 0;
 	prevYFactor = 0;
 }
 
 void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
-	for (Entity entity : getEntities())
+	for (const Entity &entity : getEntities())
 	{
         TransformComponent &transform = ecs.retrieve<TransformComponent>(entity);
         CameraComponent &camera = ecs.retrieve<CameraComponent>(entity);
@@ -41,8 +39,5 @@ void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 		glm::mat4 view = glm::lookAt(transform.translation, transform.translation + camera.direction, camera.up);
 		renderer.setViewMatrix(view);
 		renderer.setCameraPosition(transform.translation);
-
-		prevXPos = frameInfo.mouseXPos;
-		prevYPos = frameInfo.mouseYPos;
 	}
 }

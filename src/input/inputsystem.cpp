@@ -19,7 +19,7 @@ InputSystem::InputSystem(Engine &engine) : System("Input System"), engine(engine
 	moveBackward = false;
 	moveUp = false;
 	moveDown = false;
-	prevXPos = prevYPos = prevXFactor = prevYFactor = 0;
+	prevXFactor = prevYFactor = 0;
 }
 
 void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
@@ -56,21 +56,17 @@ void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo
 
 	// calculate mouse diff
 	const Size size = engine.getRenderer().getScreenSize();
-	const float mouseXDistance = prevXPos - frameInfo.mouseXPos;
-	const float mouseYDistance = prevYPos - frameInfo.mouseYPos;
-	const float xFactorNew = mouseXDistance / size.width;
-	const float yFactorNew = mouseYDistance / size.height;
+	const float xFactorNew = frameInfo.mouseXDiff / size.width;
+	const float yFactorNew = frameInfo.mouseYDiff / size.height;
 
 	const float alpha = 0.5f;
 	const float xFactor = prevXFactor + alpha * (xFactorNew - prevXFactor);
 	const float yFactor = prevYFactor + alpha * (yFactorNew - prevYFactor);
 
-	const float sensitivity = 1.3;
+	const float sensitivity = 1.5;
 	const float xDiff = sensitivity * xFactor;
 	const float yDiff = sensitivity * yFactor;
 
-	prevXPos = frameInfo.mouseXPos;
-	prevYPos = frameInfo.mouseYPos;
 	prevXFactor = xFactorNew;
 	prevYFactor = yFactorNew;
 

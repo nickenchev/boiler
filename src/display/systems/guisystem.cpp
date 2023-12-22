@@ -25,7 +25,7 @@ GUISystem::GUISystem(Renderer &renderer) : System("ImGui System")
 	unsigned char *pixels = nullptr;
 	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-	ImageData imageData(pixels, Size(width, height), 4, true);
+	ImageData imageData(pixels, Size(width, height), 4);
 	AssetId textureId = renderer.loadTexture(imageData, TextureType::RGBA_UNORM);
 
 
