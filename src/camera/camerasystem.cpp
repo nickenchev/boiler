@@ -31,9 +31,9 @@ void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 		PhysicsComponent& physics = ecs.retrieve<PhysicsComponent>(entity);
 
 		transform.translation += physics.velocity;
-		camera.direction = glm::rotate(camera.direction, static_cast<float>(-movement.mouseXDiff), camera.up);
+		camera.direction = glm::rotate(camera.direction, static_cast<float>(-movement.mouseXDiff * 2), camera.up);
 		const glm::vec3 axis = glm::cross(camera.up, camera.direction);
-		camera.direction = glm::rotate(camera.direction, static_cast<float>(movement.mouseYDiff), axis);
+		camera.direction = glm::rotate(camera.direction, static_cast<float>(movement.mouseYDiff * 2), axis);
 
 		// TODO: This shouldn't be happening directly on the renderer
 		glm::mat4 view = glm::lookAt(transform.translation, transform.translation + camera.direction, camera.up);
