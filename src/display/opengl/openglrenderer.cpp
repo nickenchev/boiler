@@ -10,14 +10,25 @@ void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLs
 GLuint program;
 glm::mat4 perspective(1), view(1);
 
+constexpr unsigned int maxLights = 10;
 struct Light
 {
 	vec4 position;
+	vec4 direction;
 	vec4 ambient;
 	vec4 diffuse;
 	vec4 specular;
+	unsigned int lightType;
+	int padding[3];
 };
-std::array<Light, 1> lights{};
+
+struct Lighting
+{
+	unsigned int frameLights;
+	int padding[3];
+	std::array<Light, maxLights> lights{};
+};
+Lighting lighting;
 
 Boiler::OpenGLRenderer::OpenGLRenderer() : Renderer("OpenGL Renderer", 1)
 {
@@ -45,7 +56,7 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 	glEnable(GL_DEBUG_OUTPUT);
 
 	glCreateBuffers(1, &lightsBuffer);
-	glNamedBufferStorage(lightsBuffer, sizeof(lights), nullptr, GL_DYNAMIC_STORAGE_BIT);
+	glNamedBufferStorage(lightsBuffer, sizeof(lighting), nullptr, GL_DYNAMIC_STORAGE_BIT);
 }
 
 void Boiler::OpenGLRenderer::shutdown()
@@ -200,12 +211,16 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 
 	// update lights
 	GLint lightingBlockIndex = glad_glGetUniformBlockIndex(program, "Lighting");
-	lights[0].position = vec4(-10, 10, 0, 1);
-	lights[0].ambient = vec4(1);
-	lights[0].diffuse = vec4(1);
-	lights[0].specular = vec4(1);
-	GLuint lightsSize = sizeof(lights);
-	glNamedBufferSubData(lightsBuffer, 0, lightsSize, lights.data());
+	lighting.lights[0].lightType = 1;
+	lighting.lights[0].position = vec4(0, 0, 0, 0);
+	lighting.lights[0].direction = vec4(-10, 10, 0, 1);
+	lighting.lights[0].ambient = vec4(1);
+	lighting.lights[0].diffuse = vec4(1);
+	lighting.lights[0].specular = vec4(1);
+	lighting.frameLights = 1;
+
+	GLuint lightsSize = sizeof(lighting);
+	glNamedBufferSubData(lightsBuffer, 0, lightsSize, &lighting);
 	glUniformBlockBinding(program, lightingBlockIndex, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, lightsBuffer);
 
