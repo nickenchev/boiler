@@ -2,6 +2,8 @@
 #include <display/opengl/openglrenderer.h>
 #include <util/filemanager.h>
 #include <display/imaging/imagedata.h>
+#include <stb/stb_image.h>
+#include <stb/stb_image_write.h>
 
 using namespace Boiler;
 
@@ -32,6 +34,7 @@ Lighting lighting;
 
 Boiler::OpenGLRenderer::OpenGLRenderer() : Renderer("OpenGL Renderer", 1)
 {
+	gladLoadGL();
 }
 
 Boiler::OpenGLRenderer::~OpenGLRenderer()
@@ -42,7 +45,6 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 {
 	logger.log("Initializing Boiler OpenGL Renderer");
 	Renderer::initialize(size);
-	resize(size);
 
 	glDebugMessageCallback(messageCallback, &logger);
 
@@ -57,6 +59,61 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 
 	glCreateBuffers(1, &lightsBuffer);
 	glNamedBufferStorage(lightsBuffer, sizeof(lighting), nullptr, GL_DYNAMIC_STORAGE_BIT);
+
+	// initialize FB objects
+	fboRender = 0;
+	fboAttachments[0] = 0;
+	fboAttachments[1] = 0;
+
+	resize(size);
+}
+
+void OpenGLRenderer::initializeFB(const Size &size)
+{
+	// delete old FB if needed
+	if (fboRender != 0)
+	{
+		deleteFB();
+	}
+
+	// generate offscreen FB
+	glCreateFramebuffers(1, &fboRender);
+
+	glCreateTextures(GL_TEXTURE_2D, fboAttachments.size(), fboAttachments.data());
+
+	// colour texture setup
+	glTextureStorage2D(fboAttachments[0], 1, GL_RGBA8, size.width, size.height);
+	glTextureParameteri(fboAttachments[0], GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTextureParameteri(fboAttachments[0], GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	// depth texture
+	glTextureStorage2D(fboAttachments[1], 1, GL_DEPTH_COMPONENT32, size.width, size.height);
+
+	glNamedFramebufferTexture(fboRender, GL_COLOR_ATTACHMENT0, fboAttachments[0], 0);
+	glNamedFramebufferTexture(fboRender, GL_DEPTH_ATTACHMENT, fboAttachments[1], 0);
+	
+	static const std::array<GLenum, 1> fboDrawBuffers{ GL_COLOR_ATTACHMENT0 };
+	glNamedFramebufferDrawBuffers(fboRender, fboDrawBuffers.size(), fboDrawBuffers.data());
+
+	if (glCheckNamedFramebufferStatus(fboRender, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		logger.error("Invalid render FBO");
+	}
+
+	// storage for FB color pixel data
+	fbColorByteSize = size.width * size.height * 3 * sizeof(int);
+	fbColorData = new unsigned char[fbColorByteSize];
+}
+
+void OpenGLRenderer::deleteFB()
+{
+	delete[] fbColorData;
+	fbColorData = nullptr;
+
+	// clear out framebuffers
+	glDeleteTextures(fboAttachments.size(), fboAttachments.data());
+	glDeleteFramebuffers(1, &fboRender);
+	fboRender = 0;
 }
 
 void Boiler::OpenGLRenderer::shutdown()
@@ -92,6 +149,8 @@ void Boiler::OpenGLRenderer::shutdown()
 	}
 
 	glDeleteProgram(program);
+
+	deleteFB();
 }
 
 void Boiler::OpenGLRenderer::prepareShutdown()
@@ -103,6 +162,9 @@ void Boiler::OpenGLRenderer::resize(const Boiler::Size &size)
 	Renderer::resize(size);
 	glViewport(0, 0, static_cast<int>(size.width), static_cast<int>(size.height));
 	perspective = glm::perspective(45.0f, size.width / size.height, 0.1f, 1000.0f);
+
+	initializeFB(size);
+
 	logger.log("Resized renderer to {}x{}", size.width, size.height);
 }
 
@@ -126,7 +188,7 @@ Boiler::AssetId Boiler::OpenGLRenderer::loadTexture(const Boiler::ImageData &ima
 	const unsigned short numMipMaps = 4;
 	GLuint texture;
 	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-	glTextureStorage2D(texture, numMipMaps, imageData.hasAlpha ? GL_SRGB_ALPHA : GL_SRGB8, imageData.size.width, imageData.size.height);
+	glTextureStorage2D(texture, numMipMaps, imageData.hasAlpha ? GL_SRGB8_ALPHA8 : GL_SRGB8, imageData.size.width, imageData.size.height);
 	glTextureSubImage2D(texture, 0, 0, 0, imageData.size.width, imageData.size.height, imageData.hasAlpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageData.pixelData);
 	glGenerateTextureMipmap(texture);
 
@@ -193,6 +255,7 @@ bool Boiler::OpenGLRenderer::prepareFrame(const Boiler::FrameInfo &frameInfo)
 {
 	if (Renderer::prepareFrame(frameInfo))
 	{
+		glBindFramebuffer(GL_FRAMEBUFFER, fboRender);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		return true;
 	}
@@ -210,13 +273,25 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 	GLint uniformCameraPosition = glGetUniformLocation(program, "cameraPosition");
 
 	// update lights
-	GLint lightingBlockIndex = glad_glGetUniformBlockIndex(program, "Lighting");
+	GLint lightingBlockIndex = glGetUniformBlockIndex(program, "Lighting");
 	lighting.lights[0].lightType = 1;
 	lighting.lights[0].position = vec4(0, 0, 0, 0);
 	lighting.lights[0].direction = vec4(-10, 10, 0, 1);
 	lighting.lights[0].ambient = vec4(1);
-	lighting.lights[0].diffuse = vec4(1);
+	lighting.lights[0].diffuse = vec4(0.7, 0.7, 0.7, 1);
 	lighting.lights[0].specular = vec4(1);
+	lighting.lights[1].lightType = 2;
+	lighting.lights[1].position = vec4(0, 0, 20, 1);
+	lighting.lights[1].direction = vec4(0, 0, 0, 0);
+	lighting.lights[1].ambient = vec4(1);
+	lighting.lights[1].diffuse = vec4(0, 0, 0.8, 1);
+	lighting.lights[1].specular = vec4(1);
+	lighting.lights[2].lightType = 2;
+	lighting.lights[2].position = vec4(-10, 0, 0, 1);
+	lighting.lights[2].direction = vec4(0, 0, 0, 0);
+	lighting.lights[2].ambient = vec4(1);
+	lighting.lights[2].diffuse = vec4(0.8, 0, 0, 1);
+	lighting.lights[2].specular = vec4(1);
 	lighting.frameLights = 1;
 
 	GLuint lightsSize = sizeof(lighting);
@@ -285,6 +360,10 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 
 void Boiler::OpenGLRenderer::finalizeFrame(const Boiler::FrameInfo &frameInfo, Boiler::AssetSet &assetSet)
 {
+	glReadPixels(0, 0, screenSize.width, screenSize.height, GL_RGBA, GL_UNSIGNED_BYTE, fbColorData);
+
+	//stbi_write_jpg("frame_color.jpg", screenSize.width, screenSize.height, 4, fbColorData, 75);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 GLuint OpenGLRenderer::loadShader(const std::string &shaderPath, GLuint shaderType)

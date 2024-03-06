@@ -40,10 +40,16 @@ class OpenGLRenderer : public Renderer
 	Boiler::AssetManager<Boiler::Primitive, 2048> primitives;
 	AssetManager<OpenGLTexture, 512> textures;
 
-	GLuint lightsBuffer;
+	GLuint lightsBuffer, fboRender;
+	std::array<GLuint, 2> fboAttachments;
 
 	GLuint loadShader(const std::string& shaderPath, GLuint shaderType);
 	GLuint createProgram(std::vector<GLuint> &shaders);
+	void initializeFB(const Size &size);
+	void deleteFB();
+
+	unsigned char *fbColorData;
+	unsigned int fbColorByteSize;
 
 public:
     OpenGLRenderer();
@@ -64,6 +70,8 @@ public:
     void render(AssetSet &assetSet, const FrameInfo &frameInfo, const std::vector<MaterialGroup> &materialGroups,
                 RenderStage stage) override;
     void finalizeFrame(const FrameInfo &frameInfo, AssetSet &assetSet) override;
+	unsigned char *getColorPixelData() const { return fbColorData; }
+	unsigned int getColorPixelSize() const { return fbColorByteSize; }
 };
 
 }
