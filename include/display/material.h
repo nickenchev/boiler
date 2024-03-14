@@ -30,9 +30,9 @@ struct Material : public Asset
 		specular = vec4(1, 1, 1, 1);
 		shininess = 0;
 		alphaMode = AlphaMode::opaque;
-		albedoTexture = Asset::NO_ASSET;
-		normalTexture = Asset::NO_ASSET;
-		metallicRougnessTexture = Asset::NO_ASSET;
+		albedoTexture = Asset::noAsset();
+		normalTexture = Asset::noAsset();
+		metallicRougnessTexture = Asset::noAsset();
 	}
     virtual ~Material() { }
 };

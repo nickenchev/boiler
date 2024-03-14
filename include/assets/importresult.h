@@ -1,11 +1,10 @@
-#ifndef IMPORTRESULT_H
-#define IMPORTRESULT_H
+#pragma once
 
 #include <vector>
-#include "display/material.h"
-#include "display/mesh.h"
-#include "animation/animation.h"
-#include "animation/common.h"
+#include <display/material.h>
+#include <display/mesh.h>
+#include <animation/animation.h>
+#include <animation/common.h>
 
 namespace Boiler {
 
@@ -17,5 +16,3 @@ struct ImportResult
 };
 
 };
-
-#endif /* IMPORTRESULT_H */

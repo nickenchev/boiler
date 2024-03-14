@@ -1,13 +1,10 @@
-#ifndef TEXTUREINFO_H
-#define TEXTUREINFO_H
+#pragma once
 
 namespace Boiler
 {
 
-class TextureInfo
+class 
 {
 };
 
 }
-
-#endif /* TEXTUREINFO_H */

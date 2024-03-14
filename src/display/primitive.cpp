@@ -5,8 +5,8 @@ using namespace Boiler;
 
 Primitive::Primitive()
 {
-	bufferId = Asset::NO_ASSET;
-	materialId = Asset::NO_ASSET;
+	bufferId = Asset::noAsset();
+	materialId = Asset::noAsset();
 	min = vec3(0, 0, 0);
 	max = vec3(0, 0, 0);
 }
@@ -14,7 +14,7 @@ Primitive::Primitive()
 Primitive::Primitive(AssetId bufferId, VertexData &&vertexData, vec3 min, vec3 max) : vertexData(vertexData)
 {
 	this->bufferId = bufferId;
-	this->materialId = Asset::NO_ASSET;
+	this->materialId = Asset::noAsset();
 	this->min = min;
 	this->max = max;
 }

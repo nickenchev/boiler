@@ -25,7 +25,7 @@ void TextSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo 
 
 		const GlyphMap &glyphMap = assetSet.glyphs.get(text.glyphId);
 		// setup material group
-		assert(glyphMap.materialId != Asset::NO_ASSET);
+		assert(glyphMap.materialId != Asset::noAsset());
 
 		// setup material group
 		auto iter = std::find_if(groups.begin(), groups.end(), [&glyphMap](const MaterialGroup &group) {

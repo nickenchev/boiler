@@ -1,5 +1,6 @@
-#ifndef OPENGLTEXTURE_H
-#define OPENGLTEXTURE_H
+#pragma once
+
+#include <core/asset.h>
 
 namespace Boiler
 {
@@ -17,5 +18,3 @@ public:
 };
 
 }
-
-#endif /* OPENGLTEXTURE_H */

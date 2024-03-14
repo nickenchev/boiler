@@ -17,4 +17,4 @@ void Logger::printEntry(const LogEntry &entry) const
 	destination->log(entry);
 }
 
-LogDestination* Logger::destination;
+LogDestination* Logger::destination = nullptr;

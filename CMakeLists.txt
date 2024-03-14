@@ -95,7 +95,9 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/camera/camerasystem.h
   ${INCLUDE_BASE}/assets/gltfmodel.h
   ${INCLUDE_BASE}/assets/maps/sceneobject.h
-  ${INCLUDE_BASE}/external/glad/glad.h)
+  ${INCLUDE_BASE}/external/glad/glad.h
+  ${INCLUDE_BASE}/util/filemanager.h
+)
 
 # Engine related sources
 set(SRC_BASE ${CMAKE_CURRENT_LIST_DIR}/src)
@@ -117,7 +119,6 @@ set(BOILER_SOURCES
   ${SRC_BASE}/core/bmfont.cpp
   ${SRC_BASE}/core/spriteanimation.cpp
   ${SRC_BASE}/core/line.cpp
-  ${SRC_BASE}/core/fileutils.cpp
   ${SRC_BASE}/display/renderer.cpp
   ${SRC_BASE}/display/primitive.cpp
   # Vulkan Rendering

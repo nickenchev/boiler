@@ -173,9 +173,9 @@ public:
 	void resize(const Boiler::Size &size) override;
 	void setOwnedSurface(bool owned) { ownedSurface = owned; }
 
-    AssetId loadTexture(const ImageData &imageData, TextureType type) override;
+	AssetId loadTexture(const ImageData &imageData, TextureType type) override;
 	AssetId loadCubemap(const std::array<ImageData, 6> &images) override;
-	AssetId loadPrimitive(const VertexData &data, AssetId existingId = Asset::NO_ASSET) override;
+	AssetId loadPrimitive(const VertexData &data, AssetId existingId = Asset::noAsset()) override;
 
 	bool prepareFrame(const FrameInfo &frameInfo) override;
 	void render(AssetSet &assetSet, const FrameInfo &frameInfo,

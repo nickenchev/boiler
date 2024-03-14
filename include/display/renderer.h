@@ -105,9 +105,9 @@ public:
 	void setViewMatrix(const glm::mat4 &viewMatrix) { this->viewMatrix = viewMatrix; }
 	AssetId addMatrix(mat4 matrix);
 
-    virtual AssetId loadTexture(const ImageData &imageData, TextureType type) = 0;
+	virtual AssetId loadTexture(const ImageData &imageData, TextureType type) = 0;
 	virtual AssetId loadCubemap(const std::array<ImageData, 6> &images) = 0;
-	virtual AssetId loadPrimitive(const VertexData &data, AssetId existingId = Asset::NO_ASSET) = 0;
+	virtual AssetId loadPrimitive(const VertexData &data, AssetId existingId = Asset::noAsset()) = 0;
 	virtual AssetId createBuffer(size_t size, BufferUsage usage, MemoryType memType) = 0;
 
 	virtual void updateLights(const std::vector<LightSource> &lightSources) const = 0;

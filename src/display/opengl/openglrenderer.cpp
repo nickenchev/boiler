@@ -34,7 +34,7 @@ Lighting lighting;
 
 Boiler::OpenGLRenderer::OpenGLRenderer() : Renderer("OpenGL Renderer", 1)
 {
-	gladLoadGL();
+	assert(gladLoadGL() != 0);
 }
 
 Boiler::OpenGLRenderer::~OpenGLRenderer()
@@ -57,6 +57,7 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT);
 
+
 	glCreateBuffers(1, &lightsBuffer);
 	glNamedBufferStorage(lightsBuffer, sizeof(lighting), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
@@ -65,6 +66,7 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 	fboAttachments[0] = 0;
 	fboAttachments[1] = 0;
 
+	glClearColor(0, 0, 0, 1);
 	resize(size);
 }
 
@@ -164,8 +166,6 @@ void Boiler::OpenGLRenderer::resize(const Boiler::Size &size)
 	perspective = glm::perspective(45.0f, size.width / size.height, 0.1f, 1000.0f);
 
 	initializeFB(size);
-
-	logger.log("Resized renderer to {}x{}", size.width, size.height);
 }
 
 std::string Boiler::OpenGLRenderer::getVersion() const
@@ -255,7 +255,9 @@ bool Boiler::OpenGLRenderer::prepareFrame(const Boiler::FrameInfo &frameInfo)
 {
 	if (Renderer::prepareFrame(frameInfo))
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, fboRender);
+		//glBindFramebuffer(GL_FRAMEBUFFER, fboRender);
+		const vec3 &clearColor = getClearColor();
+		glClearColor(clearColor.r, clearColor.g, clearColor.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		return true;
 	}
@@ -305,22 +307,22 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 	{
 		for (const MaterialGroup &matGroup : materialGroups)
 		{
-			if (matGroup.materialId != Asset::NO_ASSET)
+			if (matGroup.materialId != Asset::noAsset())
 			{
 				const Material &material = assetSet.materials.get(matGroup.materialId);
-				if (material.albedoTexture != Asset::NO_ASSET)
+				if (material.albedoTexture != Asset::noAsset())
 				{
-					if (material.albedoTexture != Asset::NO_ASSET)
+					if (material.albedoTexture != Asset::noAsset())
 					{
 						const OpenGLTexture &texture = textures.get(material.albedoTexture);
 						glBindTextureUnit(0, texture.getOpenGLTextureId());
 					}
-					if (material.normalTexture != Asset::NO_ASSET)
+					if (material.normalTexture != Asset::noAsset())
 					{
 						const OpenGLTexture &texture = textures.get(material.normalTexture);
 						glBindTextureUnit(1, texture.getOpenGLTextureId());
 					}
-					if (material.metallicRougnessTexture != Asset::NO_ASSET)
+					if (material.metallicRougnessTexture != Asset::noAsset())
 					{
 						const OpenGLTexture &texture = textures.get(material.metallicRougnessTexture);
 						glBindTextureUnit(2, texture.getOpenGLTextureId());
@@ -360,10 +362,13 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 
 void Boiler::OpenGLRenderer::finalizeFrame(const Boiler::FrameInfo &frameInfo, Boiler::AssetSet &assetSet)
 {
-	glReadPixels(0, 0, screenSize.width, screenSize.height, GL_RGBA, GL_UNSIGNED_BYTE, fbColorData);
+	glBindVertexArray(0);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+	//glReadPixels(0, 0, screenSize.width, screenSize.height, GL_RGBA, GL_UNSIGNED_BYTE, fbColorData);
 
 	//stbi_write_jpg("frame_color.jpg", screenSize.width, screenSize.height, 4, fbColorData, 75);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 GLuint OpenGLRenderer::loadShader(const std::string &shaderPath, GLuint shaderType)

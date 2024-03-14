@@ -16,7 +16,6 @@ public:
     ImageLoader();
 
 	virtual ImageData readImage(const std::string &filePath) const = 0;
-
 	static ImageData load(const std::string &filePath);
 };
 

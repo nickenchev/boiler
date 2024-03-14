@@ -1,9 +1,30 @@
+#include <string>
+#include <regex>
 #include <fstream>
-#include  <sstream>
+
 #include "util/filemanager.h"
-#include "core/logger.h"
 
 using namespace Boiler;
+
+std::string FileManager::fixSpaces(const std::string &input)
+{
+	std::string enc = "%20";
+	std::string dec = " ";
+	std::string output = std::regex_replace(input, std::regex(enc), dec);
+
+	return output;
+}
+
+std::filesystem::path FileManager::getDirectory(const std::string &filePath)
+{
+	std::filesystem::path fullPath(filePath);
+	return fullPath.parent_path();
+}
+
+std::filesystem::path FileManager::buildPath(const std::filesystem::path &basePath, const std::string &filename)
+{
+	return std::filesystem::path(basePath).append(filename);
+}
 
 std::string FileManager::readTextFile(const std::string &filePath)
 {

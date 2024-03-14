@@ -44,7 +44,7 @@ struct MaterialGroup
 
 	MaterialGroup()
 	{
-		materialId = Asset::NO_ASSET;
+		materialId = Asset::noAsset();
 	}
 	MaterialGroup(AssetId materialId)
 	{

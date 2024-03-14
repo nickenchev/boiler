@@ -12,6 +12,7 @@
 
 #include "modelaccessors.h"
 #include "assets/gltfmodel.h"
+#include "display/imaging/imagedata.h"
 
 namespace Boiler
 {
@@ -27,8 +28,7 @@ class GLTFImporter
 
     Entity loadNode(const gltf::Model &model, std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const;
 	VertexData getPrimitiveData(Engine &engine, const gltf::ModelAccessors &modelAccess, const gltf::Primitive &primitive);
-	std::string fixSpaces(std::string input);
-	AssetId loadImage(const gltf::Model &model, int imageIndex, std::vector<AssetId> textureIds);
+	AssetId loadImage(const std::string &basePath, const gltf::Image &image, std::vector<std::pair<AssetId, ImageData>> &textureIds);
 
 public:
     GLTFImporter(Boiler::Engine &engine);

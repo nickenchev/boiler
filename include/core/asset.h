@@ -1,6 +1,8 @@
 #ifndef ASSET_H
 #define ASSET_H
 
+#include <string>
+
 namespace Boiler
 {
 	
@@ -8,11 +10,15 @@ using AssetId = int;
 
 class Asset
 {
+	AssetId assetId;
 public:
-	static constexpr int NO_ASSET = -1;
 
-	Asset() {}
+	Asset()
+	{
+	}
     virtual ~Asset() { }
+
+	static constexpr int noAsset() { return -1; }
 };
 
 

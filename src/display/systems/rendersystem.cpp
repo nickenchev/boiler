@@ -59,7 +59,7 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 
 				matGroup->materialId = primitive.materialId;
 
-				if (primitive.materialId != Asset::NO_ASSET)
+				if (primitive.materialId != Asset::noAsset())
 				{
 					AssetId matrixId = renderer.addMatrix(modelMatrix);
 					matGroup->primitives.push_back(MaterialGroup::PrimitiveInstance(primitiveId, matrixId));

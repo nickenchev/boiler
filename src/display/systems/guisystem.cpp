@@ -25,7 +25,7 @@ GUISystem::GUISystem(Renderer &renderer) : System("ImGui System")
 	unsigned char *pixels = nullptr;
 	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-	ImageData imageData(pixels, Size(width, height), 4);
+	ImageData imageData("ImGui", pixels, Size(width, height), 4);
 	AssetId textureId = renderer.loadTexture(imageData, TextureType::RGBA_UNORM);
 
 
@@ -36,7 +36,7 @@ GUISystem::GUISystem(Renderer &renderer) : System("ImGui System")
 	primitives.resize(renderer.getMaxFramesInFlight());
 	for (AssetId &assetId : primitives)
 	{
-		assetId = Asset::NO_ASSET;
+		assetId = Asset::noAsset();
 	}
 }
 
@@ -209,7 +209,7 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 	if (vertices.size())
 	{
 		VertexData vertexData(vertices, indices);
-		if (primitives[frameInfo.currentFrame] == Asset::NO_ASSET)
+		if (primitives[frameInfo.currentFrame] == Asset::noAsset())
 		{
 			AssetId bufferId = renderer.loadPrimitive(vertexData);
 			primitives[frameInfo.currentFrame] = renderer.getAssetSet().primitives.add(

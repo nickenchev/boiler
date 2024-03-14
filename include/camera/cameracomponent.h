@@ -1,5 +1,4 @@
-#ifndef CAMERACOMPONENT_H
-#define CAMERACOMPONENT_H
+#pragma once
 
 #include "core/componenttype.h"
 #include "core/math.h"
@@ -7,17 +6,23 @@
 namespace Boiler
 {
 
+	enum class CameraType
+	{
+		firstPerson,
+		arcball
+	};
+
 struct CameraComponent : public ComponentType<CameraComponent>
 {
 	vec3 direction, up;
+	CameraType type;
 
 	CameraComponent() : ComponentType(this)
 	{
-		direction = {0, 0, 0};
-		up = {0, 0, 0};
+		direction = { 0, 0, 0 };
+		up = { 0, 0, 0 };
+		type = CameraType::firstPerson;
 	}
 };
 
 }
-
-#endif /* CAMERACOMPONENT_H */

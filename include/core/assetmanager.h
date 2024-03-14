@@ -21,10 +21,10 @@ public:
 
 	AssetId add(AssetType &&asset)
 	{
-		AssetId assetId = Asset::NO_ASSET;
+		AssetId assetId = Asset::noAsset();
 
 		unsigned int index = 0;
-		while (assetId == Asset::NO_ASSET && index < Size)
+		while (assetId == Asset::noAsset() && index < Size)
 		{
 			if (!assetStates[index])
 			{
@@ -34,7 +34,7 @@ public:
 			}
 			index++;
 		}
-		assert(assetId != Asset::NO_ASSET);
+		assert(assetId != Asset::noAsset());
 
 		return assetId;
 	}

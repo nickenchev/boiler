@@ -1,7 +1,6 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
-#include <regex>
 #include <gltf.h>
 
 #include "animation/animation.h"
@@ -19,6 +18,7 @@
 #include "animation/animation.h"
 #include "json/jsonloader.h"
 #include "assets/assetset.h"
+#include <util/filemanager.h>
 
 
 using namespace Boiler;
@@ -26,28 +26,17 @@ using namespace std;
 
 GLTFImporter::GLTFImporter(Boiler::Engine &engine) : engine(engine), logger("GLTF Importer") { }
 
-AssetId GLTFImporter::loadImage(const gltf::Model &model, int imageIndex, std::vector<AssetId> textureIds)
+AssetId GLTFImporter::loadImage(const std::string &gltfPath, const gltf::Image &image, std::vector<std::pair<AssetId, ImageData>> &textureIds)
 {
-	const gltf::Image &image = model.images[imageIndex];
 	assert(image.uri.length() > 0);
 
-	filesystem::path filePath(model.gltfPath);
-	filesystem::path basePath = filePath.parent_path();
-	filesystem::path imagePath = basePath;
+	filesystem::path imagePath = FileManager::buildPath(FileManager::getDirectory(gltfPath), image.uri);
+	logger.log("Loading image: {}", imagePath.string());
+	ImageData imageData = ImageLoader::load(imagePath.string());
 
-	imagePath.append(image.uri);
-
-	// check if texture is already loaded, if not, load it
-	AssetId textureId = textureIds[imageIndex];
-	if (textureId == Asset::NO_ASSET)
-	{
-		logger.log("Loading image: {}", imagePath.string());
-		const ImageData imageData = ImageLoader::load(fixSpaces(imagePath.string()));
-
-		// load the texture into GPU mem
-		textureId = engine.getRenderer().loadTexture(imageData, imageData.hasAlpha ? TextureType::RGBA_SRGB : TextureType::RGB_SRGB);
-		textureIds[imageIndex] = textureId;
-	}
+	// load the texture into GPU mem
+	AssetId textureId = engine.getRenderer().loadTexture(imageData, imageData.hasAlpha ? TextureType::RGBA_SRGB : TextureType::RGB_SRGB);
+	textureIds.push_back(std::make_pair(textureId, std::move(imageData)));
 
 	return textureId;
 }
@@ -74,7 +63,13 @@ std::shared_ptr<GLTFModel> GLTFImporter::import(AssetSet &assetSet, const std::s
 	}
 
 	// load materials
-	std::vector<AssetId> textureIds(model.images.size(), Asset::NO_ASSET);
+	std::vector<std::pair<AssetId, ImageData>> textureIds;
+	textureIds.reserve(model.images.size());
+	for (const gltf::Image &image : model.images)
+	{
+		loadImage(gltfPath, image, textureIds);
+	}
+
 	for (size_t i = 0; i < model.materials.size(); ++i)
 	{
 		Material newMaterial;
@@ -86,7 +81,7 @@ std::shared_ptr<GLTFModel> GLTFImporter::import(AssetSet &assetSet, const std::s
 			{
 				const gltf::MaterialTexture &matTexture = material.pbrMetallicRoughness.value().baseColorTexture.value();
 				const gltf::Texture &texture = model.textures[matTexture.index.value()];
-				newMaterial.albedoTexture = loadImage(model, texture.source.value(), textureIds);
+				newMaterial.albedoTexture = textureIds[texture.source.value()].first;
 			}
 
 			// metallic roughness texture
@@ -94,7 +89,7 @@ std::shared_ptr<GLTFModel> GLTFImporter::import(AssetSet &assetSet, const std::s
 			{
 				const gltf::MaterialTexture &matTexture = material.pbrMetallicRoughness.value().metallicRoughnessTexture.value();
 				const gltf::Texture &texture = model.textures[matTexture.index.value()];
-				newMaterial.metallicRougnessTexture = loadImage(model, texture.source.value(), textureIds);
+				newMaterial.metallicRougnessTexture = textureIds[texture.source.value()].first;
 			}
 
 			// normal map texture
@@ -102,7 +97,7 @@ std::shared_ptr<GLTFModel> GLTFImporter::import(AssetSet &assetSet, const std::s
 			{
 				const gltf::MaterialTexture &matTexture = material.normalTexture.value();
 				const gltf::Texture &texture = model.textures[matTexture.index.value()];
-				newMaterial.normalTexture = loadImage(model, texture.source.value(), textureIds);
+				newMaterial.normalTexture = textureIds[texture.source.value()].first;
 			}
 
 			newMaterial.diffuse = vec4(1, 1, 1, 1);
@@ -298,13 +293,3 @@ VertexData GLTFImporter::getPrimitiveData(Engine &engine, const gltf::ModelAcces
 
 	return VertexData(vertices, indices);
 }
-
-std::string GLTFImporter::fixSpaces(std::string input)
-{
-	std::string enc = "%20";
-	std::string dec = " ";
-	std::string output = std::regex_replace(input, std::regex(enc), dec);
-
-	return output;
-}
-

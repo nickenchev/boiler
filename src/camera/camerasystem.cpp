@@ -30,14 +30,27 @@ void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
         MovementComponent &movement = ecs.retrieve<MovementComponent>(entity);
 		PhysicsComponent& physics = ecs.retrieve<PhysicsComponent>(entity);
 
-		transform.translation += physics.velocity;
-		camera.direction = glm::rotate(camera.direction, static_cast<float>(-movement.mouseXDiff * 2), camera.up);
-		const glm::vec3 axis = glm::cross(camera.up, camera.direction);
-		camera.direction = glm::rotate(camera.direction, static_cast<float>(movement.mouseYDiff * 2), axis);
+		if (camera.type == CameraType::firstPerson)
+		{
+			transform.translation += physics.velocity;
+			camera.direction = glm::rotate(camera.direction, static_cast<float>(-movement.mouseXDiff * 2), camera.up);
+			const glm::vec3 axis = glm::cross(camera.up, camera.direction);
+			camera.direction = glm::rotate(camera.direction, static_cast<float>(movement.mouseYDiff * 2), axis);
 
-		// TODO: This shouldn't be happening directly on the renderer
-		glm::mat4 view = glm::lookAt(transform.translation, transform.translation + camera.direction, camera.up);
-		renderer.setViewMatrix(view);
-		renderer.setCameraPosition(transform.translation);
+			glm::mat4 view = glm::lookAt(transform.translation, transform.translation + camera.direction, camera.up);
+			renderer.setViewMatrix(view);
+			renderer.setCameraPosition(transform.translation);
+		}
+		else if (camera.type == CameraType::arcball)
+		{
+			vec3 position = glm::rotate(transform.translation, transform.orientation.y * frameInfo.deltaTime, camera.up);
+			vec3 forward = glm::normalize(camera.direction - position); // get forward vector, direction = target
+			vec3 right = glm::cross(camera.up, forward);
+			vec3 finalPosition = glm::rotate(position, transform.orientation.x * frameInfo.deltaTime, right);
+
+			glm::mat4 view = glm::lookAt(finalPosition, camera.direction, camera.up);
+			renderer.setViewMatrix(view);
+			renderer.setCameraPosition(finalPosition);
+		}
 	}
 }

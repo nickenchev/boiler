@@ -1842,7 +1842,7 @@ AssetId VulkanRenderer::loadPrimitive(const VertexData &data, AssetId existingId
 	AssetId indexBufferId = createGPUBuffer((void *)data.indexBegin(), data.indexByteSize(), BufferUsage::INDICES);
 
 	AssetId primBuffId = existingId;
-	if (primBuffId == Asset::NO_ASSET)
+	if (primBuffId == Asset::noAsset())
 	{
 		primBuffId = primitives.add(PrimitiveBuffers(vertexBufferId, indexBufferId));
 	}
@@ -2171,14 +2171,14 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 
 		// TODO: Avoid looping over all material groups
 		// only loop over the ones that are actually being used
-		if (group.materialId != Asset::NO_ASSET)
+		if (group.materialId != Asset::noAsset())
 		{
 			const Material &material = assetSet.materials.get(group.materialId);
 			const uint32_t descriptorIndex = (currentFrame * maxMaterials) + group.materialId; // TODO: Careful using ID as index
 			descriptorSets[DSET_IDX_MATERIAL] = materialDescriptors.getSet(descriptorIndex);
 			const int bindDescCount = descriptorSets.size();
 
-			if (material.albedoTexture != Asset::NO_ASSET) // TODO: Add pipeline and descriptor layout without base texture sampler
+			if (material.albedoTexture != Asset::noAsset()) // TODO: Add pipeline and descriptor layout without base texture sampler
 			{
 				VkDescriptorImageInfo imageInfo = {};
 				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -2203,7 +2203,7 @@ void VulkanRenderer::render(AssetSet &assetSet, const FrameInfo &frameInfo, cons
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0,
 									bindDescCount, descriptorSets.data(), 0, nullptr);
 			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-							  material.albedoTexture == Asset::NO_ASSET && stage != RenderStage::DEBUG ? gBufferNoTexPipeline.vulkanPipeline() : pipeline);
+							  material.albedoTexture == Asset::noAsset() && stage != RenderStage::DEBUG ? gBufferNoTexPipeline.vulkanPipeline() : pipeline);
 
 			for (const MaterialGroup::PrimitiveInstance &instance : group.primitives)
 			{

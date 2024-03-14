@@ -98,7 +98,7 @@ void Engine::initialize(Renderer *renderer)
 
 Engine::~Engine()
 {
-	logger.log("Cleaning up");
+	assert(cleanedUp);
 }
 
 void Engine::step(FrameInfo &frameInfo)

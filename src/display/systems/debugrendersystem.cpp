@@ -17,7 +17,7 @@ DebugRenderSystem::DebugRenderSystem(Renderer &renderer, MatrixCache &matrixCach
 	primitiveIds.resize(renderer.getMaxFramesInFlight());
 	for (AssetId &assetId : primitiveIds)
 	{
-		assetId = Asset::NO_ASSET;
+		assetId = Asset::noAsset();
 	}
 
 	Material material;
@@ -114,8 +114,8 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 
 		// generate primitive buffers and a primitive asset
 		VertexData vertData(vertices, indices);
-		AssetId primBuffsId = Asset::NO_ASSET;
-		if (primitiveIds[frameInfo.currentFrame] != Asset::NO_ASSET)
+		AssetId primBuffsId = Asset::noAsset();
+		if (primitiveIds[frameInfo.currentFrame] != Asset::noAsset())
 		{
 			// re-create primitive buffers with new data
 			AssetId existingBuffersId = renderer.getAssetSet().primitives.get(primitiveIds[frameInfo.currentFrame]).bufferId;
