@@ -14,7 +14,7 @@ namespace Boiler
 
 struct CameraComponent : public ComponentType<CameraComponent>
 {
-	vec3 direction, up;
+	vec3 direction, up, panning;
 	CameraType type;
 
 	CameraComponent() : ComponentType(this)

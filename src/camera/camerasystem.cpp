@@ -46,9 +46,11 @@ void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 			vec3 position = glm::rotate(transform.translation, transform.orientation.y * frameInfo.deltaTime, camera.up);
 			vec3 forward = glm::normalize(camera.direction - position); // get forward vector, direction = target
 			vec3 right = glm::cross(camera.up, forward);
-			vec3 finalPosition = glm::rotate(position, transform.orientation.x * frameInfo.deltaTime, right);
+			vec3 rotatedPosition = glm::rotate(position, transform.orientation.x * frameInfo.deltaTime, right);
+			vec3 panVector = (right * camera.panning.x + camera.up * camera.panning.y) * frameInfo.deltaTime;
+			vec3 finalPosition = rotatedPosition + panVector;
 
-			glm::mat4 view = glm::lookAt(finalPosition, camera.direction, camera.up);
+			glm::mat4 view = glm::lookAt(finalPosition, camera.direction + panVector, camera.up);
 			renderer.setViewMatrix(view);
 			renderer.setCameraPosition(finalPosition);
 		}
