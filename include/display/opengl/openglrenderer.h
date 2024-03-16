@@ -61,6 +61,7 @@ public:
     void resize(const Size &size) override;
     std::string getVersion() const override;
     AssetId loadTexture(const ImageData &imageData, TextureType type) override;
+	void deleteTexture(const AssetId textureId) override;
     AssetId loadCubemap(const std::array<ImageData, 6> &images) override;
     AssetId loadPrimitive(const VertexData &data, AssetId existingId) override;
     AssetId createBuffer(size_t size, BufferUsage usage, MemoryType memType) override;

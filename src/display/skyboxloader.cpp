@@ -1,4 +1,5 @@
 #include <array>
+#include <filesystem>
 
 #include "core/engine.h"
 #include "display/renderer.h"
@@ -15,12 +16,12 @@ Entity SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 						  const std::string &front, const std::string &back)
 {
 	std::array<ImageData, 6> images{
-		ImageLoader::load(right),
-		ImageLoader::load(left),
-		ImageLoader::load(top),
-		ImageLoader::load(bottom),
-		ImageLoader::load(front),
-		ImageLoader::load(back)
+		ImageLoader::load(std::filesystem::path(right)),
+		ImageLoader::load(std::filesystem::path(left)),
+		ImageLoader::load(std::filesystem::path(top)),
+		ImageLoader::load(std::filesystem::path(bottom)),
+		ImageLoader::load(std::filesystem::path(front)),
+		ImageLoader::load(std::filesystem::path(back))
 	};
 
 	vec3 min(-1, -1, -1);

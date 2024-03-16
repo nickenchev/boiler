@@ -29,7 +29,7 @@ public:
 			if (!assetStates[index])
 			{
 				assetId = index;
-				assets[index] = std::move(asset);
+				assets[index] = std::move(asset); // TODO: This is probably wrong, need to move correctly
 				assetStates[index] = true;
 			}
 			index++;

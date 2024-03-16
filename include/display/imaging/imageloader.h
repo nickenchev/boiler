@@ -2,6 +2,7 @@
 #define IMAGELOADER_H
 
 #include <memory>
+#include <filesystem>
 #include "core/logger.h"
 #include "display/imaging/imagedata.h"
 
@@ -16,7 +17,7 @@ public:
     ImageLoader();
 
 	virtual ImageData readImage(const std::string &filePath) const = 0;
-	static ImageData load(const std::string &filePath);
+	static ImageData load(const std::filesystem::path &filePath);
 };
 
 }

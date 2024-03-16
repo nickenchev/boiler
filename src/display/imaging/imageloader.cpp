@@ -35,20 +35,19 @@ bool endsWith(const std::string &str, const std::string &endStr)
 	return result;
 }
 
-ImageData ImageLoader::load(const std::string &filePath)
+ImageData ImageLoader::load(const std::filesystem::path &filePath)
 {
 	Logger logger("Image Loader");
-	assert(filePath.length() > 0);
 	int width, height, channels;
-	const std::string &cleanedPath = FileManager::fixSpaces(filePath);
-	unsigned char *pixelData = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
+	//const std::string &cleanedPath = FileManager::fixSpaces(filePath);
+	unsigned char *pixelData = stbi_load(filePath.string().c_str(), &width, &height, &channels, 0);
 
 	if (!pixelData)
 	{
-		logger.error("Unable to load image: {} -- {}", filePath, stbi_failure_reason());
+		logger.error("Unable to load image: {} -- {}", filePath.string(), stbi_failure_reason());
 	}
 
-	ImageData imageData(cleanedPath, pixelData, Size(width, height), channels);
+	ImageData imageData(filePath.string(), pixelData, Size(width, height), channels);
 	stbi_image_free(pixelData);
 
 	std::string fileName = std::filesystem::path{ filePath }.filename().string();

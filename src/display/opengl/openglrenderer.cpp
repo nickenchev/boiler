@@ -187,13 +187,24 @@ Boiler::AssetId Boiler::OpenGLRenderer::loadTexture(const Boiler::ImageData &ima
 
 	const unsigned short numMipMaps = 4;
 	GLuint texture;
+	GLuint storageFormat = imageData.hasAlpha ? GL_SRGB8_ALPHA8 : GL_SRGB8;
+	storageFormat = imageData.hasAlpha ? GL_RGBA8: GL_RGB8;
 	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-	glTextureStorage2D(texture, numMipMaps, imageData.hasAlpha ? GL_SRGB8_ALPHA8 : GL_SRGB8, imageData.size.width, imageData.size.height);
+	glTextureStorage2D(texture, numMipMaps, storageFormat, imageData.size.width, imageData.size.height);
 	glTextureSubImage2D(texture, 0, 0, 0, imageData.size.width, imageData.size.height, imageData.hasAlpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageData.pixelData);
 	glGenerateTextureMipmap(texture);
 
 	AssetId texturerAssetId = textures.add(OpenGLTexture(texture));
 	return texturerAssetId;
+}
+
+void Boiler::OpenGLRenderer::deleteTexture(const AssetId textureId)
+{
+	const OpenGLTexture &tex = textures.get(textureId);
+	unsigned int glTex = tex.getOpenGLTextureId();
+	textures.remove(textureId);
+
+	glDeleteTextures(1, &glTex);
 }
 
 Boiler::AssetId Boiler::OpenGLRenderer::loadCubemap(const std::array<ImageData, 6> &images)

@@ -20,7 +20,6 @@
 #include "assets/assetset.h"
 #include <util/filemanager.h>
 
-
 using namespace Boiler;
 using namespace std;
 
@@ -30,7 +29,7 @@ AssetId GLTFImporter::loadImage(const std::string &gltfPath, const gltf::Image &
 {
 	assert(image.uri.length() > 0);
 
-	filesystem::path imagePath = FileManager::buildPath(FileManager::getDirectory(gltfPath), image.uri);
+	std::filesystem::path imagePath = FileManager::getDirectory(gltfPath) / image.uri;
 	logger.log("Loading image: {}", imagePath.string());
 	ImageData imageData = ImageLoader::load(imagePath.string());
 

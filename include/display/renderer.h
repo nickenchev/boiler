@@ -106,6 +106,7 @@ public:
 	AssetId addMatrix(mat4 matrix);
 
 	virtual AssetId loadTexture(const ImageData &imageData, TextureType type) = 0;
+	virtual void deleteTexture(const AssetId textureId) = 0;
 	virtual AssetId loadCubemap(const std::array<ImageData, 6> &images) = 0;
 	virtual AssetId loadPrimitive(const VertexData &data, AssetId existingId = Asset::noAsset()) = 0;
 	virtual AssetId createBuffer(size_t size, BufferUsage usage, MemoryType memType) = 0;
