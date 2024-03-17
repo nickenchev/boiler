@@ -65,6 +65,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/display/texture.h
   ${INCLUDE_BASE}/display/imaging/imagedata.h
   ${INCLUDE_BASE}/display/imaging/skyboximages.h
+  ${INCLUDE_BASE}/display/imaging/kritaloader.h
   ${INCLUDE_BASE}/assets/gltfimporter.h
   ${INCLUDE_BASE}/display/vulkan/graphicspipeline.h
   ${INCLUDE_BASE}/display/vulkan/graphicspipelinebuilder.h
@@ -138,6 +139,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/display/skyboxloader.cpp
   ${SRC_BASE}/display/imaging/stb.cpp
   ${SRC_BASE}/display/imaging/imageloader.cpp
+  ${SRC_BASE}/display/imaging/kritaloader.cpp
   ${SRC_BASE}/display/systems/rendersystem.cpp
   ${SRC_BASE}/display/systems/textsystem.cpp
   ${SRC_BASE}/display/systems/lightingsystem.cpp

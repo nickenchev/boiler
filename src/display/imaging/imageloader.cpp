@@ -8,6 +8,7 @@
 #include "display/imaging/jpegloader.h"
 #include "display/renderer.h"
 #include "util/filemanager.h"
+#include <display/imaging/kritaloader.h>
 
 #include "display/imaging/stb.h"
 
@@ -40,7 +41,17 @@ ImageData ImageLoader::load(const std::filesystem::path &filePath)
 	Logger logger("Image Loader");
 	int width, height, channels;
 	//const std::string &cleanedPath = FileManager::fixSpaces(filePath);
-	unsigned char *pixelData = stbi_load(filePath.string().c_str(), &width, &height, &channels, 0);
+
+	unsigned char *pixelData = nullptr;
+	if (filePath.extension() == ".kra")
+	{
+		std::vector<char> kritaData = loadKritaFile(filePath.string(), "mergedimage.png");
+		pixelData = stbi_load_from_memory((unsigned char *)kritaData.data(), kritaData.size(), &width, &height, &channels, 0);
+	}
+	else
+	{
+		pixelData = stbi_load(filePath.string().c_str(), &width, &height, &channels, 0);
+	}
 
 	if (!pixelData)
 	{
