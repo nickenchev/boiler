@@ -103,8 +103,11 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 	size_t atlasByteSize = (atlasSize.width * atlasSize.height) * outputChannels;
 	unsigned char *atlasBuffer = new unsigned char[atlasByteSize]();
 
-	std::unordered_map<unsigned long, const Glyph> glyphMap(glyphCount);
+	Material glyphMat;
+	glyphMat.albedoTexture = renderer.loadTexture(ImageData("Freetype", atlasBuffer, atlasSize, 1), TextureType::FREETYPE_ATLAS);
+	AssetId materialId = assetSet.materials.add(std::move(glyphMat));
 
+	std::unordered_map<unsigned long, const Glyph> glyphMap(glyphCount);
 	// generate atlas from individual glyphs
 	unsigned int xOffset = 0;
 	unsigned int yOffset = 0;
@@ -151,7 +154,7 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 		AssetId bufferId = renderer.loadPrimitive(vertexData);
 
 		// create primitive
-		Primitive primitive(bufferId, std::move(vertexData), vec3(0, 0, 0), vec3(sizeW, sizeH, 0));
+		Primitive primitive(bufferId, std::move(vertexData), vec3(0, 0, 0), vec3(sizeW, sizeH, 0), materialId);
 		AssetId primitiveId = assetSet.primitives.add(std::move(primitive));
 		glyphMap.insert({code, Glyph(code, destRect, bearing, ftGlyph->advance.x, primitiveId)});
 
@@ -159,10 +162,6 @@ AssetId GlyphLoader::loadFace(std::string fontPath, int fontSize)
 	}
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
-
-	Material glyphMat;
-	glyphMat.albedoTexture = renderer.loadTexture(ImageData("Freetype", atlasBuffer, atlasSize, 1), TextureType::FREETYPE_ATLAS);
-	AssetId materialId = assetSet.materials.add(std::move(glyphMat));
 
 	delete [] atlasBuffer;
 	logger.log("Generated font atlas with dimensions {}x{} ", static_cast<int>(atlasSize.width), static_cast<int>(atlasSize.height));

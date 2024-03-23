@@ -108,8 +108,7 @@ Entity SkyBoxLoader::load(const std::string &top, const std::string &bottom,
 
 	VertexData vertexData(vertices, indices);
 	AssetId bufferId = renderer.loadPrimitive(vertexData);
-	Primitive primitive(bufferId, std::move(vertexData), min, max);
-	primitive.materialId = matAssetId;
+	Primitive primitive(bufferId, std::move(vertexData), min, max, matAssetId);
 	AssetId primitiveId = assetSet.primitives.add(std::move(primitive));
 
 	Entity skyBox = ecs.newEntity("skybox");

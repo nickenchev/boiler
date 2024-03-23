@@ -11,10 +11,10 @@ Primitive::Primitive()
 	max = vec3(0, 0, 0);
 }
 
-Primitive::Primitive(AssetId bufferId, VertexData &&vertexData, vec3 min, vec3 max) : vertexData(vertexData)
+Primitive::Primitive(AssetId bufferId, VertexData &&vertexData, vec3 min, vec3 max, AssetId materialId) : vertexData(vertexData)
 {
 	this->bufferId = bufferId;
-	this->materialId = Asset::noAsset();
+	this->materialId = materialId;
 	this->min = min;
 	this->max = max;
 }
