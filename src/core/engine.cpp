@@ -77,15 +77,6 @@ void Engine::initialize(Renderer *renderer)
     System &physicsSystem = ecs.getComponentSystems().registerSystem<PhysicsSystem>(SystemStage::SIMULATION, matrixCache);
     this->physicsSystem = &physicsSystem;
 
-    System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(SystemStage::RENDER);
-    this->lightingSystem = &lightingSys;
-
-    System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(SystemStage::RENDER, matrixCache);
-    this->renderSystem = &renderSys;
-
-    System &textSys = ecs.getComponentSystems().registerSystem<TextSystem>(SystemStage::RENDER);
-    this->textSystem = &textSys;
-
     System &debugRenderSys = ecs.getComponentSystems().registerSystem<DebugRenderSystem>(SystemStage::RENDER, *renderer, matrixCache);
     this->debugRenderSystem = &debugRenderSys;
 
@@ -94,6 +85,16 @@ void Engine::initialize(Renderer *renderer)
 
     System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(SystemStage::RENDER);
     this->cameraSystem = &cameraSystem;
+
+    System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(SystemStage::RENDER);
+    this->lightingSystem = &lightingSys;
+
+    System &textSys = ecs.getComponentSystems().registerSystem<TextSystem>(SystemStage::RENDER);
+    this->textSystem = &textSys;
+
+    System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(SystemStage::RENDER, matrixCache);
+    this->renderSystem = &renderSys;
+
 }
 
 Engine::~Engine()
