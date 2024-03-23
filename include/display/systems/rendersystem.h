@@ -1,9 +1,10 @@
 #ifndef RENDERSYSTEM_H
 #define RENDERSYSTEM_H
 
-#include "core/common.h"
-#include "core/frameinfo.h"
-#include "core/system.h"
+#include <core/common.h>
+#include <core/frameinfo.h>
+#include <core/system.h>
+#include <display/materialgroup.h>
 
 namespace Boiler
 {
