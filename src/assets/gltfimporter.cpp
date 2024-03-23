@@ -139,13 +139,14 @@ std::shared_ptr<GLTFModel> GLTFImporter::import(AssetSet &assetSet, const std::s
 			logger.log("Loading primitive with position data index: {}", i);
 
 			VertexData vertexData = getPrimitiveData(engine, modelAccess, gltfPrimitive);
-			AssetId bufferId = engine.getRenderer().loadPrimitive(vertexData);
+			const AssetId bufferId = engine.getRenderer().loadPrimitive(vertexData);
+			const AssetId materialId = gltfPrimitive.material.has_value() ? result.materialsIds[gltfPrimitive.material.value()] : Asset::noAsset();
 
 			// TODO: generate collision volumes
 			const gltf::Accessor &positionAccessor = model.accessors.at(gltfPrimitive.attributes.find(gltf::attributes::POSITION)->second);
 			vec3 min(positionAccessor.min[0].asFloat, positionAccessor.min[1].asFloat, positionAccessor.min[2].asFloat);
 			vec3 max(positionAccessor.max[0].asFloat, positionAccessor.max[1].asFloat, positionAccessor.max[2].asFloat);
-			AssetId primitiveId = assetSet.primitives.add(Primitive(bufferId, std::move(vertexData), min, max));
+			AssetId primitiveId = assetSet.primitives.add(Primitive(bufferId, std::move(vertexData), min, max, materialId));
 
 			// keep track of min/max for the entire mesh
 			meshMin = !meshMin.has_value() ? min : glm::min(meshMin.value(), min);
