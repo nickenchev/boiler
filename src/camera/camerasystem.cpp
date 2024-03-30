@@ -58,11 +58,9 @@ void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 			newPosition = yRot * newPosition;
 
 			right = yRot * right;
-
 			vec3 pan = (right * camera.panning.x) + (camera.up * camera.panning.y);
 
 			mat4 view = glm::lookAt(newPosition + pan, camera.direction + pan, camYAxis);
-
 			renderer.setViewMatrix(view);
 			renderer.setCameraPosition(newPosition);
 		}

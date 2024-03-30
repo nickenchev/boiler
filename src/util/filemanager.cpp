@@ -6,7 +6,7 @@
 
 using namespace Boiler;
 
-std::string FileManager::fixSpaces(const std::string &input)
+std::string FileManager::decodeString(const std::string &input)
 {
 	std::string enc = "%20";
 	std::string dec = " ";

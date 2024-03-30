@@ -57,7 +57,6 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT);
 
-
 	glCreateBuffers(1, &lightsBuffer);
 	glNamedBufferStorage(lightsBuffer, sizeof(lighting), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
@@ -163,7 +162,7 @@ void Boiler::OpenGLRenderer::resize(const Boiler::Size &size)
 {
 	Renderer::resize(size);
 	glViewport(0, 0, static_cast<int>(size.width), static_cast<int>(size.height));
-	perspective = glm::perspective(45.0f, size.width / size.height, 0.1f, 1000.0f);
+	perspective = glm::perspective(45.0f, size.width / size.height, 0.01f, 1000.0f);
 
 	initializeFB(size);
 }
@@ -193,6 +192,8 @@ Boiler::AssetId Boiler::OpenGLRenderer::loadTexture(const Boiler::ImageData &ima
 	glTextureStorage2D(texture, numMipMaps, storageFormat, imageData.size.width, imageData.size.height);
 	glTextureSubImage2D(texture, 0, 0, 0, imageData.size.width, imageData.size.height, imageData.hasAlpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageData.pixelData);
 	glGenerateTextureMipmap(texture);
+
+	logger.log("Loaded texture from: {} ({}x{})", imageData.getSourcePath(), imageData.size.width, imageData.size.height);
 
 	AssetId texturerAssetId = textures.add(OpenGLTexture(texture));
 	return texturerAssetId;
@@ -276,7 +277,7 @@ bool Boiler::OpenGLRenderer::prepareFrame(const Boiler::FrameInfo &frameInfo)
 }
 
 void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::FrameInfo &frameInfo,
-									const std::vector<MaterialGroup> &materialGroups, Boiler::RenderStage stage)
+	const std::vector<MaterialGroup> &materialGroups, Boiler::RenderStage stage)
 {
 	glUseProgram(program);
 	GLint uniformMvp = glGetUniformLocation(program, "mvp");
