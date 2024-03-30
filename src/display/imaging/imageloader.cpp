@@ -15,11 +15,10 @@
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
-#define COMPONENT_NAME "Image Loader"
 
 using namespace Boiler;
 
-ImageLoader::ImageLoader() : logger(COMPONENT_NAME)
+ImageLoader::ImageLoader() : logger("Image Loader")
 {
 }
 
@@ -40,9 +39,9 @@ ImageData ImageLoader::load(const std::filesystem::path &filePath)
 {
 	Logger logger("Image Loader");
 	int width, height, channels;
-	//const std::string &cleanedPath = FileManager::fixSpaces(filePath);
 
 	unsigned char *pixelData = nullptr;
+	const std::string pathString = FileManager::decodeString(filePath.string());
 	if (filePath.extension() == ".kra")
 	{
 		std::vector<char> kritaData = loadKritaFile(filePath.string(), "mergedimage.png");
@@ -50,7 +49,7 @@ ImageData ImageLoader::load(const std::filesystem::path &filePath)
 	}
 	else
 	{
-		pixelData = stbi_load(filePath.string().c_str(), &width, &height, &channels, 0);
+		pixelData = stbi_load(pathString.c_str(), &width, &height, &channels, 0);
 	}
 
 	if (!pixelData)
@@ -58,10 +57,9 @@ ImageData ImageLoader::load(const std::filesystem::path &filePath)
 		logger.error("Unable to load image: {} -- {}", filePath.string(), stbi_failure_reason());
 	}
 
-	ImageData imageData(filePath.string(), pixelData, Size(width, height), channels);
-	stbi_image_free(pixelData);
+	ImageData imageData(pathString, pixelData, Size(width, height), channels);
 
-	std::string fileName = std::filesystem::path{ filePath }.filename().string();
+	std::string fileName = std::filesystem::path{ pathString }.filename().string();
 	logger.log("{} ({}x{} {}bit)", fileName, width, height, channels * 8);
 
 	return imageData;

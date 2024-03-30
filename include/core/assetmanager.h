@@ -29,7 +29,7 @@ public:
 			if (!assetStates[index])
 			{
 				assetId = index;
-				assets[index] = std::move(asset); // TODO: This is probably wrong, need to move correctly
+				assets[index] = std::move(asset);
 				assetStates[index] = true;
 			}
 			index++;
@@ -60,12 +60,12 @@ public:
 		return assets[assetId];
 	}
 
-	bool isOccupied(AssetId id) const
+	bool isOccupied(size_t index) const
 	{
-		return assetStates[id];
+		return assetStates[index];
 	}
 
-	AssetType &operator[](std::size_t index)
+	AssetType &operator[](unsigned int index)
 	{
 		return assets[index];
 	}

@@ -13,7 +13,7 @@ class Asset
 	AssetId assetId;
 public:
 
-	Asset()
+	Asset() : assetId(noAsset())
 	{
 	}
     virtual ~Asset() { }

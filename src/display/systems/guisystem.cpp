@@ -29,8 +29,10 @@ GUISystem::GUISystem(Renderer &renderer) : System("ImGui System")
 	AssetId textureId = renderer.loadTexture(imageData, TextureType::RGBA_UNORM);
 
 
-	Material material;
+	Material material(true);
+	material.name = "ImGui";
 	material.albedoTexture = textureId;
+	material.albedoData = std::move(imageData);
 	materialId = renderer.getAssetSet().materials.add(std::move(material));
 
 	primitives.resize(renderer.getMaxFramesInFlight());

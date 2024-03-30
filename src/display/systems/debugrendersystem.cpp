@@ -20,7 +20,8 @@ DebugRenderSystem::DebugRenderSystem(Renderer &renderer, MatrixCache &matrixCach
 		assetId = Asset::noAsset();
 	}
 
-	Material material;
+	Material material(true);
+	material.name = "Debug";
 	materialId = renderer.getAssetSet().materials.add(std::move(material));
 	enabled = false;
 }

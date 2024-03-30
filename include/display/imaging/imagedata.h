@@ -8,6 +8,18 @@ namespace Boiler
 {
 	struct ImageData
 	{
+	private:
+
+		ImageData &operator=(const ImageData &id)
+		{
+			pixelData = id.pixelData;
+			size = id.size;
+			colorComponents = id.colorComponents;
+			hasAlpha = id.hasAlpha;
+			return *this;
+		}
+
+	public:
 		const std::string sourcePath;
 		unsigned char *pixelData;
 		Size size;
@@ -17,6 +29,8 @@ namespace Boiler
 		ImageData()
 		{
 			pixelData = nullptr;
+			colorComponents = 0;
+			hasAlpha = false;
 		}
 
 		ImageData(const std::string &sourcePath, unsigned char *pixelData, const Size &size, short colorComponents) : sourcePath(sourcePath), size(size)
@@ -31,19 +45,12 @@ namespace Boiler
 
 		ImageData(const ImageData &imageData) : sourcePath(imageData.sourcePath)
 		{
-			this->pixelData = imageData.pixelData;
-			this->size = imageData.size;
-			this->colorComponents = imageData.colorComponents;
-			this->hasAlpha = imageData.hasAlpha;
+			*this = imageData;
 		}
 
 		ImageData(ImageData &&imageData)
 		{
-			this->pixelData = imageData.pixelData;
-			this->size = imageData.size;
-			this->colorComponents = imageData.colorComponents;
-			this->hasAlpha = imageData.hasAlpha;
-
+			*this = imageData;
 			imageData.pixelData = nullptr;
 		}
 
@@ -52,7 +59,16 @@ namespace Boiler
 			if (pixelData)
 			{
 				delete [] pixelData;
+				pixelData = nullptr;
 			}
+		}
+
+		ImageData &operator=(ImageData &&id)
+		{
+			*this = id;
+
+			id.pixelData = nullptr;
+			return *this;
 		}
 
 		const std::string &getSourcePath() const { return sourcePath; }
