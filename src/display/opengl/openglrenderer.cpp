@@ -117,14 +117,23 @@ void OpenGLRenderer::deleteFB()
 	fboRender = 0;
 }
 
-void Boiler::OpenGLRenderer::shutdown()
+void OpenGLRenderer::releaseTexture(AssetId id)
 {
-	logger.log("Deleting primitives");
-	for (int i = 0; i < primitives.getSize(); ++i)
+	if (id != Asset::noAsset())
 	{
-		if (primitives.isOccupied(i))
+		const OpenGLTexture &tex = textures.get(id);
+		const GLuint oglTex = tex.getOpenGLTextureId();
+		glDeleteTextures(1, &oglTex);
+	}
+}
+
+void OpenGLRenderer::releaseAssetSet(const AssetSet &assetSet)
+{
+	for (unsigned int i = 0; i < assetSet.primitives.getSize(); ++i)
+	{
+		if (assetSet.primitives.isOccupied(i))
 		{
-			const Primitive prim = primitives[i];
+			const Primitive &prim = assetSet.primitives[i];
 			const PrimitiveBuffers pb = primitiveBuffers[prim.bufferId];
 			// vertex and index buffer
 			std::array<GLuint, 2> buffers = { pb.getVertexBuffer(), pb.getIndexBuffer() };
@@ -135,20 +144,37 @@ void Boiler::OpenGLRenderer::shutdown()
 			glDeleteVertexArrays(vbos.size(), vbos.data());
 		}
 	}
-	// delete other buffers
-	glDeleteBuffers(1, &lightsBuffer);
 
-	logger.log("Deleting textures");
-	for (int i = 0; i < textures.getSize(); ++i)
+	// release materials
+	for (unsigned int i = 0; i < assetSet.materials.getSize(); ++i)
 	{
-		if (textures.isOccupied(i))
+		if (assetSet.materials.isOccupied(i))
 		{
-			const OpenGLTexture &texture = textures[i];
-			const GLuint oglTex = texture.getOpenGLTextureId();
-			glDeleteTextures(1, &oglTex);
+			const Material &mat = assetSet.materials[i];
+			if (mat.albedoTexture != Asset::noAsset())
+			{
+				releaseTexture(mat.albedoTexture);
+				textures.releaseAssetSlot(mat.albedoTexture);
+			}
+			if (mat.normalTexture != Asset::noAsset())
+			{
+				releaseTexture(mat.normalTexture);
+				textures.releaseAssetSlot(mat.normalTexture);
+			}
+			if (mat.metallicRougnessTexture != Asset::noAsset())
+			{
+				releaseTexture(mat.metallicRougnessTexture);
+				textures.releaseAssetSlot(mat.metallicRougnessTexture);
+			}
 		}
 	}
 
+}
+
+void Boiler::OpenGLRenderer::shutdown()
+{
+	// delete other buffers
+	glDeleteBuffers(1, &lightsBuffer);
 	glDeleteProgram(program);
 
 	deleteFB();
@@ -285,6 +311,7 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 	GLint uniformCameraMatrix = glGetUniformLocation(program, "cameraMatrix");
 	GLint uniformNormalMatrix = glGetUniformLocation(program, "normalMatrix");
 	GLint uniformCameraPosition = glGetUniformLocation(program, "cameraPosition");
+	GLint uniformOrpthoMatrix = glGetUniformLocation(program, "orthoMatrix");
 
 	// update lights
 	GLint lightingBlockIndex = glGetUniformBlockIndex(program, "Lighting");
@@ -362,6 +389,12 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 							const mat4 normalMatrix = glm::transpose(glm::inverse(modelMatrix));
 							glUniformMatrix4fv(uniformNormalMatrix, 1, GL_FALSE, &normalMatrix[0][0]);
 						}
+						if (uniformOrpthoMatrix != -1)
+						{
+							const float ratio = screenSize.width / screenSize.height;
+							const mat4 orthoMatrix = glm::ortho(0.0f, ratio, 1.0f, 0.0f, 0.01f, 10.0f);
+							glUniformMatrix4fv(uniformOrpthoMatrix, 1, GL_FALSE, &orthoMatrix[0][0]);
+						}
 
 						glBindVertexArray(buffers.getVertexArrayObject());
 						glDrawElements(GL_TRIANGLES, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
@@ -375,8 +408,6 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 void Boiler::OpenGLRenderer::finalizeFrame(const Boiler::FrameInfo &frameInfo, Boiler::AssetSet &assetSet)
 {
 	glBindVertexArray(0);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
 	//glReadPixels(0, 0, screenSize.width, screenSize.height, GL_RGBA, GL_UNSIGNED_BYTE, fbColorData);
 
 	//stbi_write_jpg("frame_color.jpg", screenSize.width, screenSize.height, 4, fbColorData, 75);

@@ -12,6 +12,7 @@ namespace Boiler
 
 		ImageData &operator=(const ImageData &id)
 		{
+			sourcePath = id.sourcePath;
 			pixelData = id.pixelData;
 			size = id.size;
 			colorComponents = id.colorComponents;
@@ -20,7 +21,7 @@ namespace Boiler
 		}
 
 	public:
-		const std::string sourcePath;
+		std::string sourcePath;
 		unsigned char *pixelData;
 		Size size;
 		short colorComponents;
@@ -33,22 +34,23 @@ namespace Boiler
 			hasAlpha = false;
 		}
 
-		ImageData(const std::string &sourcePath, unsigned char *pixelData, const Size &size, short colorComponents) : sourcePath(sourcePath), size(size)
+		ImageData(const std::string &sourcePath, unsigned char *pixelData, const Size &size, short colorComponents)
 		{
-			const size_t byteSize = (size.width * size.height) * colorComponents;
-			this->pixelData = new unsigned char[byteSize];
-			std::copy(pixelData, pixelData + byteSize, this->pixelData);
-
+			this->sourcePath = sourcePath;
+			this->size = size;
 			this->colorComponents = colorComponents;
 			this->hasAlpha = colorComponents > 3;
+
+			this->pixelData = new unsigned char[byteSize()];
+			std::copy(pixelData, pixelData + byteSize(), this->pixelData);
 		}
 
-		ImageData(const ImageData &imageData) : sourcePath(imageData.sourcePath)
+		ImageData(const ImageData &imageData)
 		{
 			*this = imageData;
 		}
 
-		ImageData(ImageData &&imageData)
+		ImageData(ImageData &&imageData) noexcept
 		{
 			*this = imageData;
 			imageData.pixelData = nullptr;
@@ -63,7 +65,7 @@ namespace Boiler
 			}
 		}
 
-		ImageData &operator=(ImageData &&id)
+		ImageData &operator=(ImageData &&id) noexcept
 		{
 			*this = id;
 
@@ -72,6 +74,7 @@ namespace Boiler
 		}
 
 		const std::string &getSourcePath() const { return sourcePath; }
+		unsigned int byteSize() const { return (size.width * size.height) * colorComponents; }
 	};
 }
 

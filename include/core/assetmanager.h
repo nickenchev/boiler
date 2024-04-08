@@ -44,7 +44,19 @@ public:
 		assetStates[id] = false;
 	}
 
+	AssetType &operator[](unsigned int index)
+	{
+		return assets[index];
+	}
+	const AssetType &operator[](unsigned int index) const
+	{
+		return assets[index];
+	}
 	AssetType &operator()(AssetId assetId)
+	{
+		return get(assetId);
+	}
+	const AssetType &operator()(AssetId assetId) const
 	{
 		return get(assetId);
 	}
@@ -52,6 +64,11 @@ public:
 	{
 		assert(assetStates[assetId] != false);
 		return assets[assetId];
+	}
+	void releaseAssetSlot(AssetId assetId)
+	{
+		assert(assetStates[assetId] != false);
+		assetStates[assetId] = false;
 	}
 
 	const AssetType &get(AssetId assetId) const
@@ -63,11 +80,6 @@ public:
 	bool isOccupied(size_t index) const
 	{
 		return assetStates[index];
-	}
-
-	AssetType &operator[](unsigned int index)
-	{
-		return assets[index];
 	}
 
 	void reset()

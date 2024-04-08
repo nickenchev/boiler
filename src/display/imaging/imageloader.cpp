@@ -58,6 +58,10 @@ ImageData ImageLoader::load(const std::filesystem::path &filePath)
 	}
 
 	ImageData imageData(pathString, pixelData, Size(width, height), channels);
+	if (pixelData)
+	{
+		stbi_image_free(pixelData);
+	}
 
 	std::string fileName = std::filesystem::path{ pathString }.filename().string();
 	logger.log("{} ({}x{} {}bit)", fileName, width, height, channels * 8);

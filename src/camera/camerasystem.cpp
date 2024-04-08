@@ -44,6 +44,7 @@ void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 		else if (camera.type == CameraType::arcball)
 		{
 			// amount to rotate this frame
+			/*
 			float pitchAmount = transform.orientation.x * frameInfo.deltaTime * 0.2f;
 			float c = cos(pitchAmount); // used to figure out if we've rotated the cam upside-down
 			float yawAmount = transform.orientation.y * frameInfo.deltaTime * 0.2f;
@@ -61,6 +62,30 @@ void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 			vec3 pan = (right * camera.panning.x) + (camera.up * camera.panning.y);
 
 			mat4 view = glm::lookAt(newPosition + pan, camera.direction + pan, camYAxis);
+			renderer.setViewMatrix(view);
+			renderer.setCameraPosition(newPosition);
+			*/
+			vec3 target(0, 0, 0);
+			vec3 position(0, 0, 5);
+			vec3 right(1, 0, 0);
+			vec3 up(0, 1, 0);
+
+			float yAngle = transform.orientation.y * frameInfo.deltaTime * 0.2f;
+			float xAngle = transform.orientation.x * frameInfo.deltaTime * 0.2f;
+
+			mat3 xRot = glm::rotate(-xAngle, right);
+			mat3 yRot = glm::rotate(yAngle, up);
+			vec3 newPosition = yRot * xRot * position;
+			vec3 forward = glm::normalize(target - newPosition);
+
+			up = yRot * xRot * up;
+			right = glm::normalize(glm::cross(up, forward));
+			up = glm::cross(forward, right);
+
+			newPosition *= camera.distance * 0.02f;
+			vec3 pan = (right * camera.panning.x) + (up * camera.panning.y);
+
+			mat4 view = glm::lookAt(newPosition + pan, target + pan, up);
 			renderer.setViewMatrix(view);
 			renderer.setCameraPosition(newPosition);
 		}

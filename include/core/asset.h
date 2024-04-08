@@ -10,12 +10,8 @@ using AssetId = int;
 
 class Asset
 {
-	AssetId assetId;
 public:
 
-	Asset() : assetId(noAsset())
-	{
-	}
     virtual ~Asset() { }
 
 	static constexpr int noAsset() { return -1; }
