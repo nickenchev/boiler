@@ -1,5 +1,4 @@
-#ifndef MATRIXCACHE_H
-#define MATRIXCACHE_H
+#pragma once
 
 #include <array>
 #include <optional>
@@ -28,28 +27,26 @@ public:
 
 	mat4 getMatrix(Entity entity, ComponentStore &store)
 	{
-		glm::mat4 modelMatrix;
 		std::optional<mat4> &opt = matrixCache[entity.getId()];
 		if (opt.has_value())
 		{
-			modelMatrix = opt.value();
+			return opt.value();
 		}
 		else if (store.hasComponent<TransformComponent>(entity))
 		{
 			TransformComponent &transform = store.retrieve<TransformComponent>(entity);
-			modelMatrix = transform.getMatrix();
+			mat4 modelMatrix = transform.getMatrix();
 			if (store.hasComponent<ParentComponent>(entity))
 			{
 				ParentComponent &parentComp = store.retrieve<ParentComponent>(entity);
 				modelMatrix = getMatrix(parentComp.entity, store) * modelMatrix;
 			}
 			//matrixCache[entity.getId()] = modelMatrix;
+			return modelMatrix;
 		}
 
-		return modelMatrix;
+		return mat4(1);
 	}
 };
 
 };
-
-#endif /* MATRIXCACHE_H */
