@@ -4,12 +4,14 @@
 #include <memory>
 #include <core/system.h>
 #include <vector>
+#include <assets/assetset.h>
 
 namespace Boiler
 {
 
 class GUISystem : public System
 {
+	AssetSet assetSet;
 	AssetId materialId;
 	std::vector<AssetId> primitives;
 

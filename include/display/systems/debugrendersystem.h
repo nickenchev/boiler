@@ -1,7 +1,8 @@
 #ifndef DEBUGRENDERSYSTEM_H
 #define DEBUGRENDERSYSTEM_H
 
-#include "core/system.h"
+#include <core/system.h>
+#include <assets/assetset.h>
 
 namespace Boiler
 {
@@ -11,6 +12,7 @@ class MatrixCache;
 
 class DebugRenderSystem : public System
 {
+	AssetSet assetSet;
 	std::vector<AssetId> primitiveIds;
 	AssetId materialId;
 	MatrixCache &matrixCache;
@@ -19,7 +21,7 @@ class DebugRenderSystem : public System
 public:
 	DebugRenderSystem(Renderer &renderer, MatrixCache &matrixCache);
 
-    void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs) override;
+    void update(Renderer &renderer, AssetSet &asseSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs) override;
 	bool getEnabled() const { return enabled; }
 	void setEnabled(bool enabled)
 	{

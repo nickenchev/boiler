@@ -73,9 +73,8 @@ public:
 	unsigned char *getColorPixelData() const { return fbColorData; }
 	unsigned int getColorPixelSize() const { return fbColorByteSize; }
 
-
 	void releaseTexture(AssetId texture);
-	void releaseAssetSet(const AssetSet &assetSet);
+	void releaseAssetSet(AssetSet &assetSet) override;
 };
 
 }

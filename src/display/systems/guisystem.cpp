@@ -33,7 +33,7 @@ GUISystem::GUISystem(Renderer &renderer) : System("ImGui System")
 	material.name = "ImGui";
 	material.albedoTexture = textureId;
 	material.albedoData = std::move(imageData);
-	materialId = renderer.getAssetSet().materials.add(std::move(material));
+	materialId = assetSet.materials.add(std::move(material));
 
 	primitives.resize(renderer.getMaxFramesInFlight());
 	for (AssetId &assetId : primitives)
@@ -214,12 +214,12 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 		if (primitives[frameInfo.currentFrame] == Asset::noAsset())
 		{
 			AssetId bufferId = renderer.loadPrimitive(vertexData);
-			primitives[frameInfo.currentFrame] = renderer.getAssetSet().primitives.add(
+			primitives[frameInfo.currentFrame] = assetSet.primitives.add(
 				Primitive(bufferId, std::move(vertexData), vec3(0, 0, 0), vec3(0, 0, 0))); // TODO: min/max should reflect actual values in vtx buffer
 		}
 		else
 		{
-			Primitive &primitive = renderer.getAssetSet().primitives.get(primitives[frameInfo.currentFrame]);
+			Primitive &primitive = assetSet.primitives.get(primitives[frameInfo.currentFrame]);
 			renderer.loadPrimitive(vertexData, primitive.bufferId);
 		}
 		for (MaterialGroup::PrimitiveInstance &instance : groups[0].primitives)
@@ -227,7 +227,7 @@ void GUISystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &
 			instance.primitiveId = primitives[frameInfo.currentFrame];
 		}
 
-		renderer.render(renderer.getAssetSet(), frameInfo, groups, RenderStage::UI);
+		renderer.render(assetSet, frameInfo, groups, RenderStage::UI);
 	}
 }
 

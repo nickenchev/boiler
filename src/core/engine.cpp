@@ -60,7 +60,6 @@ void Engine::initialize(Renderer *renderer)
 
 	cleanedUp = false;
 	running = true;
-
 	updateInterval = (1.0f / 60);
 	prevTime = std::chrono::high_resolution_clock::now();
 
@@ -112,7 +111,11 @@ void Engine::step(FrameInfo &frameInfo)
 
 	// input and IO systems
     processEvents(frameInfo);
-	ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::IO);
+
+	// get the appropriate assetset
+	AssetSet &assetSet = getPart()->getAssetSet();
+
+	ecs.update(*renderer, assetSet, frameInfo, SystemStage::IO);
 
 	currentFrame = (currentFrame + 1) % renderer->getMaxFramesInFlight();
 
@@ -121,8 +124,8 @@ void Engine::step(FrameInfo &frameInfo)
 	while (frameLag >= updateInterval)
 	{
         part->update(frameInfo);
-		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::SIMULATION);
-		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::USER_SIMULATION);
+		ecs.update(*renderer, assetSet, frameInfo, SystemStage::SIMULATION);
+		ecs.update(*renderer, assetSet, frameInfo, SystemStage::USER_SIMULATION);
 
 		frameLag -= updateInterval;
 		globalTime += updateInterval;
@@ -134,8 +137,8 @@ void Engine::step(FrameInfo &frameInfo)
 	// this is called before updateMatrices, wrong descriptor data
 	if (renderer->prepareFrame(frameInfo))
 	{
-		ecs.update(*renderer, renderer->getAssetSet(), frameInfo, SystemStage::RENDER);
-		renderer->finalizeFrame(frameInfo, renderer->getAssetSet());
+		ecs.update(*renderer, assetSet, frameInfo, SystemStage::RENDER);
+		renderer->finalizeFrame(frameInfo, assetSet);
 	}
 	matrixCache.reset();
 	frameCount++;

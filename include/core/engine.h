@@ -76,7 +76,7 @@ public:
 	EntityComponentSystem &getEcs() { return ecs; }
 	Animator &getAnimator() { return animator; }
 
-    std::shared_ptr<Part> getPart() const { return part; }
+    std::shared_ptr<Part> getPart() { return part; }
     void setPart(std::shared_ptr<Part> part);
 
 	bool isRunning() const { return running; }

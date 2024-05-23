@@ -22,7 +22,7 @@ DebugRenderSystem::DebugRenderSystem(Renderer &renderer, MatrixCache &matrixCach
 
 	Material material(true);
 	material.name = "Debug";
-	materialId = renderer.getAssetSet().materials.add(std::move(material));
+	materialId = assetSet.materials.add(std::move(material));
 	enabled = false;
 }
 
@@ -119,19 +119,19 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 		if (primitiveIds[frameInfo.currentFrame] != Asset::noAsset())
 		{
 			// re-create primitive buffers with new data
-			AssetId existingBuffersId = renderer.getAssetSet().primitives.get(primitiveIds[frameInfo.currentFrame]).bufferId;
+			AssetId existingBuffersId = assetSet.primitives.get(primitiveIds[frameInfo.currentFrame]).bufferId;
 			primBuffsId = renderer.loadPrimitive(vertData, existingBuffersId);
 		}
 		else
 		{
 			// create new primitive buffers
 			primBuffsId = renderer.loadPrimitive(vertData);
-			primitiveIds[frameInfo.currentFrame] = renderer.getAssetSet().primitives
+			primitiveIds[frameInfo.currentFrame] = assetSet.primitives
 				.add(Primitive(primBuffsId, std::move(vertData), vec3(0, 0, 0), vec3(0, 0, 0), materialId)); // TODO: min/max should reflect actual values in vtx buffer
 		}
 		matGroups[0].primitives.push_back(MaterialGroup::PrimitiveInstance(primitiveIds[frameInfo.currentFrame],
 																		   renderer.addMatrix(mat4(1)), vec3(0), indices.size(), 0, 0));
 
-		renderer.render(renderer.getAssetSet(), frameInfo, matGroups, RenderStage::DEBUG);
+		renderer.render(assetSet, frameInfo, matGroups, RenderStage::DEBUG);
 	}
 }

@@ -17,6 +17,7 @@ protected:
 	std::string name;
 	Engine &engine;
 	Logger logger;
+    AssetSet assetSet;
 
 public:
 	Part(const std::string &name, Engine &engine) : name(name), engine(engine), logger(name)  { }
@@ -28,6 +29,8 @@ public:
 
     virtual void onStart() = 0;
     virtual void update(const FrameInfo &frameInfo) = 0;
+
+    AssetSet &getAssetSet() { return assetSet; }
 };
 
 }

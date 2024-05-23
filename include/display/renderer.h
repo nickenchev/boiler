@@ -16,7 +16,6 @@
 #include "shadermaterial.h"
 #include "display/materialgroup.h"
 #include "core/assetmanager.h"
-#include "assets/assetset.h"
 
 #define MAX_OBJECTS 4000
 
@@ -81,7 +80,6 @@ protected:
 	glm::mat4 viewMatrix;
 	unsigned int frameLightIdx;
 	AssetManager<mat4, MAX_OBJECTS> matrices;
-	AssetSet assetSet;
 
 public:
     Renderer(std::string name, unsigned short maxFramesInflight);
@@ -96,7 +94,6 @@ public:
     void setScreenSize(const Size &screenSize) { this->screenSize = screenSize; }
     const Size &getScreenSize() const { return screenSize; }
 
-	AssetSet &getAssetSet() { return assetSet; }
     const vec2 &getGlobalScale() const { return globalScale; }
     void setGlobalScale(const vec2 &scale) { this->globalScale = scale; }
     const vec3 &getClearColor() const { return clearColor; }
@@ -119,6 +116,7 @@ public:
 						const std::vector<MaterialGroup> &materialGroups, RenderStage stage) = 0;
 	virtual void finalizeFrame(const FrameInfo &frameInfo, AssetSet &assetSet) = 0;
 	unsigned short getMaxFramesInFlight() const { return maxFramesInFlight; }
+	virtual void releaseAssetSet(AssetSet &assetSet) = 0;
 };
 
 }
