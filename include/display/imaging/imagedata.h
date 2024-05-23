@@ -67,6 +67,11 @@ namespace Boiler
 
 		ImageData &operator=(ImageData &&id) noexcept
 		{
+			// delete existing pixel data
+			if (pixelData)
+			{
+				delete[] pixelData;
+			}
 			*this = id;
 
 			id.pixelData = nullptr;

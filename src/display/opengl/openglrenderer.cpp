@@ -4,6 +4,7 @@
 #include <display/imaging/imagedata.h>
 #include <stb/stb_image.h>
 #include <stb/stb_image_write.h>
+#include <assets/assetset.h>
 
 using namespace Boiler;
 
@@ -127,7 +128,7 @@ void OpenGLRenderer::releaseTexture(AssetId id)
 	}
 }
 
-void OpenGLRenderer::releaseAssetSet(const AssetSet &assetSet)
+void OpenGLRenderer::releaseAssetSet(AssetSet &assetSet)
 {
 	for (unsigned int i = 0; i < assetSet.primitives.getSize(); ++i)
 	{
@@ -150,20 +151,23 @@ void OpenGLRenderer::releaseAssetSet(const AssetSet &assetSet)
 	{
 		if (assetSet.materials.isOccupied(i))
 		{
-			const Material &mat = assetSet.materials[i];
+			Material &mat = assetSet.materials[i];
 			if (mat.albedoTexture != Asset::noAsset())
 			{
 				releaseTexture(mat.albedoTexture);
+				mat.albedoData = ImageData();
 				textures.releaseAssetSlot(mat.albedoTexture);
 			}
 			if (mat.normalTexture != Asset::noAsset())
 			{
 				releaseTexture(mat.normalTexture);
+				mat.normalData = ImageData();
 				textures.releaseAssetSlot(mat.normalTexture);
 			}
 			if (mat.metallicRougnessTexture != Asset::noAsset())
 			{
 				releaseTexture(mat.metallicRougnessTexture);
+				mat.metallicRoughnessData = ImageData();
 				textures.releaseAssetSlot(mat.metallicRougnessTexture);
 			}
 		}
