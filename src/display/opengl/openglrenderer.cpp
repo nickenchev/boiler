@@ -125,6 +125,7 @@ void OpenGLRenderer::releaseTexture(AssetId id)
 		const OpenGLTexture &tex = textures.get(id);
 		const GLuint oglTex = tex.getOpenGLTextureId();
 		glDeleteTextures(1, &oglTex);
+		textures.releaseAssetSlot(id);
 	}
 }
 
@@ -134,6 +135,7 @@ void OpenGLRenderer::releaseAssetSet(AssetSet &assetSet)
 	{
 		if (assetSet.primitives.isOccupied(i))
 		{
+			assetSet.primitives.releaseAssetSlot(i);
 			const Primitive &prim = assetSet.primitives[i];
 			const PrimitiveBuffers pb = primitiveBuffers[prim.bufferId];
 			// vertex and index buffer
@@ -152,23 +154,21 @@ void OpenGLRenderer::releaseAssetSet(AssetSet &assetSet)
 		if (assetSet.materials.isOccupied(i))
 		{
 			Material &mat = assetSet.materials[i];
+			assetSet.materials.releaseAssetSlot(i);
 			if (mat.albedoTexture != Asset::noAsset())
 			{
 				releaseTexture(mat.albedoTexture);
 				mat.albedoData = ImageData();
-				textures.releaseAssetSlot(mat.albedoTexture);
 			}
 			if (mat.normalTexture != Asset::noAsset())
 			{
 				releaseTexture(mat.normalTexture);
 				mat.normalData = ImageData();
-				textures.releaseAssetSlot(mat.normalTexture);
 			}
 			if (mat.metallicRougnessTexture != Asset::noAsset())
 			{
 				releaseTexture(mat.metallicRougnessTexture);
 				mat.metallicRoughnessData = ImageData();
-				textures.releaseAssetSlot(mat.metallicRougnessTexture);
 			}
 		}
 	}
