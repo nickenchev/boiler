@@ -51,6 +51,7 @@ class Engine
     Time updateInterval;
 	std::chrono::high_resolution_clock::time_point prevTime;
 
+	std::function<void(FrameInfo &)> platformHandler;
     void processEvents(FrameInfo &frameInfo);
 
     std::shared_ptr<Part> part;
@@ -81,6 +82,7 @@ public:
 
 	bool isRunning() const { return running; }
 	void setMouseRelativeMode(bool enabled);
+	void setPlatformHandler(std::function<void(FrameInfo &)> handler) { this->platformHandler = handler; }
 };
 
 }
