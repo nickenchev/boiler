@@ -148,6 +148,7 @@ void Engine::step(FrameInfo &frameInfo)
 
 void Engine::processEvents(FrameInfo &frameInfo)
 {
+	platformHandler(frameInfo);
 }
 
 void Engine::setMouseRelativeMode(bool enabled)

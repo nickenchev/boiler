@@ -10,7 +10,8 @@ namespace Boiler
 
 struct KeyInputEvent : public InputEvent
 {
-    KeyCode keyCode;
+    //KeyCode keyCode;
+    uint32_t keyCode;
     ButtonState state;
 
 	KeyInputEvent()
@@ -18,7 +19,7 @@ struct KeyInputEvent : public InputEvent
 		state = ButtonState::NONE;
 	}
 
-    KeyInputEvent(KeyCode keyCode, ButtonState state)
+    KeyInputEvent(uint32_t keyCode, ButtonState state)
     {
         this->keyCode = keyCode;
         this->state = state;

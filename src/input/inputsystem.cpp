@@ -24,29 +24,27 @@ InputSystem::InputSystem(Engine &engine) : System("Input System"), engine(engine
 
 void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs)
 {
-	bool jump = false;
-	
 	for (unsigned int i = 0; i < frameInfo.keyInputEvents.getCount(); ++i)
 	{
 		const KeyInputEvent event = frameInfo.keyInputEvents[i];
 		switch (event.keyCode)
 		{
-			case KeyCode::a:
+			case 'A':
 			{
 				moveLeft = event.state == ButtonState::DOWN;
 				break;
 			}
-			case KeyCode::d:
+			case 'D':
 			{
 				moveRight = event.state == ButtonState::DOWN;
 				break;
 			}
-			case KeyCode::s:
+			case 'S':
 			{
 				moveBackward = event.state == ButtonState::DOWN;
 				break;
 			}
-			case KeyCode::w:
+			case 'W':
 			{
 				moveForward = event.state == ButtonState::DOWN;
 				break;
@@ -79,7 +77,6 @@ void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo
 		movement.moveBackward = moveBackward;
 		movement.moveUp = moveUp;
 		movement.moveDown = moveDown;
-		movement.jump = jump;
 		movement.mouseXDiff = xDiff;
 		movement.mouseYDiff = yDiff;
 	}
