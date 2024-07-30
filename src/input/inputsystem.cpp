@@ -8,7 +8,7 @@
 
 using namespace Boiler;
 
-InputSystem::InputSystem(Engine &engine) : System("Input System"), engine(engine)
+InputSystem::InputSystem(Engine &engine) : System("Input System"), engine(engine), keyStates{ ButtonState::NONE }
 {
 	expects<InputComponent>();
 	expects<MovementComponent>();
@@ -27,30 +27,16 @@ void InputSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInfo
 	for (unsigned int i = 0; i < frameInfo.keyInputEvents.getCount(); ++i)
 	{
 		const KeyInputEvent event = frameInfo.keyInputEvents[i];
-		switch (event.keyCode)
+		if (event.keyCode < KEY_STATES_SIZE)
 		{
-			case 'A':
-			{
-				moveLeft = event.state == ButtonState::DOWN;
-				break;
-			}
-			case 'D':
-			{
-				moveRight = event.state == ButtonState::DOWN;
-				break;
-			}
-			case 'S':
-			{
-				moveBackward = event.state == ButtonState::DOWN;
-				break;
-			}
-			case 'W':
-			{
-				moveForward = event.state == ButtonState::DOWN;
-				break;
-			}
+			keyStates[event.keyCode] = event.state;
 		}
 	}
+
+	moveLeft = keyStates['A'] == ButtonState::DOWN;
+	moveRight = keyStates['D'] == ButtonState::DOWN;
+	moveForward = keyStates['W'] == ButtonState::DOWN;
+	moveBackward = keyStates['S'] == ButtonState::DOWN;
 
 	// calculate mouse diff
 	const Size size = engine.getRenderer().getScreenSize();

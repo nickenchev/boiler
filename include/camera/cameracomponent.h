@@ -14,16 +14,13 @@ namespace Boiler
 
 struct CameraComponent : public ComponentType<CameraComponent>
 {
-	vec3 direction, up, panning;
+	vec3 offset, up;
 	CameraType type;
-	float distance;
 
 	CameraComponent() : ComponentType(this)
 	{
-		direction = { 0, 0, 0 };
-		up = { 0, 0, 0 };
+		up = { 0, 1, 0 };
 		type = CameraType::firstPerson;
-		distance = 0;
 	}
 };
 

@@ -32,62 +32,59 @@ void CameraSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 
 		if (camera.type == CameraType::firstPerson)
 		{
-			transform.translation += physics.velocity;
-			camera.direction = glm::rotate(camera.direction, static_cast<float>(-movement.mouseXDiff * 2), camera.up);
-			const glm::vec3 axis = glm::cross(camera.up, camera.direction);
-			camera.direction = glm::rotate(camera.direction, static_cast<float>(movement.mouseYDiff * 2), axis);
+			const int mouseSpeed = 100;
 
-			glm::mat4 view = glm::lookAt(transform.translation, transform.translation + camera.direction, camera.up);
+			/*
+			camera.forward = glm::rotate(camera.forward, movement.mouseXDiff * mouseSpeed * frameInfo.deltaTime, -camera.up);
+			glm::vec3 right = glm::cross(camera.up, camera.forward);
+			camera.forward = glm::rotate(camera.forward, movement.mouseYDiff * mouseSpeed * frameInfo.deltaTime, right);
+
+			const float speed = 10.0f;
+			vec3 moveAmount(0);
+
+			if (movement.moveForward)
+			{
+				moveAmount += camera.forward * speed * frameInfo.deltaTime;
+			}
+			if (movement.moveBackward)
+			{
+				moveAmount -= camera.forward * speed * frameInfo.deltaTime;
+			}
+			if (movement.moveLeft)
+			{
+				moveAmount +=  right * speed * frameInfo.deltaTime;
+			}
+			if (movement.moveRight)
+			{
+				moveAmount -= right * speed * frameInfo.deltaTime;
+			}
+
+			transform.translation += moveAmount;
+
+			glm::mat4 view = glm::lookAt(transform.translation, transform.translation + camera.forward, camera.up);
 			renderer.setViewMatrix(view);
 			renderer.setCameraPosition(transform.translation);
+			*/
 		}
 		else if (camera.type == CameraType::arcball)
 		{
-			// amount to rotate this frame
-			/*
-			float pitchAmount = transform.orientation.x * frameInfo.deltaTime * 0.2f;
-			float c = cos(pitchAmount); // used to figure out if we've rotated the cam upside-down
-			float yawAmount = transform.orientation.y * frameInfo.deltaTime * 0.2f;
-			vec3 camYAxis = c > 0 ? camera.up : -camera.up;
+			const vec3 worldUp(0, 1, 0);
+			const float yaw = -frameInfo.mouseXDiff * 0.5f * frameInfo.deltaTime;
+			const float pitch = frameInfo.mouseYDiff * 0.5f * frameInfo.deltaTime;
 
-			vec3 forward = glm::normalize(camera.direction - transform.translation);
-			vec3 right = glm::cross(camera.up, forward);
-			mat3 xRot = glm::rotate(pitchAmount, right);
-			vec3 newPosition = xRot * transform.translation;
+			camera.offset = glm::rotate(camera.offset, yaw, worldUp);
+			camera.up = glm::rotate(camera.up, yaw, worldUp);
+			vec3 forward = glm::normalize(-camera.offset);
+			vec3 right = glm::normalize(glm::cross(camera.up, forward));
+			camera.offset = glm::rotate(camera.offset, pitch, right);
+			camera.up = glm::rotate(camera.up, pitch, right);
 
-			mat3 yRot = glm::rotate(yawAmount, camera.up);
-			newPosition = yRot * newPosition;
+			vec3 target = transform.translation;
+			vec3 cameraPos = target + camera.offset;
 
-			right = yRot * right;
-			vec3 pan = (right * camera.panning.x) + (camera.up * camera.panning.y);
-
-			mat4 view = glm::lookAt(newPosition + pan, camera.direction + pan, camYAxis);
+			mat4 view = glm::lookAt(cameraPos, target, camera.up);
 			renderer.setViewMatrix(view);
-			renderer.setCameraPosition(newPosition);
-			*/
-			vec3 target(0, 0, 0);
-			vec3 position(0, 0, 5);
-			vec3 right(1, 0, 0);
-			vec3 up(0, 1, 0);
-
-			float yAngle = transform.orientation.y * frameInfo.deltaTime * 0.2f;
-			float xAngle = transform.orientation.x * frameInfo.deltaTime * 0.2f;
-
-			mat3 xRot = glm::rotate(-xAngle, right);
-			mat3 yRot = glm::rotate(yAngle, up);
-			vec3 newPosition = yRot * xRot * position;
-			vec3 forward = glm::normalize(target - newPosition);
-
-			up = yRot * xRot * up;
-			right = glm::normalize(glm::cross(up, forward));
-			up = glm::cross(forward, right);
-
-			newPosition *= camera.distance * 0.02f;
-			vec3 pan = (right * camera.panning.x) + (up * camera.panning.y);
-
-			mat4 view = glm::lookAt(newPosition + pan, target + pan, up);
-			renderer.setViewMatrix(view);
-			renderer.setCameraPosition(newPosition);
+			renderer.setCameraPosition(cameraPos);
 		}
 	}
 }

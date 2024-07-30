@@ -2,6 +2,7 @@
 #define INPUTSYSTEM_H
 
 #include "core/system.h"
+#define KEY_STATES_SIZE 256
 
 namespace Boiler
 {
@@ -10,6 +11,7 @@ class Engine;
 
 class InputSystem : public System
 {
+	ButtonState keyStates[KEY_STATES_SIZE];
 	Engine &engine;
 	bool moveLeft, moveRight, moveForward, moveBackward, moveUp, moveDown;
 	float prevXFactor, prevYFactor;

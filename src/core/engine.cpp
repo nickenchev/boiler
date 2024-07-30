@@ -170,6 +170,7 @@ void Engine::shutdown()
 	{
 		// wait for any renderer commands to finish before destructors kick in
 		renderer->prepareShutdown();
+		renderer->releaseAssetSet(part->getAssetSet());
 		renderer->shutdown();
 
 		logger.log("Shutdown complete");

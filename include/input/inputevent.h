@@ -4,7 +4,7 @@
 namespace Boiler
 {
 
-enum class ButtonState { NONE, UP, HELD, DOWN };
+enum class ButtonState { NONE, UP, DOWN };
 
 struct InputEvent
 {

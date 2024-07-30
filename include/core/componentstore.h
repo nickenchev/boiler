@@ -39,6 +39,20 @@ public:
 		return *ptr;
 	}
 
+	template<typename T>
+	T &store(const Entity &entity, T &&component)
+	{
+		// move and store the new compnent for this entity
+		unsigned int entityIndex = entity.index();
+		unsigned int storageIndex = T::storageIndex;
+		assert(entityIndex < entityComponents.size());
+
+		entityComponents[entityIndex][T::storageIndex] = std::make_unique<T>(component);
+		T *ptr = static_cast<T*>(entityComponents[entityIndex][T::storageIndex].get());
+
+		return *ptr;
+	}
+
 	void remove(const Entity &entity, unsigned int storageIndex)
 	{
 		entityComponents[entity.index()][storageIndex] = nullptr;
