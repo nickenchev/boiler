@@ -9,6 +9,7 @@
 #include "core/componentstore.h"
 #include "core/components/parentcomponent.h"
 #include "physics/collisioncomponent.h"
+#include <queue>
 
 namespace Boiler
 {
@@ -20,7 +21,8 @@ class EntityComponentSystem
 	ComponentMapper mapper;
 	ComponentSystems systems;
 	ComponentStore componentStore;
-	std::vector<std::tuple<Entity, ComponentMask, unsigned int>> removeComponents;
+	std::queue<std::tuple<Entity, ComponentMask, unsigned int>> removeComponents;
+	std::queue<std::tuple<Entity, ComponentMask>> deferredEntityChecks;
 
 	void removeComponent(const Entity &entity, ComponentMask mask, unsigned int storageIndex);
 
@@ -48,9 +50,19 @@ public:
 	{
 		auto entMask = mapper.add<T>(entity);
 		T &component = componentStore.store<T>(entity, std::forward<Args>(args)...);
-		systems.checkEntity(entity, entMask);
+		deferredEntityChecks.push(std::make_tuple(entity, entMask));
 
 		return component;
+	}
+
+	template<typename T>
+	T &addComponent(const Entity &entity, T &&component)
+	{
+		auto entMask = mapper.add<T>(entity);
+		T &newComponent = componentStore.store<T>(entity, component);
+		deferredEntityChecks.push(std::make_tuple(entity, entMask));
+
+		return newComponent;
 	}
 
 	template<typename T>
@@ -62,7 +74,7 @@ public:
 	template<typename T>
 	void removeComponent(const Entity &entity)
 	{
-		removeComponents.push_back(std::make_tuple(entity, T::mask, T::storageIndex));
+		removeComponents.push(std::make_tuple(entity, T::mask, T::storageIndex));
 	}
 
 	template<typename T, typename... Args>
