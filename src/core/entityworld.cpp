@@ -11,7 +11,7 @@ EntityWorld::EntityWorld() : logger("Entity World")
 Entity EntityWorld::createEntity(const std::string &name)
 {
 	Entity entity(++entityCount);
-	names[entity.index()] = name;
+	setName(entity, name);
 	entities.push_back(entity);
 
 	logger.log("Created entity with ID: {}", entity.getId());

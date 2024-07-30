@@ -1,10 +1,8 @@
 #ifndef GLYPH_H
 #define GLYPH_H
 
-#include <memory>
 #include "core/math.h"
 #include "core/rect.h"
-#include "display/textureinfo.h"
 #include "display/primitive.h"
 
 namespace Boiler

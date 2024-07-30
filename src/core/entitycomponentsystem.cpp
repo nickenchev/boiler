@@ -4,21 +4,10 @@ using namespace Boiler;
 
 EntityComponentSystem::EntityComponentSystem() : logger("ECS"), systems(entityWorld)
 {
-	removeComponents.reserve(100);
 }
 
 void EntityComponentSystem::endFrame()
 {
-	// deferred component removals
-	for (auto deferred : removeComponents)
-	{
-		Entity entity = std::get<0>(deferred);
-		ComponentMask mask = std::get<1>(deferred);
-		unsigned int storageIndex = std::get<2>(deferred);
-		removeComponent(entity, mask, storageIndex);
-	}
-	removeComponents.clear();
-
 	// remove collisions
 	for (Entity entity : getEntityWorld().getEntities())
 	{
@@ -27,6 +16,23 @@ void EntityComponentSystem::endFrame()
 			CollisionComponent &collision = retrieve<CollisionComponent>(entity);
 			removeComponentImmediate<CollisionComponent>(entity);
 		}
+	}
+
+	// deferred component removals
+	for (; !removeComponents.empty(); removeComponents.pop())
+	{
+		const auto &deferred = removeComponents.front();
+		Entity entity = std::get<0>(deferred);
+		ComponentMask mask = std::get<1>(deferred);
+		unsigned int storageIndex = std::get<2>(deferred);
+		removeComponent(entity, mask, storageIndex);
+	}
+
+	// check any entities that have been modified
+	for (; !deferredEntityChecks.empty(); deferredEntityChecks.pop())
+	{
+		const auto &item = deferredEntityChecks.front();
+		systems.checkEntity(std::get<Entity>(item), std::get<ComponentMask>(item));
 	}
 }
 
