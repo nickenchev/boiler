@@ -1,11 +1,8 @@
 #ifndef SPRITEFRAME_H
 #define SPRITEFRAME_H
 
-#include <memory>
-#include <string>
 #include "rect.h"
 #include "display/texture.h"
-#include "display/textureinfo.h"
 
 namespace Boiler
 {

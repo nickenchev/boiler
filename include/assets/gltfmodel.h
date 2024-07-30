@@ -4,6 +4,7 @@
 #include <gltf.h>
 #include "importresult.h"
 #include "core/logger.h"
+#include "assets/assetset.h"
 
 namespace Boiler
 {
@@ -24,8 +25,8 @@ public:
     const gltf::Model &getModel() const { return model; }
     const std::string &getFilePath() const { return filePath; }
 	const ImportResult &getImportResult() const { return result; }
-    std::vector<Entity> createInstance(EntityComponentSystem &ecs, const Entity &rootEntity) const;
-    Entity loadNode(EntityComponentSystem &ecs, std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const;
+    std::vector<Entity> createInstance(const AssetSet &assetSet, EntityComponentSystem &ecs, const Entity &rootEntity) const;
+    Entity loadNode(const AssetSet &assetSet, EntityComponentSystem &ecs, std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const;
 };
 
 }

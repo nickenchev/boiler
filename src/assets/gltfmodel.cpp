@@ -20,7 +20,7 @@ GLTFModel::GLTFModel(const std::string &filePath, const std::vector<std::vector<
 {
 }
 
-std::vector<Entity> GLTFModel::createInstance(EntityComponentSystem &ecs, const Entity &rootEntity) const
+std::vector<Entity> GLTFModel::createInstance(const AssetSet &assetSet, EntityComponentSystem &ecs, const Entity &rootEntity) const
 {
     // TODO: Remove array from this call to avoid memory allocation during runtime
 
@@ -38,13 +38,13 @@ std::vector<Entity> GLTFModel::createInstance(EntityComponentSystem &ecs, const 
 
     if (scene.nodes.size() == 1)
     {
-        loadNode(ecs, nodeEntities, rootEntity, scene.nodes[0], Entity::NO_ENTITY);
+        loadNode(assetSet, ecs, nodeEntities, rootEntity, scene.nodes[0], Entity::NO_ENTITY);
     }
     else
     {
         for (auto &nodeIndex : scene.nodes)
         {
-            loadNode(ecs, nodeEntities, ecs.newEntity(model.nodes[nodeIndex].name), nodeIndex, rootEntity);
+            loadNode(assetSet, ecs, nodeEntities, ecs.newEntity(model.nodes[nodeIndex].name), nodeIndex, rootEntity);
         }
     }
 
@@ -60,7 +60,7 @@ std::vector<Entity> GLTFModel::createInstance(EntityComponentSystem &ecs, const 
     return nodeEntities;
 }
 
-Entity GLTFModel::loadNode(EntityComponentSystem &ecs, std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const
+Entity GLTFModel::loadNode(const AssetSet &assetSet, EntityComponentSystem &ecs, std::vector<Entity> &nodeEntities, const Entity nodeEntity, int nodeIndex, const Entity parentEntity) const
 {
     if (!nodeEntities[nodeIndex] != Entity::NO_ENTITY)
     {
@@ -78,13 +78,13 @@ Entity GLTFModel::loadNode(EntityComponentSystem &ecs, std::vector<Entity> &node
         // assign mesh
         if (node.mesh.has_value())
         {
-            const Mesh &mesh = result.meshes[node.mesh.value()]; // TODO: use mesh-id instead of copying
             auto &render = ecs.createComponent<RenderComponent>(nodeEntity);
-            render.mesh = mesh;
+            render.meshId = result.meshes[node.mesh.value()];
 
             // generate collider component
             if (!ecs.getComponentStore().hasComponent<ColliderComponent>(nodeEntity))
             {
+                const Mesh &mesh = assetSet.meshes.get(render.meshId);
                 auto &collider = ecs.createComponent<ColliderComponent>(nodeEntity);
                 collider.min = mesh.min;
                 collider.max = mesh.max;
@@ -147,7 +147,7 @@ Entity GLTFModel::loadNode(EntityComponentSystem &ecs, std::vector<Entity> &node
         {
             for (int childIndex : node.children)
             {
-                loadNode(ecs, nodeEntities, ecs.newEntity(model.nodes[childIndex].name), childIndex, nodeEntity);
+                loadNode(assetSet, ecs, nodeEntities, ecs.newEntity(model.nodes[childIndex].name), childIndex, nodeEntity);
             }
         }
     }

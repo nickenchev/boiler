@@ -30,7 +30,7 @@ void DebugRenderSystem::update(Renderer &renderer, AssetSet &assetSet, const Fra
 {
 	for (unsigned int i = 0; i < frameInfo.keyInputEvents.getCount(); ++i)
 	{
-		if (frameInfo.keyInputEvents[i].keyCode == KeyCode::graveAccent && frameInfo.keyInputEvents[i].state == ButtonState::UP)
+		if (frameInfo.keyInputEvents[i].keyCode == '`' && frameInfo.keyInputEvents[i].state == ButtonState::UP)
 		{
 			enabled = !enabled;
 		}

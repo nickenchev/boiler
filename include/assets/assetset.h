@@ -4,6 +4,7 @@
 #include <array>
 #include "core/assetmanager.h"
 #include "display/material.h"
+#include "display/mesh.h"
 #include "display/primitive.h"
 #include "display/glyphmap.h"
 
@@ -12,11 +13,10 @@ namespace Boiler
 
 struct AssetSet
 {
-	static const unsigned int MaxAssets = 2048;
-	
-	AssetManager<Material, 512> materials;
-	AssetManager<Primitive, MaxAssets> primitives;
-	AssetManager<GlyphMap, MaxAssets> glyphs;
+	AssetManager<Material, 128> materials;
+	AssetManager<Mesh, 2048> meshes;
+	AssetManager<Primitive, 2048> primitives;
+	AssetManager<GlyphMap, 2048> glyphs;
 };
 
 }

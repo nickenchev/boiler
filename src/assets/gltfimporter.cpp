@@ -162,7 +162,7 @@ std::shared_ptr<GLTFModel> GLTFImporter::import(AssetSet &assetSet, const std::s
 			newMesh.max = meshMax.value();
 			primitiveCount++;
 		}
-		result.meshes.push_back(newMesh);
+		result.meshes.push_back(assetSet.meshes.add(std::move(newMesh)));
 	}
 	logger.log("Loaded {} total primitives across all meshes", primitiveCount);
 

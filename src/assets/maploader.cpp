@@ -143,7 +143,7 @@ void MapLoader::load(const std::string &filePath)
 						assert(ecs.getComponentStore().hasComponent<RenderComponent>(entity));
 						const auto &volume = comp["mesh"];
 						const auto &renderComponent = ecs.getComponentStore().retrieve<RenderComponent>(entity);
-						colliderComponent.mesh = renderComponent.mesh;
+						colliderComponent.meshId = renderComponent.meshId;
 
 						for (Entity childEntity : childEntities)
 						{
@@ -152,7 +152,7 @@ void MapLoader::load(const std::string &filePath)
 								const RenderComponent &childRender = ecs.getComponentStore().retrieve<RenderComponent>(childEntity);
 								auto &childCollision = ecs.createComponent<ColliderComponent>(childEntity);
 								childCollision.colliderType = ColliderType::Mesh;
-								childCollision.mesh = childRender.mesh;
+								childCollision.meshId = childRender.meshId;
 							}
 						}
 					}
@@ -161,7 +161,6 @@ void MapLoader::load(const std::string &filePath)
 				{
 					const auto &comp = components["camera"];
 					auto &cameraComponent = ecs.createComponent<CameraComponent>(entity);
-					cameraComponent.direction = getVector(comp, "direction");
 					cameraComponent.up = getVector(comp, "up");
 				}
 				if (components.HasMember("movement"))

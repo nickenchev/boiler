@@ -12,10 +12,14 @@ namespace Boiler
 
 struct RenderComponent : public ComponentType<RenderComponent>
 {
-	Mesh mesh;
+	AssetId meshId;
 	bool hidden;
 
-	RenderComponent() : ComponentType(this) { hidden = false; }
+	RenderComponent() : ComponentType(this)
+	{
+		meshId = Asset::noAsset();
+		hidden = false;
+	}
 };
 
 }

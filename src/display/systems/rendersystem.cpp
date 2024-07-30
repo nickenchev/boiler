@@ -40,7 +40,8 @@ void RenderSystem::update(Renderer &renderer, AssetSet &assetSet, const FrameInf
 			Entity currentEntity = entity;
 
 			const static Material defaultMaterial;
-			for (const auto &primitiveId : render.mesh.primitives)
+			const Mesh &mesh = assetSet.meshes.get(render.meshId);
+			for (const auto &primitiveId : mesh.primitives)
 			{
 				const Primitive &primitive = assetSet.primitives(primitiveId);
 
