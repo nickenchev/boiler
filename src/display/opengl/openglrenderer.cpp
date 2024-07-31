@@ -10,7 +10,7 @@ using namespace Boiler;
 
 void messageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const *message, void const *user_param);
 
-GLuint program;
+GLuint prgBasic;
 glm::mat4 perspective(1), view(1);
 
 constexpr unsigned int maxLights = 10;
@@ -51,9 +51,9 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 
 	std::vector<GLuint> shaders;
 	logger.log("Creating shaders");
-	shaders.push_back(loadShader("shaders/gl/shader.vert", GL_VERTEX_SHADER));
-	shaders.push_back(loadShader("shaders/gl/shader.frag", GL_FRAGMENT_SHADER));
-	program = createProgram(shaders);
+	shaders.push_back(loadShader("shaders/gl/basic.vert", GL_VERTEX_SHADER));
+	shaders.push_back(loadShader("shaders/gl/basic.frag", GL_FRAGMENT_SHADER));
+	prgBasic = createProgram(shaders);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_DEBUG_OUTPUT);
@@ -179,7 +179,7 @@ void Boiler::OpenGLRenderer::shutdown()
 {
 	// delete other buffers
 	glDeleteBuffers(1, &lightsBuffer);
-	glDeleteProgram(program);
+	glDeleteProgram(prgBasic);
 
 	deleteFB();
 }
@@ -309,6 +309,7 @@ bool Boiler::OpenGLRenderer::prepareFrame(const Boiler::FrameInfo &frameInfo)
 void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::FrameInfo &frameInfo,
 	const std::vector<MaterialGroup> &materialGroups, Boiler::RenderStage stage)
 {
+	GLuint program = prgBasic;
 	glUseProgram(program);
 	GLint uniformMvp = glGetUniformLocation(program, "mvp");
 	GLint uniformModelMatrix = glGetUniformLocation(program, "modelMatrix");
@@ -353,7 +354,7 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 			if (matGroup.materialId != Asset::noAsset())
 			{
 				const Material &material = assetSet.materials.get(matGroup.materialId);
-				if (material.albedoTexture != Asset::noAsset())
+				//if (material.albedoTexture != Asset::noAsset())
 				{
 					if (material.albedoTexture != Asset::noAsset())
 					{
@@ -400,8 +401,10 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 							glUniformMatrix4fv(uniformOrpthoMatrix, 1, GL_FALSE, &orthoMatrix[0][0]);
 						}
 
+						GLuint primitiveType = primitive.type == PrimitiveType::triangles ? GL_TRIANGLES : GL_POINTS;
+
 						glBindVertexArray(buffers.getVertexArrayObject());
-						glDrawElements(GL_TRIANGLES, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
+						glDrawElements(primitiveType, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
 					}
 				}
 			}

@@ -1,6 +1,7 @@
 #pragma once
 #include "core/asset.h"
 #include "display/vertexdata.h"
+#include "display/primitivetype.h"
 
 namespace Boiler
 {
@@ -11,6 +12,7 @@ class Primitive : public Asset
 
 public:
 	AssetId bufferId, materialId;
+	PrimitiveType type;
 	vec3 min, max;
 
 	Primitive();

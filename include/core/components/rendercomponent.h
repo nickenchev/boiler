@@ -15,9 +15,9 @@ struct RenderComponent : public ComponentType<RenderComponent>
 	AssetId meshId;
 	bool hidden;
 
-	RenderComponent() : ComponentType(this)
+	RenderComponent(AssetId meshId = Asset::noAsset()) : ComponentType(this)
 	{
-		meshId = Asset::noAsset();
+		this->meshId = meshId;
 		hidden = false;
 	}
 };

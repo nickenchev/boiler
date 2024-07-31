@@ -14,6 +14,7 @@ Primitive::Primitive()
 Primitive::Primitive(AssetId bufferId, VertexData &&vertexData, vec3 min, vec3 max, AssetId materialId) : vertexData(vertexData)
 {
 	this->bufferId = bufferId;
+	this->type = PrimitiveType::triangles;
 	this->materialId = materialId;
 	this->min = min;
 	this->max = max;
