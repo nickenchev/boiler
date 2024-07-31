@@ -19,17 +19,17 @@ void EntityComponentSystem::endFrame()
 	}
 
 	// deferred component removals
-	for (; !removeComponents.empty(); removeComponents.pop())
+	for (;!removeComponents.empty(); removeComponents.pop())
 	{
-		const auto &deferred = removeComponents.front();
-		Entity entity = std::get<0>(deferred);
-		ComponentMask mask = std::get<1>(deferred);
-		unsigned int storageIndex = std::get<2>(deferred);
+		const auto &removable = removeComponents.front();
+		Entity entity = std::get<0>(removable);
+		ComponentMask mask = std::get<1>(removable);
+		unsigned int storageIndex = std::get<2>(removable);
 		removeComponent(entity, mask, storageIndex);
 	}
 
 	// check any entities that have been modified
-	for (; !deferredEntityChecks.empty(); deferredEntityChecks.pop())
+	for (;!deferredEntityChecks.empty(); deferredEntityChecks.pop())
 	{
 		const auto &item = deferredEntityChecks.front();
 		systems.checkEntity(std::get<Entity>(item), std::get<ComponentMask>(item));
