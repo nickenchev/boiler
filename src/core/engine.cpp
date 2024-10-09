@@ -61,7 +61,6 @@ void Engine::initialize(Renderer *renderer)
 	cleanedUp = false;
 	running = true;
 	updateInterval = (1.0f / 60);
-	prevTime = std::chrono::high_resolution_clock::now();
 
     // initialize basic engine stuff
     System &inputSystem = ecs.getComponentSystems().registerSystem<InputSystem>(SystemStage::IO, *this);
@@ -94,6 +93,7 @@ void Engine::initialize(Renderer *renderer)
     System &renderSys = ecs.getComponentSystems().registerSystem<RenderSystem>(SystemStage::RENDER, matrixCache);
     this->renderSystem = &renderSys;
 
+	prevTime = std::chrono::high_resolution_clock::now();
 }
 
 Engine::~Engine()

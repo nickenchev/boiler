@@ -93,7 +93,7 @@ void OpenGLRenderer::initializeFB(const Size &size)
 
 	glNamedFramebufferTexture(fboRender, GL_COLOR_ATTACHMENT0, fboAttachments[0], 0);
 	glNamedFramebufferTexture(fboRender, GL_DEPTH_ATTACHMENT, fboAttachments[1], 0);
-	
+
 	static const std::array<GLenum, 1> fboDrawBuffers{ GL_COLOR_ATTACHMENT0 };
 	glNamedFramebufferDrawBuffers(fboRender, fboDrawBuffers.size(), fboDrawBuffers.data());
 
@@ -217,7 +217,7 @@ Boiler::AssetId Boiler::OpenGLRenderer::loadTexture(const Boiler::ImageData &ima
 	const unsigned short numMipMaps = 4;
 	GLuint texture;
 	GLuint storageFormat = imageData.hasAlpha ? GL_SRGB8_ALPHA8 : GL_SRGB8;
-	storageFormat = imageData.hasAlpha ? GL_RGBA8: GL_RGB8;
+	storageFormat = imageData.hasAlpha ? GL_RGBA8 : GL_RGB8;
 	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
 	glTextureStorage2D(texture, numMipMaps, storageFormat, imageData.size.width, imageData.size.height);
 	glTextureSubImage2D(texture, 0, 0, 0, imageData.size.width, imageData.size.height, imageData.hasAlpha ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageData.pixelData);
@@ -401,10 +401,20 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 							glUniformMatrix4fv(uniformOrpthoMatrix, 1, GL_FALSE, &orthoMatrix[0][0]);
 						}
 
-						GLuint primitiveType = primitive.type == PrimitiveType::triangles ? GL_TRIANGLES : GL_POINTS;
-
 						glBindVertexArray(buffers.getVertexArrayObject());
-						glDrawElements(primitiveType, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
+
+						switch (primitive.type)
+						{
+							case PrimitiveType::triangles:
+							{
+								glDrawElements(GL_TRIANGLES, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
+								break;
+							}
+							case PrimitiveType::points:
+							{
+								glDrawElements(GL_POINTS, primitive.indexCount(), GL_UNSIGNED_INT, nullptr);
+							}
+						}
 					}
 				}
 			}
