@@ -3,6 +3,7 @@
 
 #include <string>
 #include "core/logger.h"
+#include "assets/assetset.h"
 
 namespace Boiler
 {
