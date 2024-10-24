@@ -16,7 +16,6 @@ find_package(Freetype REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(fmt REQUIRED)
-find_package(RapidJSON REQUIRED)
 
 add_subdirectory(libs/boiler-gltf)
 
