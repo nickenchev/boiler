@@ -1,5 +1,4 @@
-#ifndef ASSETMANAGER_H
-#define ASSETMANAGER_H
+#pragma once
 
 #include <array>
 #include <assert.h>
@@ -98,5 +97,3 @@ public:
 };
 
 }
-
-#endif /* ASSETMANAGER_H */
