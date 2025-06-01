@@ -12,9 +12,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
 find_package(OpenGL REQUIRED)
 find_package(glm REQUIRED)
-find_package(Freetype REQUIRED)
+find_package(freetype REQUIRED)
 find_package(Vulkan REQUIRED)
-find_package(ZLIB REQUIRED)
+find_package(zlib REQUIRED)
 find_package(fmt REQUIRED)
 
 add_subdirectory(libs/boiler-gltf)
@@ -181,7 +181,6 @@ target_include_directories(boiler
   ${INCLUDE_BASE}
   ${INCLUDE_BASE}/external
   ${INCLUDE_BASE}/tinyxml2
-  Freetype::Freetype
   ${RAPIDJSON_INCLUDE_DIRS}
 )
 
