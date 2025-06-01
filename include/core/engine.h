@@ -14,6 +14,7 @@
 #include "input/touchtapevent.h"
 #include "input/mousemotionevent.h"
 #include "input/keyinputevent.h"
+#include "input/inputsystem.h"
 #include "core/entitycomponentsystem.h"
 #include "display/systems/rendersystem.h"
 #include "display/systems/guisystem.h"
@@ -28,6 +29,8 @@ namespace Boiler
 class Entity;
 class Renderer;
 class Part;
+
+using PlatformHandler = std::function<void(InputSystem &)>;
 
 class Engine
 {
@@ -51,7 +54,7 @@ class Engine
     Time updateInterval;
 	std::chrono::high_resolution_clock::time_point prevTime;
 
-	std::function<void(FrameInfo &)> platformHandler;
+	PlatformHandler platformHandler;
     void processEvents(FrameInfo &frameInfo);
 
     std::shared_ptr<Part> part;
@@ -65,7 +68,11 @@ public:
 	void initialize(Renderer *renderer);
 	void shutdown();
     void start(std::shared_ptr<Part> part);
+
 	void step(FrameInfo &frameInfo);
+	void beginFrame(FrameInfo &frameInfo);
+	void performRender(FrameInfo &frameInfo);
+	void endFrame(FrameInfo &frameInfo);
     void quit() { running = false; }
 
 	RenderSystem &getRenderSystem()
@@ -73,6 +80,7 @@ public:
 		return static_cast<RenderSystem &>(*renderSystem);
 	}
 
+	InputSystem &getInputSystem() { return static_cast<InputSystem &>(*inputSystem); }
 	Renderer &getRenderer() { return *renderer; }
 	EntityComponentSystem &getEcs() { return ecs; }
 	Animator &getAnimator() { return animator; }
@@ -82,7 +90,7 @@ public:
 
 	bool isRunning() const { return running; }
 	void setMouseRelativeMode(bool enabled);
-	void setPlatformHandler(std::function<void(FrameInfo &)> handler) { this->platformHandler = handler; }
+	void setPlatformHandler(PlatformHandler handler) { this->platformHandler = handler; }
 };
 
 }

@@ -1,34 +1,8 @@
 #include <display/imaging/kritaloader.h>
 #include <fstream>
 #include <memory>
-#include <zlib.h>
 #include <display/imaging/stb.h>
-
-union HeaderSignature
-{
-	char data[4];
-	uint32_t asInteger;
-};
-
-template<int S>
-struct PKStructure
-{
-	constexpr static uint32_t Signature = S;
-};
-
-struct LocalFileHeader : public PKStructure<0x04034b50>
-{
-	char version[2];
-	char generalFlags[2];
-	char compressionMethod[2];
-	char lastModifiedTime[2];
-	char lastModifiedDate[2];
-	char crc32[4];
-	char sizeCompressed[4];
-	char sizeUncompressed[4];
-	char fileNameLength[2];
-	char extraFieldLength[2];
-};
+#include <util/compression.h>
 
 std::vector<char> loadKritaFile(const std::string &zipFile, const std::string &requestedFile)
 {

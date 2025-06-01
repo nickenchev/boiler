@@ -47,6 +47,7 @@ void Boiler::OpenGLRenderer::initialize(const Boiler::Size &size)
 	logger.log("Initializing Boiler OpenGL Renderer");
 	Renderer::initialize(size);
 
+	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(messageCallback, &logger);
 
 	std::vector<GLuint> shaders;
@@ -321,7 +322,7 @@ void Boiler::OpenGLRenderer::render(Boiler::AssetSet &assetSet, const Boiler::Fr
 	// update lights
 	GLint lightingBlockIndex = glGetUniformBlockIndex(program, "Lighting");
 	lighting.lights[0].lightType = 1;
-	lighting.lights[0].position = vec4(0, 0, 0, 0);
+	lighting.lights[0].position = vec4(0, 10, 0, 0);
 	lighting.lights[0].direction = vec4(-10, 10, 0, 1);
 	lighting.lights[0].ambient = vec4(1);
 	lighting.lights[0].diffuse = vec4(0.7, 0.7, 0.7, 1);

@@ -1,5 +1,4 @@
-#ifndef KEYINPUTEVENT_H
-#define KEYINPUTEVENT_H
+#pragma once
 
 #include <stdint.h>
 #include "inputevent.h"
@@ -10,12 +9,12 @@ namespace Boiler
 
 struct KeyInputEvent : public InputEvent
 {
-    //KeyCode keyCode;
     uint32_t keyCode;
     ButtonState state;
 
 	KeyInputEvent()
 	{
+        keyCode = 0;
 		state = ButtonState::NONE;
 	}
 
@@ -27,5 +26,3 @@ struct KeyInputEvent : public InputEvent
 };
 
 }
-
-#endif /* KEYINPUTEVENT_H */
