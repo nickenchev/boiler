@@ -6,14 +6,16 @@
 namespace Boiler
 {
 
+class Engine;
 class Renderer;
 
 class CameraSystem : public Boiler::System
 {
+	Engine &engine;
 	float prevXFactor, prevYFactor;
 
 public:
-	CameraSystem();
+	CameraSystem(Engine &engine);
 
     void update(Renderer &renderer, AssetSet &assetSet, const FrameInfo &frameInfo, EntityComponentSystem &ecs) override;
 };

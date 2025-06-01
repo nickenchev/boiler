@@ -10,7 +10,6 @@ namespace Boiler
 struct MovementComponent : public ComponentType<MovementComponent>
 {
 	bool moveLeft, moveRight, moveForward, moveBackward, moveUp, moveDown;
-	float mouseXDiff, mouseYDiff;
 
 	MovementComponent() : ComponentType(this)
 	{
@@ -20,8 +19,6 @@ struct MovementComponent : public ComponentType<MovementComponent>
 		moveBackward = false;
 		moveUp = false;
 		moveDown = false;
-		mouseXDiff = 0;
-		mouseYDiff = 0;
 	}
 };
 

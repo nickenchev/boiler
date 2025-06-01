@@ -81,7 +81,7 @@ void Engine::initialize(Renderer *renderer)
     System &guiSys = ecs.getComponentSystems().registerSystem<GUISystem>(SystemStage::RENDER, *renderer);
     this->guiSystem = &guiSys;
 
-    System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(SystemStage::RENDER);
+    System &cameraSystem = ecs.getComponentSystems().registerSystem<CameraSystem>(SystemStage::RENDER, *this);
     this->cameraSystem = &cameraSystem;
 
     System &lightingSys = ecs.getComponentSystems().registerSystem<LightingSystem>(SystemStage::RENDER);
@@ -101,17 +101,20 @@ Engine::~Engine()
 	assert(cleanedUp);
 }
 
-void Engine::step(FrameInfo &frameInfo)
+void Boiler::Engine::beginFrame(FrameInfo &frameInfo)
 {
-	auto newTime = std::chrono::high_resolution_clock::now();
+	frameInfo.currentTime = std::chrono::high_resolution_clock::now();
 	frameInfo.currentFrame = currentFrame;
 	frameInfo.deltaTime = updateInterval;
-	frameInfo.frameTime = std::chrono::duration<Time, std::chrono::seconds::period>(newTime - prevTime).count();
+	frameInfo.frameTime = std::chrono::duration<Time, std::chrono::seconds::period>(frameInfo.currentTime - prevTime).count();
 	frameInfo.frameCount = frameCount;
 
 	// input and IO systems
     processEvents(frameInfo);
+}
 
+void Engine::step(FrameInfo &frameInfo)
+{
 	// get the appropriate assetset
 	AssetSet &assetSet = getPart()->getAssetSet();
 
@@ -132,7 +135,11 @@ void Engine::step(FrameInfo &frameInfo)
 		frameInfo.globalTime = globalTime;
 		ecs.endFrame();
 	}
+}
 
+void Boiler::Engine::performRender(FrameInfo &frameInfo)
+{
+	AssetSet &assetSet = getPart()->getAssetSet();
 	// render related systems only run during render phase
 	// this is called before updateMatrices, wrong descriptor data
 	if (renderer->prepareFrame(frameInfo))
@@ -140,15 +147,18 @@ void Engine::step(FrameInfo &frameInfo)
 		ecs.update(*renderer, assetSet, frameInfo, SystemStage::RENDER);
 		renderer->finalizeFrame(frameInfo, assetSet);
 	}
+}
+
+void Boiler::Engine::endFrame(FrameInfo &frameInfo)
+{
 	matrixCache.reset();
 	frameCount++;
-	prevTime = newTime;
-	frameInfo.keyInputEvents.reset();
+	prevTime = frameInfo.currentTime;
 }
 
 void Engine::processEvents(FrameInfo &frameInfo)
 {
-	platformHandler(frameInfo);
+	platformHandler(static_cast<InputSystem &>(*inputSystem));
 }
 
 void Engine::setMouseRelativeMode(bool enabled)

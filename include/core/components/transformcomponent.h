@@ -1,6 +1,10 @@
 #pragma once
 
 #include <glm/gtc/matrix_transform.hpp>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+
 #include "core/componenttype.h"
 #include "core/math.h"
 

@@ -75,7 +75,6 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/input/keys.h
   ${INCLUDE_BASE}/assets/maps/maploader.h
   ${INCLUDE_BASE}/assets/maps/gamemap.h
-  # Animation related
   ${INCLUDE_BASE}/animation/animation.h
   ${INCLUDE_BASE}/animation/animationsampler.h
   ${INCLUDE_BASE}/animation/animator.h
@@ -97,6 +96,7 @@ set(BOILER_HEADERS
   ${INCLUDE_BASE}/assets/maps/sceneobject.h
   ${INCLUDE_BASE}/external/glad/glad.h
   ${INCLUDE_BASE}/util/filemanager.h
+  ${INCLUDE_BASE}/util/compression.h
 )
 
 # Engine related sources
@@ -151,6 +151,7 @@ set(BOILER_SOURCES
   ${SRC_BASE}/containers/gridposition.cpp
   ${SRC_BASE}/util/filemanager.cpp
   ${SRC_BASE}/util/tinyxml2.cpp
+  ${SRC_BASE}/util/compression.cpp
   ${SRC_BASE}/assets/gltfimporter.cpp
   ${SRC_BASE}/assets/maploader.cpp
   ${SRC_BASE}/physics/movementsystem.cpp
